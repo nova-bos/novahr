@@ -3,9 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { employmentTypeLabel, formatCurrency, formatDate, maskAccountNumber } from "@/lib/format";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { useCurrentTenant, useEmployees } from "@/lib/store/hooks";
-import { buildEmployeeFromForm } from "./build-employee";
+import { buildEmployeeFromForm } from "@/lib/employees/form-builder";
 import type { NewEmployeeForm } from "./types";
 
 function ReviewRow({ label, value }: { label: string; value: string }) {

@@ -5,4 +5,3 @@ export * from "./leave";
 export * from "./payroll";
 export * from "./activity";
 export * from "./notifications";
-export * from "./settings";

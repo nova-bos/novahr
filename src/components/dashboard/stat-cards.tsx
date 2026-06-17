@@ -2,7 +2,7 @@
 
 import { CalendarClock, ClipboardList, Users, Wallet } from "lucide-react";
 import { useEmployees, useLeaveRequests, usePayrollRuns } from "@/lib/store/hooks";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrencyCompact, formatDate } from "@/lib/format";
 import { StatCardGrid, type StatItem } from "./stat-card-grid";
 

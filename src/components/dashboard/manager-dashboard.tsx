@@ -18,7 +18,7 @@ import { StatusBadge } from "@/components/employees/status-badge";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useCanDecideRequest, useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
 import { useApp } from "@/lib/store/app-provider";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrencyCompact, formatDate, formatDateLong, getInitials, leaveTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DashboardHeader } from "./dashboard-header";

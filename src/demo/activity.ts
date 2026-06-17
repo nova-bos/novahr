@@ -1,4 +1,4 @@
-import type { ActivityItem } from "../types";
+import type { ActivityItem } from "@/lib/types";
 
 export const activityFeed: ActivityItem[] = [
   // NovaTech Solutions

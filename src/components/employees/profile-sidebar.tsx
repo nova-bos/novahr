@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency, formatDate, leaveTypeLabel } from "@/lib/format";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import type { Employee } from "@/lib/types";
 
 function formatTenure(startDate: string): string {

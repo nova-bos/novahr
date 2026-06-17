@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { useApp } from "./app-provider";
-import { getPayrollConfig, leavePolicies, tenants } from "../data";
+import { tenants } from "@/demo/tenants";
+import { leavePolicies } from "@/lib/config/leave";
+import { getPayrollConfig } from "@/lib/config/payroll";
 import type {
   ActivityItem,
   Department,

@@ -1,6 +1,6 @@
-import type { Employee, EmploymentStatus, EmploymentType, LeaveBalance, LeaveType, Onboarding } from "./types";
-import { getInitials } from "./format";
-import { ONBOARDING_STEPS } from "./data/employees";
+import type { Employee, EmploymentStatus, EmploymentType, LeaveBalance, LeaveType, Onboarding } from "@/lib/types";
+import { getInitials } from "@/lib/format";
+import { ONBOARDING_STEPS } from "@/demo/employees";
 
 const AVATAR_COLORS = [
   "#4C6FFF",

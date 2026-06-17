@@ -1,6 +1,6 @@
-import type { Employee, PayrollRun, Payslip } from "../types";
-import { buildPayslip } from "../payroll-calc";
-import { formatMonthYear } from "../format";
+import type { Employee, PayrollRun, Payslip } from "@/lib/types";
+import { buildPayslip } from "@/lib/payroll/calculator";
+import { formatMonthYear } from "@/lib/format";
 import { getEmployeesByTenant } from "./employees";
 import { tenants } from "./tenants";
 

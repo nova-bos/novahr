@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useEmployees, usePayrollRuns } from "@/lib/store/hooks";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatDateLong, formatMonthYear } from "@/lib/format";
 
 export function UpcomingPayrollCard() {

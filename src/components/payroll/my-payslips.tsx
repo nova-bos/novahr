@@ -15,7 +15,7 @@ import {
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import { useCurrentEmployee } from "@/lib/auth/scope";
 import { usePayrollRuns, usePayslipsByEmployee } from "@/lib/store/hooks";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatCurrencyCompact, formatDate, formatMonthYear } from "@/lib/format";
 import type { Payslip } from "@/lib/types";
 import { PayslipDialog } from "./payslip-dialog";

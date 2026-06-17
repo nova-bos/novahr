@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { payFrequencyOptions } from "@/lib/data";
+import { payFrequencyOptions } from "@/lib/config/leave";
 import { formatCurrency, formatOrdinal } from "@/lib/format";
 import { useCurrentTenant, useDepartments, useEmployees, usePayrollConfig } from "@/lib/store/hooks";
 

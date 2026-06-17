@@ -5,8 +5,8 @@ import type {
   LeaveBalance,
   LeaveType,
   Onboarding,
-} from "../types";
-import { getInitials } from "../format";
+} from "@/lib/types";
+import { getInitials } from "@/lib/format";
 
 export const AVATAR_COLORS = [
   "#4C6FFF",

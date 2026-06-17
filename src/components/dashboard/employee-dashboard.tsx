@@ -22,7 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { NewLeaveRequestDialog } from "@/components/leave/new-leave-request-dialog";
 import { useCurrentEmployee } from "@/lib/auth/scope";
 import { useEmployee, usePayslipsByEmployee } from "@/lib/store/hooks";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import {
   employmentTypeLabel,
   formatCurrency,

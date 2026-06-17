@@ -2,13 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { tenants } from "@/lib/data/tenants";
-import { getEmployeesByTenant } from "@/lib/data/employees";
-import { departments } from "@/lib/data/departments";
-import { leaveRequests } from "@/lib/data/leave";
-import { payrollRuns, payslips } from "@/lib/data/payroll";
-import { activityFeed } from "@/lib/data/activity";
-import { notifications } from "@/lib/data/notifications";
+import { tenants } from "@/demo/tenants";
+import { getEmployeesByTenant } from "@/demo/employees";
+import { departments } from "@/demo/departments";
+import { leaveRequests } from "@/demo/leave";
+import { payrollRuns, payslips } from "@/demo/payroll";
+import { activityFeed } from "@/demo/activity";
+import { notifications } from "@/demo/notifications";
 import { parseTimestamp } from "@/lib/workspace/mappers";
 import { demoUsers } from "@/lib/auth/demo-users";
 

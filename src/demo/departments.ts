@@ -1,4 +1,4 @@
-import type { Department } from "../types";
+import type { Department } from "@/lib/types";
 
 export const departments: Department[] = [
   // NovaTech Solutions

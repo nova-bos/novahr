@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useDepartments, useEmployees } from "@/lib/store/hooks";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatCurrencyCompact } from "@/lib/format";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import { HeadcountChart } from "./headcount-chart";

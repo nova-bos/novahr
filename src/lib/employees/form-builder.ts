@@ -1,7 +1,7 @@
-import { AVATAR_COLORS, defaultLeaveBalances, onboardingPlan } from "@/lib/data/employees";
+import { AVATAR_COLORS, defaultLeaveBalances, onboardingPlan } from "@/demo/employees";
 import { getInitials } from "@/lib/format";
 import type { Employee, Tenant } from "@/lib/types";
-import type { NewEmployeeForm } from "./types";
+import type { NewEmployeeForm } from "@/components/employees/onboarding/types";
 
 export function buildEmployeeFromForm(
   form: NewEmployeeForm,

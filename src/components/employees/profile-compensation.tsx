@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatDate, maskAccountNumber } from "@/lib/format";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { usePayslipsByEmployee } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
 

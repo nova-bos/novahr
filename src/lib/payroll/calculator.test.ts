@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildPayslip, calculateMonthlyPayroll, incrementPeriod } from "./payroll-calc";
-import type { Employee, SalaryInfo } from "./types";
+import { buildPayslip, calculateMonthlyPayroll, incrementPeriod } from "./calculator";
+import type { Employee, SalaryInfo } from "@/lib/types";
 
 function makeEmployee(salary: SalaryInfo): Employee {
   return {

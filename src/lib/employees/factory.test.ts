@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createEmployee, newOnboardingPlan, type NewEmployeeInput } from "./employee-factory";
-import { ONBOARDING_STEPS } from "./data/employees";
+import { createEmployee, newOnboardingPlan, type NewEmployeeInput } from "./factory";
+import { ONBOARDING_STEPS } from "@/demo/employees";
 
 function makeInput(overrides: Partial<NewEmployeeInput> = {}): NewEmployeeInput {
   return {

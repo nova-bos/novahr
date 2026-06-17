@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant, useEmployees } from "@/lib/store/hooks";
-import { buildEmployeeFromForm } from "./build-employee";
+import { buildEmployeeFromForm } from "@/lib/employees/form-builder";
 import { StepCompensation } from "./step-compensation";
 import { StepPersonal } from "./step-personal";
 import { StepRole } from "./step-role";

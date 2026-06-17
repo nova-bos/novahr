@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPayrollConfig, payrollConfigs } from "./settings";
+import { getPayrollConfig, payrollConfigs } from "./payroll";
 
 describe("getPayrollConfig", () => {
   it("returns the configured payroll config for a known tenant", () => {

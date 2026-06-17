@@ -14,8 +14,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useTenants } from "@/lib/store/hooks";
-import { employees, getDepartmentsByTenant, leaveRequests } from "@/lib/data";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { employees, getDepartmentsByTenant, leaveRequests } from "@/demo";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrencyCompact, formatDateLong } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { DashboardHeader } from "./dashboard-header";

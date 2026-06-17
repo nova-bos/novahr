@@ -1,4 +1,4 @@
-import type { NotificationItem } from "../types";
+import type { NotificationItem } from "@/lib/types";
 
 export const notifications: NotificationItem[] = [
   // NovaTech Solutions

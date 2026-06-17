@@ -1,4 +1,4 @@
-import type { LeaveRequest } from "../types";
+import type { LeaveRequest } from "@/lib/types";
 
 export const leaveRequests: LeaveRequest[] = [
   // NovaTech Solutions

@@ -3,7 +3,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatMonthYear } from "@/lib/format";
-import { buildPayslip, incrementPeriod } from "@/lib/payroll-calc";
+import { buildPayslip, incrementPeriod } from "./calculator";
 import type { ActivityItem, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
   mapActivityItem,

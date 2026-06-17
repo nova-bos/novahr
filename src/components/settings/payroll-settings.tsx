@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { payFrequencyOptions } from "@/lib/data";
+import { payFrequencyOptions } from "@/lib/config/leave";
 import { useCurrentTenant, usePayrollConfig } from "@/lib/store/hooks";
 import type { PayFrequency } from "@/lib/types";
 import { SettingRow } from "./setting-row";

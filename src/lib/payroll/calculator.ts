@@ -1,4 +1,4 @@
-import type { Employee, Payslip, PayslipLineItem } from "./types";
+import type { Employee, Payslip, PayslipLineItem } from "@/lib/types";
 
 const TAX_BRACKETS_2025 = [
   { upTo: 237_100, rate: 0.18, base: 0 },

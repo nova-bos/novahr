@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { useApp } from "@/lib/store/app-provider";
 import { useEmployees, usePayrollRuns } from "@/lib/store/hooks";
-import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
+import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatDateLong, formatMonthYear } from "@/lib/format";
 import { PayrollStatusBadge } from "./payroll-status-badge";
 
