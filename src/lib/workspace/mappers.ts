@@ -33,8 +33,8 @@ export function toTimestamp(date: Date): string {
 }
 
 /**
- * Pins a naive datetime string (no `Z`/offset, as used in `src/lib/data/activity.ts`,
- * `notifications.ts`, and `payroll.ts`'s `processedOn`) to UTC, so seed-write and
+ * Pins a naive datetime string (no `Z`/offset, as used in `src/demo/activity.ts`,
+ * `src/demo/notifications.ts`, and `src/demo/payroll.ts`'s `processedOn`) to UTC, so seed-write and
  * read-back round-trip to the same string regardless of server timezone.
  */
 export function parseTimestamp(value: string): Date {

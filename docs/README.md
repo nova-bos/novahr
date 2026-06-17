@@ -1,14 +1,13 @@
-# NovaHR — Phase 1: Real Data, Real Accounts
+# NovaHR — Developer Documentation
 
-This is the developer documentation for **Phase 1** and **Phase 2** of the NovaHR build:
-moving the app from in-memory demo data + localStorage "auth" onto a real Postgres database
-(Supabase) and real Supabase Auth accounts (Phase 1), then migrating the rest of the
-app — employees, departments, leave, payroll, activity, notifications — onto that same
-database (Phase 2).
+This is the developer documentation for the NovaHR build — Phases 1 through 4:
+moving the app from an in-memory demo onto a real Supabase Postgres database and Supabase
+Auth (Phases 1–2), adding payslip PDF export (Phase 3), and building the public-facing
+marketing and pricing pages (Phase 4).
 
 If you're picking this codebase up for the first time, read these docs in order:
 
-1. **This file** — what changed, and how to get a local environment running.
+1. **This file** — what changed across all phases, and how to get a local environment running.
 2. [`database.md`](./database.md) — the Prisma schema, the data model, and `src/lib/prisma.ts`.
 3. [`auth.md`](./auth.md) — Supabase Auth wiring (browser/server clients, middleware,
    `AuthProvider`, `useAuth()`).
@@ -20,8 +19,14 @@ If you're picking this codebase up for the first time, read these docs in order:
    `/reset-password` pages and the server actions behind them.
 7. [`seed-data.md`](./seed-data.md) — the seed script and the full demo dataset for all 3
    tenants, plus the 4 demo personas used for sales demos.
-8. [`testing.md`](./testing.md) — the Vitest unit test suite covering Phase 1 and Phase 2
-   code, how to run it, and the patterns to follow for new tests.
+8. [`testing.md`](./testing.md) — the Vitest unit test suite (20 files / 157 tests), how to
+   run it, and the patterns to follow for new tests.
+9. [`phase3-payslip-pdf.md`](./phase3-payslip-pdf.md) — payslip PDF export via browser print
+   (`src/lib/payroll/print.ts`).
+10. [`phase4-landing-page.md`](./phase4-landing-page.md) — the public marketing landing page,
+    pricing tiers, and route protection model.
+11. [`uat-checklist.md`](./uat-checklist.md) — manual UAT checklist (checkbox format) to sign
+    off Phase 1 + 2 before moving to Phase 3.
 
 ## What changed in Phase 1
 

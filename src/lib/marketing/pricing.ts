@@ -1,0 +1,74 @@
+export interface PricingTier {
+  id: "starter" | "growth";
+  name: string;
+  monthlyPrice: number;
+  maxEmployees: number;
+  tagline: string;
+  features: string[];
+  highlighted: boolean;
+}
+
+export const PRICING_TIERS: PricingTier[] = [
+  {
+    id: "starter",
+    name: "Starter",
+    monthlyPrice: 499,
+    maxEmployees: 10,
+    tagline: "For growing teams",
+    highlighted: false,
+    features: [
+      "Up to 10 employees",
+      "Employee management & profiles",
+      "Leave management & approvals",
+      "Payroll & payslip generation",
+      "Role-based access (Employee / Manager / HR)",
+      "Basic reports",
+      "Email support",
+    ],
+  },
+  {
+    id: "growth",
+    name: "Growth",
+    monthlyPrice: 999,
+    maxEmployees: 30,
+    tagline: "For scaling companies",
+    highlighted: true,
+    features: [
+      "Up to 30 employees",
+      "Everything in Starter",
+      "Multi-department structure",
+      "Advanced payroll & leave reports",
+      "Priority support",
+    ],
+  },
+];
+
+export function getMonthlyPrice(tierId: PricingTier["id"]): number {
+  const tier = PRICING_TIERS.find((t) => t.id === tierId);
+  if (!tier) {
+    throw new Error(`Unknown tier id: ${tierId}`);
+  }
+  return tier.monthlyPrice;
+}
+
+export function getAnnualPrice(tierId: PricingTier["id"]): number {
+  return getMonthlyPrice(tierId) * 12;
+}
+
+export function tierFitsEmployeeCount(
+  tierId: PricingTier["id"],
+  count: number
+): boolean {
+  const tier = PRICING_TIERS.find((t) => t.id === tierId);
+  if (!tier) {
+    throw new Error(`Unknown tier id: ${tierId}`);
+  }
+  return count <= tier.maxEmployees;
+}
+
+export function suggestTier(
+  employeeCount: number
+): PricingTier["id"] | null {
+  const match = PRICING_TIERS.find((t) => t.maxEmployees >= employeeCount);
+  return match ? match.id : null;
+}

@@ -1,15 +1,19 @@
 "use client";
 
+import { Download } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatDate, getInitials } from "@/lib/format";
+import { printPayslip } from "@/lib/payroll/print";
 import type { Employee, Payslip } from "@/lib/types";
 
 export function PayslipDialog({
@@ -96,6 +100,13 @@ export function PayslipDialog({
             {formatCurrency(payslip.netPay)}
           </span>
         </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => printPayslip(employee, payslip)}>
+            <Download />
+            Download payslip
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

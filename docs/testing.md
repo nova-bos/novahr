@@ -8,12 +8,12 @@ npm test
 ```
 
 This runs `vitest run` (see `package.json`'s `test` script) — a single non-watch pass over
-every `*.test.ts` file under `src/`. As of Phase 2 that's **18 files / 134 tests**, all
+every `*.test.ts` file under `src/`. As of Phase 4 that's **20 files / 157 tests**, all
 pure unit tests (no real database, no Supabase, no browser):
 
 ```
- Test Files  18 passed (18)
-      Tests  134 passed (134)
+ Test Files  20 passed (20)
+      Tests  157 passed (157)
 ```
 
 Use `npx vitest` (no `run`) for watch mode while developing, or
@@ -36,6 +36,8 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    exclude: ["node_modules", ".claude"],
   },
 });
 ```
@@ -60,21 +62,23 @@ Two things matter here for anyone adding new tests:
 
 | File | Tests | What it covers |
 | --- | --- | --- |
-| `src/lib/data/activity.test.ts` | 3 | `getActivityByTenant`, ordering/filtering of the static activity feed |
-| `src/lib/data/departments.test.ts` | 2 | `getDepartmentsByTenant` |
-| `src/lib/data/employees.test.ts` | 8 | `defaultLeaveBalances`, `onboardingPlan`, `getEmployeesByTenant`, `getEmployee` |
-| `src/lib/data/leave.test.ts` | 4 | `getLeaveRequestsByTenant`, `getLeaveRequestsByEmployee` |
-| `src/lib/data/notifications.test.ts` | 2 | `getNotificationsByTenant` |
-| `src/lib/data/payroll.test.ts` | 9 | payroll run/payslip generation helpers in `src/lib/data/payroll.ts` |
-| `src/lib/data/settings.test.ts` | 2 | `getLeavePolicy`, `getPayrollConfig` fallback behaviour |
-| `src/lib/data/tenants.test.ts` | 2 | static tenant lookup helpers |
-| `src/lib/employee-factory.test.ts` | 11 | `createEmployee`, `newOnboardingPlan` |
+| `src/demo/activity.test.ts` | 3 | `getActivityByTenant` — ordering/filtering of the static activity feed |
+| `src/demo/departments.test.ts` | 2 | `getDepartmentsByTenant` |
+| `src/demo/employees.test.ts` | 8 | `defaultLeaveBalances`, `onboardingPlan`, `getEmployeesByTenant`, `getEmployee` |
+| `src/demo/leave.test.ts` | 4 | `getLeaveRequestsByTenant`, `getLeaveRequestsByEmployee` |
+| `src/demo/notifications.test.ts` | 2 | `getNotificationsByTenant` |
+| `src/demo/payroll.test.ts` | 9 | payroll run/payslip generation helpers in `src/demo/payroll.ts` |
+| `src/demo/tenants.test.ts` | 2 | static tenant lookup helpers |
+| `src/lib/config/payroll.test.ts` | 2 | `getPayrollConfig` — known tenant config and fallback defaults |
 | `src/lib/employees/actions.test.ts` | 8 | `createEmployeeRecord`, `updateEmployeeRecord`, `toggleOnboardingStepRecord` (Server Actions, mocked Prisma) |
+| `src/lib/employees/factory.test.ts` | 11 | `createEmployee`, `newOnboardingPlan` |
 | `src/lib/format.test.ts` | 29 | every formatter in `src/lib/format.ts` (currency, dates, labels, relative time, ordinals, masking) |
 | `src/lib/leave/actions.test.ts` | 5 | `createLeaveRequestRecord`, `decideLeaveRequestRecord` (Server Actions, mocked Prisma) |
+| `src/lib/marketing/pricing.test.ts` | 12 | `getMonthlyPrice`, `getAnnualPrice`, `tierFitsEmployeeCount`, `suggestTier` in `src/lib/marketing/pricing.ts` |
 | `src/lib/notifications/actions.test.ts` | 2 | `markNotificationReadRecord`, `markAllNotificationsReadRecord` (Server Actions, mocked Prisma) |
-| `src/lib/payroll-calc.test.ts` | 8 | `calculateMonthlyPayroll`, `buildPayslip`, `incrementPeriod` (PAYE/UIF math) |
 | `src/lib/payroll/actions.test.ts` | 3 | `startPayrollRunRecord`, `completePayrollRunRecord` (Server Actions, mocked Prisma) |
+| `src/lib/payroll/calculator.test.ts` | 8 | `calculateMonthlyPayroll`, `buildPayslip`, `incrementPeriod` (PAYE/UIF math) |
+| `src/lib/payroll/print.test.ts` | 11 | `buildPayslipHtml` — HTML output contains correct employee data, currency values, and DOCTYPE |
 | `src/lib/store/app-provider.test.ts` | 16 | the `reducer` function — every `AppState` action type |
 | `src/lib/workspace/actions.test.ts` | 2 | `getTenantWorkspace` (Server Action, mocked Prisma) |
 | `src/lib/workspace/mappers.test.ts` | 18 | every Prisma-row → app-type mapper in `src/lib/workspace/mappers.ts`, plus the date helpers |
@@ -82,18 +86,17 @@ Two things matter here for anyone adding new tests:
 These fall into four patterns, described below. New tests should follow whichever pattern
 matches the code being tested.
 
-## Pattern 1 — static data validation (`src/lib/data/*.test.ts`)
+## Pattern 1 — static data validation (`src/demo/*.test.ts`)
 
-These test the static demo-data modules under `src/lib/data/` (still used for things
-explicitly deferred from the DB — see [`database.md`](./database.md#whats-not-in-the-database-yet)
-— and for cross-tenant views, see
+These test the static demo-data modules under `src/demo/` (used for the seeded demo dataset
+and for cross-tenant views — see
 [`data-layer.md`](./data-layer.md#cross-tenant-views-exco-dashboard--tenants-page)). No
 mocking is needed — they import the real arrays and helper functions and assert on shape,
-filtering, and ordering. Example, from `src/lib/data/employees.test.ts`:
+filtering, and ordering. Example, from `src/demo/employees.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
-import { getEmployee, getEmployeesByTenant } from "./employees";
+import { getEmployee, getEmployeesByTenant } from "@/demo/employees";
 
 describe("getEmployeesByTenant", () => {
   it("returns an empty array for an unknown tenant", () => {
@@ -104,8 +107,10 @@ describe("getEmployeesByTenant", () => {
 
 ## Pattern 2 — pure functions (mappers, factories, formatters, payroll math)
 
-`src/lib/workspace/mappers.test.ts`, `src/lib/employee-factory.test.ts`,
-`src/lib/format.test.ts`, and `src/lib/payroll-calc.test.ts` test plain functions with
+`src/lib/workspace/mappers.test.ts`, `src/lib/employees/factory.test.ts`,
+`src/lib/format.test.ts`, `src/lib/payroll/calculator.test.ts`,
+`src/lib/payroll/print.test.ts`, and `src/lib/marketing/pricing.test.ts` test plain
+functions with
 literal input objects and no mocking. `format.test.ts` additionally uses
 `vi.useFakeTimers()` / `vi.setSystemTime()` to pin "now" for `formatRelativeTime`:
 
@@ -257,8 +262,8 @@ following the same `{ ...defaults, ...overrides }` shape — see
 
 ## Adding new tests
 
-- **New static data helper** → Pattern 1 (`src/lib/data/*.test.ts`).
-- **New pure function/mapper** → Pattern 2, no mocking.
+- **New demo-data helper** → Pattern 1 (`src/demo/*.test.ts`).
+- **New pure function/mapper/pricing utility** → Pattern 2, no mocking.
 - **New reducer action** → Pattern 3; add a `describe` block to `app-provider.test.ts` with
   a fixture builder if one doesn't already exist for that record type.
 - **New Server Action that touches Prisma** → Pattern 4. Put the test next to the action
