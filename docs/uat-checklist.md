@@ -161,6 +161,66 @@ Test using the demo personas at **http://localhost:3000/login**:
 
 ---
 
+## Phase 3 — Payslip PDF Export
+
+### Download from HR run view
+
+- [ ] Sign in as **Lerato (HR)** → go to Payroll → click a completed run → click a payslip row
+- [ ] The payslip dialog opens with a **"Download payslip"** button in the footer
+- [ ] Clicking the button opens a print preview window with a formatted payslip (employee name, pay period, earnings, deductions, net pay)
+- [ ] The payslip print window shows "NovaHR" branding and a generation date
+- [ ] Printing or saving as PDF produces a clean single-page document (no sidebar, no nav)
+- [ ] After dismissing the print dialog the popup window closes automatically
+
+### Download from employee view
+
+- [ ] Sign in as **Aisha (Employee)** → go to her payslip history → click "View" on a payslip
+- [ ] The same payslip dialog opens with a "Download payslip" button
+- [ ] The print window shows Aisha's correct employee details and amounts
+
+### Edge cases
+
+- [ ] **Popup blocked**: if the browser blocks the popup, the app does not crash (the download button does nothing — no error overlay)
+- [ ] **No payslip selected**: the download button is not visible when the dialog is closed or has no payslip loaded
+
+---
+
+## Phase 4 — Landing Page & Pricing
+
+### Public landing page (`/`)
+
+- [ ] Navigate to `http://localhost:3000` while **logged out** → the landing page loads (not a redirect to `/login`)
+- [ ] The page has a sticky navigation bar with the NovaHR logo, a "Sign in" button, and a "Get started" button
+- [ ] The hero section shows the headline, subheadline, and two CTA buttons ("Get started free" and "Sign in")
+- [ ] Three trust badges are visible below the hero CTAs (SA payroll compliant, POPIA ready, Free to start)
+- [ ] A mock dashboard preview card is visible in the hero section
+- [ ] Scrolling down reveals the Features section with 6 feature cards (Payroll Engine, Leave Management, Employee Profiles, Role-Based Access, Multi-Company, Payslip Delivery)
+- [ ] Scrolling further reveals the Pricing section with two cards (Starter R499/month and Growth R999/month)
+- [ ] The Growth pricing card has a "Most popular" badge and a highlighted border
+- [ ] The footer is visible at the bottom with logo, copyright, and navigation links
+- [ ] "Features" and "Pricing" links in the nav/footer scroll to the correct sections on the page
+
+### Navigation from landing page
+
+- [ ] Clicking "Sign in" (nav or hero) → navigates to `/login`
+- [ ] Clicking "Get started" or "Get started free" (nav or hero) → navigates to `/signup`
+- [ ] Clicking "Get started" on the Starter pricing card → navigates to `/signup`
+- [ ] Clicking "Get started" on the Growth pricing card → navigates to `/signup`
+
+### Auth redirect from landing page
+
+- [ ] Navigate to `http://localhost:3000` while **logged in** → immediately redirected to `/dashboard` (landing page is not shown to authenticated users)
+- [ ] After signing out, navigating to `http://localhost:3000` shows the landing page again
+
+### Responsive layout
+
+- [ ] Open Chrome DevTools → toggle device toolbar → set to iPhone 12 (390px wide)
+- [ ] The landing page renders correctly at mobile width — no horizontal scroll, no overlapping elements
+- [ ] Nav buttons remain visible and tappable on mobile
+- [ ] Pricing cards stack vertically on mobile
+
+---
+
 ## Edge Cases
 
 - [ ] **Slow connection simulation**: open Chrome DevTools → Network → set throttle to "Slow 3G" → sign in — loading states appear (spinner/skeleton) and the app doesn't crash or show blank screens
@@ -177,4 +237,4 @@ Test using the demo personas at **http://localhost:3000/login**:
 - [ ] No console errors on any tested page (open DevTools → Console while testing)
 - [ ] No broken/white pages on any route
 
-**Ready for Phase 3** (landing page, pricing, domain) once all boxes are ticked.
+**Ready for Phase 5** (domain, legal docs, first client onboarding) once all boxes are ticked.
