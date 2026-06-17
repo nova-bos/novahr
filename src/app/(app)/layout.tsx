@@ -11,7 +11,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <SidebarInset>
           <Topbar />
-          <main className="flex flex-1 flex-col gap-6 p-4 sm:p-6">
+          <main className="flex min-w-0 flex-1 flex-col gap-6 p-4 sm:p-6">
             <PageTransition>{children}</PageTransition>
           </main>
         </SidebarInset>

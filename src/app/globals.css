@@ -56,6 +56,10 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+html {
+  overflow-x: hidden;
+}
+
 :root {
   --background: oklch(0.978 0.004 247);
   --foreground: oklch(0.232 0.013 258);
