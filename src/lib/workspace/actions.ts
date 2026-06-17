@@ -33,6 +33,11 @@ export interface TenantWorkspace {
   notifications: NotificationItem[];
 }
 
+export async function getAllTenants(): Promise<Tenant[]> {
+  const rows = await prisma.tenant.findMany({ orderBy: { name: "asc" } });
+  return rows.map(mapTenant);
+}
+
 /**
  * Loads everything `AppProvider` needs for a tenant in one round trip. Returns
  * `null` if the tenant doesn't exist (shouldn't happen for a signed-in user).

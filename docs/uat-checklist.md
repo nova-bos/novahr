@@ -221,6 +221,56 @@ Test using the demo personas at **http://localhost:3000/login**:
 
 ---
 
+## MVP Polish — Settings Persistence
+
+### Company settings
+
+- [ ] Sign in as **Lerato (HR)** → go to Settings → Company tab
+- [ ] Change the company name or address → click "Save changes"
+- [ ] **Refresh the page** — the updated values are still there (persisted to database)
+- [ ] The save button shows "Saving..." while the request is in flight and returns to "Save changes" on completion
+- [ ] A network failure shows an error toast ("Couldn't save changes") instead of a false success
+
+### Payroll settings
+
+- [ ] Go to Settings → Payroll tab
+- [ ] Change the pay frequency or pay day → click "Save changes" on the first card
+- [ ] **Refresh the page** — the updated pay frequency/day is still there
+- [ ] The statutory reference number fields (PAYE, UIF, SDL) are **disabled** (display only) — no save button on that card
+- [ ] The UIF and SDL toggles can be toggled → persists after a page refresh (stored in browser localStorage)
+
+### Leave policy settings
+
+- [ ] Go to Settings → Leave policies tab
+- [ ] All fields are **read-only** (disabled inputs, no save button)
+- [ ] An informational banner is visible explaining customization is coming in a future update
+
+### Notification settings
+
+- [ ] Go to Settings → Notifications tab
+- [ ] Toggle some preferences off → click "Save changes"
+- [ ] **Refresh the page** — the same toggles are still off (stored in browser localStorage)
+
+---
+
+## MVP Polish — Exco Live Tenants
+
+- [ ] Sign in as **Michael (Exco)** → go to the Tenants page
+- [ ] The three companies shown match what's in the database (NovaTech, Apex, Horizon) — not hardcoded placeholders
+- [ ] After adding a new company via `/signup`, signing in as Michael and viewing Tenants shows the new company in the list
+
+---
+
+## MVP Polish — New Company Empty State
+
+- [ ] Create a new company via `/signup` → sign in as the new HR admin
+- [ ] The dashboard shows a **"Welcome to NovaHR"** getting-started card (not empty stat cards)
+- [ ] The card has three steps: Add your first employee, Review leave policies, Run your first payroll
+- [ ] Each step has a working link to the correct page
+- [ ] Once the first employee is added, **refresh** — the welcome card is gone and the normal dashboard appears
+
+---
+
 ## Edge Cases
 
 - [ ] **Slow connection simulation**: open Chrome DevTools → Network → set throttle to "Slow 3G" → sign in — loading states appear (spinner/skeleton) and the app doesn't crash or show blank screens

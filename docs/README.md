@@ -19,14 +19,27 @@ If you're picking this codebase up for the first time, read these docs in order:
    `/reset-password` pages and the server actions behind them.
 7. [`seed-data.md`](./seed-data.md) — the seed script and the full demo dataset for all 3
    tenants, plus the 4 demo personas used for sales demos.
-8. [`testing.md`](./testing.md) — the Vitest unit test suite (20 files / 157 tests), how to
+8. [`testing.md`](./testing.md) — the Vitest unit test suite (21 files / 163 tests), how to
    run it, and the patterns to follow for new tests.
 9. [`phase3-payslip-pdf.md`](./phase3-payslip-pdf.md) — payslip PDF export via browser print
    (`src/lib/payroll/print.ts`).
 10. [`phase4-landing-page.md`](./phase4-landing-page.md) — the public marketing landing page,
     pricing tiers, and route protection model.
-11. [`uat-checklist.md`](./uat-checklist.md) — manual UAT checklist (checkbox format) to sign
-    off Phase 1 + 2 before moving to Phase 3.
+11. [`uat-checklist.md`](./uat-checklist.md) — manual UAT checklist (checkbox format) covering
+    all phases plus the MVP polish improvements.
+
+## MVP improvements (post-Phase 4)
+
+- **Settings persistence** — Company profile and payroll settings (pay frequency, pay day,
+  bank) now write to Postgres via `src/lib/tenant/actions.ts`. Statutory reference fields are
+  display-only. Leave policy settings are read-only with an informational note. Notification
+  preferences persist to `localStorage`.
+- **Exco live tenants** — The tenants page now fetches real companies from the DB via
+  `getAllTenants()` in `src/lib/workspace/actions.ts` instead of the static demo array.
+- **New company empty state** — HR admins with zero employees see a "Get started" welcome card
+  (`src/components/dashboard/getting-started-card.tsx`) with three guided steps.
+- **Landing page hero** — The mock dashboard preview in the hero section now shows a branded
+  titlebar, four stat cards, and a recent activity feed.
 
 ## What changed in Phase 1
 

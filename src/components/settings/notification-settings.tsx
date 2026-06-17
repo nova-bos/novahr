@@ -15,8 +15,22 @@ const DEFAULT_PREFERENCES = {
   weeklyDigest: false,
 };
 
+const STORAGE_KEY = "novahr:notif-prefs";
+
 export function NotificationSettings() {
   const [prefs, setPrefs] = React.useState(DEFAULT_PREFERENCES);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "null");
+      if (stored && typeof stored === "object") {
+        setPrefs((prev) => ({ ...prev, ...stored }));
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, []);
 
   function update(key: keyof typeof DEFAULT_PREFERENCES, value: boolean) {
     setPrefs((prev) => ({ ...prev, [key]: value }));
@@ -24,6 +38,9 @@ export function NotificationSettings() {
 
   function handleSave(event: React.FormEvent) {
     event.preventDefault();
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+    }
     toast.success("Notification preferences updated", {
       description: "We'll use these settings for future alerts.",
     });

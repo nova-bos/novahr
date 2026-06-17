@@ -1,15 +1,26 @@
 "use client";
 
+import * as React from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { TenantCard } from "@/components/tenants/tenant-card";
 import { TenantProfile } from "@/components/tenants/tenant-profile";
-import { useCurrentTenant, useTenants } from "@/lib/store/hooks";
+import { useCurrentTenant } from "@/lib/store/hooks";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
+import { getAllTenants } from "@/lib/workspace/actions";
+import { tenants as demoTenants } from "@/demo/tenants";
+import type { Tenant } from "@/lib/types";
 
 export default function TenantsPage() {
   const allowed = useRoleGuard(["hr", "exco"]);
-  const tenants = useTenants();
   const tenant = useCurrentTenant();
+  const [liveTenants, setLiveTenants] = React.useState<Tenant[]>([]);
+
+  React.useEffect(() => {
+    getAllTenants().then(setLiveTenants);
+  }, []);
+
+  // Use liveTenants if loaded, otherwise fall back to the demo array (handles loading state)
+  const displayTenants = liveTenants.length > 0 ? liveTenants : demoTenants;
 
   if (!allowed) return null;
 
@@ -20,7 +31,7 @@ export default function TenantsPage() {
         description="Switch between connected companies and review their workspace settings."
       />
       <div className="grid gap-4 md:grid-cols-3">
-        {tenants.map((t) => (
+        {displayTenants.map((t) => (
           <TenantCard key={t.id} tenant={t} />
         ))}
       </div>

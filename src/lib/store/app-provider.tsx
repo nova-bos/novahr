@@ -18,6 +18,10 @@ import { createLeaveRequestRecord, decideLeaveRequestRecord, type CreateLeaveReq
 import { completePayrollRunRecord, startPayrollRunRecord } from "../payroll/actions";
 import { markAllNotificationsReadRecord, markNotificationReadRecord } from "../notifications/actions";
 import { getTenantWorkspace, type TenantWorkspace } from "../workspace/actions";
+import {
+  updateTenantProfile as updateTenantProfileAction,
+  updateTenantPayrollSettings as updateTenantPayrollSettingsAction,
+} from "../tenant/actions";
 
 export interface AppState {
   tenantId: string;
@@ -60,7 +64,8 @@ export type Action =
       notification: NotificationItem;
     }
   | { type: "NOTIFICATION_READ"; id: string }
-  | { type: "ALL_NOTIFICATIONS_READ"; tenantId: string };
+  | { type: "ALL_NOTIFICATIONS_READ"; tenantId: string }
+  | { type: "TENANT_UPDATED"; tenant: Tenant };
 
 export const initialState: AppState = {
   tenantId: "novatech",
@@ -190,6 +195,9 @@ export function reducer(state: AppState, action: Action): AppState {
         ),
       };
 
+    case "TENANT_UPDATED":
+      return { ...state, currentTenant: action.tenant };
+
     default:
       return state;
   }
@@ -212,6 +220,8 @@ interface AppContextValue {
   completePayrollRun: (runId: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
   markAllNotificationsRead: (tenantId: string) => Promise<void>;
+  updateTenantProfile: (data: Parameters<typeof updateTenantProfileAction>[1]) => Promise<void>;
+  updateTenantPayrollSettings: (data: Parameters<typeof updateTenantPayrollSettingsAction>[1]) => Promise<void>;
 }
 
 const AppContext = React.createContext<AppContextValue | null>(null);
@@ -295,6 +305,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       markAllNotificationsRead: async (tenantId) => {
         await markAllNotificationsReadRecord(tenantId);
         dispatch({ type: "ALL_NOTIFICATIONS_READ", tenantId });
+      },
+      updateTenantProfile: async (data) => {
+        const updated = await updateTenantProfileAction(state.tenantId, data);
+        dispatch({ type: "TENANT_UPDATED", tenant: updated });
+      },
+      updateTenantPayrollSettings: async (data) => {
+        const updated = await updateTenantPayrollSettingsAction(state.tenantId, data);
+        dispatch({ type: "TENANT_UPDATED", tenant: updated });
       },
     }),
     [state]

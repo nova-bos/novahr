@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { payFrequencyOptions } from "@/lib/config/leave";
+import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant, usePayrollConfig } from "@/lib/store/hooks";
 import type { PayFrequency } from "@/lib/types";
 import { SettingRow } from "./setting-row";
@@ -22,6 +23,7 @@ import { SettingRow } from "./setting-row";
 export function PayrollSettings() {
   const tenant = useCurrentTenant();
   const config = usePayrollConfig();
+  const { updateTenantPayrollSettings } = useApp();
 
   const [payFrequency, setPayFrequency] = React.useState<PayFrequency>(tenant.payFrequency);
   const [payDay, setPayDay] = React.useState(tenant.payDay.toString());
@@ -29,17 +31,85 @@ export function PayrollSettings() {
   const [defaultPensionPct, setDefaultPensionPct] = React.useState(
     config.defaultPensionPct.toString()
   );
-  const [payeReference, setPayeReference] = React.useState(config.payeReferenceNumber);
-  const [uifReference, setUifReference] = React.useState(config.uifReferenceNumber);
-  const [sdlReference, setSdlReference] = React.useState(config.sdlReferenceNumber);
-  const [uifEnabled, setUifEnabled] = React.useState(config.uifEnabled);
-  const [sdlEnabled, setSdlEnabled] = React.useState(config.sdlEnabled);
+  const [payeReference] = React.useState(config.payeReferenceNumber);
+  const [uifReference] = React.useState(config.uifReferenceNumber);
+  const [sdlReference] = React.useState(config.sdlReferenceNumber);
+  const [uifEnabled, setUifEnabled] = React.useState<boolean>(() => {
+    if (typeof window === "undefined") return config.uifEnabled;
+    try {
+      const stored = JSON.parse(localStorage.getItem(`novahr:payroll-config:${tenant.id}`) ?? "null");
+      return stored?.uifEnabled ?? config.uifEnabled;
+    } catch {
+      return config.uifEnabled;
+    }
+  });
+  const [sdlEnabled, setSdlEnabled] = React.useState<boolean>(() => {
+    if (typeof window === "undefined") return config.sdlEnabled;
+    try {
+      const stored = JSON.parse(localStorage.getItem(`novahr:payroll-config:${tenant.id}`) ?? "null");
+      return stored?.sdlEnabled ?? config.sdlEnabled;
+    } catch {
+      return config.sdlEnabled;
+    }
+  });
+  const [saving, setSaving] = React.useState(false);
 
-  function handleSave(event: React.FormEvent) {
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const stored = JSON.parse(localStorage.getItem(`novahr:payroll-config:${tenant.id}`) ?? "null");
+      if (stored) {
+        if (typeof stored.uifEnabled === "boolean") setUifEnabled(stored.uifEnabled);
+        if (typeof stored.sdlEnabled === "boolean") setSdlEnabled(stored.sdlEnabled);
+      }
+    } catch {
+      // ignore SSR or parse errors
+    }
+  }, [tenant.id]);
+
+  function handleUifChange(checked: boolean) {
+    setUifEnabled(checked);
+    if (typeof window !== "undefined") {
+      try {
+        const key = `novahr:payroll-config:${tenant.id}`;
+        const prev = JSON.parse(localStorage.getItem(key) ?? "{}") as Record<string, unknown>;
+        localStorage.setItem(key, JSON.stringify({ ...prev, uifEnabled: checked }));
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  function handleSdlChange(checked: boolean) {
+    setSdlEnabled(checked);
+    if (typeof window !== "undefined") {
+      try {
+        const key = `novahr:payroll-config:${tenant.id}`;
+        const prev = JSON.parse(localStorage.getItem(key) ?? "{}") as Record<string, unknown>;
+        localStorage.setItem(key, JSON.stringify({ ...prev, sdlEnabled: checked }));
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  async function handleSave(event: React.FormEvent) {
     event.preventDefault();
-    toast.success("Payroll settings updated", {
-      description: "Your payroll configuration has been saved.",
-    });
+    setSaving(true);
+    try {
+      await updateTenantPayrollSettings({
+        payFrequency,
+        payDay: parseInt(payDay),
+        bankName,
+      });
+      toast.success("Payroll settings updated", {
+        description: "Your payroll configuration has been saved.",
+      });
+    } catch {
+      toast.error("Couldn't save changes", { description: "Please try again." });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -51,7 +121,11 @@ export function PayrollSettings() {
         <CardContent className="grid gap-5 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="payFrequency">Pay frequency</Label>
-            <Select value={payFrequency} onValueChange={(v) => setPayFrequency(v as PayFrequency)}>
+            <Select
+              value={payFrequency}
+              onValueChange={(v) => setPayFrequency(v as PayFrequency)}
+              disabled={saving}
+            >
               <SelectTrigger id="payFrequency" className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -73,11 +147,12 @@ export function PayrollSettings() {
               max={31}
               value={payDay}
               onChange={(e) => setPayDay(e.target.value)}
+              disabled={saving}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="bankName">Banking partner</Label>
-            <Input id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} />
+            <Input id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} disabled={saving} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="currency">Currency</Label>
@@ -93,11 +168,12 @@ export function PayrollSettings() {
               max={100}
               value={defaultPensionPct}
               onChange={(e) => setDefaultPensionPct(e.target.value)}
+              disabled={saving}
             />
           </div>
         </CardContent>
         <CardFooter className="justify-end">
-          <Button type="submit">Save changes</Button>
+          <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
         </CardFooter>
       </Card>
 
@@ -112,7 +188,7 @@ export function PayrollSettings() {
               <Input
                 id="payeReference"
                 value={payeReference}
-                onChange={(e) => setPayeReference(e.target.value)}
+                disabled
               />
             </div>
             <div className="space-y-1.5">
@@ -120,7 +196,7 @@ export function PayrollSettings() {
               <Input
                 id="uifReference"
                 value={uifReference}
-                onChange={(e) => setUifReference(e.target.value)}
+                disabled
               />
             </div>
             <div className="space-y-1.5">
@@ -128,7 +204,7 @@ export function PayrollSettings() {
               <Input
                 id="sdlReference"
                 value={sdlReference}
-                onChange={(e) => setSdlReference(e.target.value)}
+                disabled
               />
             </div>
             <div className="space-y-1.5">
@@ -142,19 +218,19 @@ export function PayrollSettings() {
               title="UIF contributions"
               description="Withhold and remit Unemployment Insurance Fund contributions."
               checked={uifEnabled}
-              onCheckedChange={setUifEnabled}
+              onCheckedChange={handleUifChange}
             />
             <SettingRow
               title="SDL levy"
               description="Apply the Skills Development Levy to monthly payroll runs."
               checked={sdlEnabled}
-              onCheckedChange={setSdlEnabled}
+              onCheckedChange={handleSdlChange}
             />
           </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            Reference numbers are stored for display. PAYE, UIF and SDL submissions are not yet automated.
+          </p>
         </CardContent>
-        <CardFooter className="justify-end">
-          <Button type="submit">Save changes</Button>
-        </CardFooter>
       </Card>
     </form>
   );

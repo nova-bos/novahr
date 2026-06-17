@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeEmployeeRow, makeTenantRow } from "./test-fixtures";
 
 const mockPrisma = vi.hoisted(() => ({
-  tenant: { findUnique: vi.fn() },
+  tenant: { findUnique: vi.fn(), findMany: vi.fn() },
   employee: { findMany: vi.fn() },
   department: { findMany: vi.fn() },
   leaveRequest: { findMany: vi.fn() },
@@ -14,7 +14,7 @@ const mockPrisma = vi.hoisted(() => ({
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 
-import { getTenantWorkspace } from "./actions";
+import { getAllTenants, getTenantWorkspace } from "./actions";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -119,6 +119,24 @@ function makeNotificationRow(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+
+describe("getAllTenants", () => {
+  it("queries all tenants ordered by name and maps each row", async () => {
+    mockPrisma.tenant.findMany.mockResolvedValue([
+      makeTenantRow({ id: "t-1", name: "Alpha Corp" }),
+      makeTenantRow({ id: "t-2", name: "Beta Ltd" }),
+    ]);
+
+    const result = await getAllTenants();
+
+    expect(mockPrisma.tenant.findMany).toHaveBeenCalledWith({ orderBy: { name: "asc" } });
+    expect(result).toHaveLength(2);
+    expect(result[0].id).toBe("t-1");
+    expect(result[0].name).toBe("Alpha Corp");
+    expect(result[1].id).toBe("t-2");
+    expect(result[1].name).toBe("Beta Ltd");
+  });
+});
 
 describe("getTenantWorkspace", () => {
   it("returns null when the tenant does not exist", async () => {

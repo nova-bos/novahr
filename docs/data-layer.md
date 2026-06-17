@@ -304,3 +304,57 @@ aggregation, rather than `state.*`. This preserves their exact Phase 1 behaviour
 identical — without requiring new cross-tenant Server Actions. A real "all tenants I have
 access to" query (and a DB-backed exco rollup) is out of scope for this phase, same as
 `useTenants()` (see [`tenants.md`](./tenants.md#usetenants--still-static-on-purpose)).
+
+## Tenant settings mutations (`src/lib/tenant/actions.ts`)
+
+Two `"use server"` actions persist tenant-level settings to Postgres. Both call
+`prisma.tenant.update` and return the result via `mapTenant` from
+`src/lib/workspace/mappers.ts`.
+
+### `updateTenantProfile(tenantId, data)`
+
+Persists the company profile fields:
+
+| Field | Column |
+| --- | --- |
+| `name` | `name` |
+| `legalName` | `legalName` |
+| `industry` | `industry` |
+| `founded` | `founded` |
+| `registrationNumber` | `registrationNumber` |
+| `vatNumber` | `vatNumber` |
+| `city` | `city` |
+| `address` | `address` |
+| `primaryContact` | `primaryContact` |
+
+All fields are optional — only those present in `data` are written.
+
+### `updateTenantPayrollSettings(tenantId, data)`
+
+Persists the pay run configuration fields:
+
+| Field | Column |
+| --- | --- |
+| `payFrequency` | `payFrequency` |
+| `payDay` | `payDay` |
+| `bankName` | `bankName` |
+
+The `currency` field is read-only in the UI (not yet mutable). The statutory reference
+numbers (`payeReferenceNumber`, `uifReferenceNumber`, `sdlReferenceNumber`) and toggles
+(`uifEnabled`, `sdlEnabled`) come from the static `src/lib/config/payroll.ts` config and
+are not in the DB; the UIF/SDL toggles are persisted to `localStorage` under
+`novahr:payroll-config:{tenantId}`.
+
+### `TENANT_UPDATED` reducer action
+
+Both actions dispatch `{ type: "TENANT_UPDATED"; tenant: Tenant }` on success, which the
+reducer handles as:
+
+```ts
+case "TENANT_UPDATED":
+  return { ...state, currentTenant: action.tenant };
+```
+
+This ensures the UI reflects the updated tenant immediately without a full workspace
+reload. The `AppContextValue` methods `updateTenantProfile` and
+`updateTenantPayrollSettings` are wired to these actions via `AppProvider`.

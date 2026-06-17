@@ -8,12 +8,12 @@ npm test
 ```
 
 This runs `vitest run` (see `package.json`'s `test` script) — a single non-watch pass over
-every `*.test.ts` file under `src/`. As of Phase 4 that's **20 files / 157 tests**, all
-pure unit tests (no real database, no Supabase, no browser):
+every `*.test.ts` file under `src/`. As of the MVP polish pass that's **21 files / 163 tests**,
+all pure unit tests (no real database, no Supabase, no browser):
 
 ```
- Test Files  20 passed (20)
-      Tests  157 passed (157)
+ Test Files  21 passed (21)
+      Tests  163 passed (163)
 ```
 
 Use `npx vitest` (no `run`) for watch mode while developing, or
@@ -75,6 +75,7 @@ Two things matter here for anyone adding new tests:
 | `src/lib/format.test.ts` | 29 | every formatter in `src/lib/format.ts` (currency, dates, labels, relative time, ordinals, masking) |
 | `src/lib/leave/actions.test.ts` | 5 | `createLeaveRequestRecord`, `decideLeaveRequestRecord` (Server Actions, mocked Prisma) |
 | `src/lib/marketing/pricing.test.ts` | 12 | `getMonthlyPrice`, `getAnnualPrice`, `tierFitsEmployeeCount`, `suggestTier` in `src/lib/marketing/pricing.ts` |
+| `src/lib/tenant/actions.test.ts` | 6 | `updateTenantProfile`, `updateTenantPayrollSettings` (Server Actions, mocked Prisma) |
 | `src/lib/notifications/actions.test.ts` | 2 | `markNotificationReadRecord`, `markAllNotificationsReadRecord` (Server Actions, mocked Prisma) |
 | `src/lib/payroll/actions.test.ts` | 3 | `startPayrollRunRecord`, `completePayrollRunRecord` (Server Actions, mocked Prisma) |
 | `src/lib/payroll/calculator.test.ts` | 8 | `calculateMonthlyPayroll`, `buildPayslip`, `incrementPeriod` (PAYE/UIF math) |
