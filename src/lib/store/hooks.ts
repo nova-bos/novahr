@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useApp } from "./app-provider";
-import { getDepartmentsByTenant, getPayrollConfig, getTenant, leavePolicies, tenants } from "../data";
+import { getPayrollConfig, leavePolicies, tenants } from "../data";
 import type {
   ActivityItem,
   Department,
@@ -18,8 +18,15 @@ export function useTenantId(): string {
   return useApp().state.tenantId;
 }
 
+/**
+ * The DB-backed tenant for the current `tenantId`. `AuthGuard` keeps the
+ * loading screen up until this is populated, so callers can treat it as
+ * non-null.
+ */
 export function useCurrentTenant(): Tenant {
-  return getTenant(useTenantId());
+  const tenant = useApp().state.currentTenant;
+  if (!tenant) throw new Error("currentTenant accessed before it finished loading");
+  return tenant;
 }
 
 export function useTenants(): Tenant[] {
@@ -27,11 +34,7 @@ export function useTenants(): Tenant[] {
 }
 
 export function useEmployees(): Employee[] {
-  const { state } = useApp();
-  return React.useMemo(
-    () => state.employees.filter((e) => e.tenantId === state.tenantId),
-    [state.employees, state.tenantId]
-  );
+  return useApp().state.employees;
 }
 
 export function useEmployee(id: string | undefined): Employee | undefined {
@@ -40,28 +43,22 @@ export function useEmployee(id: string | undefined): Employee | undefined {
 }
 
 export function useDepartments(): Department[] {
-  return getDepartmentsByTenant(useTenantId());
+  return useApp().state.departments;
 }
 
 export function useLeaveRequests(): LeaveRequest[] {
   const { state } = useApp();
   return React.useMemo(
-    () =>
-      state.leaveRequests
-        .filter((r) => r.tenantId === state.tenantId)
-        .sort((a, b) => b.appliedOn.localeCompare(a.appliedOn)),
-    [state.leaveRequests, state.tenantId]
+    () => [...state.leaveRequests].sort((a, b) => b.appliedOn.localeCompare(a.appliedOn)),
+    [state.leaveRequests]
   );
 }
 
 export function usePayrollRuns(): PayrollRun[] {
   const { state } = useApp();
   return React.useMemo(
-    () =>
-      state.payrollRuns
-        .filter((r) => r.tenantId === state.tenantId)
-        .sort((a, b) => a.period.localeCompare(b.period)),
-    [state.payrollRuns, state.tenantId]
+    () => [...state.payrollRuns].sort((a, b) => a.period.localeCompare(b.period)),
+    [state.payrollRuns]
   );
 }
 
@@ -97,21 +94,16 @@ export function usePayslip(id: string | undefined): Payslip | undefined {
 export function useActivity(limit?: number): ActivityItem[] {
   const { state } = useApp();
   return React.useMemo(() => {
-    const items = state.activity
-      .filter((a) => a.tenantId === state.tenantId)
-      .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+    const items = [...state.activity].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
     return limit ? items.slice(0, limit) : items;
-  }, [state.activity, state.tenantId, limit]);
+  }, [state.activity, limit]);
 }
 
 export function useNotifications(): NotificationItem[] {
   const { state } = useApp();
   return React.useMemo(
-    () =>
-      state.notifications
-        .filter((n) => n.tenantId === state.tenantId)
-        .sort((a, b) => b.timestamp.localeCompare(a.timestamp)),
-    [state.notifications, state.tenantId]
+    () => [...state.notifications].sort((a, b) => b.timestamp.localeCompare(a.timestamp)),
+    [state.notifications]
   );
 }
 

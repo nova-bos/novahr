@@ -77,29 +77,32 @@ export function NewLeaveRequestDialog() {
       ? Math.min(100, ((balance.used + requestedDays) / balance.total) * 100)
       : 0;
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     const employee = employees.find((e) => e.id === employeeId);
     if (!employee) return;
 
-    addLeaveRequest({
-      id: `${tenantId}-leave-${Date.now()}`,
-      tenantId,
-      employeeId: employee.id,
-      type,
-      startDate,
-      endDate,
-      days: daysBetween(startDate, endDate),
-      reason: reason.trim(),
-      status: "pending",
-      appliedOn: todayIso(),
-    });
+    try {
+      await addLeaveRequest({
+        tenantId,
+        employeeId: employee.id,
+        type,
+        startDate,
+        endDate,
+        days: daysBetween(startDate, endDate),
+        reason: reason.trim(),
+      });
 
-    toast.success("Leave request submitted", {
-      description: `${employee.firstName} ${employee.lastName}'s request is awaiting approval.`,
-    });
-    resetForm();
-    setOpen(false);
+      toast.success("Leave request submitted", {
+        description: `${employee.firstName} ${employee.lastName}'s request is awaiting approval.`,
+      });
+      resetForm();
+      setOpen(false);
+    } catch {
+      toast.error("Couldn't submit leave request", {
+        description: "Please try again.",
+      });
+    }
   }
 
   return (

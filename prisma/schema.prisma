@@ -1,0 +1,286 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  employee
+  manager
+  hr
+  exco
+}
+
+enum EmploymentStatus {
+  active
+  on_leave
+  probation
+  terminated
+}
+
+enum EmploymentType {
+  full_time
+  part_time
+  contract
+}
+
+enum PayFrequency {
+  monthly
+  biweekly
+  weekly
+}
+
+enum LeaveType {
+  annual
+  sick
+  unpaid
+  family
+}
+
+enum LeaveStatus {
+  pending
+  approved
+  rejected
+}
+
+enum PayrollRunStatus {
+  scheduled
+  processing
+  completed
+}
+
+enum ActivityType {
+  hire
+  leave_request
+  leave_approved
+  leave_rejected
+  payroll_run
+  promotion
+  document
+  termination
+  onboarding
+}
+
+enum NotificationType {
+  info
+  success
+  warning
+}
+
+model Tenant {
+  id                 String       @id @default(cuid())
+  name               String
+  legalName          String
+  initials           String
+  industry           String
+  color              String
+  founded            String
+  currency           String       @default("ZAR")
+  payFrequency       PayFrequency @default(monthly)
+  registrationNumber String
+  vatNumber          String
+  address            String
+  city               String
+  payDay             Int          @default(25)
+  bankName           String
+  primaryContact     String
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  users         User[]
+  employees     Employee[]
+  departments   Department[]
+  leaveRequests LeaveRequest[]
+  payrollRuns   PayrollRun[]
+  payslips      Payslip[]
+  activity      ActivityItem[]
+  notifications NotificationItem[]
+}
+
+model User {
+  id          String    @id // Supabase auth.users.id
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email       String    @unique
+  name        String
+  title       String
+  role        UserRole  @default(hr)
+  employeeId  String?   @unique
+  employee    Employee? @relation(fields: [employeeId], references: [id])
+  avatarColor String
+  initials    String
+  createdAt   DateTime  @default(now())
+
+  @@index([tenantId])
+}
+
+model Employee {
+  id             String           @id @default(cuid())
+  tenantId       String
+  tenant         Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeNumber String
+  firstName      String
+  lastName       String
+  preferredName  String?
+  email          String
+  phone          String
+  avatarColor    String
+  initials       String
+  jobTitle       String
+  department     String
+  employmentType EmploymentType
+  status         EmploymentStatus @default(active)
+  startDate      DateTime
+  location       String
+  managerId      String?
+
+  salaryAnnualGross            Float
+  salaryCurrency                String       @default("ZAR")
+  salaryPayFrequency             PayFrequency @default(monthly)
+  salaryTravelAllowance           Float?
+  salaryHousingAllowance           Float?
+  salaryPensionContributionPct     Float?
+  salaryMedicalAid                  Float?
+
+  bankName          String
+  bankAccountNumber String
+  bankBranchCode    String
+  bankAccountType   String
+
+  taxNumber String
+  idNumber  String
+  address   String
+
+  emergencyContactName         String
+  emergencyContactRelationship String
+  emergencyContactPhone        String
+
+  onboarding Json?
+
+  leaveBalances LeaveBalance[]
+  leaveRequests LeaveRequest[]
+  payslips      Payslip[]
+  user          User?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model LeaveBalance {
+  id         String    @id @default(cuid())
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type       LeaveType
+  total      Float
+  used       Float     @default(0)
+
+  @@unique([employeeId, type])
+}
+
+model LeaveRequest {
+  id           String      @id @default(cuid())
+  tenantId     String
+  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId   String
+  employee     Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type         LeaveType
+  startDate    DateTime
+  endDate      DateTime
+  days         Float
+  reason       String
+  status       LeaveStatus @default(pending)
+  appliedOn    DateTime    @default(now())
+  decisionNote String?
+  decidedBy    String?
+  decidedOn    DateTime?
+
+  @@index([tenantId])
+  @@index([employeeId])
+}
+
+model Department {
+  id          String  @id @default(cuid())
+  tenantId    String
+  tenant      Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  headId      String?
+  color       String
+  budget      Float
+
+  @@index([tenantId])
+}
+
+model PayrollRun {
+  id              String           @id @default(cuid())
+  tenantId        String
+  tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  period          String
+  label           String
+  payDate         DateTime
+  status          PayrollRunStatus @default(scheduled)
+  totalGross      Float            @default(0)
+  totalDeductions Float            @default(0)
+  totalNet        Float            @default(0)
+  totalPaye       Float            @default(0)
+  totalUif        Float            @default(0)
+  employeeCount   Int              @default(0)
+  processedOn     DateTime?
+
+  payslips Payslip[]
+
+  @@index([tenantId])
+}
+
+model Payslip {
+  id              String     @id @default(cuid())
+  tenantId        String
+  tenant          Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  runId           String
+  run             PayrollRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  employeeId      String
+  employee        Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  period          String
+  payDate         DateTime
+  basicSalary     Float
+  earnings        Json
+  deductions      Json
+  grossPay        Float
+  totalDeductions Float
+  netPay          Float
+  paye            Float
+  uif             Float
+
+  @@index([tenantId])
+  @@index([employeeId])
+}
+
+model ActivityItem {
+  id         String       @id @default(cuid())
+  tenantId   String
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  type       ActivityType
+  message    String
+  actor      String
+  employeeId String?
+  timestamp  DateTime     @default(now())
+
+  @@index([tenantId])
+}
+
+model NotificationItem {
+  id          String           @id @default(cuid())
+  tenantId    String
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  timestamp   DateTime         @default(now())
+  read        Boolean          @default(false)
+  type        NotificationType
+
+  @@index([tenantId])
+}

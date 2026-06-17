@@ -1,12 +1,15 @@
 export type UserRole = "employee" | "manager" | "hr" | "exco";
 
-export interface DemoUser {
+/**
+ * The authenticated user's profile, loaded from the `User` table by id
+ * (Supabase `auth.users.id`). Returned by `getCurrentUserProfile()`.
+ */
+export interface AppUser {
   id: string;
   role: UserRole;
   name: string;
   title: string;
   email: string;
-  password: string;
   tenantId: string;
   employeeId?: string;
   avatarColor: string;

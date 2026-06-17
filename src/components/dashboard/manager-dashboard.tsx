@@ -42,11 +42,17 @@ export function ManagerDashboard() {
     .filter((r) => r.status === "pending" && canDecide(r.employeeId))
     .slice(0, 4);
 
-  function handleDecision(id: string, status: "approved" | "rejected", name: string) {
-    decideLeaveRequest(id, status, user?.name ?? "Manager");
-    toast(status === "approved" ? "Leave request approved" : "Leave request rejected", {
-      description: `${name}'s leave request has been ${status}.`,
-    });
+  async function handleDecision(id: string, status: "approved" | "rejected", name: string) {
+    try {
+      await decideLeaveRequest(id, status, user?.name ?? "Manager");
+      toast(status === "approved" ? "Leave request approved" : "Leave request rejected", {
+        description: `${name}'s leave request has been ${status}.`,
+      });
+    } catch {
+      toast.error("Couldn't update leave request", {
+        description: "Please try again.",
+      });
+    }
   }
 
   const stats: StatItem[] = [

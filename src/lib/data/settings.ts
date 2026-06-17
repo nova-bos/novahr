@@ -97,8 +97,23 @@ export const payrollConfigs: PayrollConfig[] = [
   },
 ];
 
+/**
+ * Falls back to sensible defaults for tenants that don't have a configured
+ * entry yet (e.g. a brand-new signup) - this is global static config until
+ * it becomes tenant-configurable in a later phase.
+ */
 export function getPayrollConfig(tenantId: string): PayrollConfig {
   const config = payrollConfigs.find((c) => c.tenantId === tenantId);
-  if (!config) throw new Error(`Unknown tenant: ${tenantId}`);
-  return config;
+  if (config) return config;
+
+  return {
+    tenantId,
+    payeReferenceNumber: "",
+    uifReferenceNumber: "",
+    sdlReferenceNumber: "",
+    taxYear: "2025/2026",
+    uifEnabled: true,
+    sdlEnabled: true,
+    defaultPensionPct: 7.5,
+  };
 }

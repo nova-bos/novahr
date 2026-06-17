@@ -23,7 +23,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [user, state.tenantId, setTenant]);
 
-  if (isLoading || !user) {
+  const tenantReady = state.currentTenant?.id === user?.tenantId;
+
+  if (isLoading || !user || !tenantReady) {
     return (
       <div className="flex min-h-svh items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">

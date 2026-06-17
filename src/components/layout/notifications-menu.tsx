@@ -51,7 +51,7 @@ export function NotificationsMenu() {
               variant="ghost"
               size="sm"
               className="h-7 gap-1.5 px-2 text-xs text-muted-foreground"
-              onClick={() => markAllNotificationsRead(state.tenantId)}
+              onClick={() => void markAllNotificationsRead(state.tenantId)}
             >
               <CheckCheck className="size-3.5" />
               Mark all read
@@ -70,7 +70,7 @@ export function NotificationsMenu() {
                 return (
                   <button
                     key={notification.id}
-                    onClick={() => markNotificationRead(notification.id)}
+                    onClick={() => void markNotificationRead(notification.id)}
                     className={cn(
                       "flex w-full items-start gap-3 border-b border-border/60 px-3.5 py-3 text-left transition-colors last:border-b-0 hover:bg-muted/60",
                       !notification.read && "bg-primary/[0.03]"

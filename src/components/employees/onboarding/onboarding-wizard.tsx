@@ -42,13 +42,19 @@ export function OnboardingWizard() {
     setStepIndex((i) => Math.max(i - 1, 0));
   }
 
-  function handleCreate() {
-    const employee = buildEmployeeFromForm(form, tenant, employees.length + 1);
-    addEmployee(employee);
-    toast.success("Employee added", {
-      description: `${employee.firstName} ${employee.lastName} has been added to ${tenant.name} and onboarding has started.`,
-    });
-    router.push(`/employees/${employee.id}`);
+  async function handleCreate() {
+    const draft = buildEmployeeFromForm(form, tenant, employees.length + 1);
+    try {
+      const employee = await addEmployee(draft);
+      toast.success("Employee added", {
+        description: `${employee.firstName} ${employee.lastName} has been added to ${tenant.name} and onboarding has started.`,
+      });
+      router.push(`/employees/${employee.id}`);
+    } catch {
+      toast.error("Couldn't add employee", {
+        description: "Please try again.",
+      });
+    }
   }
 
   function renderStep() {

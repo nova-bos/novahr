@@ -1,6 +1,25 @@
-import type { DemoUser } from "./types";
+import type { UserRole } from "./types";
 
-export const demoUsers: DemoUser[] = [
+/**
+ * Display data + credentials for the 4 demo personas shown on the `/login`
+ * picker. This is the source list for `prisma/seed.ts`, which creates a real
+ * Supabase Auth user + `User` row for each entry - it is not read at runtime
+ * by the app itself.
+ */
+export interface DemoPersona {
+  id: string;
+  role: UserRole;
+  name: string;
+  title: string;
+  email: string;
+  password: string;
+  tenantId: string;
+  employeeId?: string;
+  avatarColor: string;
+  initials: string;
+}
+
+export const demoUsers: DemoPersona[] = [
   {
     id: "user-employee",
     role: "employee",
@@ -49,16 +68,3 @@ export const demoUsers: DemoUser[] = [
     initials: "MV",
   },
 ];
-
-export function findDemoUser(email: string, password: string): DemoUser | null {
-  const normalized = email.trim().toLowerCase();
-  return (
-    demoUsers.find(
-      (user) => user.email.toLowerCase() === normalized && user.password === password
-    ) ?? null
-  );
-}
-
-export function getDemoUserById(id: string): DemoUser | undefined {
-  return demoUsers.find((user) => user.id === id);
-}

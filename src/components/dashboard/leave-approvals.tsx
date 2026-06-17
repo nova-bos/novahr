@@ -23,11 +23,17 @@ export function LeaveApprovals() {
 
   const pending = leaveRequests.filter((r) => r.status === "pending").slice(0, 4);
 
-  function handleDecision(id: string, status: "approved" | "rejected", name: string) {
-    decideLeaveRequest(id, status, tenant.primaryContact);
-    toast(status === "approved" ? "Leave request approved" : "Leave request rejected", {
-      description: `${name}'s leave request has been ${status}.`,
-    });
+  async function handleDecision(id: string, status: "approved" | "rejected", name: string) {
+    try {
+      await decideLeaveRequest(id, status, tenant.primaryContact);
+      toast(status === "approved" ? "Leave request approved" : "Leave request rejected", {
+        description: `${name}'s leave request has been ${status}.`,
+      });
+    } catch {
+      toast.error("Couldn't update leave request", {
+        description: "Please try again.",
+      });
+    }
   }
 
   return (

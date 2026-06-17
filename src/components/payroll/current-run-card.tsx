@@ -45,21 +45,33 @@ export function CurrentRunCard() {
   );
   const projectedNet = eligible.reduce((sum, e) => sum + calculateMonthlyPayroll(e).netPay, 0);
 
-  function handleStart() {
+  async function handleStart() {
     if (!run) return;
-    startPayrollRun(run.id);
-    toast.success("Payroll run started", {
-      description: `${formatMonthYear(run.period)} payroll is now processing. Review and finalize to publish payslips.`,
-    });
+    try {
+      await startPayrollRun(run.id);
+      toast.success("Payroll run started", {
+        description: `${formatMonthYear(run.period)} payroll is now processing. Review and finalize to publish payslips.`,
+      });
+    } catch {
+      toast.error("Couldn't start payroll run", {
+        description: "Please try again.",
+      });
+    }
   }
 
-  function handleFinalize() {
+  async function handleFinalize() {
     if (!run) return;
-    completePayrollRun(run.id);
-    setConfirmOpen(false);
-    toast.success("Payroll completed", {
-      description: `Payslips for ${formatMonthYear(run.period)} have been published to ${eligible.length} employees.`,
-    });
+    try {
+      await completePayrollRun(run.id);
+      setConfirmOpen(false);
+      toast.success("Payroll completed", {
+        description: `Payslips for ${formatMonthYear(run.period)} have been published to ${eligible.length} employees.`,
+      });
+    } catch {
+      toast.error("Couldn't complete payroll run", {
+        description: "Please try again.",
+      });
+    }
   }
 
   return (

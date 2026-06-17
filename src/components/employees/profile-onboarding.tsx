@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { Calendar, CheckCircle2, Circle, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -64,7 +65,13 @@ export function ProfileOnboarding({ employee }: { employee: Employee }) {
               <button
                 key={step.id}
                 type="button"
-                onClick={() => toggleOnboardingStep(employee.id, step.id)}
+                onClick={() => {
+                  toggleOnboardingStep(employee.id, step.id).catch(() => {
+                    toast.error("Couldn't update onboarding step", {
+                      description: "Please try again.",
+                    });
+                  });
+                }}
                 className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted/60"
               >
                 {step.complete ? (

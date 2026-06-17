@@ -9,7 +9,7 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react";
-import type { DemoUser } from "@/lib/auth/types";
+import type { AppUser } from "@/lib/auth/types";
 
 export interface NavItem {
   title: string;
@@ -17,7 +17,7 @@ export interface NavItem {
   icon: LucideIcon;
 }
 
-export function getNavItems(user: DemoUser | null): NavItem[] {
+export function getNavItems(user: AppUser | null): NavItem[] {
   if (!user) return [];
 
   switch (user.role) {

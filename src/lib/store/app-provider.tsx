@@ -3,27 +3,28 @@
 import * as React from "react";
 import type {
   ActivityItem,
+  Department,
   Employee,
   LeaveRequest,
   LeaveStatus,
+  LeaveType,
   NotificationItem,
   PayrollRun,
   Payslip,
+  Tenant,
 } from "../types";
-import {
-  activityFeed as initialActivity,
-  employees as initialEmployees,
-  getTenant,
-  leaveRequests as initialLeaveRequests,
-  notifications as initialNotifications,
-  payrollRuns as initialPayrollRuns,
-  payslips as initialPayslips,
-} from "../data";
-import { buildPayslip, incrementPeriod } from "../payroll-calc";
+import { createEmployeeRecord, toggleOnboardingStepRecord, updateEmployeeRecord } from "../employees/actions";
+import { createLeaveRequestRecord, decideLeaveRequestRecord, type CreateLeaveRequestInput } from "../leave/actions";
+import { completePayrollRunRecord, startPayrollRunRecord } from "../payroll/actions";
+import { markAllNotificationsReadRecord, markNotificationReadRecord } from "../notifications/actions";
+import { getTenantWorkspace, type TenantWorkspace } from "../workspace/actions";
 
 export interface AppState {
   tenantId: string;
+  /** The DB-backed tenant for `tenantId`, loaded asynchronously. */
+  currentTenant: Tenant | null;
   employees: Employee[];
+  departments: Department[];
   leaveRequests: LeaveRequest[];
   payrollRuns: PayrollRun[];
   payslips: Payslip[];
@@ -31,318 +32,149 @@ export interface AppState {
   notifications: NotificationItem[];
 }
 
-const PAYROLL_OWNER: Record<string, string> = {
-  novatech: "Werner Botha",
-  apex: "Thandiwe Mokoena",
-  horizon: "Annelie Joubert",
-};
-
-type Action =
+export type Action =
   | { type: "SET_TENANT"; tenantId: string }
-  | { type: "ADD_EMPLOYEE"; employee: Employee }
-  | { type: "UPDATE_EMPLOYEE"; id: string; updates: Partial<Employee> }
-  | { type: "TOGGLE_ONBOARDING_STEP"; employeeId: string; stepId: string }
-  | { type: "ADD_LEAVE_REQUEST"; request: LeaveRequest }
+  | { type: "SET_WORKSPACE"; workspace: TenantWorkspace | null }
+  | { type: "EMPLOYEE_ADDED"; employee: Employee; activity: ActivityItem; notification: NotificationItem }
+  | { type: "EMPLOYEE_UPDATED"; employee: Employee }
+  | { type: "ONBOARDING_STEP_TOGGLED"; employee: Employee; activity?: ActivityItem }
   | {
-      type: "DECIDE_LEAVE_REQUEST";
-      id: string;
-      status: Extract<LeaveStatus, "approved" | "rejected">;
-      decidedBy: string;
-      decisionNote?: string;
+      type: "LEAVE_REQUEST_ADDED";
+      leaveRequest: LeaveRequest;
+      activity: ActivityItem;
+      notification: NotificationItem;
     }
-  | { type: "START_PAYROLL_RUN"; runId: string }
-  | { type: "COMPLETE_PAYROLL_RUN"; runId: string }
-  | { type: "MARK_NOTIFICATION_READ"; id: string }
-  | { type: "MARK_ALL_NOTIFICATIONS_READ"; tenantId: string };
+  | {
+      type: "LEAVE_REQUEST_DECIDED";
+      leaveRequest: LeaveRequest;
+      leaveBalance?: { employeeId: string; type: LeaveType; used: number };
+      activity: ActivityItem;
+    }
+  | { type: "PAYROLL_RUN_STARTED"; payrollRun: PayrollRun }
+  | {
+      type: "PAYROLL_RUN_COMPLETED";
+      payrollRun: PayrollRun;
+      payslips: Payslip[];
+      nextRun?: PayrollRun;
+      activity: ActivityItem;
+      notification: NotificationItem;
+    }
+  | { type: "NOTIFICATION_READ"; id: string }
+  | { type: "ALL_NOTIFICATIONS_READ"; tenantId: string };
 
-const initialState: AppState = {
+export const initialState: AppState = {
   tenantId: "novatech",
-  employees: initialEmployees,
-  leaveRequests: initialLeaveRequests,
-  payrollRuns: initialPayrollRuns,
-  payslips: initialPayslips,
-  activity: initialActivity,
-  notifications: initialNotifications,
+  currentTenant: null,
+  employees: [],
+  departments: [],
+  leaveRequests: [],
+  payrollRuns: [],
+  payslips: [],
+  activity: [],
+  notifications: [],
 };
 
-function reducer(state: AppState, action: Action): AppState {
+export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case "SET_TENANT":
-      return { ...state, tenantId: action.tenantId };
-
-    case "ADD_EMPLOYEE": {
-      const employee = action.employee;
-      const isOnboarding = employee.status === "probation";
-      const newActivity: ActivityItem = {
-        id: `${employee.tenantId}-act-${Date.now()}`,
-        tenantId: employee.tenantId,
-        type: isOnboarding ? "onboarding" : "hire",
-        message: isOnboarding
-          ? `started onboarding as ${employee.jobTitle}`
-          : `joined as ${employee.jobTitle}`,
-        actor: `${employee.firstName} ${employee.lastName}`,
-        employeeId: employee.id,
-        timestamp: new Date().toISOString(),
-      };
-      const newNotification: NotificationItem = {
-        id: `${employee.tenantId}-notif-${Date.now()}`,
-        tenantId: employee.tenantId,
-        title: isOnboarding ? "New team member onboarding" : "New employee added",
-        description: `${employee.firstName} ${employee.lastName} ${
-          isOnboarding ? "started onboarding as" : "joined as"
-        } ${employee.jobTitle}.`,
-        timestamp: new Date().toISOString(),
-        read: false,
-        type: "info",
-      };
       return {
         ...state,
-        employees: [...state.employees, employee],
-        activity: [newActivity, ...state.activity],
-        notifications: [newNotification, ...state.notifications],
+        tenantId: action.tenantId,
+        currentTenant: null,
+        employees: [],
+        departments: [],
+        leaveRequests: [],
+        payrollRuns: [],
+        payslips: [],
+        activity: [],
+        notifications: [],
       };
-    }
 
-    case "UPDATE_EMPLOYEE": {
-      const { salary, bankDetails, emergencyContact, ...rest } = action.updates;
+    case "SET_WORKSPACE":
+      if (!action.workspace) return { ...state, currentTenant: null };
+      return { ...state, ...action.workspace };
+
+    case "EMPLOYEE_ADDED":
       return {
         ...state,
-        employees: state.employees.map((employee) => {
-          if (employee.id !== action.id) return employee;
-          return {
-            ...employee,
-            ...rest,
-            salary: salary ? { ...employee.salary, ...salary } : employee.salary,
-            bankDetails: bankDetails
-              ? { ...employee.bankDetails, ...bankDetails }
-              : employee.bankDetails,
-            emergencyContact: emergencyContact
-              ? { ...employee.emergencyContact, ...emergencyContact }
-              : employee.emergencyContact,
-          };
-        }),
+        employees: [...state.employees, action.employee],
+        activity: [action.activity, ...state.activity],
+        notifications: [action.notification, ...state.notifications],
       };
-    }
 
-    case "TOGGLE_ONBOARDING_STEP": {
-      let graduatedEmployee: Employee | undefined;
-      const employees = state.employees.map((employee) => {
-        if (employee.id !== action.employeeId || !employee.onboarding) return employee;
-        const steps = employee.onboarding.steps.map((step) =>
-          step.id === action.stepId ? { ...step, complete: !step.complete } : step
-        );
-        const completeCount = steps.filter((step) => step.complete).length;
-        const progress = Math.round((completeCount / steps.length) * 100);
-        const updated: Employee = {
-          ...employee,
-          status: progress === 100 ? "active" : employee.status,
-          onboarding: { ...employee.onboarding, steps, progress },
-        };
-        if (progress === 100 && employee.status !== "active") {
-          graduatedEmployee = updated;
-        }
-        return updated;
-      });
-
-      if (!graduatedEmployee) {
-        return { ...state, employees };
-      }
-
-      const newActivity: ActivityItem = {
-        id: `${graduatedEmployee.tenantId}-act-${Date.now()}`,
-        tenantId: graduatedEmployee.tenantId,
-        type: "onboarding",
-        message: "completed onboarding and is now fully active",
-        actor: `${graduatedEmployee.firstName} ${graduatedEmployee.lastName}`,
-        employeeId: graduatedEmployee.id,
-        timestamp: new Date().toISOString(),
-      };
+    case "EMPLOYEE_UPDATED":
       return {
         ...state,
-        employees,
-        activity: [newActivity, ...state.activity],
+        employees: state.employees.map((employee) =>
+          employee.id === action.employee.id ? action.employee : employee
+        ),
       };
-    }
 
-    case "ADD_LEAVE_REQUEST": {
-      const request = action.request;
-      const newActivity: ActivityItem = {
-        id: `${request.tenantId}-act-${Date.now()}`,
-        tenantId: request.tenantId,
-        type: "leave_request",
-        message: `requested ${request.days} day${request.days > 1 ? "s" : ""} of ${leaveTypeLabel(
-          request.type
-        )}`,
-        actor: employeeName(state.employees, request.employeeId),
-        employeeId: request.employeeId,
-        timestamp: new Date().toISOString(),
-      };
-      const newNotification: NotificationItem = {
-        id: `${request.tenantId}-notif-${Date.now()}`,
-        tenantId: request.tenantId,
-        title: "Leave request awaiting approval",
-        description: `${employeeName(state.employees, request.employeeId)} requested ${
-          request.days
-        } day${request.days > 1 ? "s" : ""} of ${leaveTypeLabel(request.type)}.`,
-        timestamp: new Date().toISOString(),
-        read: false,
-        type: "warning",
-      };
-      return {
-        ...state,
-        leaveRequests: [request, ...state.leaveRequests],
-        activity: [newActivity, ...state.activity],
-        notifications: [newNotification, ...state.notifications],
-      };
-    }
-
-    case "DECIDE_LEAVE_REQUEST": {
-      const target = state.leaveRequests.find((r) => r.id === action.id);
-      if (!target) return state;
-
-      const leaveRequests = state.leaveRequests.map((request) =>
-        request.id === action.id
-          ? {
-              ...request,
-              status: action.status,
-              decidedBy: action.decidedBy,
-              decidedOn: new Date().toISOString().slice(0, 10),
-              decisionNote: action.decisionNote,
-            }
-          : request
+    case "ONBOARDING_STEP_TOGGLED": {
+      const employees = state.employees.map((employee) =>
+        employee.id === action.employee.id ? action.employee : employee
       );
+      if (!action.activity) return { ...state, employees };
+      return { ...state, employees, activity: [action.activity, ...state.activity] };
+    }
 
-      const employees =
-        action.status === "approved"
-          ? state.employees.map((employee) => {
-              if (employee.id !== target.employeeId) return employee;
-              return {
-                ...employee,
-                leaveBalances: employee.leaveBalances.map((balance) =>
-                  balance.type === target.type
-                    ? { ...balance, used: balance.used + target.days }
-                    : balance
-                ),
-              };
-            })
-          : state.employees;
-
-      const newActivity: ActivityItem = {
-        id: `${target.tenantId}-act-${Date.now()}`,
-        tenantId: target.tenantId,
-        type: action.status === "approved" ? "leave_approved" : "leave_rejected",
-        message: `${leaveTypeLabel(target.type)} request was ${action.status}`,
-        actor: employeeName(state.employees, target.employeeId),
-        employeeId: target.employeeId,
-        timestamp: new Date().toISOString(),
+    case "LEAVE_REQUEST_ADDED":
+      return {
+        ...state,
+        leaveRequests: [action.leaveRequest, ...state.leaveRequests],
+        activity: [action.activity, ...state.activity],
+        notifications: [action.notification, ...state.notifications],
       };
+
+    case "LEAVE_REQUEST_DECIDED": {
+      const leaveBalance = action.leaveBalance;
+      const leaveRequests = state.leaveRequests.map((request) =>
+        request.id === action.leaveRequest.id ? action.leaveRequest : request
+      );
+      const employees = leaveBalance
+        ? state.employees.map((employee) => {
+            if (employee.id !== leaveBalance.employeeId) return employee;
+            return {
+              ...employee,
+              leaveBalances: employee.leaveBalances.map((balance) =>
+                balance.type === leaveBalance.type ? { ...balance, used: leaveBalance.used } : balance
+              ),
+            };
+          })
+        : state.employees;
 
       return {
         ...state,
-        employees,
         leaveRequests,
-        activity: [newActivity, ...state.activity],
+        employees,
+        activity: [action.activity, ...state.activity],
       };
     }
 
-    case "START_PAYROLL_RUN": {
+    case "PAYROLL_RUN_STARTED":
       return {
         ...state,
         payrollRuns: state.payrollRuns.map((run) =>
-          run.id === action.runId ? { ...run, status: "processing" } : run
+          run.id === action.payrollRun.id ? action.payrollRun : run
         ),
       };
-    }
 
-    case "COMPLETE_PAYROLL_RUN": {
-      const run = state.payrollRuns.find((r) => r.id === action.runId);
-      if (!run) return state;
-
-      const tenant = getTenant(run.tenantId);
-      const eligible = state.employees.filter(
-        (e) => e.tenantId === run.tenantId && e.status !== "terminated" && e.startDate <= run.payDate
+    case "PAYROLL_RUN_COMPLETED": {
+      const payrollRuns = state.payrollRuns.map((run) =>
+        run.id === action.payrollRun.id ? action.payrollRun : run
       );
-      const newPayslips = eligible.map((e) => buildPayslip(e, run.id, run.period, run.payDate));
-
-      const totalGross = round2(sum(newPayslips, (p) => p.grossPay));
-      const totalDeductions = round2(sum(newPayslips, (p) => p.totalDeductions));
-      const totalNet = round2(sum(newPayslips, (p) => p.netPay));
-      const totalPaye = round2(sum(newPayslips, (p) => p.paye));
-      const totalUif = round2(sum(newPayslips, (p) => p.uif));
-
-      const completedRun: PayrollRun = {
-        ...run,
-        status: "completed",
-        totalGross,
-        totalDeductions,
-        totalNet,
-        totalPaye,
-        totalUif,
-        employeeCount: newPayslips.length,
-        payslipIds: newPayslips.map((p) => p.id),
-        processedOn: new Date().toISOString(),
-      };
-
-      const nextPeriod = incrementPeriod(run.period);
-      const nextPayDate = `${nextPeriod}-${String(tenant.payDay).padStart(2, "0")}`;
-      const nextRunId = `${run.tenantId}-run-${nextPeriod}`;
-      const nextRunExists = state.payrollRuns.some((r) => r.id === nextRunId);
-      const nextEligibleCount = state.employees.filter(
-        (e) => e.tenantId === run.tenantId && e.status !== "terminated" && e.startDate <= nextPayDate
-      ).length;
-
-      const payrollRuns: PayrollRun[] = state.payrollRuns.map((r) =>
-        r.id === run.id ? completedRun : r
-      );
-      if (!nextRunExists) {
-        payrollRuns.push({
-          id: nextRunId,
-          tenantId: run.tenantId,
-          period: nextPeriod,
-          label: `${formatPeriodLabel(nextPeriod)} Payroll`,
-          payDate: nextPayDate,
-          status: "scheduled",
-          totalGross: 0,
-          totalDeductions: 0,
-          totalNet: 0,
-          totalPaye: 0,
-          totalUif: 0,
-          employeeCount: nextEligibleCount,
-          payslipIds: [],
-        });
-      }
-
-      const newActivity: ActivityItem = {
-        id: `${run.tenantId}-act-${Date.now()}`,
-        tenantId: run.tenantId,
-        type: "payroll_run",
-        message: `processed payroll for ${formatPeriodLabel(run.period)}`,
-        actor: PAYROLL_OWNER[run.tenantId] ?? "Payroll Team",
-        timestamp: new Date().toISOString(),
-      };
-
-      const newNotification: NotificationItem = {
-        id: `${run.tenantId}-notif-${Date.now()}`,
-        tenantId: run.tenantId,
-        title: "Payslips published",
-        description: `${formatPeriodLabel(run.period)} payslips have been generated for ${
-          newPayslips.length
-        } employees.`,
-        timestamp: new Date().toISOString(),
-        read: false,
-        type: "success",
-      };
+      if (action.nextRun) payrollRuns.push(action.nextRun);
 
       return {
         ...state,
         payrollRuns,
-        payslips: [...state.payslips, ...newPayslips],
-        activity: [newActivity, ...state.activity],
-        notifications: [newNotification, ...state.notifications],
+        payslips: [...state.payslips, ...action.payslips],
+        activity: [action.activity, ...state.activity],
+        notifications: [action.notification, ...state.notifications],
       };
     }
 
-    case "MARK_NOTIFICATION_READ":
+    case "NOTIFICATION_READ":
       return {
         ...state,
         notifications: state.notifications.map((n) =>
@@ -350,7 +182,7 @@ function reducer(state: AppState, action: Action): AppState {
         ),
       };
 
-    case "MARK_ALL_NOTIFICATIONS_READ":
+    case "ALL_NOTIFICATIONS_READ":
       return {
         ...state,
         notifications: state.notifications.map((n) =>
@@ -363,55 +195,23 @@ function reducer(state: AppState, action: Action): AppState {
   }
 }
 
-function sum<T>(items: T[], selector: (item: T) => number): number {
-  return items.reduce((acc, item) => acc + selector(item), 0);
-}
-
-function round2(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
-function employeeName(employees: Employee[], id: string): string {
-  const employee = employees.find((e) => e.id === id);
-  return employee ? `${employee.firstName} ${employee.lastName}` : "Unknown employee";
-}
-
-function leaveTypeLabel(type: LeaveRequest["type"]): string {
-  switch (type) {
-    case "annual":
-      return "annual leave";
-    case "sick":
-      return "sick leave";
-    case "unpaid":
-      return "unpaid leave";
-    case "family":
-      return "family responsibility leave";
-  }
-}
-
-function formatPeriodLabel(period: string): string {
-  const [year, month] = period.split("-").map(Number);
-  const date = new Date(year, month - 1, 1);
-  return new Intl.DateTimeFormat("en-ZA", { month: "long", year: "numeric" }).format(date);
-}
-
 interface AppContextValue {
   state: AppState;
   setTenant: (tenantId: string) => void;
-  addEmployee: (employee: Employee) => void;
-  updateEmployee: (id: string, updates: Partial<Employee>) => void;
-  toggleOnboardingStep: (employeeId: string, stepId: string) => void;
-  addLeaveRequest: (request: LeaveRequest) => void;
+  addEmployee: (employee: Employee) => Promise<Employee>;
+  updateEmployee: (id: string, updates: Partial<Employee>) => Promise<void>;
+  toggleOnboardingStep: (employeeId: string, stepId: string) => Promise<void>;
+  addLeaveRequest: (input: CreateLeaveRequestInput) => Promise<void>;
   decideLeaveRequest: (
     id: string,
     status: Extract<LeaveStatus, "approved" | "rejected">,
     decidedBy: string,
     decisionNote?: string
-  ) => void;
-  startPayrollRun: (runId: string) => void;
-  completePayrollRun: (runId: string) => void;
-  markNotificationRead: (id: string) => void;
-  markAllNotificationsRead: (tenantId: string) => void;
+  ) => Promise<void>;
+  startPayrollRun: (runId: string) => Promise<void>;
+  completePayrollRun: (runId: string) => Promise<void>;
+  markNotificationRead: (id: string) => Promise<void>;
+  markAllNotificationsRead: (tenantId: string) => Promise<void>;
 }
 
 const AppContext = React.createContext<AppContextValue | null>(null);
@@ -419,22 +219,83 @@ const AppContext = React.createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
+  React.useEffect(() => {
+    let active = true;
+    getTenantWorkspace(state.tenantId).then((workspace) => {
+      if (active) dispatch({ type: "SET_WORKSPACE", workspace });
+    });
+    return () => {
+      active = false;
+    };
+  }, [state.tenantId]);
+
   const value = React.useMemo<AppContextValue>(
     () => ({
       state,
       setTenant: (tenantId) => dispatch({ type: "SET_TENANT", tenantId }),
-      addEmployee: (employee) => dispatch({ type: "ADD_EMPLOYEE", employee }),
-      updateEmployee: (id, updates) => dispatch({ type: "UPDATE_EMPLOYEE", id, updates }),
-      toggleOnboardingStep: (employeeId, stepId) =>
-        dispatch({ type: "TOGGLE_ONBOARDING_STEP", employeeId, stepId }),
-      addLeaveRequest: (request) => dispatch({ type: "ADD_LEAVE_REQUEST", request }),
-      decideLeaveRequest: (id, status, decidedBy, decisionNote) =>
-        dispatch({ type: "DECIDE_LEAVE_REQUEST", id, status, decidedBy, decisionNote }),
-      startPayrollRun: (runId) => dispatch({ type: "START_PAYROLL_RUN", runId }),
-      completePayrollRun: (runId) => dispatch({ type: "COMPLETE_PAYROLL_RUN", runId }),
-      markNotificationRead: (id) => dispatch({ type: "MARK_NOTIFICATION_READ", id }),
-      markAllNotificationsRead: (tenantId) =>
-        dispatch({ type: "MARK_ALL_NOTIFICATIONS_READ", tenantId }),
+      addEmployee: async (employee) => {
+        const result = await createEmployeeRecord(employee);
+        dispatch({
+          type: "EMPLOYEE_ADDED",
+          employee: result.employee,
+          activity: result.activity,
+          notification: result.notification,
+        });
+        return result.employee;
+      },
+      updateEmployee: async (id, updates) => {
+        const employee = await updateEmployeeRecord(id, updates);
+        dispatch({ type: "EMPLOYEE_UPDATED", employee });
+      },
+      toggleOnboardingStep: async (employeeId, stepId) => {
+        const result = await toggleOnboardingStepRecord(employeeId, stepId);
+        dispatch({
+          type: "ONBOARDING_STEP_TOGGLED",
+          employee: result.employee,
+          activity: result.activity,
+        });
+      },
+      addLeaveRequest: async (input) => {
+        const result = await createLeaveRequestRecord(input);
+        dispatch({
+          type: "LEAVE_REQUEST_ADDED",
+          leaveRequest: result.leaveRequest,
+          activity: result.activity,
+          notification: result.notification,
+        });
+      },
+      decideLeaveRequest: async (id, status, decidedBy, decisionNote) => {
+        const result = await decideLeaveRequestRecord(id, status, decidedBy, decisionNote);
+        dispatch({
+          type: "LEAVE_REQUEST_DECIDED",
+          leaveRequest: result.leaveRequest,
+          leaveBalance: result.leaveBalance,
+          activity: result.activity,
+        });
+      },
+      startPayrollRun: async (runId) => {
+        const payrollRun = await startPayrollRunRecord(runId);
+        dispatch({ type: "PAYROLL_RUN_STARTED", payrollRun });
+      },
+      completePayrollRun: async (runId) => {
+        const result = await completePayrollRunRecord(runId);
+        dispatch({
+          type: "PAYROLL_RUN_COMPLETED",
+          payrollRun: result.payrollRun,
+          payslips: result.payslips,
+          nextRun: result.nextRun,
+          activity: result.activity,
+          notification: result.notification,
+        });
+      },
+      markNotificationRead: async (id) => {
+        await markNotificationReadRecord(id);
+        dispatch({ type: "NOTIFICATION_READ", id });
+      },
+      markAllNotificationsRead: async (tenantId) => {
+        await markAllNotificationsReadRecord(tenantId);
+        dispatch({ type: "ALL_NOTIFICATIONS_READ", tenantId });
+      },
     }),
     [state]
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Building2,
@@ -53,6 +54,7 @@ export default function LoginPage() {
   const [password, setPassword] = React.useState(demoUsers[0].password);
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
     if (!isLoading && user) {
@@ -69,13 +71,18 @@ export default function LoginPage() {
     setError("");
   }
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    const found = login(email, password);
-    if (!found) {
-      setError("We couldn't find a demo account with that email and password.");
+    setError("");
+    setSubmitting(true);
+
+    const message = await login(email, password);
+    if (message) {
+      setError(message);
+      setSubmitting(false);
       return;
     }
+
     router.push("/dashboard");
   }
 
@@ -258,7 +265,15 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <Input
                   id="password"
@@ -284,14 +299,23 @@ export default function LoginPage() {
 
             {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button type="submit" size="lg" className="w-full">
-              Sign in as {demoUsers.find((u) => u.id === selectedId)?.name.split(" ")[0]}
+            <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+              {submitting
+                ? "Signing in..."
+                : `Sign in as ${demoUsers.find((u) => u.id === selectedId)?.name.split(" ")[0]}`}
             </Button>
           </form>
 
           <p className="text-center text-xs text-muted-foreground">
-            Demo credentials only — no real accounts or data. Sign out anytime from the sidebar
-            to switch roles.
+            Demo personas above use sample data. Sign out anytime from the sidebar to switch
+            roles.
+          </p>
+
+          <p className="text-center text-sm text-muted-foreground">
+            New to NovaHR?{" "}
+            <Link href="/signup" className="font-medium text-foreground underline-offset-4 hover:underline">
+              Create your company
+            </Link>
           </p>
         </div>
       </div>

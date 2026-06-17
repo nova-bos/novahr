@@ -13,9 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useApp } from "@/lib/store/app-provider";
 import { useTenants } from "@/lib/store/hooks";
-import { getDepartmentsByTenant } from "@/lib/data";
+import { employees, getDepartmentsByTenant, leaveRequests } from "@/lib/data";
 import { calculateMonthlyPayroll } from "@/lib/payroll-calc";
 import { formatCurrencyCompact, formatDateLong } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -23,19 +22,18 @@ import { DashboardHeader } from "./dashboard-header";
 import { StatCardGrid, type StatItem } from "./stat-card-grid";
 
 export function ExcoDashboard() {
-  const { state } = useApp();
   const tenants = useTenants();
 
-  const activeEmployees = state.employees.filter((e) => e.status !== "terminated");
-  const onLeaveToday = state.employees.filter((e) => e.status === "on_leave").length;
+  const activeEmployees = employees.filter((e) => e.status !== "terminated");
+  const onLeaveToday = employees.filter((e) => e.status === "on_leave").length;
   const groupPayroll = activeEmployees.reduce(
     (sum, e) => sum + calculateMonthlyPayroll(e).grossPay,
     0
   );
-  const pendingApprovals = state.leaveRequests.filter((r) => r.status === "pending").length;
+  const pendingApprovals = leaveRequests.filter((r) => r.status === "pending").length;
 
   const tenantSummaries = tenants.map((tenant) => {
-    const tenantEmployees = state.employees.filter(
+    const tenantEmployees = employees.filter(
       (e) => e.tenantId === tenant.id && e.status !== "terminated"
     );
     const payroll = tenantEmployees.reduce(

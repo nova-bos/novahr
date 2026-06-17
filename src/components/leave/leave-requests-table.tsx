@@ -67,11 +67,17 @@ export function LeaveRequestsTable() {
       .sort((a, b) => (a.appliedOn < b.appliedOn ? 1 : -1));
   }, [requests, status, type]);
 
-  function handleDecision(id: string, decision: "approved" | "rejected", name: string) {
-    decideLeaveRequest(id, decision, user?.name ?? "HR");
-    toast(decision === "approved" ? "Leave request approved" : "Leave request rejected", {
-      description: `${name}'s leave request has been ${decision}.`,
-    });
+  async function handleDecision(id: string, decision: "approved" | "rejected", name: string) {
+    try {
+      await decideLeaveRequest(id, decision, user?.name ?? "HR");
+      toast(decision === "approved" ? "Leave request approved" : "Leave request rejected", {
+        description: `${name}'s leave request has been ${decision}.`,
+      });
+    } catch {
+      toast.error("Couldn't update leave request", {
+        description: "Please try again.",
+      });
+    }
   }
 
   return (

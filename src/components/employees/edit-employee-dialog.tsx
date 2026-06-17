@@ -55,39 +55,45 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
     }
   }, [open, employee]);
 
-  function handleSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    updateEmployee(employee.id, {
-      jobTitle: form.jobTitle,
-      department: form.department,
-      employmentType: form.employmentType,
-      status: form.status,
-      location: form.location,
-      email: form.email,
-      phone: form.phone,
-      address: form.address,
-      salary: {
-        ...employee.salary,
-        annualGross: Number(form.annualGross) || 0,
-        travelAllowance: form.travelAllowance ? Number(form.travelAllowance) : undefined,
-        housingAllowance: form.housingAllowance ? Number(form.housingAllowance) : undefined,
-        pensionContributionPct: form.pensionContributionPct
-          ? Number(form.pensionContributionPct) / 100
-          : undefined,
-        medicalAid: form.medicalAid ? Number(form.medicalAid) : undefined,
-      },
-      emergencyContact: {
-        name: form.emergencyName,
-        relationship: form.emergencyRelationship,
-        phone: form.emergencyPhone,
-      },
-    });
+    try {
+      await updateEmployee(employee.id, {
+        jobTitle: form.jobTitle,
+        department: form.department,
+        employmentType: form.employmentType,
+        status: form.status,
+        location: form.location,
+        email: form.email,
+        phone: form.phone,
+        address: form.address,
+        salary: {
+          ...employee.salary,
+          annualGross: Number(form.annualGross) || 0,
+          travelAllowance: form.travelAllowance ? Number(form.travelAllowance) : undefined,
+          housingAllowance: form.housingAllowance ? Number(form.housingAllowance) : undefined,
+          pensionContributionPct: form.pensionContributionPct
+            ? Number(form.pensionContributionPct) / 100
+            : undefined,
+          medicalAid: form.medicalAid ? Number(form.medicalAid) : undefined,
+        },
+        emergencyContact: {
+          name: form.emergencyName,
+          relationship: form.emergencyRelationship,
+          phone: form.emergencyPhone,
+        },
+      });
 
-    toast.success("Employee profile updated", {
-      description: `${employee.firstName} ${employee.lastName}'s details have been saved.`,
-    });
-    onOpenChange(false);
+      toast.success("Employee profile updated", {
+        description: `${employee.firstName} ${employee.lastName}'s details have been saved.`,
+      });
+      onOpenChange(false);
+    } catch {
+      toast.error("Couldn't update employee profile", {
+        description: "Please try again.",
+      });
+    }
   }
 
   return (
