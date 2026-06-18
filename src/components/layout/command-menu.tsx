@@ -59,7 +59,7 @@ export function CommandMenu() {
     <>
       <Button
         variant="outline"
-        className="hidden h-9 w-full max-w-56 justify-between gap-2 border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none sm:flex lg:max-w-72"
+        className="hidden h-9 w-52 justify-between gap-2 border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none lg:flex xl:w-64"
         onClick={() => setOpen(true)}
       >
         <span className="flex items-center gap-2">
@@ -71,7 +71,7 @@ export function CommandMenu() {
       <Button
         variant="outline"
         size="icon"
-        className="size-9 border-border/70 bg-background text-muted-foreground shadow-none sm:hidden"
+        className="size-9 border-border/70 bg-background text-muted-foreground shadow-none lg:hidden"
         onClick={() => setOpen(true)}
       >
         <Search className="size-[18px]" />
