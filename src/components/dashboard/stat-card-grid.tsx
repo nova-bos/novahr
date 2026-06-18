@@ -18,7 +18,7 @@ export function StatCardGrid({ stats }: { stats: StatItem[] }) {
           <CardContent className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 flex-col gap-1">
               <p className="text-sm text-muted-foreground">{stat.label}</p>
-              <p className="truncate text-2xl font-semibold tracking-tight">{stat.value}</p>
+              <p className="truncate text-2xl font-semibold tracking-tight tabular-nums">{stat.value}</p>
               {stat.detail ? (
                 <p className="truncate text-xs text-muted-foreground">{stat.detail}</p>
               ) : null}

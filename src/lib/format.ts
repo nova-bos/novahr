@@ -1,13 +1,10 @@
 export function formatCurrency(amount: number, currency = "ZAR"): string {
-  return new Intl.NumberFormat("en-ZA", {
-    style: "currency",
-    currency,
+  const prefix = currency === "ZAR" ? "R" : currency;
+  const formatted = new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })
-    .format(amount)
-    .replace("ZAR", "R")
-    .replace(/ /g, " ");
+  }).format(amount);
+  return `${prefix} ${formatted}`;
 }
 
 export function formatCurrencyCompact(amount: number, currency = "ZAR"): string {

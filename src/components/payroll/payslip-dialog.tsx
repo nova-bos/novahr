@@ -62,17 +62,17 @@ export function PayslipDialog({
           <p className="text-xs font-medium text-muted-foreground">Earnings</p>
           <div className="flex items-center justify-between gap-2 text-sm">
             <span className="truncate text-muted-foreground">Basic salary</span>
-            <span className="shrink-0 font-medium">{formatCurrency(payslip.basicSalary)}</span>
+            <span className="shrink-0 font-medium tabular-nums">{formatCurrency(payslip.basicSalary)}</span>
           </div>
           {payslip.earnings.map((item) => (
             <div key={item.label} className="flex items-center justify-between gap-2 text-sm">
               <span className="truncate text-muted-foreground">{item.label}</span>
-              <span className="shrink-0 font-medium">{formatCurrency(item.amount)}</span>
+              <span className="shrink-0 font-medium tabular-nums">{formatCurrency(item.amount)}</span>
             </div>
           ))}
           <div className="flex items-center justify-between gap-2 text-sm font-semibold">
             <span className="truncate">Gross pay</span>
-            <span className="shrink-0">{formatCurrency(payslip.grossPay)}</span>
+            <span className="shrink-0 tabular-nums">{formatCurrency(payslip.grossPay)}</span>
           </div>
         </div>
 
@@ -83,12 +83,12 @@ export function PayslipDialog({
           {payslip.deductions.map((item) => (
             <div key={item.label} className="flex items-center justify-between gap-2 text-sm">
               <span className="truncate text-muted-foreground">{item.label}</span>
-              <span className="shrink-0 font-medium">-{formatCurrency(item.amount)}</span>
+              <span className="shrink-0 font-medium tabular-nums">-{formatCurrency(item.amount)}</span>
             </div>
           ))}
           <div className="flex items-center justify-between gap-2 text-sm font-semibold">
             <span className="truncate">Total deductions</span>
-            <span className="shrink-0">-{formatCurrency(payslip.totalDeductions)}</span>
+            <span className="shrink-0 tabular-nums">-{formatCurrency(payslip.totalDeductions)}</span>
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export function PayslipDialog({
 
         <div className="flex items-center justify-between gap-2 rounded-xl bg-primary/[0.03] p-3">
           <span className="shrink-0 text-sm font-semibold">Net pay</span>
-          <span className="truncate text-lg font-semibold text-primary">
+          <span className="truncate text-lg font-semibold tabular-nums text-primary">
             {formatCurrency(payslip.netPay)}
           </span>
         </div>

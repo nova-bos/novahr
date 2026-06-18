@@ -104,7 +104,7 @@ export function buildPayslipHtml(employee: Employee, payslip: Payslip): string {
       margin-bottom: 32px;
     }
     .net-pay-box .net-label { font-size: 14px; font-weight: 700; }
-    .net-pay-box .net-amount { font-size: 20px; font-weight: 700; color: #16a34a; }
+    .net-pay-box .net-amount { font-size: 20px; font-weight: 700; color: #16a34a; font-variant-numeric: tabular-nums; }
     .footer {
       margin-top: 32px;
       padding-top: 12px;

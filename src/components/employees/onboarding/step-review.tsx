@@ -110,19 +110,19 @@ export function StepReview({ form }: { form: NewEmployeeForm }) {
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="min-w-0 rounded-xl border border-border/70 p-4">
               <p className="text-xs text-muted-foreground">Gross pay / month</p>
-              <p className="mt-1 truncate text-xl font-semibold tracking-tight">
+              <p className="mt-1 truncate text-xl font-semibold tracking-tight tabular-nums">
                 {formatCurrency(breakdown.grossPay)}
               </p>
             </div>
             <div className="min-w-0 rounded-xl border border-border/70 p-4">
               <p className="text-xs text-muted-foreground">Total deductions</p>
-              <p className="mt-1 truncate text-xl font-semibold tracking-tight text-destructive">
+              <p className="mt-1 truncate text-xl font-semibold tracking-tight tabular-nums text-destructive">
                 -{formatCurrency(breakdown.totalDeductions)}
               </p>
             </div>
             <div className="min-w-0 rounded-xl border border-border/70 bg-primary/[0.03] p-4">
               <p className="text-xs text-muted-foreground">Net pay / month</p>
-              <p className="mt-1 truncate text-xl font-semibold tracking-tight text-primary">
+              <p className="mt-1 truncate text-xl font-semibold tracking-tight tabular-nums text-primary">
                 {formatCurrency(breakdown.netPay)}
               </p>
             </div>

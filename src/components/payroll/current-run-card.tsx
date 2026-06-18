@@ -94,17 +94,17 @@ export function CurrentRunCard() {
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="min-w-0 rounded-xl border border-border/70 p-4">
             <p className="text-xs text-muted-foreground">Pay date</p>
-            <p className="mt-1 truncate text-lg font-semibold tracking-tight">
+            <p className="mt-1 truncate text-lg font-semibold tracking-tight tabular-nums">
               {formatDateLong(run.payDate)}
             </p>
           </div>
           <div className="min-w-0 rounded-xl border border-border/70 p-4">
             <p className="text-xs text-muted-foreground">Eligible employees</p>
-            <p className="mt-1 truncate text-lg font-semibold tracking-tight">{eligible.length}</p>
+            <p className="mt-1 truncate text-lg font-semibold tracking-tight tabular-nums">{eligible.length}</p>
           </div>
           <div className="min-w-0 rounded-xl border border-border/70 p-4">
             <p className="text-xs text-muted-foreground">Projected gross</p>
-            <p className="mt-1 truncate text-lg font-semibold tracking-tight">
+            <p className="mt-1 truncate text-lg font-semibold tracking-tight tabular-nums">
               {formatCurrency(projectedGross)}
             </p>
           </div>
@@ -136,11 +136,11 @@ export function CurrentRunCard() {
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="min-w-0 rounded-xl border border-border/70 p-3">
               <p className="text-xs text-muted-foreground">Total gross</p>
-              <p className="mt-1 truncate text-base font-semibold">{formatCurrency(projectedGross)}</p>
+              <p className="mt-1 truncate text-base font-semibold tabular-nums">{formatCurrency(projectedGross)}</p>
             </div>
             <div className="min-w-0 rounded-xl border border-border/70 p-3">
               <p className="text-xs text-muted-foreground">Total net</p>
-              <p className="mt-1 truncate text-base font-semibold">{formatCurrency(projectedNet)}</p>
+              <p className="mt-1 truncate text-base font-semibold tabular-nums">{formatCurrency(projectedNet)}</p>
             </div>
           </div>
           <DialogFooter>

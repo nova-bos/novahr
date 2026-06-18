@@ -75,7 +75,7 @@ export function ProfileSidebar({ employee }: { employee: Employee }) {
           <div className="flex items-center gap-3 text-sm">
             <Wallet className="size-4 text-muted-foreground" />
             <div>
-              <p className="font-medium">{formatCurrency(breakdown.netPay)}</p>
+              <p className="font-medium tabular-nums">{formatCurrency(breakdown.netPay)}</p>
               <p className="text-xs text-muted-foreground">Net pay per month</p>
             </div>
           </div>

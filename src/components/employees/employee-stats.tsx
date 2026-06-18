@@ -30,7 +30,7 @@ export function EmployeeStats() {
               <stat.icon className="size-4" />
             </div>
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-xl font-semibold tracking-tight">{stat.value}</span>
+              <span className="truncate text-xl font-semibold tracking-tight tabular-nums">{stat.value}</span>
               <span className="truncate text-xs text-muted-foreground">{stat.label}</span>
             </div>
           </CardContent>
