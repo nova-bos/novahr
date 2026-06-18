@@ -59,7 +59,7 @@ export function CommandMenu() {
     <>
       <Button
         variant="outline"
-        className="h-9 w-full max-w-72 justify-between gap-2 border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none sm:flex"
+        className="hidden h-9 w-full max-w-56 justify-between gap-2 border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none sm:flex lg:max-w-72"
         onClick={() => setOpen(true)}
       >
         <span className="flex items-center gap-2">

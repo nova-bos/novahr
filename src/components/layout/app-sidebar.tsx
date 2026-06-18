@@ -9,6 +9,7 @@ import {
   HelpCircle,
   LogOut,
   Settings,
+  X,
 } from "lucide-react";
 
 import { useAuth } from "@/lib/auth/auth-provider";
@@ -41,7 +42,6 @@ import { getNavItems } from "./nav-config";
 
 function SidebarCollapseToggle() {
   const { state, toggleSidebar, isMobile } = useSidebar();
-  if (isMobile) return null;
   const collapsed = state === "collapsed";
 
   return (
@@ -50,9 +50,15 @@ function SidebarCollapseToggle() {
       size="icon-sm"
       onClick={toggleSidebar}
       className="size-7 shrink-0 text-sidebar-foreground/50 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      aria-label={isMobile ? "Close sidebar" : collapsed ? "Expand sidebar" : "Collapse sidebar"}
     >
-      {collapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
+      {isMobile ? (
+        <X className="size-4" />
+      ) : collapsed ? (
+        <ChevronsRight className="size-4" />
+      ) : (
+        <ChevronsLeft className="size-4" />
+      )}
     </Button>
   );
 }

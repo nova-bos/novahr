@@ -24,13 +24,13 @@ export function Topbar() {
   const canSwitchTenant = user?.role === "hr" || user?.role === "exco";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-border/70 bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-      <SidebarTrigger className="-ml-1" />
-      <Separator orientation="vertical" className="h-5 data-[orientation=vertical]:h-5" />
-      <h1 className="truncate text-sm font-semibold tracking-tight text-foreground">
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 overflow-hidden border-b border-border/70 bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+      <SidebarTrigger className="-ml-1 shrink-0" />
+      <Separator orientation="vertical" className="h-5 shrink-0 data-[orientation=vertical]:h-5" />
+      <h1 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-foreground">
         {pageTitle(pathname, navItems)}
       </h1>
-      <div className="ml-auto flex items-center gap-2 sm:gap-3">
+      <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
         <CommandMenu />
         <ThemeToggle />
         {canSwitchTenant && <TenantSwitcher />}
