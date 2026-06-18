@@ -6,6 +6,7 @@ import { Hero } from "@/components/marketing/hero";
 import { FeaturesSection } from "@/components/marketing/features-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
+import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 
 export const metadata: Metadata = {
   title: "NovaHR | Modern HR & Payroll for South African Businesses",
@@ -35,6 +36,7 @@ export default async function LandingPage() {
         </section>
       </main>
       <MarketingFooter />
+      <WhatsAppButton />
     </div>
   );
 }
