@@ -1,6 +1,8 @@
 "use client";
 
+import * as React from "react";
 import { Download } from "lucide-react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +15,25 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatDate, getInitials } from "@/lib/format";
-import { printPayslip } from "@/lib/payroll/print";
 import type { Employee, Payslip } from "@/lib/types";
+
+async function downloadPayslipPdf(employee: Employee, payslip: Payslip): Promise<void> {
+  const [{ pdf }, { PayslipDocument }] = await Promise.all([
+    import("@react-pdf/renderer"),
+    import("@/lib/payroll/pdf"),
+  ]);
+  const blob = await pdf(
+    <PayslipDocument employee={employee} payslip={payslip} />
+  ).toBlob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `payslip-${employee.lastName.toLowerCase()}-${payslip.period}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 export function PayslipDialog({
   employee,
@@ -27,7 +46,21 @@ export function PayslipDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const [downloading, setDownloading] = React.useState(false);
+
   if (!payslip) return null;
+
+  async function handleDownload() {
+    if (!payslip) return;
+    setDownloading(true);
+    try {
+      await downloadPayslipPdf(employee, payslip);
+    } catch {
+      toast.error("Could not generate PDF", { description: "Please try again." });
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,9 +138,9 @@ export function PayslipDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => printPayslip(employee, payslip)}>
+          <Button variant="outline" onClick={handleDownload} disabled={downloading}>
             <Download />
-            Download payslip
+            {downloading ? "Generating…" : "Download payslip"}
           </Button>
         </DialogFooter>
       </DialogContent>
