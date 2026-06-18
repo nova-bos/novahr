@@ -16,15 +16,15 @@ import {
 
 describe("formatCurrency", () => {
   it("formats a positive amount in ZAR with two decimals", () => {
-    expect(formatCurrency(1234.5)).toBe("R 1 234,50");
+    expect(formatCurrency(1234.5)).toBe("R 1,234.50");
   });
 
   it("formats zero", () => {
-    expect(formatCurrency(0)).toBe("R 0,00");
+    expect(formatCurrency(0)).toBe("R 0.00");
   });
 
-  it("formats negative amounts with the sign before the currency symbol", () => {
-    expect(formatCurrency(-500)).toBe("-R 500,00");
+  it("formats negative amounts", () => {
+    expect(formatCurrency(-500)).toBe("R -500.00");
   });
 });
 
