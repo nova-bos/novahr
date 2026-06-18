@@ -26,9 +26,8 @@ export function MarketingNav() {
       )}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <Logo />
-          <span className="font-semibold text-foreground">NovaHR</span>
+        <Link href="/" className="flex items-center">
+          <Logo height={28} />
         </Link>
 
         <nav className="flex items-center gap-2">

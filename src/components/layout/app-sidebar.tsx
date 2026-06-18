@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Logo } from "./logo";
+import { Logo, LogoIcon } from "./logo";
 import { getNavItems } from "./nav-config";
 
 function SidebarCollapseToggle() {
@@ -81,13 +81,10 @@ export function AppSidebar() {
         <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:gap-1.5">
           <Link
             href="/dashboard"
-            className="flex min-w-0 items-center gap-2 rounded-lg px-1 py-1 transition-colors hover:bg-sidebar-accent"
+            className="flex min-w-0 items-center rounded-lg px-1 py-1 transition-colors hover:bg-sidebar-accent"
           >
-            <Logo />
-            <div className="flex min-w-0 flex-col leading-tight group-data-[collapsible=icon]:hidden">
-              <span className="truncate text-sm font-semibold tracking-tight">NovaHR</span>
-              <span className="truncate text-[11px] text-sidebar-foreground/55">HR &amp; Payroll</span>
-            </div>
+            <Logo className="group-data-[collapsible=icon]:hidden" />
+            <LogoIcon className="hidden group-data-[collapsible=icon]:block" />
           </Link>
           <SidebarCollapseToggle />
         </div>

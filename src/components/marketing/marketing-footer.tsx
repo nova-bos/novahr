@@ -6,8 +6,7 @@ export function MarketingFooter() {
     <footer className="border-t py-8">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 sm:flex-row sm:justify-between">
         <div className="flex items-center gap-2 text-muted-foreground">
-          <Logo />
-          <span className="font-semibold text-foreground">NovaHR</span>
+          <Logo height={20} />
           <span className="hidden sm:inline">&middot;</span>
           <span className="hidden text-sm sm:inline">
             &copy; 2026 NovaHR. All rights reserved.
