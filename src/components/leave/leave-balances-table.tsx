@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -50,6 +50,9 @@ export function LeaveBalancesTable() {
                     className="flex items-center gap-3 hover:underline"
                   >
                     <Avatar size="sm">
+                      {employee.photoUrl ? (
+                        <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                      ) : null}
                       <AvatarFallback
                         className="text-white"
                         style={{ backgroundColor: employee.avatarColor }}

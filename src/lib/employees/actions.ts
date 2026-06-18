@@ -136,6 +136,18 @@ export async function updateEmployeeRecord(id: string, updates: Partial<Employee
   return mapEmployee(updated);
 }
 
+export async function updateEmployeePhotoRecord(
+  employeeId: string,
+  photoUrl: string
+): Promise<Employee> {
+  const updated = await prisma.employee.update({
+    where: { id: employeeId },
+    data: { photoUrl },
+    include: { leaveBalances: true },
+  });
+  return mapEmployee(updated);
+}
+
 export async function toggleOnboardingStepRecord(
   employeeId: string,
   stepId: string

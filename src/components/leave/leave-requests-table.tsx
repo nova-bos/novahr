@@ -3,7 +3,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 import { Check, ClipboardList, X } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -142,6 +142,9 @@ export function LeaveRequestsTable() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar size="sm">
+                          {employee.photoUrl ? (
+                            <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                          ) : null}
                           <AvatarFallback
                             className="text-white"
                             style={{ backgroundColor: employee.avatarColor }}

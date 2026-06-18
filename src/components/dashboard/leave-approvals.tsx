@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant, useEmployees, useLeaveRequests } from "@/lib/store/hooks";
@@ -57,6 +57,9 @@ export function LeaveApprovals() {
               return (
                 <div key={request.id} className="flex items-start gap-3">
                   <Avatar size="sm" className="mt-0.5">
+                    {employee.photoUrl ? (
+                      <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                    ) : null}
                     <AvatarFallback
                       className="text-white"
                       style={{ backgroundColor: employee.avatarColor }}

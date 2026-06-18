@@ -13,7 +13,12 @@ import type {
   Payslip,
   Tenant,
 } from "../types";
-import { createEmployeeRecord, toggleOnboardingStepRecord, updateEmployeeRecord } from "../employees/actions";
+import {
+  createEmployeeRecord,
+  toggleOnboardingStepRecord,
+  updateEmployeeRecord,
+  updateEmployeePhotoRecord,
+} from "../employees/actions";
 import { createLeaveRequestRecord, decideLeaveRequestRecord, type CreateLeaveRequestInput } from "../leave/actions";
 import { completePayrollRunRecord, startPayrollRunRecord } from "../payroll/actions";
 import { markAllNotificationsReadRecord, markNotificationReadRecord } from "../notifications/actions";
@@ -208,6 +213,7 @@ interface AppContextValue {
   setTenant: (tenantId: string) => void;
   addEmployee: (employee: Employee) => Promise<Employee>;
   updateEmployee: (id: string, updates: Partial<Employee>) => Promise<void>;
+  updateEmployeePhoto: (employeeId: string, photoUrl: string) => Promise<void>;
   toggleOnboardingStep: (employeeId: string, stepId: string) => Promise<void>;
   addLeaveRequest: (input: CreateLeaveRequestInput) => Promise<void>;
   decideLeaveRequest: (
@@ -260,6 +266,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       },
       updateEmployee: async (id, updates) => {
         const employee = await updateEmployeeRecord(id, updates);
+        dispatch({ type: "EMPLOYEE_UPDATED", employee });
+      },
+      updateEmployeePhoto: async (employeeId, photoUrl) => {
+        const employee = await updateEmployeePhotoRecord(employeeId, photoUrl);
         dispatch({ type: "EMPLOYEE_UPDATED", employee });
       },
       toggleOnboardingStep: async (employeeId, stepId) => {

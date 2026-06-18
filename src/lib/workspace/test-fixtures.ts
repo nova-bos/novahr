@@ -14,6 +14,7 @@ export function makeEmployeeRow(overrides: Partial<EmployeeWithBalances> = {}): 
     phone: "+27 71 000 0000",
     avatarColor: "#4C6FFF",
     initials: "AP",
+    photoUrl: null,
     jobTitle: "Software Engineer",
     department: "Engineering",
     employmentType: "full_time",

@@ -1,7 +1,7 @@
 "use client";
 
 import { Download } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -39,6 +39,9 @@ export function PayslipDialog({
 
         <div className="flex items-center gap-3">
           <Avatar size="lg" className="size-11">
+            {employee.photoUrl ? (
+              <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+            ) : null}
             <AvatarFallback
               className="text-white"
               style={{ backgroundColor: employee.avatarColor }}

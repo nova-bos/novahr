@@ -4,7 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { Search, Users } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -138,6 +138,9 @@ export function EmployeeDirectory() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <Avatar size="sm">
+                        {employee.photoUrl ? (
+                          <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                        ) : null}
                         <AvatarFallback
                           className="text-white"
                           style={{ backgroundColor: employee.avatarColor }}

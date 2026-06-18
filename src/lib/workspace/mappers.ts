@@ -74,6 +74,7 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
     phone: row.phone,
     avatarColor: row.avatarColor,
     initials: row.initials,
+    photoUrl: row.photoUrl ?? undefined,
     jobTitle: row.jobTitle,
     department: row.department,
     employmentType: row.employmentType,
