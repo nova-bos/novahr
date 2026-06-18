@@ -109,10 +109,10 @@ export function LeaveReport() {
                   <TableCell className="text-right text-muted-foreground">
                     {row.avgTotal.toFixed(1)} days
                   </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">
+                  <TableCell className="text-right tabular-nums">
                     {row.avgUsed.toFixed(1)} days
                   </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                  <TableCell className="text-right tabular-nums text-muted-foreground">
                     {row.avgRemaining.toFixed(1)} days
                   </TableCell>
                   <TableCell>

@@ -170,7 +170,7 @@ export function EmployeeDirectory() {
                     <span className="text-sm text-muted-foreground">{employee.location}</span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="font-mono text-sm tabular-nums">
+                    <span className="text-sm tabular-nums">
                       {formatCurrencyCompact(employee.salary.annualGross)}
                     </span>
                   </TableCell>

@@ -118,10 +118,10 @@ export function WorkforceReport() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground">{headcount}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">
+                  <TableCell className="text-right tabular-nums">
                     {formatCurrency(cost)}
                   </TableCell>
-                  <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                  <TableCell className="text-right tabular-nums text-muted-foreground">
                     {formatCurrency(dept.budget)}
                   </TableCell>
                   <TableCell>

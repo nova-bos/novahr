@@ -99,10 +99,10 @@ export function MyPayslips() {
                     <TableCell className="text-muted-foreground">
                       {formatDate(payslip.payDate)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatCurrency(payslip.grossPay)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatCurrency(payslip.netPay)}
                     </TableCell>
                     <TableCell className="text-right">

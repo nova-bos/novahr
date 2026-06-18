@@ -51,7 +51,7 @@ export function UpcomingPayrollCard() {
         </div>
         <div className="flex items-center justify-between gap-2 text-sm">
           <span className="truncate text-muted-foreground">Projected gross</span>
-          <span className="shrink-0 font-mono font-medium tabular-nums">{formatCurrency(projectedGross)}</span>
+          <span className="shrink-0 font-medium tabular-nums">{formatCurrency(projectedGross)}</span>
         </div>
       </CardContent>
       <CardFooter className="border-t-0 bg-transparent p-(--card-spacing) pt-0">

@@ -64,7 +64,7 @@ export function EmploymentMixChart() {
                 return (
                   <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
                     <span className="font-medium">{item.name}</span>
-                    <span className="ml-2 font-mono tabular-nums text-muted-foreground">
+                    <span className="ml-2 tabular-nums text-muted-foreground">
                       {item.value} {Number(item.value) === 1 ? "person" : "people"}
                     </span>
                   </div>
@@ -91,7 +91,7 @@ export function EmploymentMixChart() {
             <div key={item.id} className="flex items-center gap-2 text-xs">
               <span className="size-2 shrink-0 rounded-[2px]" style={{ backgroundColor: item.color }} />
               <span className="truncate text-muted-foreground">{item.name}</span>
-              <span className="ml-auto font-mono font-medium tabular-nums">
+              <span className="ml-auto font-medium tabular-nums">
                 {item.value} · {total > 0 ? Math.round((item.value / total) * 100) : 0}%
               </span>
             </div>

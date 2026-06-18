@@ -53,7 +53,7 @@ export function DepartmentBreakdown() {
                 return (
                   <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
                     <span className="font-medium">{item.name}</span>
-                    <span className="ml-2 font-mono tabular-nums text-muted-foreground">
+                    <span className="ml-2 tabular-nums text-muted-foreground">
                       {item.value} {Number(item.value) === 1 ? "person" : "people"}
                     </span>
                   </div>
@@ -83,7 +83,7 @@ export function DepartmentBreakdown() {
                 style={{ backgroundColor: dept.color }}
               />
               <span className="truncate text-muted-foreground">{dept.name}</span>
-              <span className="ml-auto font-mono font-medium tabular-nums">
+              <span className="ml-auto font-medium tabular-nums">
                 {Math.round((dept.value / total) * 100)}%
               </span>
             </div>

@@ -62,7 +62,7 @@ export function HeadcountChart() {
                 return (
                   <div className="rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl">
                     <span className="font-medium">{item.payload.name}</span>
-                    <span className="ml-2 font-mono tabular-nums text-muted-foreground">
+                    <span className="ml-2 tabular-nums text-muted-foreground">
                       {item.value} {Number(item.value) === 1 ? "person" : "people"}
                     </span>
                   </div>

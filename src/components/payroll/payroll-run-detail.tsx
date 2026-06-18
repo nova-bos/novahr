@@ -131,13 +131,13 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
                       </div>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{employee.department}</TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatCurrency(payslip.grossPay)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       -{formatCurrency(payslip.totalDeductions)}
                     </TableCell>
-                    <TableCell className="text-right font-mono font-medium tabular-nums">
+                    <TableCell className="text-right font-medium tabular-nums">
                       {formatCurrency(payslip.netPay)}
                     </TableCell>
                   </TableRow>

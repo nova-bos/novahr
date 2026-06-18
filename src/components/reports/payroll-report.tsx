@@ -108,16 +108,16 @@ export function PayrollReport() {
                     <TableCell className="text-right text-muted-foreground">
                       {run.employeeCount}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatCurrency(run.totalGross)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {formatCurrency(run.totalPaye)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums text-muted-foreground">
+                    <TableCell className="text-right tabular-nums text-muted-foreground">
                       {formatCurrency(run.totalUif)}
                     </TableCell>
-                    <TableCell className="text-right font-mono tabular-nums">
+                    <TableCell className="text-right tabular-nums">
                       {formatCurrency(run.totalNet)}
                     </TableCell>
                   </TableRow>
