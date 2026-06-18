@@ -6,6 +6,7 @@ import { CompanySettings } from "@/components/settings/company-settings";
 import { PayrollSettings } from "@/components/settings/payroll-settings";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
+import { AppearanceSettings } from "@/components/settings/appearance-settings";
 import { useCurrentTenant } from "@/lib/store/hooks";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 
@@ -27,6 +28,7 @@ export default function SettingsPage() {
           <TabsTrigger value="payroll">Payroll</TabsTrigger>
           <TabsTrigger value="leave">Leave policies</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          <TabsTrigger value="appearance">Appearance</TabsTrigger>
         </TabsList>
         <TabsContent value="company" className="mt-4">
           <CompanySettings />
@@ -39,6 +41,9 @@ export default function SettingsPage() {
         </TabsContent>
         <TabsContent value="notifications" className="mt-4">
           <NotificationSettings />
+        </TabsContent>
+        <TabsContent value="appearance" className="mt-4">
+          <AppearanceSettings />
         </TabsContent>
       </Tabs>
     </div>
