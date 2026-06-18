@@ -13,7 +13,8 @@ import { StepCompensation } from "./step-compensation";
 import { StepPersonal } from "./step-personal";
 import { StepRole } from "./step-role";
 import { StepReview } from "./step-review";
-import { emptyForm, isStepValid, STEPS, type StepId } from "./types";
+import { emptyForm, isStepValid, validateStep, STEPS, type StepId } from "./types";
+import type { FieldErrors } from "@/lib/schemas/employee";
 import { WizardStepper } from "./wizard-stepper";
 
 export function OnboardingWizard() {
@@ -27,18 +28,25 @@ export function OnboardingWizard() {
   const [form, setForm] = React.useState(() =>
     emptyForm({ location: tenant.city, bank: tenant.bankName })
   );
+  const [stepErrors, setStepErrors] = React.useState<FieldErrors>({});
 
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
   const canAdvance = isStepValid(currentStep.id, form);
 
   function goNext() {
-    if (!canAdvance) return;
+    const errors = validateStep(currentStep.id, form);
+    if (Object.keys(errors).length > 0) {
+      setStepErrors(errors);
+      return;
+    }
+    setStepErrors({});
     setCompletedSteps((prev) => new Set(prev).add(currentStep.id));
     setStepIndex((i) => Math.min(i + 1, STEPS.length - 1));
   }
 
   function goBack() {
+    setStepErrors({});
     setStepIndex((i) => Math.max(i - 1, 0));
   }
 
@@ -60,11 +68,11 @@ export function OnboardingWizard() {
   function renderStep() {
     switch (currentStep.id) {
       case "personal":
-        return <StepPersonal form={form} setForm={setForm} />;
+        return <StepPersonal form={form} setForm={setForm} errors={stepErrors} />;
       case "role":
-        return <StepRole form={form} setForm={setForm} />;
+        return <StepRole form={form} setForm={setForm} errors={stepErrors} />;
       case "compensation":
-        return <StepCompensation form={form} setForm={setForm} />;
+        return <StepCompensation form={form} setForm={setForm} errors={stepErrors} />;
       case "review":
         return <StepReview form={form} />;
     }

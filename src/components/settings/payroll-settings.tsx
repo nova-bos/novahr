@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { validatePayrollSettings } from "@/lib/schemas/tenant";
 import { payFrequencyOptions } from "@/lib/config/leave";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant, usePayrollConfig } from "@/lib/store/hooks";
@@ -53,6 +54,7 @@ export function PayrollSettings() {
     }
   });
   const [saving, setSaving] = React.useState(false);
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -95,6 +97,12 @@ export function PayrollSettings() {
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault();
+    const fieldErrors = validatePayrollSettings({ payFrequency, payDay, bankName });
+    if (Object.keys(fieldErrors).length > 0) {
+      setErrors(fieldErrors);
+      return;
+    }
+    setErrors({});
     setSaving(true);
     try {
       await updateTenantPayrollSettings({
@@ -149,6 +157,7 @@ export function PayrollSettings() {
               onChange={(e) => setPayDay(e.target.value)}
               disabled={saving}
             />
+            {errors.payDay ? <p className="text-xs text-destructive">{errors.payDay}</p> : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="bankName">Banking partner</Label>

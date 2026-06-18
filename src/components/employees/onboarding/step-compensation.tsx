@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/format";
+import type { FieldErrors } from "@/lib/schemas/employee";
 import type { NewEmployeeForm } from "./types";
 
 const BANKS = ["Standard Bank", "First National Bank", "Absa", "Nedbank", "Capitec"];
@@ -16,9 +17,15 @@ const BANKS = ["Standard Bank", "First National Bank", "Absa", "Nedbank", "Capit
 interface StepProps {
   form: NewEmployeeForm;
   setForm: React.Dispatch<React.SetStateAction<NewEmployeeForm>>;
+  errors: FieldErrors;
 }
 
-export function StepCompensation({ form, setForm }: StepProps) {
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="text-xs text-destructive">{message}</p>;
+}
+
+export function StepCompensation({ form, setForm, errors }: StepProps) {
   const annualGross = Number(form.annualGross) || 0;
   const monthlyBasic = annualGross / 12;
 
@@ -45,6 +52,7 @@ export function StepCompensation({ form, setForm }: StepProps) {
                   {formatCurrency(monthlyBasic)} basic salary per month
                 </p>
               ) : null}
+              <FieldError message={errors.annualGross} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="pensionContributionPct">Pension contribution (%)</Label>
@@ -59,6 +67,7 @@ export function StepCompensation({ form, setForm }: StepProps) {
                   setForm((f) => ({ ...f, pensionContributionPct: e.target.value }))
                 }
               />
+              <FieldError message={errors.pensionContributionPct} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="travelAllowance">Travel allowance (R / month, optional)</Label>
@@ -70,6 +79,7 @@ export function StepCompensation({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, travelAllowance: e.target.value }))}
                 placeholder="0"
               />
+              <FieldError message={errors.travelAllowance} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="housingAllowance">Housing allowance (R / month, optional)</Label>
@@ -81,6 +91,7 @@ export function StepCompensation({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, housingAllowance: e.target.value }))}
                 placeholder="0"
               />
+              <FieldError message={errors.housingAllowance} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="medicalAid">Medical aid (R / month, optional)</Label>
@@ -92,6 +103,7 @@ export function StepCompensation({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, medicalAid: e.target.value }))}
                 placeholder="0"
               />
+              <FieldError message={errors.medicalAid} />
             </div>
           </div>
         </CardContent>
@@ -120,6 +132,7 @@ export function StepCompensation({ form, setForm }: StepProps) {
                   ))}
                 </SelectContent>
               </Select>
+              <FieldError message={errors.bank} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="accountType">Account type</Label>
@@ -146,6 +159,7 @@ export function StepCompensation({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, accountNumber: e.target.value }))}
                 placeholder="62012345678"
               />
+              <FieldError message={errors.accountNumber} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="branchCode">Branch code</Label>
@@ -155,6 +169,7 @@ export function StepCompensation({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, branchCode: e.target.value }))}
                 placeholder="051001"
               />
+              <FieldError message={errors.branchCode} />
             </div>
           </div>
         </CardContent>

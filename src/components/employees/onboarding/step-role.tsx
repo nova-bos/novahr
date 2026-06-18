@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { FieldErrors } from "@/lib/schemas/employee";
 import { useDepartments, useEmployees } from "@/lib/store/hooks";
 import type { EmploymentType } from "@/lib/types";
 import type { NewEmployeeForm } from "./types";
@@ -21,9 +22,15 @@ const EMPLOYMENT_TYPES: { value: EmploymentType; label: string }[] = [
 interface StepProps {
   form: NewEmployeeForm;
   setForm: React.Dispatch<React.SetStateAction<NewEmployeeForm>>;
+  errors: FieldErrors;
 }
 
-export function StepRole({ form, setForm }: StepProps) {
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="text-xs text-destructive">{message}</p>;
+}
+
+export function StepRole({ form, setForm, errors }: StepProps) {
   const departments = useDepartments();
   const employees = useEmployees();
 
@@ -43,6 +50,7 @@ export function StepRole({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
                 placeholder="Software Engineer"
               />
+              <FieldError message={errors.jobTitle} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="department">Department</Label>
@@ -61,6 +69,7 @@ export function StepRole({ form, setForm }: StepProps) {
                   ))}
                 </SelectContent>
               </Select>
+              <FieldError message={errors.department} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="employmentType">Employment type</Label>
@@ -90,6 +99,7 @@ export function StepRole({ form, setForm }: StepProps) {
                 value={form.startDate}
                 onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
               />
+              <FieldError message={errors.startDate} />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="location">Work location</Label>
@@ -99,6 +109,7 @@ export function StepRole({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
                 placeholder="Cape Town, HQ"
               />
+              <FieldError message={errors.location} />
             </div>
           </div>
         </CardContent>

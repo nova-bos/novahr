@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { validateLeaveRequest } from "@/lib/schemas/leave";
 import { useApp } from "@/lib/store/app-provider";
 import { useTenantId } from "@/lib/store/hooks";
 import { useAuth } from "@/lib/auth/auth-provider";
@@ -57,6 +58,7 @@ export function NewLeaveRequestDialog() {
   const [startDate, setStartDate] = React.useState(todayIso());
   const [endDate, setEndDate] = React.useState(todayIso());
   const [reason, setReason] = React.useState("");
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   function resetForm() {
     setEmployeeId(lockToSelf ? user?.employeeId ?? "" : "");
@@ -64,6 +66,7 @@ export function NewLeaveRequestDialog() {
     setStartDate(todayIso());
     setEndDate(todayIso());
     setReason("");
+    setFieldErrors({});
   }
 
   const selectedEmployee = employees.find((e) => e.id === employeeId);
@@ -79,6 +82,14 @@ export function NewLeaveRequestDialog() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+
+    const errors = validateLeaveRequest({ employeeId, type, startDate, endDate, reason });
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+
     const employee = employees.find((e) => e.id === employeeId);
     if (!employee) return;
 
@@ -140,6 +151,9 @@ export function NewLeaveRequestDialog() {
                   ))}
                 </SelectContent>
               </Select>
+              {fieldErrors.employeeId ? (
+                <p className="text-xs text-destructive">{fieldErrors.employeeId}</p>
+              ) : null}
             </div>
 
             <div className="space-y-1.5">
@@ -180,6 +194,9 @@ export function NewLeaveRequestDialog() {
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                 />
+                {fieldErrors.endDate ? (
+                  <p className="text-xs text-destructive">{fieldErrors.endDate}</p>
+                ) : null}
               </div>
             </div>
 
@@ -229,6 +246,9 @@ export function NewLeaveRequestDialog() {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Add a short note for the approver"
               />
+              {fieldErrors.reason ? (
+                <p className="text-xs text-destructive">{fieldErrors.reason}</p>
+              ) : null}
             </div>
           </div>
 
@@ -236,7 +256,7 @@ export function NewLeaveRequestDialog() {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!employeeId || !reason.trim()}>
+            <Button type="submit">
               Submit request
             </Button>
           </DialogFooter>

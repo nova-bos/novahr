@@ -2,14 +2,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import type { FieldErrors } from "@/lib/schemas/employee";
 import type { NewEmployeeForm } from "./types";
 
 interface StepProps {
   form: NewEmployeeForm;
   setForm: React.Dispatch<React.SetStateAction<NewEmployeeForm>>;
+  errors: FieldErrors;
 }
 
-export function StepPersonal({ form, setForm }: StepProps) {
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="text-xs text-destructive">{message}</p>;
+}
+
+export function StepPersonal({ form, setForm, errors }: StepProps) {
   return (
     <div className="flex flex-col gap-6">
       <Card>
@@ -26,6 +33,7 @@ export function StepPersonal({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
                 placeholder="Thandiwe"
               />
+              <FieldError message={errors.firstName} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="lastName">Last name</Label>
@@ -35,6 +43,7 @@ export function StepPersonal({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
                 placeholder="Nkosi"
               />
+              <FieldError message={errors.lastName} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="preferredName">Preferred name (optional)</Label>
@@ -53,6 +62,7 @@ export function StepPersonal({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, idNumber: e.target.value }))}
                 placeholder="9203155012089"
               />
+              <FieldError message={errors.idNumber} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="email">Email address</Label>
@@ -63,6 +73,7 @@ export function StepPersonal({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                 placeholder="thandiwe.nkosi@company.co.za"
               />
+              <FieldError message={errors.email} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="phone">Phone number</Label>
@@ -72,6 +83,7 @@ export function StepPersonal({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                 placeholder="071 234 5678"
               />
+              <FieldError message={errors.phone} />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="taxNumber">Tax number (optional)</Label>
@@ -81,6 +93,7 @@ export function StepPersonal({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, taxNumber: e.target.value }))}
                 placeholder="9012345678"
               />
+              <FieldError message={errors.taxNumber} />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="address">Residential address</Label>
@@ -130,6 +143,7 @@ export function StepPersonal({ form, setForm }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, emergencyPhone: e.target.value }))}
                 placeholder="082 345 6789"
               />
+              <FieldError message={errors.emergencyPhone} />
             </div>
           </div>
         </CardContent>
