@@ -3,6 +3,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatMonthYear } from "@/lib/format";
+import { sendPayslipEmail } from "@/lib/email";
 import { buildPayslip, incrementPeriod } from "./calculator";
 import type { ActivityItem, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
@@ -137,6 +138,19 @@ export async function completePayrollRunRecord(runId: string): Promise<{
 
     return { payrollRun, activity, notification, nextRun };
   });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  for (const payslip of newPayslips) {
+    const emp = eligible.find((e) => e.id === payslip.employeeId);
+    if (!emp) continue;
+    void sendPayslipEmail({
+      recipientEmail: emp.email,
+      employeeName: `${emp.firstName} ${emp.lastName}`,
+      period: payslip.period,
+      netPay: payslip.netPay,
+      appUrl,
+    });
+  }
 
   return {
     payrollRun: mapPayrollRun(result.payrollRun, newPayslips.map((p) => p.id)),

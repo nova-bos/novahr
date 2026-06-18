@@ -9,6 +9,7 @@ const mockPrisma = vi.hoisted(() => {
   };
   return {
     employee: { findUniqueOrThrow: vi.fn() },
+    user: { findMany: vi.fn().mockResolvedValue([]) },
     leaveRequest: { ...tx.leaveRequest, findUniqueOrThrow: vi.fn() },
     activityItem: tx.activityItem,
     notificationItem: tx.notificationItem,

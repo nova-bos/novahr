@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { leaveTypeLabel } from "@/lib/format";
+import { sendLeaveRequestEmail, sendLeaveDecisionEmail } from "@/lib/email";
 import type { ActivityItem, LeaveRequest, LeaveStatus, LeaveType, NotificationItem } from "@/lib/types";
 import { mapActivityItem, mapLeaveRequest, mapNotificationItem } from "../workspace/mappers";
 
@@ -60,6 +61,23 @@ export async function createLeaveRequestRecord(
     return { leaveRequest, activity, notification };
   });
 
+  const hrUsers = await prisma.user.findMany({
+    where: { tenantId: input.tenantId, role: { in: ["hr", "manager"] } },
+    select: { email: true },
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  void sendLeaveRequestEmail({
+    recipientEmails: hrUsers.map((u) => u.email),
+    employeeName: actor,
+    leaveType: input.type,
+    days: input.days,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    reason: input.reason,
+    appUrl,
+  });
+
   return {
     leaveRequest: mapLeaveRequest(result.leaveRequest),
     activity: mapActivityItem(result.activity),
@@ -112,6 +130,20 @@ export async function decideLeaveRequestRecord(
     });
 
     return { leaveRequest, leaveBalance, activity };
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  void sendLeaveDecisionEmail({
+    recipientEmail: employee.email,
+    employeeName: actor,
+    leaveType: target.type,
+    days: target.days,
+    startDate: target.startDate.toISOString().slice(0, 10),
+    endDate: target.endDate.toISOString().slice(0, 10),
+    status,
+    decidedBy,
+    decisionNote,
+    appUrl,
   });
 
   return {
