@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export function MarketingNav() {
@@ -34,6 +35,7 @@ export function MarketingNav() {
           <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
             <Link href="/#contact">Contact</Link>
           </Button>
+          <ThemeToggle />
           <Button variant="outline" size="sm" asChild>
             <Link href="/login">Sign in</Link>
           </Button>

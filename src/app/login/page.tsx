@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/layout/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { demoUsers } from "@/lib/auth/demo-users";
 import { ROLE_LABELS, type UserRole } from "@/lib/auth/types";
@@ -177,6 +178,9 @@ export default function LoginPage() {
 
       {/* Sign-in panel */}
       <div className="relative flex w-full flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/[0.04] px-4 py-10 sm:px-6 lg:w-1/2">
+        <div className="absolute right-4 top-4 z-10">
+          <ThemeToggle />
+        </div>
         <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-primary/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-28 -left-16 size-80 rounded-full bg-chart-2/10 blur-3xl" />
         <svg
