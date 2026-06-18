@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AppProvider } from "@/lib/store/app-provider";
 import { AuthProvider } from "@/lib/auth/auth-provider";
+import { EnvBanner } from "@/components/layout/env-banner";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -35,6 +36,7 @@ export default function RootLayout({
     >
       <body className="min-h-svh">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <EnvBanner />
           <AppProvider>
             <AuthProvider>
               <TooltipProvider delayDuration={150}>

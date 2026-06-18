@@ -1,36 +1,178 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NovaHR
 
-## Getting Started
+HR and payroll SaaS for South African SMEs. Built with Next.js 15, Supabase, and Prisma.
 
-First, run the development server:
+Production: https://novahr-five.vercel.app
+
+---
+
+## Tech stack
+
+- **Next.js 15** (App Router, React 19, TypeScript strict)
+- **Supabase** (Auth + Postgres)
+- **Prisma v7** with `@prisma/adapter-pg` (connection passed via adapter, not schema URL)
+- **Tailwind CSS v4** + shadcn/ui
+- **Vercel** for hosting
+
+---
+
+## Environments
+
+| Environment | Trigger | Supabase project | URL |
+|---|---|---|---|
+| Local dev | `npm run dev` | novahr-dev | localhost:3000 |
+| Staging | Vercel preview (any PR) | novahr-staging | auto-generated preview URL |
+| Production | Merge to `main` | novahr-prod | novahr-five.vercel.app |
+
+An in-app banner appears at the top of every page when `NEXT_PUBLIC_APP_ENV` is `development` or `staging`. Production shows no banner.
+
+---
+
+## Local setup
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/Wandile-Mtshwene/novahr.git
+cd novahr
+npm install
+```
+
+### 2. Create a Supabase project
+
+Go to [supabase.com](https://supabase.com) and create a project (free tier is fine for development). From **Project Settings**:
+
+- **Database tab**: copy the "Connection pooling" string (port 6543) for `DATABASE_URL` and the "Direct connection" string (port 5432) for `DIRECT_URL`.
+- **API tab**: copy the project URL for `NEXT_PUBLIC_SUPABASE_URL`, the `anon` key for `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and the `service_role` key for `SUPABASE_SERVICE_ROLE_KEY`.
+
+### 3. Configure environment variables
+
+```bash
+cp .env.example .env
+```
+
+Fill in `.env` with the values from step 2. Keep `NEXT_PUBLIC_APP_ENV=development`.
+
+### 4. Apply the database schema
+
+```bash
+npx prisma migrate deploy
+```
+
+This runs all existing migrations against your dev Supabase project.
+
+### 5. Seed demo data
+
+```bash
+npx prisma db seed
+```
+
+Creates three demo tenants and their Supabase Auth users. Login credentials are in `docs/uat-checklist.md`.
+
+### 6. Start the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Development workflow
 
-## Learn More
+All changes go through feature branches and pull requests. Direct pushes to `main` require
+bypassing protection (needs GitHub Pro, see `docs/planning/ROADMAP.md` item 1).
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+git checkout -b feature/your-feature
+# make changes, commit
+git push -u origin feature/your-feature
+# open a PR; CI must pass before merging
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+CI runs on every push: `eslint`, `tsc --noEmit`, `vitest run`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Available scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Script | What it does |
+|---|---|
+| `npm run dev` | Start development server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm test` | Run Vitest test suite (172 tests) |
+| `npx tsc --noEmit` | Type-check without emitting |
+| `npx prisma migrate deploy` | Apply pending migrations |
+| `npx prisma db seed` | Seed demo tenants and users |
+| `npx prisma studio` | Open Prisma Studio (DB browser) |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Project structure
+
+```
+src/
+  app/
+    (app)/        authenticated app routes
+    page.tsx      marketing landing page
+    login/
+    signup/
+  components/
+    layout/       sidebar, topbar, env-banner, etc.
+    ui/           shadcn components
+    dashboard/ employees/ leave/ payroll/
+  lib/
+    store/        AppProvider (in-memory state; Phase 2 replaces this with DB)
+    auth/         Supabase auth provider and server actions
+    supabase/     client.ts and server.ts Supabase factories
+    prisma.ts     Prisma client singleton
+    payroll/      PAYE/UIF/SDL calculator, payslip HTML template
+    format.ts     formatCurrency, formatDate, etc.
+    types.ts      shared TypeScript types
+prisma/
+  schema.prisma   full schema
+  migrations/     SQL migration files
+  seed.ts         demo tenant and user seeding
+docs/
+  planning/
+    ACTION_PLAN.md  business plan to first paying client
+    ROADMAP.md      technical roadmap (all upcoming items)
+  uat-checklist.md
+  testing.md
+  database.md
+```
+
+---
+
+## Vercel environment variable configuration
+
+In **Vercel dashboard > Project Settings > Environment Variables**, set each variable
+per scope. The staging scope is "Preview" in Vercel's terminology.
+
+| Variable | Production | Preview (staging) |
+|---|---|---|
+| `DATABASE_URL` | novahr-prod pooled URL | novahr-staging pooled URL |
+| `DIRECT_URL` | novahr-prod direct URL | novahr-staging direct URL |
+| `NEXT_PUBLIC_SUPABASE_URL` | novahr-prod URL | novahr-staging URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | novahr-prod anon key | novahr-staging anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | novahr-prod service key | novahr-staging service key |
+| `NEXT_PUBLIC_APP_ENV` | `production` | `staging` |
+
+After configuring, pull the Development env vars locally:
+
+```bash
+vercel link      # link local repo to the Vercel project (one-time setup)
+vercel env pull  # writes .env.local with Development-scoped env vars
+```
+
+---
+
+## Setting up the staging Supabase project
+
+1. Create a new Supabase project named `novahr-staging` at [supabase.com](https://supabase.com).
+2. Copy its connection strings into the Preview env vars on Vercel (see table above).
+3. Apply the schema to staging. Easiest via the Supabase SQL editor: paste the contents
+   of each file in `prisma/migrations/` in order. Or point `DIRECT_URL` at staging
+   temporarily and run `npx prisma migrate deploy`.
