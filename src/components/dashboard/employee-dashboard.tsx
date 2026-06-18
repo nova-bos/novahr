@@ -73,7 +73,7 @@ export function EmployeeDashboard() {
     },
     {
       label: "Latest payslip",
-      value: latestPayslip ? formatCurrency(latestPayslip.netPay) : "—",
+      value: latestPayslip ? formatCurrency(latestPayslip.netPay) : "-",
       detail: latestPayslip ? `${formatMonthYear(latestPayslip.period)} · net pay` : "No payslips yet",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",
@@ -109,7 +109,7 @@ export function EmployeeDashboard() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2">
-              <InfoRow label="Manager" value={manager ? `${manager.firstName} ${manager.lastName}` : "—"} />
+              <InfoRow label="Manager" value={manager ? `${manager.firstName} ${manager.lastName}` : "-"} />
               <InfoRow label="Location" value={employee.location} />
               <InfoRow label="Employment type" value={employmentTypeLabel(employee.employmentType)} />
               <InfoRow label="Start date" value={formatDate(employee.startDate)} />

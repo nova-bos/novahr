@@ -160,7 +160,7 @@ export function ManagerDashboard() {
           <CardContent>
             {pendingRequests.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                All caught up — no pending requests.
+                All caught up. No pending requests.
               </p>
             ) : (
               <div className="flex flex-col gap-4">
@@ -186,7 +186,7 @@ export function ManagerDashboard() {
                           {request.days > 1 ? "s" : ""}
                         </p>
                         <p className="text-xs text-muted-foreground/70">
-                          {formatDate(request.startDate)} – {formatDate(request.endDate)}
+                          {formatDate(request.startDate)} to {formatDate(request.endDate)}
                         </p>
                       </div>
                       <div className="flex shrink-0 gap-1.5">

@@ -1,4 +1,4 @@
-# Phase 4 — Public Marketing Landing Page
+# Phase 4: Public Marketing Landing Page
 
 ## Overview
 
@@ -35,10 +35,10 @@ PRICING_TIERS  →  PricingSection (renders cards)
 
 Helper functions exported:
 
-- `getMonthlyPrice(tierId)` — returns `monthlyPrice` for the given tier, throws on unknown id
-- `getAnnualPrice(tierId)` — returns `monthlyPrice * 12`
-- `tierFitsEmployeeCount(tierId, count)` — true if `count <= tier.maxEmployees`
-- `suggestTier(employeeCount)` — returns the first tier id where `maxEmployees >= employeeCount`, or `null` if none fits
+- `getMonthlyPrice(tierId)`, returns `monthlyPrice` for the given tier, throws on unknown id
+- `getAnnualPrice(tierId)`, returns `monthlyPrice * 12`
+- `tierFitsEmployeeCount(tierId, count)`, true if `count <= tier.maxEmployees`
+- `suggestTier(employeeCount)`, returns the first tier id where `maxEmployees >= employeeCount`, or `null` if none fits
 
 ---
 
@@ -46,7 +46,7 @@ Helper functions exported:
 
 ### Change a price
 
-Edit the `monthlyPrice` field on the relevant object in `PRICING_TIERS`. The pricing section renders dynamically — no other files need changing.
+Edit the `monthlyPrice` field on the relevant object in `PRICING_TIERS`. The pricing section renders dynamically, no other files need changing.
 
 ### Add a new tier
 

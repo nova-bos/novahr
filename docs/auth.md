@@ -1,4 +1,4 @@
-# Auth — Supabase Auth wiring
+# Auth: Supabase Auth wiring
 
 NovaHR uses **Supabase Auth** (email/password) with sessions stored in cookies via
 `@supabase/ssr`, so the session survives page refreshes and is visible to both the browser
@@ -9,7 +9,7 @@ and the server (Server Components, Server Actions, middleware).
 Supabase needs a slightly different client depending on where the code runs. NovaHR has
 one helper for each:
 
-### `src/lib/supabase/client.ts` — browser
+### `src/lib/supabase/client.ts`, browser
 
 ```ts
 import { createBrowserClient } from "@supabase/ssr";
@@ -22,11 +22,11 @@ export function createClient() {
 }
 ```
 
-Used in **client components** (`"use client"`) — e.g. `AuthProvider`, `/login`,
+Used in **client components** (`"use client"`), e.g. `AuthProvider`, `/login`,
 `/forgot-password`, `/reset-password`. Reads/writes the session via browser cookies
 automatically. Uses the public **anon key**, safe to ship to the browser.
 
-### `src/lib/supabase/server.ts` — server
+### `src/lib/supabase/server.ts`, server
 
 ```ts
 export async function createClient() {
@@ -55,15 +55,15 @@ export async function createClient() {
 }
 ```
 
-Used in **Server Actions** and **Server Components** — e.g.
+Used in **Server Actions** and **Server Components**, e.g.
 `getCurrentUserProfile()`, `createCompanyAccount`. `cookies()` from `next/headers` is
 **async** in Next.js 15, hence `await cookies()` and the `async` function. The `setAll`
 `try/catch` exists because Server *Components* (as opposed to Server Actions/Route
-Handlers) aren't allowed to set cookies — if `getCurrentUserProfile()` is ever called from
+Handlers) aren't allowed to set cookies, if `getCurrentUserProfile()` is ever called from
 one and Supabase tries to refresh the session, the write is silently dropped there and
 picked up by the middleware on the next request instead.
 
-### `src/middleware.ts` — middleware
+### `src/middleware.ts`, middleware
 
 ```ts
 export async function middleware(request: NextRequest) {
@@ -103,15 +103,15 @@ export const config = {
 ```
 
 Runs on (almost) every request. `supabase.auth.getUser()` validates the session token and,
-if it's expired, transparently refreshes it — writing the new cookies onto both the
+if it's expired, transparently refreshes it, writing the new cookies onto both the
 incoming request and the outgoing response. Without this, a long-lived browser session
 would eventually start failing server-side calls once the access token expires, even though
 the browser client would have refreshed it on its own.
 
-The `matcher` excludes static assets (`_next/static`, images, etc.) — no need to run auth
+The `matcher` excludes static assets (`_next/static`, images, etc.), no need to run auth
 refresh logic for those.
 
-**Route protection itself is not done here** — it's handled client-side by `AuthGuard`
+**Route protection itself is not done here**, it's handled client-side by `AuthGuard`
 (see [`tenants.md`](./tenants.md)), which redirects to `/login` if there's no `user`.
 
 ## `AuthProvider` / `useAuth()` (`src/lib/auth/auth-provider.tsx`)
@@ -137,7 +137,7 @@ interface AuthContextValue {
 1. On mount, `AuthProvider` subscribes to `supabase.auth.onAuthStateChange`.
 2. Supabase's browser client fires this callback immediately with the current session (if
    any exist in cookies), and again on every sign-in/sign-out/token-refresh.
-3. If there's **no session**, `user` is set to `null` and `isLoading` becomes `false` —
+3. If there's **no session**, `user` is set to `null` and `isLoading` becomes `false` -
    `AuthGuard` then redirects to `/login`.
 4. If there **is** a session, the callback calls the server action
    `getCurrentUserProfile()` (see below) to load the `User` row from Postgres, and stores
@@ -166,7 +166,7 @@ error inline or lets `AuthGuard` redirect to `/dashboard` once `user` is set.
 ### `logout()`
 
 Calls `supabase.auth.signOut()` and clears `user` locally. `AuthGuard` reacts to `user`
-becoming `null` and redirects to `/login` — no extra redirect logic needed here.
+becoming `null` and redirects to `/login`, no extra redirect logic needed here.
 
 ### `refresh()`
 
@@ -180,7 +180,7 @@ const refresh = React.useCallback(async () => {
 
 Re-runs `getCurrentUserProfile()` and updates `user` **without** going through
 `onAuthStateChange`. This is needed after a **Server Action** changes the session/profile
-out-of-band — e.g. `createCompanyAccount` (used by `/signup`) calls `supabase.auth.signUp()`
+out-of-band, e.g. `createCompanyAccount` (used by `/signup`) calls `supabase.auth.signUp()`
 *server-side*, which sets session cookies, but doesn't fire the *browser* client's
 `onAuthStateChange`. The signup page calls `refresh()` immediately after the server action
 resolves so `AuthProvider` picks up the new session without a full page reload. See
@@ -214,16 +214,16 @@ export async function getCurrentUserProfile(): Promise<AppUser | null> {
 ```
 
 A Server Action (note the `"use server"` directive) that bridges **Supabase Auth** (which
-only knows about `auth.users` — id, email, password) and **NovaHR's domain data** (the
-`User` table — name, role, tenant, avatar, etc.):
+only knows about `auth.users`, id, email, password) and **NovaHR's domain data** (the
+`User` table, name, role, tenant, avatar, etc.):
 
-1. `supabase.auth.getUser()` — validates the session and returns the Supabase
+1. `supabase.auth.getUser()`, validates the session and returns the Supabase
    `auth.users` row (just `id`, `email`, etc.), or an error if there's no session.
-2. `prisma.user.findUnique({ where: { id: data.user.id } })` — looks up the matching
-   `User` row by id (`User.id` *is* `auth.users.id` — see [`database.md`](./database.md)).
+2. `prisma.user.findUnique({ where: { id: data.user.id } })`, looks up the matching
+   `User` row by id (`User.id` *is* `auth.users.id`, see [`database.md`](./database.md)).
 3. Maps the Prisma `User` to the `AppUser` shape the rest of the app expects.
 
-Returns `null` if there's no session **or** no matching `User` row yet — the latter can
+Returns `null` if there's no session **or** no matching `User` row yet, the latter can
 briefly happen mid-signup, which `/signup` handles explicitly (see
 [`auth-pages.md`](./auth-pages.md)).
 
@@ -253,5 +253,5 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 ```
 
 `AppUser` replaces the old demo-only `DemoUser` type (it no longer carries a `password`).
-`ROLE_LABELS` is unchanged from before — used by the UI to display a human-readable role
+`ROLE_LABELS` is unchanged from before, used by the UI to display a human-readable role
 name (e.g. in the sidebar/topbar).

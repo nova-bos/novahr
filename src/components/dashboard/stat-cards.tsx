@@ -51,7 +51,7 @@ export function StatCards() {
     },
     {
       label: "Next payroll run",
-      value: upcomingRun ? formatDate(upcomingRun.payDate, { day: "numeric", month: "short" }) : "—",
+      value: upcomingRun ? formatDate(upcomingRun.payDate, { day: "numeric", month: "short" }) : "-",
       detail: upcomingRun ? `${upcomingRun.employeeCount} employees` : "No run scheduled",
       icon: CalendarClock,
       iconClassName: "bg-success/10 text-success",

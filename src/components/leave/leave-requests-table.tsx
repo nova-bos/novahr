@@ -163,7 +163,7 @@ export function LeaveRequestsTable() {
                       {leaveTypeLabel(request.type)}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatDate(request.startDate)} – {formatDate(request.endDate)}
+                      {formatDate(request.startDate)} to {formatDate(request.endDate)}
                     </TableCell>
                     <TableCell className="text-right text-sm">{request.days}</TableCell>
                     <TableCell className="max-w-56 truncate text-sm text-muted-foreground">
@@ -209,7 +209,7 @@ export function LeaveRequestsTable() {
                           </div>
                         ) : (
                           <span className="text-xs text-muted-foreground">
-                            {request.decidedBy ?? "—"}
+                            {request.decidedBy ?? "-"}
                           </span>
                         )}
                       </TableCell>

@@ -1,13 +1,13 @@
-# Tenants — loading the signed-in user's company
+# Tenants, loading the signed-in user's company
 
 NovaHR is multi-tenant: every signed-in user belongs to exactly one `Tenant` (company), via
 `AppUser.tenantId`. The UI needs that `Tenant` record (name, branding color, pay day,
-currency, etc.) almost everywhere — sidebar, topbar, dashboards, settings, onboarding.
+currency, etc.) almost everywhere, sidebar, topbar, dashboards, settings, onboarding.
 
 Before Phase 1, `tenantId` just indexed into a static in-memory array of 3 demo tenants
 (`src/lib/data/tenants.ts`). Phase 1 added a DB-backed `currentTenant`, loaded via a
 standalone `getTenantById(id)` Server Action. Phase 2 folds that into the broader
-`getTenantWorkspace(tenantId)` call — `currentTenant` is now just one of 8 fields that
+`getTenantWorkspace(tenantId)` call, `currentTenant` is now just one of 8 fields that
 action returns alongside `employees`, `departments`, `leaveRequests`, `payrollRuns`,
 `payslips`, `activity`, and `notifications`, all loaded together in one round trip for
 *any* tenant, including brand-new signups that have no employee/leave/payroll data yet. See
@@ -38,7 +38,7 @@ export async function getTenantWorkspace(tenantId: string): Promise<TenantWorksp
 Phase 1's `getTenantById` did. `getTenantWorkspace` returns `null` only if the tenant row
 itself doesn't exist (shouldn't happen for a signed-in user, mirrors Phase 1's
 null-safety). This **replaced** `src/lib/tenants/actions.ts` (`getTenantById`), which was
-deleted — `getTenantWorkspace` is a strict superset and the only caller.
+deleted, `getTenantWorkspace` is a strict superset and the only caller.
 
 ## Wiring into `AppProvider` (`src/lib/store/app-provider.tsx`)
 
@@ -91,7 +91,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 ```
 
 - `initialState.tenantId` defaults to `"novatech"`, with `currentTenant: null` and all 7
-  data arrays empty — so on first render nothing has loaded yet, while the fetch resolves.
+  data arrays empty, so on first render nothing has loaded yet, while the fetch resolves.
 - The `active` flag guards against a race: if `tenantId` changes again (e.g.
   `setTenant("apex")` right after `setTenant("novatech")`) before the first fetch resolves,
   the stale result is dropped instead of overwriting the newer one.
@@ -99,7 +99,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   `currentTenant` and all 7 data arrays to empty, so `tenantReady` (below) goes back to
   `false` and the UI doesn't show the previous tenant's data while the new workspace loads.
 
-## `AuthGuard` — gating render on `tenantReady` (`src/components/layout/auth-guard.tsx`)
+## `AuthGuard`, gating render on `tenantReady` (`src/components/layout/auth-guard.tsx`)
 
 ```tsx
 export function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -138,21 +138,21 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
 This component wraps the whole `(app)` route group and does three jobs:
 
-1. **Auth redirect** — once `isLoading` is `false` and there's no `user`, redirect to
+1. **Auth redirect**, once `isLoading` is `false` and there's no `user`, redirect to
    `/login`.
-2. **Sync `tenantId` to the signed-in user** — `AppProvider`'s `initialState.tenantId` is
+2. **Sync `tenantId` to the signed-in user**, `AppProvider`'s `initialState.tenantId` is
    hardcoded to `"novatech"` (so the demo tenant renders correctly without waiting for
    auth). Once the real `user` is known, this effect calls `setTenant(user.tenantId)` so
    `AppProvider` fetches *that* tenant's workspace instead.
-3. **`tenantReady` gate** — `state.currentTenant?.id === user?.tenantId` is only `true`
+3. **`tenantReady` gate**, `state.currentTenant?.id === user?.tenantId` is only `true`
    once `AppProvider`'s workspace-loading effect (above) has resolved **for the current
    user's tenant** (not e.g. the default `"novatech"` if the user belongs to a different
    tenant). While any of `isLoading`, `!user`, or `!tenantReady` hold, `AuthGuard` shows a
    loading spinner instead of rendering `children`.
 
-This means every component under `AuthGuard` can call `useCurrentTenant()` (below) — and
+This means every component under `AuthGuard` can call `useCurrentTenant()` (below), and
 now also `useEmployees()`, `useLeaveRequests()`, etc. (see
-[`data-layer.md`](./data-layer.md)) — and get guaranteed-loaded data: no consumer needs its
+[`data-layer.md`](./data-layer.md)), and get guaranteed-loaded data: no consumer needs its
 own loading/null state.
 
 ## `useCurrentTenant()` (`src/lib/store/hooks.ts`)
@@ -166,13 +166,13 @@ export function useCurrentTenant(): Tenant {
 ```
 
 Returns `state.currentTenant` as a non-null `Tenant`. The `throw` is a programming-error
-guard, not a real runtime path — `AuthGuard`'s `tenantReady` check means `currentTenant` is
+guard, not a real runtime path, `AuthGuard`'s `tenantReady` check means `currentTenant` is
 always populated by the time any child component renders. This is the hook ~10 components
 (settings, tenant profile, dashboard header, topbar, onboarding wizard, leave approvals,
-etc.) already used before Phase 1 — its signature didn't change, only where the data comes
+etc.) already used before Phase 1, its signature didn't change, only where the data comes
 from.
 
-### `useTenants()` — still static, on purpose
+### `useTenants()`, still static, on purpose
 
 ```ts
 export function useTenants(): Tenant[] {
@@ -189,19 +189,19 @@ always `role: "hr"` for a single tenant and never call this. Migrating it to a r
 
 | | Source | Used for |
 | --- | --- | --- |
-| `useCurrentTenant()` | Postgres, via `getTenantWorkspace().currentTenant` | The signed-in user's own company — name, branding, settings, pay config. Works for **any** tenant, including brand-new signups. |
+| `useCurrentTenant()` | Postgres, via `getTenantWorkspace().currentTenant` | The signed-in user's own company, name, branding, settings, pay config. Works for **any** tenant, including brand-new signups. |
 | `useTenants()` | Static array (`src/lib/data/tenants.ts`) | The exco demo persona's 3-company switcher only. |
 
 As of Phase 2, `useEmployees()`, `useDepartments()`, `useLeaveRequests()`,
-`usePayrollRuns()`, `useActivity()`, and `useNotifications()` are **also DB-backed** — they
+`usePayrollRuns()`, `useActivity()`, and `useNotifications()` are **also DB-backed**, they
 read `state.employees` etc., populated by the same `getTenantWorkspace()` call and already
 scoped to the signed-in user's tenant. For a new signup with no seeded data, these return
 empty arrays, same as before, so dashboards render empty states rather than crashing. The
 **exco dashboard** and the `/tenants` page are the exception: they need *group-wide* data
 across all 3 tenants, which `state.*` no longer provides (it's single-tenant), so they read
-directly from the static `src/lib/data/*` arrays instead — see
+directly from the static `src/lib/data/*` arrays instead, see
 [`data-layer.md`](./data-layer.md#cross-tenant-views-exco-dashboard--tenants-page).
 
 `getPayrollConfig(tenantId)` (used by `usePayrollConfig()`) is the one remaining
-"works for any tenant, falls back to a default" exception — see
+"works for any tenant, falls back to a default" exception, see
 [`database.md`](./database.md#whats-not-in-the-database-yet) for its fallback behaviour.

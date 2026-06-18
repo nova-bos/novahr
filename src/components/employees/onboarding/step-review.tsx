@@ -12,7 +12,7 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 text-sm">
       <span className="shrink-0 text-muted-foreground">{label}</span>
-      <span className="truncate text-right font-medium">{value || "—"}</span>
+      <span className="truncate text-right font-medium">{value || "-"}</span>
     </div>
   );
 }

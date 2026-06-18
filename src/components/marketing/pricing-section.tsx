@@ -16,7 +16,7 @@ export function PricingSection() {
         </p>
       </div>
 
-      <div className="mx-auto mt-12 grid max-w-3xl grid-cols-1 gap-8 md:grid-cols-2">
+      <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-8 sm:grid-cols-3">
         {PRICING_TIERS.map((tier) => (
           <div
             key={tier.id}

@@ -14,7 +14,7 @@ const STEPS = [
   {
     icon: CalendarRange,
     title: "Review leave policies",
-    description: "Check the default leave entitlements — annual, sick, and family responsibility leave.",
+    description: "Check the default leave entitlements: annual, sick, and family responsibility leave.",
     href: "/settings?tab=leave",
     cta: "View policies",
   },

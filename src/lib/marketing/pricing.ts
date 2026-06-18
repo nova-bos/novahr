@@ -1,8 +1,8 @@
 export interface PricingTier {
-  id: "starter" | "growth";
+  id: "starter" | "growth" | "scale";
   name: string;
   monthlyPrice: number;
-  maxEmployees: number;
+  maxEmployees: number | null;
   tagline: string;
   features: string[];
   highlighted: boolean;
@@ -41,6 +41,23 @@ export const PRICING_TIERS: PricingTier[] = [
       "Priority support",
     ],
   },
+  {
+    id: "scale",
+    name: "Scale",
+    monthlyPrice: 2499,
+    maxEmployees: null,
+    tagline: "For established businesses",
+    highlighted: false,
+    features: [
+      "Unlimited employees",
+      "Everything in Growth",
+      "Dedicated onboarding",
+      "Priority support",
+      "API access",
+      "Custom integrations",
+      "Advanced reporting",
+    ],
+  },
 ];
 
 export function getMonthlyPrice(tierId: PricingTier["id"]): number {
@@ -63,12 +80,17 @@ export function tierFitsEmployeeCount(
   if (!tier) {
     throw new Error(`Unknown tier id: ${tierId}`);
   }
+  if (tier.maxEmployees === null) {
+    return true;
+  }
   return count <= tier.maxEmployees;
 }
 
 export function suggestTier(
   employeeCount: number
 ): PricingTier["id"] | null {
-  const match = PRICING_TIERS.find((t) => t.maxEmployees >= employeeCount);
+  const match = PRICING_TIERS.find(
+    (t) => t.maxEmployees === null || t.maxEmployees >= employeeCount
+  );
   return match ? match.id : null;
 }

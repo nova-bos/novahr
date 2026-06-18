@@ -70,7 +70,7 @@ export function ProfileLeave({ employee }: { employee: Employee }) {
                   <div>
                     <p className="text-sm font-medium">{leaveTypeLabel(request.type)}</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDate(request.startDate)} – {formatDate(request.endDate)} ·{" "}
+                      {formatDate(request.startDate)} to {formatDate(request.endDate)} ·{" "}
                       {request.days} {request.days === 1 ? "day" : "days"}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">{request.reason}</p>

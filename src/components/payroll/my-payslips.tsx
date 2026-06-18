@@ -38,7 +38,7 @@ export function MyPayslips() {
   const stats: StatItem[] = [
     {
       label: "Latest net pay",
-      value: latest ? formatCurrency(latest.netPay) : "—",
+      value: latest ? formatCurrency(latest.netPay) : "-",
       detail: latest ? formatMonthYear(latest.period) : "No payslips yet",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",
@@ -59,7 +59,7 @@ export function MyPayslips() {
     },
     {
       label: "Next pay date",
-      value: upcomingRun ? formatDate(upcomingRun.payDate, { day: "numeric", month: "short" }) : "—",
+      value: upcomingRun ? formatDate(upcomingRun.payDate, { day: "numeric", month: "short" }) : "-",
       detail: upcomingRun ? formatMonthYear(upcomingRun.period) : "No run scheduled",
       icon: CalendarClock,
       iconClassName: "bg-warning/10 text-warning",

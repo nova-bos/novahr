@@ -10,7 +10,7 @@ import { MarketingFooter } from "@/components/marketing/marketing-footer";
 export const metadata: Metadata = {
   title: "NovaHR | Modern HR & Payroll for South African Businesses",
   description:
-    "Run South African payroll in minutes. Manage leave, employees, and payslips — built for growing SA businesses.",
+    "Run South African payroll in minutes. Manage leave, employees, and payslips for growing SA businesses.",
 };
 
 export default async function LandingPage() {

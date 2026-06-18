@@ -92,7 +92,7 @@ export async function createEmployeeRecord(
 }
 
 export async function updateEmployeeRecord(id: string, updates: Partial<Employee>): Promise<Employee> {
-  // leaveBalances and onboarding are not Prisma columns — strip them before building the update payload
+  // leaveBalances and onboarding are not Prisma columns; strip them before building the update payload
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { salary, bankDetails, emergencyContact, leaveBalances, onboarding, startDate, ...rest } = updates;
 

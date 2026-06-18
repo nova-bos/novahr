@@ -1,4 +1,4 @@
-# Auth pages — signup, login, forgot/reset password
+# Auth pages, signup, login, forgot/reset password
 
 Four standalone pages (outside the `(app)` route group, so they're **not** wrapped by
 `AuthGuard`) handle account creation and credential recovery. `/login` and `/signup` build
@@ -8,7 +8,7 @@ new.
 | Page | Purpose |
 | --- | --- |
 | `src/app/login/page.tsx` | Sign in (persona picker or any real account) |
-| `src/app/signup/page.tsx` + `actions.ts` | "Create your company" — new tenant + first HR user |
+| `src/app/signup/page.tsx` + `actions.ts` | "Create your company", new tenant + first HR user |
 | `src/app/forgot-password/page.tsx` | Request a password-reset email |
 | `src/app/reset-password/page.tsx` | Set a new password from the reset-email link |
 | `src/components/auth/auth-shell.tsx` | Shared two-panel layout for signup/forgot/reset |
@@ -33,7 +33,7 @@ A shared two-panel layout: a branding panel on the left (with `heading`/`descrip
 collapsing to a top banner on mobile) and `children` rendered in a centered card on the
 right. `/signup`, `/forgot-password`, and `/reset-password` all use this. `/login` keeps
 its own richer version of the same visual structure because it also needs the persona-picker
-grid and feature list — duplicating the layout there was simpler than parameterizing
+grid and feature list, duplicating the layout there was simpler than parameterizing
 `AuthShell` further for a single caller.
 
 ## `/login` (`src/app/login/page.tsx`)
@@ -76,7 +76,7 @@ if (isLoading || user) {
   the login form for someone who's already authenticated (e.g. they hit the browser "back"
   button).
 - **`selectPersona(id)`** pre-fills the email/password inputs from `demoUsers` when a
-  persona card is clicked — purely a UX convenience; it doesn't sign anyone in by itself.
+  persona card is clicked, purely a UX convenience; it doesn't sign anyone in by itself.
 - **`handleSubmit`** calls `login(email, password)` from `AuthProvider` (see
   [`auth.md`](./auth.md)), which returns an error message or `null`. On success, `user`
   becomes non-null (set inside `login` itself) and the redirect effect above fires.
@@ -113,14 +113,14 @@ router.push("/dashboard");
 
 Three branches on `result.status`:
 
-- **`"error"`** — shown inline above the submit button (e.g. validation failure, or "an
+- **`"error"`**, shown inline above the submit button (e.g. validation failure, or "an
   account with this email already exists").
-- **`"check-email"`** — Supabase has email confirmation enabled, so there's no session yet.
+- **`"check-email"`**: Supabase has email confirmation enabled, so there's no session yet.
   The page swaps to a "Check your email" view (still inside `AuthShell`) with a link to
   `/login`.
-- **default (success)** — a session *was* created server-side. The page calls
-  `await refresh()` (from `useAuth()`) so `AuthProvider` picks up the new session — see
-  ["why `refresh()`?"](./auth.md#refresh) — then `router.push("/dashboard")`.
+- **default (success)**, a session *was* created server-side. The page calls
+  `await refresh()` (from `useAuth()`) so `AuthProvider` picks up the new session, see
+  ["why `refresh()`?"](./auth.md#refresh), then `router.push("/dashboard")`.
 
 Same "already authenticated" guard pattern as `/login` (`if (isLoading || user) return
 null`, redirect via `useEffect`).
@@ -201,28 +201,28 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
 Step by step:
 
 1. **Validate** with Zod. `z.email(...)` is the Zod v4 top-level email validator.
-2. **`supabase.auth.signUp({ email, password })`** — creates the Supabase `auth.users` row.
+2. **`supabase.auth.signUp({ email, password })`**, creates the Supabase `auth.users` row.
    If `error`, return it as-is (e.g. "Password should be at least 6 characters" from
    Supabase's own rules, weak-password checks, etc.).
 3. **Existing-account check**: Supabase deliberately returns *success* with
-   `data.user.identities: []` (not an error) when the email already belongs to an account —
+   `data.user.identities: []` (not an error) when the email already belongs to an account -
    this prevents account enumeration via error messages. The code detects this case
    explicitly and turns it into a friendly error, **before** creating any `Tenant`/`User`
    rows.
-4. **`prisma.$transaction`** — creates the `Tenant` and the first `User` atomically. If
+4. **`prisma.$transaction`**, creates the `Tenant` and the first `User` atomically. If
    either insert fails, neither is committed (no orphaned tenant with no admin user, or vice
    versa).
    - `Tenant` fields not collected at signup (`registrationNumber`, `vatNumber`, `address`,
-     `city`, `bankName`, etc.) get empty-string placeholders — editable later from
+     `city`, `bankName`, etc.) get empty-string placeholders, editable later from
      **Settings → Company**. `industry: "General"`, `color: "#4C6FFF"`,
      `founded: <current year>` are reasonable defaults; `currency`/`payFrequency`/`payDay`
      use the schema defaults (`ZAR`/`monthly`/`25`).
-   - `User.id = data.user.id` — this is the critical link to Supabase Auth (see
-     [`auth.md`](./auth.md#getcurrentuserprofile-srclibauthactionsts)). `role: "hr"` — the
+   - `User.id = data.user.id`, this is the critical link to Supabase Auth (see
+     [`auth.md`](./auth.md#getcurrentuserprofile-srclibauthactionsts)). `role: "hr"`, the
      person who signs up is always the first admin.
-   - `deriveInitials("Acme Co")` → `"AC"`, `deriveInitials("Jane")` → `"JA"` — used for
+   - `deriveInitials("Acme Co")` → `"AC"`, `deriveInitials("Jane")` → `"JA"`, used for
      avatar fallbacks.
-5. **Return value**: if `data.session` exists (email confirmation is **off** — the
+5. **Return value**: if `data.session` exists (email confirmation is **off**, the
    recommended setting for this pilot, see [`README.md`](./README.md)), signup is
    immediately "logged in" → `{ status: "success" }`. If email confirmation is **on**,
    `signUp` returns no session → `{ status: "check-email" }`, and the user must click the
@@ -238,8 +238,8 @@ const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
 ```
 
 Single email field. Calls `resetPasswordForEmail` directly from the **browser** Supabase
-client (no server action needed — this doesn't touch Prisma at all). On success (or even on
-"no such account" — Supabase doesn't reveal which, again to avoid enumeration), shows a
+client (no server action needed, this doesn't touch Prisma at all). On success (or even on
+"no such account": Supabase doesn't reveal which, again to avoid enumeration), shows a
 "Check your email" panel with a link back to `/login`. The `redirectTo` must be in
 Supabase's **Authentication → URL Configuration** allow-list (see
 [`README.md`](./README.md#1-create-a-supabase-project)) or the email link will fail.
@@ -252,16 +252,16 @@ const { error: updateError } = await supabase.auth.updateUser({ password });
 ```
 
 New-password + confirm-password fields (client-side "passwords don't match" check before
-calling Supabase). Calls `updateUser({ password })` directly on page load's client —
+calling Supabase). Calls `updateUser({ password })` directly on page load's client -
 **no separate "verify recovery token" step is needed** because:
 
 - The reset-email link is `https://.../reset-password#access_token=...&type=recovery&...`.
 - `createBrowserClient` (used by `src/lib/supabase/client.ts`) defaults to
-  `detectSessionInUrl: true` and `flowType: "pkce"` — when the page loads, the Supabase JS
+  `detectSessionInUrl: true` and `flowType: "pkce"`, when the page loads, the Supabase JS
   client automatically detects and exchanges the recovery token in the URL, establishing a
   temporary **recovery session**.
 - Every `supabase.auth.*` method (including `updateUser`) internally awaits an
-  `initializePromise` that resolves only after this auto-exchange completes — so by the
+  `initializePromise` that resolves only after this auto-exchange completes, so by the
   time `handleSubmit` runs (after the user types a password and clicks submit), the
   recovery session is guaranteed to be ready. No manual "wait for session" code is needed.
 

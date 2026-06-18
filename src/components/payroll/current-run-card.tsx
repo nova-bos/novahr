@@ -86,7 +86,7 @@ export function CurrentRunCard() {
         </div>
         <CardDescription>
           {run.status === "processing"
-            ? "Currently processing — review the totals below before publishing payslips."
+            ? "Currently processing. Review the totals below before publishing payslips."
             : "Upcoming run for the current pay period."}
         </CardDescription>
       </CardHeader>

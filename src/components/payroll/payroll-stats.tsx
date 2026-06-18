@@ -28,7 +28,7 @@ export function PayrollStats() {
   const stats: StatItem[] = [
     {
       label: "Next pay date",
-      value: upcomingRun ? formatDate(upcomingRun.payDate, { day: "numeric", month: "short" }) : "—",
+      value: upcomingRun ? formatDate(upcomingRun.payDate, { day: "numeric", month: "short" }) : "-",
       detail: upcomingRun ? `${upcomingRun.employeeCount} employees` : "No run scheduled",
       icon: CalendarClock,
       iconClassName: "bg-info/10 text-info",

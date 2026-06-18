@@ -140,7 +140,7 @@ export default function LoginPage() {
           </h1>
           <p className="text-sm text-sidebar-foreground/70">
             This is a live product walkthrough. Sign in as any persona below to see how NovaHR
-            looks from their seat — employee, manager, HR or the executive committee.
+            looks from their seat: employee, manager, HR, or the executive committee.
           </p>
           <ul className="flex flex-col gap-3">
             {FEATURES.map((feature) => (
@@ -202,7 +202,7 @@ export default function LoginPage() {
           <div className="space-y-1.5">
             <h2 className="text-2xl font-semibold tracking-tight">Sign in to NovaHR</h2>
             <p className="text-sm text-muted-foreground">
-              Pick a role to preview the product as that person — we&apos;ll fill in their demo
+              Pick a role to preview the product as that person. We&apos;ll fill in their demo
               email and password for you. Then just hit{" "}
               <span className="font-medium text-foreground">Sign in</span>.
             </p>

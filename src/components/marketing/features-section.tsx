@@ -36,7 +36,7 @@ const FEATURES: Feature[] = [
     icon: ShieldCheck,
     title: "Role-Based Access",
     description:
-      "Employees, managers, and HR each see exactly what they need — nothing more.",
+      "Employees, managers, and HR each see exactly what they need. Nothing more.",
   },
   {
     icon: Building2,
