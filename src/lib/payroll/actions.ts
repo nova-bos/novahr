@@ -70,6 +70,7 @@ export async function completePayrollRunRecord(runId: string): Promise<{
 
   const result = await prisma.$transaction(async (tx) => {
     await tx.payslip.createMany({
+      skipDuplicates: true,
       data: newPayslips.map((p) => ({
         id: p.id,
         tenantId: p.tenantId,
