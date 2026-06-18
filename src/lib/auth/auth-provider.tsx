@@ -20,9 +20,9 @@ const AuthContext = React.createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<AppUser | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [supabase] = React.useState(() => createClient());
 
   React.useEffect(() => {
+    const supabase = createClient();
     let active = true;
 
     const {
@@ -46,24 +46,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       active = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
-  const login = React.useCallback(
-    async (email: string, password: string) => {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) return error.message;
+  const login = React.useCallback(async (email: string, password: string) => {
+    const { error } = await createClient().auth.signInWithPassword({ email, password });
+    if (error) return error.message;
 
-      const profile = await getCurrentUserProfile();
-      setUser(profile);
-      return null;
-    },
-    [supabase],
-  );
+    const profile = await getCurrentUserProfile();
+    setUser(profile);
+    return null;
+  }, []);
 
   const logout = React.useCallback(async () => {
-    await supabase.auth.signOut();
+    await createClient().auth.signOut();
     setUser(null);
-  }, [supabase]);
+  }, []);
 
   const refresh = React.useCallback(async () => {
     const profile = await getCurrentUserProfile();
