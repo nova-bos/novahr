@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { formatMonthYear } from "@/lib/format";
 
 const signupSchema = z.object({
   companyName: z.string().min(2, "Company name is required"),
@@ -76,6 +77,23 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
         role: "hr",
         avatarColor: "#4C6FFF",
         initials: deriveInitials(yourName),
+      },
+    });
+
+    // Create the first scheduled payroll run so the payroll page is never empty.
+    const now = new Date();
+    const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const payDay = 25; // matches Prisma default
+    const payDate = new Date(`${period}-${String(payDay).padStart(2, "0")}`);
+    await tx.payrollRun.create({
+      data: {
+        id: `${tenant.id}-run-${period}`,
+        tenantId: tenant.id,
+        period,
+        label: `${formatMonthYear(period)} Payroll`,
+        payDate,
+        status: "scheduled",
+        employeeCount: 0,
       },
     });
   });

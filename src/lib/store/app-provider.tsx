@@ -68,7 +68,7 @@ export type Action =
   | { type: "TENANT_UPDATED"; tenant: Tenant };
 
 export const initialState: AppState = {
-  tenantId: "novatech",
+  tenantId: "",
   currentTenant: null,
   employees: [],
   departments: [],
@@ -230,10 +230,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
   React.useEffect(() => {
+    if (!state.tenantId) return;
     let active = true;
-    getTenantWorkspace(state.tenantId).then((workspace) => {
-      if (active) dispatch({ type: "SET_WORKSPACE", workspace });
-    });
+    getTenantWorkspace(state.tenantId)
+      .then((workspace) => {
+        if (active) dispatch({ type: "SET_WORKSPACE", workspace });
+      })
+      .catch((err) => {
+        console.error("[AppProvider] workspace fetch failed:", err);
+      });
     return () => {
       active = false;
     };

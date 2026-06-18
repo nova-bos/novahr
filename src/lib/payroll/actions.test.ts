@@ -151,6 +151,7 @@ describe("completePayrollRunRecord", () => {
     expect(result.nextRun?.status).toBe("scheduled");
 
     expect(mockPrisma.payslip.createMany).toHaveBeenCalledWith({
+      skipDuplicates: true,
       data: [
         expect.objectContaining({
           id: "novatech-run-2026-06-emp-1",
