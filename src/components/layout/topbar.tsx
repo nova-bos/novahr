@@ -1,8 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { getNavItems, type NavItem } from "./nav-config";
 import { TenantSwitcher } from "./tenant-switcher";
@@ -25,8 +23,6 @@ export function Topbar() {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 border-b border-border/70 bg-background/80 px-4 backdrop-blur-sm sm:gap-3 sm:px-6">
-      <SidebarTrigger className="-ml-1 shrink-0" />
-      <Separator orientation="vertical" className="h-5 shrink-0 data-[orientation=vertical]:h-5" />
       <h1 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-foreground">
         {pageTitle(pathname, navItems)}
       </h1>
