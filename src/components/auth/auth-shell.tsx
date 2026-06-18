@@ -27,9 +27,8 @@ export function AuthShell({
               "radial-gradient(circle at 15% 0%, var(--chart-2) 0%, transparent 45%), radial-gradient(circle at 90% 30%, var(--sidebar-primary) 0%, transparent 50%), radial-gradient(circle at 30% 100%, var(--chart-4) 0%, transparent 40%)",
           }}
         />
-        <div className="relative flex items-center gap-2.5">
-          <Logo />
-          <span className="text-lg font-semibold tracking-tight">NovaHR</span>
+        <div className="relative flex items-center">
+          <Logo height={26} />
         </div>
         <p className="relative max-w-sm text-sm text-sidebar-foreground/70">{description}</p>
         <svg
@@ -54,9 +53,8 @@ export function AuthShell({
               "radial-gradient(circle at 12% 18%, var(--chart-2) 0%, transparent 42%), radial-gradient(circle at 88% 12%, var(--sidebar-accent) 0%, transparent 40%), radial-gradient(circle at 78% 92%, var(--sidebar-primary) 0%, transparent 48%), radial-gradient(circle at 22% 100%, var(--chart-4) 0%, transparent 38%)",
           }}
         />
-        <div className="relative flex items-center gap-2.5">
-          <Logo />
-          <span className="text-lg font-semibold tracking-tight">NovaHR</span>
+        <div className="relative flex items-center">
+          <Logo height={26} />
         </div>
         <div className="relative flex max-w-md flex-col gap-6">
           <h1 className="text-3xl font-semibold leading-tight tracking-tight">{heading}</h1>

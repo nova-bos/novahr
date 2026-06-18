@@ -19,8 +19,18 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NovaHR | Modern HR & Payroll Platform",
-  description: "HR management and payroll built for growing companies.",
+  title: {
+    default: "NovaHR",
+    template: "%s | NovaHR",
+  },
+  description: "Modern HR and payroll for growing South African companies.",
+  icons: {
+    icon: [
+      { url: "/icon-light-sq.png", media: "(prefers-color-scheme: light)", type: "image/png" },
+      { url: "/icon-dark-sq.png", media: "(prefers-color-scheme: dark)", type: "image/png" },
+    ],
+    apple: { url: "/icon-light-sq.png", type: "image/png" },
+  },
 };
 
 export default function RootLayout({
