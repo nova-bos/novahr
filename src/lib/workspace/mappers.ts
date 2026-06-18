@@ -136,6 +136,7 @@ export function mapLeaveRequest(row: PrismaLeaveRequest): LeaveRequest {
     endDate: toDateOnly(row.endDate),
     days: row.days,
     reason: row.reason,
+    documentUrl: row.documentUrl ?? undefined,
     status: row.status,
     appliedOn: toDateOnly(row.appliedOn),
     decisionNote: row.decisionNote ?? undefined,

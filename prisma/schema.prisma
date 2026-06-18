@@ -193,6 +193,7 @@ model LeaveRequest {
   endDate      DateTime
   days         Float
   reason       String
+  documentUrl  String?
   status       LeaveStatus @default(pending)
   appliedOn    DateTime    @default(now())
   decisionNote String?

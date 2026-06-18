@@ -95,6 +95,7 @@ export interface LeaveRequest {
   endDate: string;
   days: number;
   reason: string;
+  documentUrl?: string;
   status: LeaveStatus;
   appliedOn: string;
   decisionNote?: string;

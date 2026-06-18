@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Card,
@@ -79,6 +79,17 @@ export function LeaveApprovals() {
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-1.5">
+                    {request.documentUrl ? (
+                      <a
+                        href={request.documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex size-7 items-center justify-center rounded-md border border-input text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        aria-label="View supporting document"
+                      >
+                        <Paperclip className="size-3.5" />
+                      </a>
+                    ) : null}
                     <Button
                       size="icon-sm"
                       variant="outline"

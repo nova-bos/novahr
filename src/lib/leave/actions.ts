@@ -13,6 +13,7 @@ export interface CreateLeaveRequestInput {
   endDate: string;
   days: number;
   reason: string;
+  documentUrl?: string;
 }
 
 export async function createLeaveRequestRecord(
@@ -33,6 +34,7 @@ export async function createLeaveRequestRecord(
         endDate: new Date(input.endDate),
         days: input.days,
         reason: input.reason,
+        documentUrl: input.documentUrl,
       },
     });
 
