@@ -31,6 +31,9 @@ export function MarketingNav() {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+            <Link href="/#contact">Contact</Link>
+          </Button>
           <Button variant="outline" size="sm" asChild>
             <Link href="/login">Sign in</Link>
           </Button>

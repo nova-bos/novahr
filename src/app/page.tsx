@@ -5,6 +5,7 @@ import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { Hero } from "@/components/marketing/hero";
 import { FeaturesSection } from "@/components/marketing/features-section";
 import { PricingSection } from "@/components/marketing/pricing-section";
+import { ContactSection } from "@/components/marketing/contact-section";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 
@@ -33,6 +34,9 @@ export default async function LandingPage() {
         </section>
         <section className="container mx-auto max-w-6xl px-4 py-24 border-t">
           <PricingSection />
+        </section>
+        <section className="container mx-auto max-w-6xl px-4 py-24 border-t">
+          <ContactSection />
         </section>
       </main>
       <MarketingFooter />
