@@ -2,27 +2,23 @@
 
 Living document. Update status as work completes.
 
-**Status key:** `done` | `in progress` | `queued` | `future`
+**Status key:** `done` | `deferred` | `queued` | `future`
 
 ---
 
 ## Priority order
 
-| # | Item | Status | Effort |
-|---|---|---|---|
-| 1 | CI + Branch protection | **done** | S |
-| 2 | Environments (dev / staging / prod) | **done** | S |
-| 3 | Design system + component guide | queued | M |
-| 4 | Phase 2: DB persistence | queued | XL |
-| 5 | File uploads (Supabase Storage) | queued | M |
-| 6 | Form validation (Zod) | queued | M |
-| 7 | Email notifications (Resend) | queued | M |
-| 8 | PDF payslip downloads | queued | M |
-| 9 | Row-Level Security (Supabase RLS) | queued | M |
-
-Environments come before DB persistence because you need to know which database you are
-writing to before committing real data. The design system is parallelisable and can be
-done by a second contributor at any point.
+| # | Item | Status | Effort | Notes |
+|---|---|---|---|---|
+| 1 | CI + Branch protection | **done** | S | CI live; branch protection blocked until GitHub Pro |
+| 2 | Environments (dev / staging / prod) | **done** | S | Three environments on Vercel |
+| 3 | Design system + component guide | **deferred** | M | Not yet built; still valuable for contributors |
+| 4 | Phase 2: DB persistence | **done** | XL | Full Prisma + Supabase persistence |
+| 5 | File uploads (Supabase Storage) | **done** | M | Employee photos + leave documents |
+| 6 | Form validation (Zod) | **done** | M | SA-specific validators across all forms |
+| 7 | Email notifications (Resend) | **done** | M | Leave and payslip emails |
+| 8 | PDF payslip downloads | **done** | M | Client-side PDF via @react-pdf/renderer |
+| 9 | Row-Level Security (Supabase RLS) | **queued** | M | Must do before real customer data |
 
 ---
 
@@ -86,191 +82,249 @@ develop   staging baseline (optional, or just use PR previews)
 feature/* work branches, each gets its own Vercel preview URL
 ```
 
-**Files to touch:** `.env.local.example` (add to repo with placeholder values),
-`README.md` (update getting-started section), Vercel dashboard (env var configuration).
+---
+
+## 3. Design system + component guide `deferred`
+
+**Status:** skipped for now. The codebase is consistent enough that individual features
+can be added without it. Revisit when a second contributor joins or before a design
+refresh.
+
+**What this would include:**
+
+- A `/style-guide` route (dev-only) showing every shared component variant side by side.
+  Lighter than Storybook, zero build overhead.
+- `docs/component-guide.md` with written conventions: which component to use when, prop
+  names, variant names.
+- Component contracts: all data tables through `<Table>`, all status badges through
+  `<Badge>`, page layout through `<PageHeader>`, empty states through a shared
+  empty-state component.
+
+**Why deferred:** the shadow cost of maintaining an accurate style guide is higher than
+the benefit when there is only one active contributor. Revisit at around 3+ contributors.
 
 ---
 
-## 3. Design system + component guide `queued`
+## 4. Phase 2: DB persistence `done`
 
-**Goal:** make it easy for contributors to add features that look and feel like the rest
-of the app, without having to dig through existing pages to copy patterns.
+**What was built:**
 
-**Approach: internal style guide route**
+Full migration from static seed arrays to real Postgres via Prisma + Supabase. Covered
+in detail in `docs/README.md` (Phase 1 and Phase 2 sections).
 
-A `/style-guide` route in the app (dev-only, not linked from the nav) that renders every
-shared component variant side by side. This is lighter than Storybook and has zero build
-overhead, but gives the same visual reference.
-
-**What to document and standardise:**
-
-- **Buttons:** primary, secondary, destructive, ghost, icon-only. All go through
-  `<Button>` from `src/components/ui/button.tsx` (shadcn). No raw `<button>` elements.
-- **Cards:** all content panels use `<Card>/<CardHeader>/<CardContent>` from shadcn.
-- **Badges:** status badges (e.g. leave status, employment status) go through
-  `<Badge variant="...">`. Define a fixed set of variants in `badge.tsx`.
-- **Form fields:** all inputs, selects, textareas, and date pickers go through the
-  corresponding shadcn components. No raw `<input>` elements.
-- **Tables:** all data tables use `<Table>/<TableHeader>/<TableRow>` etc. from shadcn.
-- **Page layout:** every app page follows the same shell: `<PageHeader>` component with
-  title + optional right-side action button, then content below.
-- **Empty states:** consistent empty-state component with icon + heading + optional CTA.
-- **Loading states:** skeleton loaders using `<Skeleton>` from shadcn, not spinners.
-
-**Files to create:**
-
-- `src/app/(app)/style-guide/page.tsx` (the showcase page, guarded to dev env only)
-- `docs/component-guide.md` (written reference: which component to use when, prop
-  conventions, variant names)
-
-**Relationship to shadcn/ui:**
-
-shadcn components live in `src/components/ui/`. To extend a component (e.g. add a new
-button variant), edit the file there directly. Do not wrap shadcn components in a second
-wrapper just to rename them.
+- `prisma/schema.prisma`: full relational schema (Tenant, User, Employee, LeaveBalance,
+  LeaveRequest, Department, PayrollRun, Payslip, ActivityItem, NotificationItem).
+- `src/lib/prisma.ts`: singleton Prisma client using `@prisma/adapter-pg`.
+- `src/lib/workspace/actions.ts`: `getTenantWorkspace()` loads all data for a tenant
+  in a single fetch on app mount.
+- `src/lib/workspace/mappers.ts`: converts raw Prisma rows to typed domain objects.
+- `src/lib/employees/actions.ts`, `src/lib/leave/actions.ts`,
+  `src/lib/payroll/actions.ts`, `src/lib/notifications/actions.ts`: server actions
+  for each mutation, writing activity and notification side-effects transactionally.
+- `src/lib/store/app-provider.tsx`: thin client reducer that merges server action
+  results into local state without a full refetch.
+- All 9 mutations (add/edit employee, toggle onboarding step, submit/approve/reject
+  leave, start/complete payroll run, mark notification read/all-read) write to Postgres.
+- `prisma/seed.ts`: idempotent seed script creating 3 demo tenants, full employee
+  datasets, leave requests, payroll runs, payslips, activity, and notifications, plus
+  4 real Supabase Auth users for the persona picker.
+- 193 Vitest tests across 22 files (all passing).
 
 ---
 
-## 4. Phase 2: DB persistence `queued`
+## 5. File uploads (Supabase Storage) `done`
 
-The biggest item. Full spec in `docs/planning/ACTION_PLAN.md` and the plan file.
+**What was built:**
 
-**Summary of what changes:**
+Two upload features, both using Supabase Storage public buckets.
 
-- `src/lib/store/app-provider.tsx` becomes a thin wrapper that fetches initial state from
-  server actions instead of static seed data. Mutations call server actions instead of
-  dispatching to a reducer.
-- New server action modules: `src/lib/employees/actions.ts`,
-  `src/lib/leave/actions.ts`, `src/lib/payroll/actions.ts`,
-  `src/lib/notifications/actions.ts`, `src/lib/workspace/actions.ts`.
-- Prisma client (`src/lib/prisma.ts`) is the single DB access point.
-- All mutations write an `ActivityItem` row for the audit feed.
+### Employee profile photos
 
-Do this work in the `staging` database (item 2 above) so production demo data is not
-touched during development.
+- Supabase Storage bucket: `employee-photos` (public).
+- `Employee.photoUrl String?` column added to Prisma schema.
+- `src/components/employees/avatar-upload.tsx`: HR sees a click-to-upload button over
+  the avatar. Photo is upserted to `{tenantId}/{employeeId}.{ext}` with a cache-bust
+  query string on the public URL. Max 5 MB.
+- All avatar usages across the app show the photo when set: employee directory, leave
+  tables, payroll run detail, manager dashboard, command menu, payslip dialog.
 
----
+### Leave supporting documents
 
-## 5. File uploads (Supabase Storage) `queued`
+- Supabase Storage bucket: `leave-documents` (public).
+- `LeaveRequest.documentUrl String?` column added to Prisma schema.
+- `src/components/leave/leave-document-upload.tsx`: optional file picker on the leave
+  request dialog. Accepts JPEG, PNG, WebP, PDF up to 10 MB.
+- File is uploaded to `{tenantId}/{employeeId}/{uuid}.{ext}` before the leave request
+  is created. The public URL is stored on the `LeaveRequest` row.
+- A paperclip icon in the leave table and dashboard approval widget links to the
+  document in a new tab.
 
-**What:**
+**Manual setup required:** create both storage buckets in Supabase before file uploads
+will work. Run in the Supabase SQL editor:
 
-- Employee profile pictures stored in a `avatars` Supabase Storage bucket.
-- Sick note documents attached to sick leave requests, stored in a `documents` bucket
-  (HR-only access via signed URLs).
-
-**How:**
-
-1. Create the two buckets in Supabase Storage (public for avatars, private for documents).
-2. Add a `avatarUrl` column to the `Employee` model in `schema.prisma`.
-3. Add a `sickNoteUrl` column to the `LeaveRequest` model.
-4. Build an upload component using `supabase.storage.from('avatars').upload(...)`.
-5. Use signed URLs (`createSignedUrl`) for the private `documents` bucket.
-6. Validate file type (images only for avatars; PDF/JPG for sick notes) and size (max 5MB)
-   before upload.
-
----
-
-## 6. Form validation (Zod) `queued`
-
-**What:** replace the current minimal validation with Zod schemas on all user-facing forms.
-
-**Forms to cover:**
-
-- Onboarding wizard (multi-step)
-- Leave request dialog
-- Edit employee dialog
-- Company settings form
-- Payroll settings form
-
-**SA-specific validators to write:**
-
-- SA ID number: 13 digits, date of birth embedded in digits 1-6, last digit Luhn checksum.
-- Bank account number: 6-11 digits depending on bank.
-- Phone: `+27XXXXXXXXX` or `0XXXXXXXXX` (10 digits starting with 0).
-
-**Pattern:** define schemas in `src/lib/schemas/` and share them between server actions
-(for server-side validation) and client forms (for inline feedback via `react-hook-form`
-+ `zodResolver`).
+```sql
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('employee-photos', 'employee-photos', true),
+       ('leave-documents', 'leave-documents', true)
+ON CONFLICT (id) DO NOTHING;
+```
 
 ---
 
-## 7. Email notifications (Resend) `queued`
+## 6. Form validation (Zod) `done`
 
-**Triggers:**
+**What was built:**
 
-- Leave approved or rejected: email to the employee.
-- Payslip published: email to the employee.
-- New employee onboarded: welcome email to the employee.
+Zod v4 schemas wired into every user-facing form with SA-specific validators.
 
-**How:**
+**SA-specific validators** (`src/lib/schemas/sa.ts`):
 
-1. Sign up for Resend (free tier: 3,000 emails/month).
-2. Add `RESEND_API_KEY` to Vercel env vars.
-3. Create `src/lib/email/` with typed `sendEmail` wrapper around the Resend SDK.
-4. Call `sendEmail` at the end of the relevant server actions (added in item 4).
+- `saIdNumber`: 13 digits, validates the embedded date of birth (digits 1-6), Luhn
+  checksum on the full number.
+- `saPhone`: matches `+27XXXXXXXXX` or `0XXXXXXXXX` (10 digits starting with 0).
+- `bankAccountNumber`: 6-11 digits.
+- `branchCode`: exactly 6 digits.
 
-**Sending domain:** use `onboarding@resend.dev` on the free tier until a domain is
-purchased, then switch to `noreply@novahr.co.za`.
+**Schema files:**
+
+- `src/lib/schemas/sa.ts`: SA-specific primitives and 21 unit tests.
+- `src/lib/schemas/employee.ts`: per-step schemas for the onboarding wizard
+  (`personalStepSchema`, `roleStepSchema`, `compensationStepSchema`) plus edit-dialog
+  schemas. Exports `validatePersonalStep`, `validateRoleStep`,
+  `validateCompensationStep`, `validateEditEmployeeProfile`,
+  `validateEditEmployeeCompensation`.
+- `src/lib/schemas/leave.ts`: `leaveRequestSchema` with cross-field end-date check.
+- `src/lib/schemas/tenant.ts`: `companyProfileSchema`, `payrollSettingsSchema`.
+
+**Where errors appear:**
+
+- Onboarding wizard steps: inline errors under each field; Next button blocked on
+  validation failure.
+- Leave request dialog: inline errors under affected fields.
+- Edit employee dialog: first validation error shown as a toast (across two tabs,
+  per-field errors would be impractical).
+- Company settings, payroll settings: inline errors under affected fields.
 
 ---
 
-## 8. PDF payslip downloads `queued`
+## 7. Email notifications (Resend) `done`
 
-**Goal:** a "Download payslip" button that produces a real PDF file, not just a
-browser print dialog.
+**What was built:**
 
-**Recommended approach: `@react-pdf/renderer`**
+Three transactional emails sent via the Resend SDK, all fire-and-forget (email failure
+never blocks the main server action).
 
-- Pure JavaScript, works on Vercel without any additional runtime config.
-- Build a `PayslipDocument` React component using `react-pdf` primitives that mirrors
-  the existing HTML template in `src/lib/payroll/print.ts`.
-- Expose a route handler at `GET /api/payslip/[id]` that renders the PDF and streams it
-  with `Content-Type: application/pdf`.
+**`src/lib/email/index.ts`**: Resend client (lazy init, returns null if
+`RESEND_API_KEY` is not set), HTML email templates (inline CSS, no React Email
+dependency), and three exported send functions.
 
-**Alternative (if layout fidelity is critical): `@sparticuz/chromium` + Puppeteer**
+| Trigger | Recipients | Subject |
+|---|---|---|
+| Leave request submitted | All HR + manager users for the tenant | "Leave request from {Name} (N days of annual leave)" |
+| Leave request decided (approved or rejected) | The requesting employee | "Your annual leave request has been approved/rejected" |
+| Payroll run completed | Every eligible employee (one email per payslip) | "Your June 2026 payslip is ready" |
 
-- Renders the existing HTML template pixel-perfectly.
-- Works on Vercel via a serverless function with the `@sparticuz/chromium` package.
-- Cold-start is slower and the function bundle is larger (~50MB).
-- Only worth this complexity if the `@react-pdf/renderer` output does not meet design
-  requirements.
+**Environment variables required** (see `.env.example`):
+
+- `RESEND_API_KEY`: from resend.com/api-keys. Leave blank to silently skip all sends.
+- `EMAIL_FROM`: verified sender address, e.g. `"NovaHR <noreply@novahr.co.za>"`. Needs
+  a verified domain in Resend. Use `onboarding@resend.dev` on the free tier for testing.
+- `NEXT_PUBLIC_APP_URL`: base URL included in email links.
+
+**Wired into:**
+- `src/lib/leave/actions.ts`: `createLeaveRequestRecord` (leave submitted) and
+  `decideLeaveRequestRecord` (leave decided).
+- `src/lib/payroll/actions.ts`: `completePayrollRunRecord` (payslips published).
+
+---
+
+## 8. PDF payslip downloads `done`
+
+**What was built:**
+
+"Download payslip" in the payslip dialog now generates a real PDF file and saves it
+to the user's device, replacing the print-dialog approach.
+
+- `src/lib/payroll/pdf.tsx`: `PayslipDocument` React component using
+  `@react-pdf/renderer` primitives. A4 layout with NovaHR header, employee info block,
+  earnings table, deductions table, and a net pay highlight box.
+- `src/components/payroll/payslip-dialog.tsx`: dynamically imports
+  `@react-pdf/renderer` and `pdf.tsx` on first click (not in the initial bundle).
+  Generates a Blob, creates a temporary object URL, triggers a download, and cleans up.
+  Button shows "Generating..." while the PDF is building.
+- `next.config.ts`: `serverExternalPackages: ["@react-pdf/renderer"]` prevents Next.js
+  from trying to bundle the package for SSR.
+- Download filename: `payslip-{lastname}-{period}.pdf` (e.g.
+  `payslip-patel-2026-06.pdf`).
+
+The existing `src/lib/payroll/print.ts` (`buildPayslipHtml`, `printPayslip`) is kept
+for the HTML template tests and as a fallback but is no longer wired to any button.
 
 ---
 
 ## 9. Row-Level Security (Supabase RLS) `queued`
 
-**Why this matters:** currently, tenantId scoping is enforced only at the application
-layer. If there is ever a bug in a server action, one tenant could read another's data.
-RLS enforces this at the database level regardless of application code.
+**Why this matters:** tenantId scoping is enforced at the application layer only. A bug
+in a server action could expose one tenant's data to another. RLS enforces isolation at
+the Postgres level regardless of application code.
 
 **What to add:**
 
-RLS policies on every table: `Tenant`, `Employee`, `Department`, `LeaveRequest`,
-`PayrollRun`, `Payslip`, `ActivityItem`, `NotificationItem`, `LeaveBalance`.
+Enable RLS on every table (`Employee`, `LeaveRequest`, `LeaveBalance`, `PayrollRun`,
+`Payslip`, `Department`, `ActivityItem`, `NotificationItem`) and add a policy that
+compares `tenantId` to a session-level setting:
 
-Example policy pattern:
 ```sql
+-- Enable on each table
+ALTER TABLE "Employee" ENABLE ROW LEVEL SECURITY;
+
+-- Policy pattern (repeat for each table)
 CREATE POLICY "tenant isolation" ON "Employee"
-  USING (tenant_id = current_setting('app.tenant_id')::uuid);
+  USING ("tenantId" = current_setting('app.tenant_id', true));
 ```
 
-The application sets `app.tenant_id` at the start of each request using
-`SET LOCAL app.tenant_id = '...'` inside a Prisma transaction or via a custom
-`pg_session` extension.
+The application sets `app.tenant_id` at the start of each server action using a
+Prisma middleware or a `$executeRaw` call:
 
-**Prerequisite:** complete item 4 (DB persistence) first, so there is real multi-tenant
-data to protect.
+```ts
+await prisma.$executeRaw`SET LOCAL app.tenant_id = ${tenantId}`;
+```
 
-**Do this before any real customer data enters the system.**
+Because `SET LOCAL` only persists for the duration of the current transaction, this
+works cleanly with connection pooling.
+
+**Steps:**
+
+1. Add a Prisma middleware in `src/lib/prisma.ts` that runs `SET LOCAL` before every
+   query, reading `tenantId` from a per-request async local storage context.
+2. Add `SET app.tenant_id` to each server action that touches tenant-scoped tables.
+3. Write and apply a migration with `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` and
+   `CREATE POLICY` for every table.
+4. Test with the seed data to verify cross-tenant queries return zero rows.
+
+**Priority:** do this before any real customer data enters the system.
+
+---
+
+## Future items (not yet scheduled)
+
+| Item | Why |
+|---|---|
+| Welcome email to new employee | Currently not sent; employee gets no notification when HR adds them. Add a `sendWelcomeEmail` call in `createEmployeeRecord`. |
+| Design system + `/style-guide` route | Deferred from item 3; revisit when a second contributor joins. |
+| Payroll reports (Excel export) | HR wants to export payroll runs to Excel for the accountant. `xlsx` package, server action returning a Blob. |
+| Leave policy per-tenant | Currently global static config. Add `LeavePolicies` table and let HR configure annual/sick/family entitlements. |
+| PAYE/UIF/SDL accuracy | Calculator uses placeholder rates. Needs 2026/27 SARS tables and correct bracket lookup. |
+| Custom domain | Buy `novahr.co.za`, point to Vercel, configure Resend sending domain, update all hardcoded URLs. |
 
 ---
 
 ## Infrastructure upgrade checklist (before go-live)
 
 - [ ] GitHub Pro ($4/month): enables branch protection on private repos (see item 1)
-- [ ] Vercel Pro ($20/month): removes Hobby tier limits, adds custom domain, removes
-  Vercel branding from error pages
+- [ ] Vercel Pro ($20/month): removes Hobby tier limits, custom domain, removes Vercel
+  branding from error pages
 - [ ] Supabase Pro ($25/month): prevents free-tier project pausing after 1 week inactivity
-- [ ] Domain (novahr.co.za or similar): ~R200/year, needed for custom email and branding
+- [ ] Domain (novahr.co.za or similar): ~R200/year, needed for email sending and branding
 - [ ] Two additional Supabase projects (dev + staging): free tier is fine for these
+- [ ] Resend sending domain verified: required before sending email from your own address
