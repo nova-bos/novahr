@@ -11,7 +11,7 @@ Living document. Update status as work completes.
 | # | Item | Status | Effort |
 |---|---|---|---|
 | 1 | CI + Branch protection | **done** | S |
-| 2 | Environments (dev / staging / prod) | queued | S |
+| 2 | Environments (dev / staging / prod) | **done** | S |
 | 3 | Design system + component guide | queued | M |
 | 4 | Phase 2: DB persistence | queued | XL |
 | 5 | File uploads (Supabase Storage) | queued | M |
@@ -53,7 +53,7 @@ Until then, convention: all changes go through a PR even though `main` is not lo
 
 ---
 
-## 2. Environments (dev / staging / prod) `queued`
+## 2. Environments (dev / staging / prod) `done`
 
 **Goal:** three clearly separated environments so that changes can be tested before
 reaching real customer data.
