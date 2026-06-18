@@ -58,8 +58,7 @@ export function FeaturesSection() {
       <div className="text-center">
         <h2 className="text-3xl font-bold">Everything your HR team needs</h2>
         <p className="mt-3 text-muted-foreground">
-          NovaHR covers the full employee lifecycle &mdash; from onboarding to
-          payslips.
+          NovaHR covers the full employee lifecycle, from onboarding to payslips.
         </p>
       </div>
 

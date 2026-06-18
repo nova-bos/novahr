@@ -23,7 +23,7 @@ export function Hero() {
 
         <p className="text-lg text-muted-foreground max-w-xl mx-auto">
           NovaHR handles employee management, leave tracking, and payroll so
-          your HR team can focus on your people &mdash; not spreadsheets.
+          your HR team can focus on your people, not spreadsheets.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3">
