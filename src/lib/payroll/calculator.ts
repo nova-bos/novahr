@@ -1,24 +1,33 @@
+import Decimal from "decimal.js";
 import type { Employee, Payslip, PayslipLineItem } from "@/lib/types";
 
+Decimal.set({ rounding: Decimal.ROUND_HALF_UP });
+
 const TAX_BRACKETS_2025 = [
-  { upTo: 237_100, rate: 0.18, base: 0 },
-  { upTo: 370_500, rate: 0.26, base: 42_678 },
-  { upTo: 512_800, rate: 0.31, base: 77_362 },
-  { upTo: 673_000, rate: 0.36, base: 121_475 },
-  { upTo: 857_900, rate: 0.39, base: 179_147 },
-  { upTo: 1_817_000, rate: 0.41, base: 251_258 },
-  { upTo: Infinity, rate: 0.45, base: 644_489 },
+  { upTo: 237_100, rate: "0.18", base: "0" },
+  { upTo: 370_500, rate: "0.26", base: "42678" },
+  { upTo: 512_800, rate: "0.31", base: "77362" },
+  { upTo: 673_000, rate: "0.36", base: "121475" },
+  { upTo: 857_900, rate: "0.39", base: "179147" },
+  { upTo: 1_817_000, rate: "0.41", base: "251258" },
+  { upTo: Infinity, rate: "0.45", base: "644489" },
 ];
 
-const PRIMARY_REBATE_ANNUAL = 17_235;
-const UIF_RATE = 0.01;
-const UIF_MONTHLY_CAP = 177.12;
+const PRIMARY_REBATE_ANNUAL = new Decimal("17235");
+const UIF_RATE = new Decimal("0.01");
+const UIF_MONTHLY_CAP = new Decimal("177.12");
 
-function annualPaye(annualTaxable: number): number {
-  const bracket = TAX_BRACKETS_2025.find((b) => annualTaxable <= b.upTo);
-  const prevUpTo = TAX_BRACKETS_2025[TAX_BRACKETS_2025.indexOf(bracket!) - 1]?.upTo ?? 0;
-  const tax = bracket!.base + (annualTaxable - prevUpTo) * bracket!.rate;
-  return Math.max(0, tax - PRIMARY_REBATE_ANNUAL);
+function annualPaye(annualTaxable: Decimal): Decimal {
+  const taxable = annualTaxable.toNumber();
+  const bracketIndex = TAX_BRACKETS_2025.findIndex((b) => taxable <= b.upTo);
+  const bracket = TAX_BRACKETS_2025[bracketIndex];
+  const prevUpTo = bracketIndex > 0 ? TAX_BRACKETS_2025[bracketIndex - 1].upTo : 0;
+
+  const tax = new Decimal(bracket.base).plus(
+    annualTaxable.minus(prevUpTo).times(bracket.rate)
+  );
+  const afterRebate = tax.minus(PRIMARY_REBATE_ANNUAL);
+  return Decimal.max(afterRebate, 0);
 }
 
 export interface PayrollBreakdown {
@@ -34,7 +43,7 @@ export interface PayrollBreakdown {
 
 export function calculateMonthlyPayroll(employee: Employee): PayrollBreakdown {
   const { salary } = employee;
-  const basicSalary = Math.round((salary.annualGross / 12) * 100) / 100;
+  const basicSalary = new Decimal(salary.annualGross).dividedBy(12).toDecimalPlaces(2);
 
   const earnings: PayslipLineItem[] = [];
   if (salary.travelAllowance) {
@@ -44,39 +53,43 @@ export function calculateMonthlyPayroll(employee: Employee): PayrollBreakdown {
     earnings.push({ label: "Housing Allowance", amount: salary.housingAllowance });
   }
 
-  const grossPay =
-    basicSalary + earnings.reduce((sum, item) => sum + item.amount, 0);
+  const grossPay = earnings
+    .reduce((sum, item) => sum.plus(item.amount), basicSalary)
+    .toDecimalPlaces(2);
 
-  const annualTaxable = Math.round(basicSalary * 12);
-  const paye = Math.round(annualPaye(annualTaxable) / 12 * 100) / 100;
-  const uif = Math.round(Math.min(grossPay * UIF_RATE, UIF_MONTHLY_CAP) * 100) / 100;
+  const annualTaxable = basicSalary.times(12).toDecimalPlaces(0);
+  const paye = annualPaye(annualTaxable).dividedBy(12).toDecimalPlaces(2);
+  const uif = Decimal.min(grossPay.times(UIF_RATE), UIF_MONTHLY_CAP).toDecimalPlaces(2);
 
   const deductions: PayslipLineItem[] = [
-    { label: "PAYE (Income Tax)", amount: paye },
-    { label: "UIF Contribution", amount: uif },
+    { label: "PAYE (Income Tax)", amount: paye.toNumber() },
+    { label: "UIF Contribution", amount: uif.toNumber() },
   ];
 
   if (salary.pensionContributionPct) {
-    const pension = Math.round(basicSalary * salary.pensionContributionPct * 100) / 100;
-    deductions.push({ label: "Pension Fund", amount: pension });
+    const pension = basicSalary.times(salary.pensionContributionPct).toDecimalPlaces(2);
+    deductions.push({ label: "Pension Fund", amount: pension.toNumber() });
   }
 
   if (salary.medicalAid) {
     deductions.push({ label: "Medical Aid", amount: salary.medicalAid });
   }
 
-  const totalDeductions = deductions.reduce((sum, item) => sum + item.amount, 0);
-  const netPay = Math.round((grossPay - totalDeductions) * 100) / 100;
+  const totalDeductions = deductions
+    .reduce((sum, item) => sum.plus(item.amount), new Decimal(0))
+    .toDecimalPlaces(2);
+
+  const netPay = grossPay.minus(totalDeductions).toDecimalPlaces(2);
 
   return {
-    basicSalary,
+    basicSalary: basicSalary.toNumber(),
     earnings,
     deductions,
-    grossPay: Math.round(grossPay * 100) / 100,
-    totalDeductions: Math.round(totalDeductions * 100) / 100,
-    netPay,
-    paye,
-    uif,
+    grossPay: grossPay.toNumber(),
+    totalDeductions: totalDeductions.toNumber(),
+    netPay: netPay.toNumber(),
+    paye: paye.toNumber(),
+    uif: uif.toNumber(),
   };
 }
 
