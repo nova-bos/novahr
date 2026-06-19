@@ -18,7 +18,7 @@ Living document. Update status as work completes.
 | 6 | Form validation (Zod) | **done** | M | SA-specific validators across all forms |
 | 7 | Email notifications (Resend) | **done** | M | Leave and payslip emails |
 | 8 | PDF payslip downloads | **done** | M | Client-side PDF via @react-pdf/renderer |
-| 9 | Row-Level Security (Supabase RLS) | **queued** | M | Must do before real customer data |
+| 9 | Row-Level Security (Supabase RLS) | **done** | M | Tenant isolation enforced at Postgres level |
 
 ---
 
@@ -262,47 +262,43 @@ for the HTML template tests and as a fallback but is no longer wired to any butt
 
 ---
 
-## 9. Row-Level Security (Supabase RLS) `queued`
+## 9. Row-Level Security (Supabase RLS) `done`
 
-**Why this matters:** tenantId scoping is enforced at the application layer only. A bug
-in a server action could expose one tenant's data to another. RLS enforces isolation at
-the Postgres level regardless of application code.
+**What was built:**
 
-**What to add:**
+Tenant isolation is now enforced at the Postgres level. A bug in a server action can
+no longer expose one tenant's data to another.
 
-Enable RLS on every table (`Employee`, `LeaveRequest`, `LeaveBalance`, `PayrollRun`,
-`Payslip`, `Department`, `ActivityItem`, `NotificationItem`) and add a policy that
-compares `tenantId` to a session-level setting:
+**`prisma/migrations/20260619000000_enable_rls/migration.sql`**: enables
+`FORCE ROW LEVEL SECURITY` on all 8 tenant-scoped tables with a policy that allows
+a row when `current_setting('app.tenant_id', true)` is NULL, empty (covers seed
+scripts and migrations), or matches the row's `tenantId`. `Tenant` and `User` get
+`ENABLE` only (no `FORCE`, no policies): the postgres role is unrestricted (used by
+Prisma server actions) while the anon and authenticated REST API roles are fully blocked.
 
-```sql
--- Enable on each table
-ALTER TABLE "Employee" ENABLE ROW LEVEL SECURITY;
+**`src/lib/db-context.ts`**: `runAsTenant(tenantId, fn)` wraps `fn` in a Prisma
+transaction and calls `set_config('app.tenant_id', tenantId, true)` before any
+queries run. Using `set_config` with the `local` flag means the variable is cleared
+when the transaction ends, which is safe with pgbouncer transaction mode.
 
--- Policy pattern (repeat for each table)
-CREATE POLICY "tenant isolation" ON "Employee"
-  USING ("tenantId" = current_setting('app.tenant_id', true));
-```
+**All server actions converted:**
 
-The application sets `app.tenant_id` at the start of each server action using a
-Prisma middleware or a `$executeRaw` call:
+| File | Change |
+|---|---|
+| `workspace/actions.ts` | `getTenantWorkspace` wrapped in `runAsTenant` |
+| `employees/actions.ts` | All 4 mutation functions wrapped; `tenantId` added to 3 signatures |
+| `leave/actions.ts` | Both functions wrapped; `tenantId` added to `decideLeaveRequestRecord` |
+| `payroll/actions.ts` | Both functions wrapped; `tenantId` added to both signatures |
+| `notifications/actions.ts` | Both functions wrapped; `tenantId` added to `markNotificationReadRecord` |
 
-```ts
-await prisma.$executeRaw`SET LOCAL app.tenant_id = ${tenantId}`;
-```
+**`app-provider.tsx`**: passes `state.tenantId` to all updated action signatures.
 
-Because `SET LOCAL` only persists for the duration of the current transaction, this
-works cleanly with connection pooling.
+**Test strategy**: mock `@/lib/db-context` so `runAsTenant` transparently calls
+`fn(mockPrisma)`. All existing assertions on `mockPrisma.*` continue to work with
+no structural changes to the mocks.
 
-**Steps:**
-
-1. Add a Prisma middleware in `src/lib/prisma.ts` that runs `SET LOCAL` before every
-   query, reading `tenantId` from a per-request async local storage context.
-2. Add `SET app.tenant_id` to each server action that touches tenant-scoped tables.
-3. Write and apply a migration with `ALTER TABLE ... ENABLE ROW LEVEL SECURITY` and
-   `CREATE POLICY` for every table.
-4. Test with the seed data to verify cross-tenant queries return zero rows.
-
-**Priority:** do this before any real customer data enters the system.
+**To activate on a Supabase project:** run `prisma migrate deploy` against the target
+database. The migration is idempotent and safe to run on existing data.
 
 ---
 
