@@ -28,7 +28,7 @@ export function AuthShell({
           }}
         />
         <div className="relative flex items-center">
-          <Logo height={26} />
+          <Logo height={26} forceDark />
         </div>
         <p className="relative max-w-sm text-sm text-sidebar-foreground/70">{description}</p>
         <svg
@@ -54,7 +54,7 @@ export function AuthShell({
           }}
         />
         <div className="relative flex items-center">
-          <Logo height={26} />
+          <Logo height={26} forceDark />
         </div>
         <div className="relative flex max-w-md flex-col gap-6">
           <h1 className="text-3xl font-semibold leading-tight tracking-tight">{heading}</h1>
