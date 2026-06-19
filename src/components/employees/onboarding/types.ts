@@ -1,4 +1,10 @@
 import type { EmploymentType } from "@/lib/types";
+import type { FieldErrors } from "@/lib/schemas/employee";
+import {
+  validatePersonalStep,
+  validateRoleStep,
+  validateCompensationStep,
+} from "@/lib/schemas/employee";
 
 export interface NewEmployeeForm {
   firstName: string;
@@ -76,6 +82,19 @@ export const STEPS = [
 ] as const;
 
 export type StepId = (typeof STEPS)[number]["id"];
+
+export function validateStep(step: StepId, form: NewEmployeeForm): FieldErrors {
+  switch (step) {
+    case "personal":
+      return validatePersonalStep(form);
+    case "role":
+      return validateRoleStep(form);
+    case "compensation":
+      return validateCompensationStep(form);
+    case "review":
+      return {};
+  }
+}
 
 export function isStepValid(step: StepId, form: NewEmployeeForm): boolean {
   switch (step) {

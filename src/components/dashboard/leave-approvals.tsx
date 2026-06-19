@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, Paperclip, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Card,
@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant, useEmployees, useLeaveRequests } from "@/lib/store/hooks";
@@ -57,6 +57,9 @@ export function LeaveApprovals() {
               return (
                 <div key={request.id} className="flex items-start gap-3">
                   <Avatar size="sm" className="mt-0.5">
+                    {employee.photoUrl ? (
+                      <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                    ) : null}
                     <AvatarFallback
                       className="text-white"
                       style={{ backgroundColor: employee.avatarColor }}
@@ -76,6 +79,17 @@ export function LeaveApprovals() {
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-1.5">
+                    {request.documentUrl ? (
+                      <a
+                        href={request.documentUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex size-7 items-center justify-center rounded-md border border-input text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        aria-label="View supporting document"
+                      >
+                        <Paperclip className="size-3.5" />
+                      </a>
+                    ) : null}
                     <Button
                       size="icon-sm"
                       variant="outline"

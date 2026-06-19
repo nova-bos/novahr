@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Check, ClipboardList, X } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Check, ClipboardList, Paperclip, X } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -129,6 +129,7 @@ export function LeaveRequestsTable() {
                 <TableHead>Dates</TableHead>
                 <TableHead className="text-right">Days</TableHead>
                 <TableHead>Reason</TableHead>
+                <TableHead className="w-10">Doc</TableHead>
                 <TableHead>Status</TableHead>
                 {showActions && <TableHead className="w-28 text-right">Actions</TableHead>}
               </TableRow>
@@ -142,6 +143,9 @@ export function LeaveRequestsTable() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar size="sm">
+                          {employee.photoUrl ? (
+                            <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                          ) : null}
                           <AvatarFallback
                             className="text-white"
                             style={{ backgroundColor: employee.avatarColor }}
@@ -168,6 +172,20 @@ export function LeaveRequestsTable() {
                     <TableCell className="text-right text-sm">{request.days}</TableCell>
                     <TableCell className="max-w-56 truncate text-sm text-muted-foreground">
                       {request.reason}
+                    </TableCell>
+                    <TableCell>
+                      {request.documentUrl ? (
+                        <a
+                          href={request.documentUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
+                          aria-label="View supporting document"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Paperclip className="size-3.5" />
+                        </a>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       <LeaveStatusBadge status={request.status} />

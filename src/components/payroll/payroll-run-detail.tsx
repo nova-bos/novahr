@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { ArrowLeft, Banknote, Receipt, ReceiptText, Wallet } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -113,6 +113,9 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar size="sm">
+                          {employee.photoUrl ? (
+                            <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                          ) : null}
                           <AvatarFallback
                             className="text-white"
                             style={{ backgroundColor: employee.avatarColor }}

@@ -130,12 +130,21 @@ export function CommandMenu() {
                     value={`${employee.firstName} ${employee.lastName} ${employee.jobTitle}`}
                     onSelect={() => runCommand(() => router.push(`/employees/${employee.id}`))}
                   >
-                    <span
-                      className="flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
-                      style={{ backgroundColor: employee.avatarColor }}
-                    >
-                      {getInitials(employee.firstName, employee.lastName)}
-                    </span>
+                    {employee.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={employee.photoUrl}
+                        alt=""
+                        className="size-5 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span
+                        className="flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white"
+                        style={{ backgroundColor: employee.avatarColor }}
+                      >
+                        {getInitials(employee.firstName, employee.lastName)}
+                      </span>
+                    )}
                     <span>
                       {employee.firstName} {employee.lastName}
                     </span>

@@ -1,7 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { runAsTenant } from "@/lib/db-context";
 import { leaveTypeLabel } from "@/lib/format";
+import { sendLeaveRequestEmail, sendLeaveDecisionEmail } from "@/lib/email";
 import type { ActivityItem, LeaveRequest, LeaveStatus, LeaveType, NotificationItem } from "@/lib/types";
 import { mapActivityItem, mapLeaveRequest, mapNotificationItem } from "../workspace/mappers";
 
@@ -13,17 +15,19 @@ export interface CreateLeaveRequestInput {
   endDate: string;
   days: number;
   reason: string;
+  documentUrl?: string;
 }
 
 export async function createLeaveRequestRecord(
   input: CreateLeaveRequestInput
 ): Promise<{ leaveRequest: LeaveRequest; activity: ActivityItem; notification: NotificationItem }> {
-  const employee = await prisma.employee.findUniqueOrThrow({ where: { id: input.employeeId } });
-  const actor = `${employee.firstName} ${employee.lastName}`;
-  const label = leaveTypeLabel(input.type).toLowerCase();
   const dayWord = input.days > 1 ? "days" : "day";
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await runAsTenant(input.tenantId, async (tx) => {
+    const employee = await tx.employee.findUniqueOrThrow({ where: { id: input.employeeId } });
+    const actor = `${employee.firstName} ${employee.lastName}`;
+    const label = leaveTypeLabel(input.type).toLowerCase();
+
     const leaveRequest = await tx.leaveRequest.create({
       data: {
         tenantId: input.tenantId,
@@ -33,6 +37,7 @@ export async function createLeaveRequestRecord(
         endDate: new Date(input.endDate),
         days: input.days,
         reason: input.reason,
+        documentUrl: input.documentUrl,
       },
     });
 
@@ -55,7 +60,24 @@ export async function createLeaveRequestRecord(
       },
     });
 
-    return { leaveRequest, activity, notification };
+    return { leaveRequest, activity, notification, actor };
+  });
+
+  const hrUsers = await prisma.user.findMany({
+    where: { tenantId: input.tenantId, role: { in: ["hr", "manager"] } },
+    select: { email: true },
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  void sendLeaveRequestEmail({
+    recipientEmails: hrUsers.map((u) => u.email),
+    employeeName: result.actor,
+    leaveType: input.type,
+    days: input.days,
+    startDate: input.startDate,
+    endDate: input.endDate,
+    reason: input.reason,
+    appUrl,
   });
 
   return {
@@ -66,6 +88,7 @@ export async function createLeaveRequestRecord(
 }
 
 export async function decideLeaveRequestRecord(
+  tenantId: string,
   id: string,
   status: Extract<LeaveStatus, "approved" | "rejected">,
   decidedBy: string,
@@ -75,20 +98,15 @@ export async function decideLeaveRequestRecord(
   leaveBalance?: { employeeId: string; type: LeaveType; used: number };
   activity: ActivityItem;
 }> {
-  const target = await prisma.leaveRequest.findUniqueOrThrow({ where: { id } });
-  const employee = await prisma.employee.findUniqueOrThrow({ where: { id: target.employeeId } });
-  const actor = `${employee.firstName} ${employee.lastName}`;
-  const label = leaveTypeLabel(target.type).toLowerCase();
+  const inner = await runAsTenant(tenantId, async (tx) => {
+    const target = await tx.leaveRequest.findUniqueOrThrow({ where: { id } });
+    const employee = await tx.employee.findUniqueOrThrow({ where: { id: target.employeeId } });
+    const actor = `${employee.firstName} ${employee.lastName}`;
+    const label = leaveTypeLabel(target.type as LeaveType).toLowerCase();
 
-  const result = await prisma.$transaction(async (tx) => {
     const leaveRequest = await tx.leaveRequest.update({
       where: { id },
-      data: {
-        status,
-        decidedBy,
-        decidedOn: new Date(),
-        decisionNote,
-      },
+      data: { status, decidedBy, decidedOn: new Date(), decisionNote },
     });
 
     const leaveBalance =
@@ -101,7 +119,7 @@ export async function decideLeaveRequestRecord(
 
     const activity = await tx.activityItem.create({
       data: {
-        tenantId: target.tenantId,
+        tenantId,
         type: status === "approved" ? "leave_approved" : "leave_rejected",
         message: `${label} request was ${status}`,
         actor,
@@ -109,14 +127,39 @@ export async function decideLeaveRequestRecord(
       },
     });
 
-    return { leaveRequest, leaveBalance, activity };
+    return {
+      leaveRequest,
+      leaveBalance,
+      activity,
+      recipientEmail: employee.email,
+      employeeName: actor,
+      leaveType: target.type as LeaveType,
+      days: target.days,
+      startDate: target.startDate.toISOString().slice(0, 10),
+      endDate: target.endDate.toISOString().slice(0, 10),
+      employeeId: target.employeeId,
+    };
+  });
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  void sendLeaveDecisionEmail({
+    recipientEmail: inner.recipientEmail,
+    employeeName: inner.employeeName,
+    leaveType: inner.leaveType,
+    days: inner.days,
+    startDate: inner.startDate,
+    endDate: inner.endDate,
+    status,
+    decidedBy,
+    decisionNote,
+    appUrl,
   });
 
   return {
-    leaveRequest: mapLeaveRequest(result.leaveRequest),
-    leaveBalance: result.leaveBalance
-      ? { employeeId: target.employeeId, type: target.type, used: result.leaveBalance.used }
+    leaveRequest: mapLeaveRequest(inner.leaveRequest),
+    leaveBalance: inner.leaveBalance
+      ? { employeeId: inner.employeeId, type: inner.leaveType, used: inner.leaveBalance.used }
       : undefined,
-    activity: mapActivityItem(result.activity),
+    activity: mapActivityItem(inner.activity),
   };
 }

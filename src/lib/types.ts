@@ -68,6 +68,7 @@ export interface Employee {
   phone: string;
   avatarColor: string;
   initials: string;
+  photoUrl?: string;
   jobTitle: string;
   department: string;
   employmentType: EmploymentType;
@@ -94,6 +95,7 @@ export interface LeaveRequest {
   endDate: string;
   days: number;
   reason: string;
+  documentUrl?: string;
   status: LeaveStatus;
   appliedOn: string;
   decisionNote?: string;

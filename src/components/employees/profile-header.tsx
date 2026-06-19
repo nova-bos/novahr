@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Mail, MapPin, Pencil, Phone } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { employmentTypeLabel, formatDate, getInitials } from "@/lib/format";
 import type { Employee } from "@/lib/types";
+import { AvatarUpload } from "./avatar-upload";
 import { StatusBadge } from "./status-badge";
 
 export function ProfileHeader({
@@ -32,14 +34,29 @@ export function ProfileHeader({
       </Link>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex items-start gap-4">
-          <Avatar size="lg" className="size-16">
-            <AvatarFallback
-              className="text-lg text-white"
-              style={{ backgroundColor: employee.avatarColor }}
-            >
-              {getInitials(employee.firstName, employee.lastName)}
-            </AvatarFallback>
-          </Avatar>
+          {canEdit ? (
+            <AvatarUpload employee={employee} size={64} />
+          ) : employee.photoUrl ? (
+            <span className="relative size-16 shrink-0 overflow-hidden rounded-full">
+              <Image
+                src={employee.photoUrl}
+                alt={`${employee.firstName} ${employee.lastName}`}
+                width={64}
+                height={64}
+                className="h-full w-full object-cover"
+                unoptimized
+              />
+            </span>
+          ) : (
+            <Avatar size="lg" className="size-16">
+              <AvatarFallback
+                className="text-lg text-white"
+                style={{ backgroundColor: employee.avatarColor }}
+              >
+                {getInitials(employee.firstName, employee.lastName)}
+              </AvatarFallback>
+            </Avatar>
+          )}
           <div className="flex flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-xl font-semibold tracking-tight">

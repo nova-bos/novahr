@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
+import { createClient } from "@/lib/supabase/client";
+import { validateLeaveRequest } from "@/lib/schemas/leave";
 import { useApp } from "@/lib/store/app-provider";
 import { useTenantId } from "@/lib/store/hooks";
 import { useAuth } from "@/lib/auth/auth-provider";
@@ -30,8 +32,10 @@ import { useScopedEmployees } from "@/lib/auth/scope";
 import { leaveTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { LeaveType } from "@/lib/types";
+import { LeaveDocumentUpload } from "./leave-document-upload";
 
 const LEAVE_TYPES: LeaveType[] = ["annual", "sick", "family", "unpaid"];
+const LEAVE_DOC_BUCKET = "leave-documents";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -57,6 +61,10 @@ export function NewLeaveRequestDialog() {
   const [startDate, setStartDate] = React.useState(todayIso());
   const [endDate, setEndDate] = React.useState(todayIso());
   const [reason, setReason] = React.useState("");
+  const [document, setDocument] = React.useState<File | null>(null);
+  const [docError, setDocError] = React.useState("");
+  const [submitting, setSubmitting] = React.useState(false);
+  const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   function resetForm() {
     setEmployeeId(lockToSelf ? user?.employeeId ?? "" : "");
@@ -64,6 +72,18 @@ export function NewLeaveRequestDialog() {
     setStartDate(todayIso());
     setEndDate(todayIso());
     setReason("");
+    setDocument(null);
+    setDocError("");
+    setFieldErrors({});
+  }
+
+  function handleDocumentChange(file: File | null) {
+    setDocError("");
+    if (file && file.size > 10 * 1024 * 1024) {
+      setDocError("File is too large. Please choose a file under 10 MB.");
+      return;
+    }
+    setDocument(file);
   }
 
   const selectedEmployee = employees.find((e) => e.id === employeeId);
@@ -79,10 +99,33 @@ export function NewLeaveRequestDialog() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+
+    const errors = validateLeaveRequest({ employeeId, type, startDate, endDate, reason });
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+
     const employee = employees.find((e) => e.id === employeeId);
     if (!employee) return;
 
+    setSubmitting(true);
     try {
+      let documentUrl: string | undefined;
+
+      if (document) {
+        const supabase = createClient();
+        const ext = document.name.split(".").pop()?.toLowerCase() ?? "bin";
+        const path = `${tenantId}/${employee.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: uploadError } = await supabase.storage
+          .from(LEAVE_DOC_BUCKET)
+          .upload(path, document, { contentType: document.type });
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from(LEAVE_DOC_BUCKET).getPublicUrl(path);
+        documentUrl = urlData.publicUrl;
+      }
+
       await addLeaveRequest({
         tenantId,
         employeeId: employee.id,
@@ -91,6 +134,7 @@ export function NewLeaveRequestDialog() {
         endDate,
         days: daysBetween(startDate, endDate),
         reason: reason.trim(),
+        documentUrl,
       });
 
       toast.success("Leave request submitted", {
@@ -102,6 +146,8 @@ export function NewLeaveRequestDialog() {
       toast.error("Couldn't submit leave request", {
         description: "Please try again.",
       });
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -140,6 +186,9 @@ export function NewLeaveRequestDialog() {
                   ))}
                 </SelectContent>
               </Select>
+              {fieldErrors.employeeId ? (
+                <p className="text-xs text-destructive">{fieldErrors.employeeId}</p>
+              ) : null}
             </div>
 
             <div className="space-y-1.5">
@@ -180,6 +229,9 @@ export function NewLeaveRequestDialog() {
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
                 />
+                {fieldErrors.endDate ? (
+                  <p className="text-xs text-destructive">{fieldErrors.endDate}</p>
+                ) : null}
               </div>
             </div>
 
@@ -229,15 +281,24 @@ export function NewLeaveRequestDialog() {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Add a short note for the approver"
               />
+              {fieldErrors.reason ? (
+                <p className="text-xs text-destructive">{fieldErrors.reason}</p>
+              ) : null}
             </div>
+
+            <LeaveDocumentUpload
+              value={document}
+              onChange={handleDocumentChange}
+              error={docError}
+            />
           </div>
 
           <DialogFooter className="mt-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!employeeId || !reason.trim()}>
-              Submit request
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Submitting…" : "Submit request"}
             </Button>
           </DialogFooter>
         </form>

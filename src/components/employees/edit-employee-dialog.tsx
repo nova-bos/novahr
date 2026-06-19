@@ -20,6 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  validateEditEmployeeProfile,
+  validateEditEmployeeCompensation,
+} from "@/lib/schemas/employee";
 import { useApp } from "@/lib/store/app-provider";
 import { useDepartments } from "@/lib/store/hooks";
 import type { Employee, EmploymentStatus, EmploymentType } from "@/lib/types";
@@ -57,6 +61,19 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+
+    const profileErrors = validateEditEmployeeProfile({
+      email: form.email,
+      phone: form.phone,
+      emergencyPhone: form.emergencyPhone,
+    });
+    const compensationErrors = validateEditEmployeeCompensation({ annualGross: form.annualGross });
+    const allErrors = { ...profileErrors, ...compensationErrors };
+    if (Object.keys(allErrors).length > 0) {
+      const first = Object.values(allErrors)[0];
+      toast.error("Please fix the following", { description: first });
+      return;
+    }
 
     try {
       await updateEmployee(employee.id, {

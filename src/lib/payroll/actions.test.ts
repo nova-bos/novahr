@@ -20,6 +20,9 @@ const mockPrisma = vi.hoisted(() => {
 });
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
+vi.mock("@/lib/db-context", () => ({
+  runAsTenant: vi.fn((_tenantId: string, fn: (tx: unknown) => unknown) => fn(mockPrisma)),
+}));
 
 import { completePayrollRunRecord, startPayrollRunRecord } from "./actions";
 
@@ -54,7 +57,7 @@ describe("startPayrollRunRecord", () => {
       { id: "novatech-run-2026-06-emp-2" },
     ]);
 
-    const result = await startPayrollRunRecord("novatech-run-2026-06");
+    const result = await startPayrollRunRecord("novatech", "novatech-run-2026-06");
 
     expect(result.status).toBe("processing");
     expect(result.payslipIds).toEqual(["novatech-run-2026-06-emp-1", "novatech-run-2026-06-emp-2"]);
@@ -135,7 +138,7 @@ describe("completePayrollRunRecord", () => {
       })
     );
 
-    const result = await completePayrollRunRecord("novatech-run-2026-06");
+    const result = await completePayrollRunRecord("novatech", "novatech-run-2026-06");
 
     expect(result.payrollRun.status).toBe("completed");
     expect(result.payrollRun.totalGross).toBe(50_000);
@@ -196,7 +199,7 @@ describe("completePayrollRunRecord", () => {
       type: "success",
     });
 
-    const result = await completePayrollRunRecord("novatech-run-2026-06");
+    const result = await completePayrollRunRecord("novatech", "novatech-run-2026-06");
 
     expect(result.nextRun).toBeUndefined();
     expect(mockPrisma.payrollRun.create).not.toHaveBeenCalled();

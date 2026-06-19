@@ -1,7 +1,7 @@
 "use server";
 
 import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { runAsTenant } from "@/lib/db-context";
 import type { ActivityItem, Employee, NotificationItem, Onboarding } from "@/lib/types";
 import { mapActivityItem, mapEmployee, mapNotificationItem } from "../workspace/mappers";
 
@@ -10,7 +10,7 @@ export async function createEmployeeRecord(
 ): Promise<{ employee: Employee; activity: ActivityItem; notification: NotificationItem }> {
   const isOnboarding = employee.status === "probation";
 
-  const result = await prisma.$transaction(async (tx) => {
+  return runAsTenant(employee.tenantId, async (tx) => {
     const created = await tx.employee.create({
       data: {
         tenantId: employee.tenantId,
@@ -81,17 +81,19 @@ export async function createEmployeeRecord(
       },
     });
 
-    return { employee: created, activity, notification };
+    return {
+      employee: mapEmployee(created),
+      activity: mapActivityItem(activity),
+      notification: mapNotificationItem(notification),
+    };
   });
-
-  return {
-    employee: mapEmployee(result.employee),
-    activity: mapActivityItem(result.activity),
-    notification: mapNotificationItem(result.notification),
-  };
 }
 
-export async function updateEmployeeRecord(id: string, updates: Partial<Employee>): Promise<Employee> {
+export async function updateEmployeeRecord(
+  tenantId: string,
+  id: string,
+  updates: Partial<Employee>
+): Promise<Employee> {
   // leaveBalances and onboarding are not Prisma columns; strip them before building the update payload
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { salary, bankDetails, emergencyContact, leaveBalances, onboarding, startDate, ...rest } = updates;
@@ -127,20 +129,37 @@ export async function updateEmployeeRecord(id: string, updates: Partial<Employee
     if (emergencyContact.phone !== undefined) data.emergencyContactPhone = emergencyContact.phone;
   }
 
-  const updated = await prisma.employee.update({
-    where: { id },
-    data,
-    include: { leaveBalances: true },
+  return runAsTenant(tenantId, async (tx) => {
+    const updated = await tx.employee.update({
+      where: { id },
+      data,
+      include: { leaveBalances: true },
+    });
+    return mapEmployee(updated);
   });
+}
 
-  return mapEmployee(updated);
+export async function updateEmployeePhotoRecord(
+  tenantId: string,
+  employeeId: string,
+  photoUrl: string
+): Promise<Employee> {
+  return runAsTenant(tenantId, async (tx) => {
+    const updated = await tx.employee.update({
+      where: { id: employeeId },
+      data: { photoUrl },
+      include: { leaveBalances: true },
+    });
+    return mapEmployee(updated);
+  });
 }
 
 export async function toggleOnboardingStepRecord(
+  tenantId: string,
   employeeId: string,
   stepId: string
 ): Promise<{ employee: Employee; activity?: ActivityItem }> {
-  const result = await prisma.$transaction(async (tx) => {
+  return runAsTenant(tenantId, async (tx) => {
     const existing = await tx.employee.findUniqueOrThrow({
       where: { id: employeeId },
       include: { leaveBalances: true },
@@ -148,7 +167,7 @@ export async function toggleOnboardingStepRecord(
 
     const onboarding = existing.onboarding as unknown as Onboarding | null;
     if (!onboarding) {
-      return { employee: existing, activity: undefined };
+      return { employee: mapEmployee(existing) };
     }
 
     const steps = onboarding.steps.map((step) =>
@@ -167,24 +186,20 @@ export async function toggleOnboardingStepRecord(
       include: { leaveBalances: true },
     });
 
-    let activity;
-    if (graduated) {
-      activity = await tx.activityItem.create({
-        data: {
-          tenantId: updated.tenantId,
-          type: "onboarding",
-          message: "completed onboarding and is now fully active",
-          actor: `${updated.firstName} ${updated.lastName}`,
-          employeeId: updated.id,
-        },
-      });
+    if (!graduated) {
+      return { employee: mapEmployee(updated) };
     }
 
-    return { employee: updated, activity };
-  });
+    const activity = await tx.activityItem.create({
+      data: {
+        tenantId: updated.tenantId,
+        type: "onboarding",
+        message: "completed onboarding and is now fully active",
+        actor: `${updated.firstName} ${updated.lastName}`,
+        employeeId: updated.id,
+      },
+    });
 
-  return {
-    employee: mapEmployee(result.employee),
-    activity: result.activity ? mapActivityItem(result.activity) : undefined,
-  };
+    return { employee: mapEmployee(updated), activity: mapActivityItem(activity) };
+  });
 }

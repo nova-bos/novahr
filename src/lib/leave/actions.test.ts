@@ -9,6 +9,7 @@ const mockPrisma = vi.hoisted(() => {
   };
   return {
     employee: { findUniqueOrThrow: vi.fn() },
+    user: { findMany: vi.fn().mockResolvedValue([]) },
     leaveRequest: { ...tx.leaveRequest, findUniqueOrThrow: vi.fn() },
     activityItem: tx.activityItem,
     notificationItem: tx.notificationItem,
@@ -18,6 +19,9 @@ const mockPrisma = vi.hoisted(() => {
 });
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
+vi.mock("@/lib/db-context", () => ({
+  runAsTenant: vi.fn((_tenantId: string, fn: (tx: unknown) => unknown) => fn(mockPrisma)),
+}));
 
 import { createLeaveRequestRecord, decideLeaveRequestRecord } from "./actions";
 
@@ -158,7 +162,7 @@ describe("decideLeaveRequestRecord", () => {
       makeActivityRow({ type: "leave_approved", message: "annual leave request was approved" })
     );
 
-    const result = await decideLeaveRequestRecord("leave-1", "approved", "Lerato Dlamini");
+    const result = await decideLeaveRequestRecord("novatech", "leave-1", "approved", "Lerato Dlamini");
 
     expect(result.leaveRequest.status).toBe("approved");
     expect(result.leaveBalance).toEqual({ employeeId: "emp-1", type: "annual", used: 5 });
@@ -198,7 +202,7 @@ describe("decideLeaveRequestRecord", () => {
       makeActivityRow({ type: "leave_rejected", message: "annual leave request was rejected" })
     );
 
-    const result = await decideLeaveRequestRecord("leave-1", "rejected", "Lerato Dlamini");
+    const result = await decideLeaveRequestRecord("novatech", "leave-1", "rejected", "Lerato Dlamini");
 
     expect(result.leaveRequest.status).toBe("rejected");
     expect(result.leaveBalance).toBeUndefined();
@@ -216,7 +220,7 @@ describe("decideLeaveRequestRecord", () => {
       makeActivityRow({ type: "leave_rejected", message: "annual leave request was rejected" })
     );
 
-    await decideLeaveRequestRecord("leave-1", "rejected", "Lerato Dlamini", "Team is short-staffed that week");
+    await decideLeaveRequestRecord("novatech", "leave-1", "rejected", "Lerato Dlamini", "Team is short-staffed that week");
 
     expect(mockPrisma.leaveRequest.update).toHaveBeenCalledWith({
       where: { id: "leave-1" },

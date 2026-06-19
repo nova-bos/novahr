@@ -5,6 +5,9 @@ const mockPrisma = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
+vi.mock("@/lib/db-context", () => ({
+  runAsTenant: vi.fn((_tenantId: string, fn: (tx: unknown) => unknown) => fn(mockPrisma)),
+}));
 
 import { markAllNotificationsReadRecord, markNotificationReadRecord } from "./actions";
 
@@ -16,7 +19,7 @@ describe("markNotificationReadRecord", () => {
   it("marks the given notification as read", async () => {
     mockPrisma.notificationItem.update.mockResolvedValue({});
 
-    await markNotificationReadRecord("notif-1");
+    await markNotificationReadRecord("novatech", "notif-1");
 
     expect(mockPrisma.notificationItem.update).toHaveBeenCalledWith({
       where: { id: "notif-1" },

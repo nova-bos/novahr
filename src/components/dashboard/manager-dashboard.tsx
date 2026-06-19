@@ -4,7 +4,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowRight, CalendarClock, Check, ClipboardList, Users, Wallet, X } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -117,6 +117,9 @@ export function ManagerDashboard() {
                     )}
                   >
                     <Avatar size="sm">
+                      {employee.photoUrl ? (
+                        <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                      ) : null}
                       <AvatarFallback
                         className="text-white"
                         style={{ backgroundColor: employee.avatarColor }}
@@ -170,6 +173,9 @@ export function ManagerDashboard() {
                   return (
                     <div key={request.id} className="flex items-start gap-3">
                       <Avatar size="sm" className="mt-0.5">
+                        {employee.photoUrl ? (
+                          <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
+                        ) : null}
                         <AvatarFallback
                           className="text-white"
                           style={{ backgroundColor: employee.avatarColor }}
