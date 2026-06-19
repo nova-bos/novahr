@@ -356,8 +356,8 @@ describe("buildPayslip", () => {
     const employee = makeEmployee({ annualGross: 600_000, currency: "ZAR", payFrequency: "monthly" });
     const payslip = buildPayslip(employee, "run-2026-01", "2026-01", "2026-01-25", { isSDLLiable: true });
 
-    expect((payslip as Record<string, unknown>)["employerSdl"]).toBeUndefined();
-    expect((payslip as Record<string, unknown>)["employerUif"]).toBeUndefined();
+    expect((payslip as unknown as Record<string, unknown>)["employerSdl"]).toBeUndefined();
+    expect((payslip as unknown as Record<string, unknown>)["employerUif"]).toBeUndefined();
   });
 });
 

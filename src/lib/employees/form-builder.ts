@@ -2,6 +2,7 @@ import { AVATAR_COLORS, defaultLeaveBalances, onboardingPlan } from "@/demo/empl
 import { getInitials } from "@/lib/format";
 import type { Employee, Tenant } from "@/lib/types";
 import type { NewEmployeeForm } from "@/components/employees/onboarding/types";
+import { dateOfBirthFromIdNumber } from "@/lib/workspace/mappers";
 
 export function buildEmployeeFromForm(
   form: NewEmployeeForm,
@@ -45,6 +46,7 @@ export function buildEmployeeFromForm(
     },
     taxNumber: form.taxNumber.trim(),
     idNumber: form.idNumber.trim(),
+    dateOfBirth: dateOfBirthFromIdNumber(form.idNumber.trim()),
     address: form.address.trim(),
     emergencyContact: {
       name: form.emergencyName.trim(),

@@ -61,7 +61,11 @@ export async function completePayrollRunRecord(
 
       const payDateStr = toDateOnly(run.payDate);
       const eligible = employees.filter((e) => e.status !== "terminated" && e.startDate <= payDateStr);
-      const newPayslips = eligible.map((e) => buildPayslip(e, run.id, run.period, payDateStr));
+
+      const totalAnnualPayroll = sum(eligible, (e) => e.salary.annualGross);
+      const isSDLLiable = totalAnnualPayroll >= 500_000;
+
+      const newPayslips = eligible.map((e) => buildPayslip(e, run.id, run.period, payDateStr, { isSDLLiable }));
 
       const totalGross = round2(sum(newPayslips, (p) => p.grossPay));
       const totalDeductions = round2(sum(newPayslips, (p) => p.totalDeductions));

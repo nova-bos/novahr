@@ -62,6 +62,18 @@ export function mapTenant(row: PrismaTenant): Tenant {
   };
 }
 
+// SA ID number encodes date of birth in the first 6 digits: YYMMDD.
+// Uses a sliding century window: YY <= current 2-digit year -> 2000s, else 1900s.
+export function dateOfBirthFromIdNumber(idNumber: string): string | undefined {
+  if (!idNumber || idNumber.length < 6) return undefined;
+  const yy = idNumber.slice(0, 2);
+  const mm = idNumber.slice(2, 4);
+  const dd = idNumber.slice(4, 6);
+  const currentYY = new Date().getFullYear() % 100;
+  const century = Number(yy) <= currentYY ? "20" : "19";
+  return `${century}${yy}-${mm}-${dd}`;
+}
+
 export function mapEmployee(row: EmployeeWithBalances): Employee {
   return {
     id: row.id,
@@ -99,6 +111,7 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
     },
     taxNumber: row.taxNumber,
     idNumber: row.idNumber,
+    dateOfBirth: dateOfBirthFromIdNumber(row.idNumber),
     address: row.address,
     emergencyContact: {
       name: row.emergencyContactName,
