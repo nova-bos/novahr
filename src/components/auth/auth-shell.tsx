@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Logo } from "@/components/layout/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 /**
  * Shared two-panel layout for the auth pages (signup, forgot/reset password):
@@ -84,6 +85,9 @@ export function AuthShell({
 
       {/* Content panel */}
       <div className="relative flex w-full flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/[0.04] px-4 py-10 sm:px-6 lg:w-1/2">
+        <div className="absolute right-4 top-4 z-10">
+          <ThemeToggle />
+        </div>
         <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-primary/10 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-28 -left-16 size-80 rounded-full bg-chart-2/10 blur-3xl" />
         <div className="relative z-10 flex w-full max-w-md flex-col gap-6">{children}</div>
