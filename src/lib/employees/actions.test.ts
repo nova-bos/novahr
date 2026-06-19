@@ -11,6 +11,9 @@ const mockPrisma = vi.hoisted(() => {
 });
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
+vi.mock("@/lib/db-context", () => ({
+  runAsTenant: vi.fn((_tenantId: string, fn: (tx: unknown) => unknown) => fn(mockPrisma)),
+}));
 
 import { createEmployeeRecord, toggleOnboardingStepRecord, updateEmployeeRecord } from "./actions";
 
@@ -106,7 +109,7 @@ describe("updateEmployeeRecord", () => {
     const updatedRow = makeEmployeeRow({ jobTitle: "Senior Engineer" });
     mockPrisma.employee.update.mockResolvedValue(updatedRow);
 
-    const result = await updateEmployeeRecord("emp-1", {
+    const result = await updateEmployeeRecord("novatech", "emp-1", {
       jobTitle: "Senior Engineer",
       startDate: "2024-02-01",
       salary: { annualGross: 700_000, currency: "ZAR", payFrequency: "monthly", travelAllowance: 2_000 },
@@ -140,7 +143,7 @@ describe("updateEmployeeRecord", () => {
     const updatedRow = makeEmployeeRow({ jobTitle: "Team Lead" });
     mockPrisma.employee.update.mockResolvedValue(updatedRow);
 
-    await updateEmployeeRecord("emp-1", { jobTitle: "Team Lead" });
+    await updateEmployeeRecord("novatech", "emp-1", { jobTitle: "Team Lead" });
 
     expect(mockPrisma.employee.update).toHaveBeenCalledWith({
       where: { id: "emp-1" },
@@ -155,7 +158,7 @@ describe("toggleOnboardingStepRecord", () => {
     const existingRow = makeEmployeeRow({ onboarding: null });
     mockPrisma.employee.findUniqueOrThrow.mockResolvedValue(existingRow);
 
-    const result = await toggleOnboardingStepRecord("emp-1", "personal-info");
+    const result = await toggleOnboardingStepRecord("novatech", "emp-1", "personal-info");
 
     expect(result.activity).toBeUndefined();
     expect(result.employee.id).toBe(existingRow.id);
@@ -188,7 +191,7 @@ describe("toggleOnboardingStepRecord", () => {
     mockPrisma.employee.findUniqueOrThrow.mockResolvedValue(existingRow);
     mockPrisma.employee.update.mockResolvedValue(updatedRow);
 
-    const result = await toggleOnboardingStepRecord("emp-1", "documents");
+    const result = await toggleOnboardingStepRecord("novatech", "emp-1", "documents");
 
     expect(mockPrisma.employee.update).toHaveBeenCalledWith({
       where: { id: "emp-1" },
@@ -245,7 +248,7 @@ describe("toggleOnboardingStepRecord", () => {
       })
     );
 
-    const result = await toggleOnboardingStepRecord("emp-1", "induction");
+    const result = await toggleOnboardingStepRecord("novatech", "emp-1", "induction");
 
     expect(mockPrisma.employee.update).toHaveBeenCalledWith({
       where: { id: "emp-1" },
@@ -284,7 +287,7 @@ describe("toggleOnboardingStepRecord", () => {
     mockPrisma.employee.findUniqueOrThrow.mockResolvedValue(existingRow);
     mockPrisma.employee.update.mockResolvedValue(updatedRow);
 
-    const result = await toggleOnboardingStepRecord("emp-1", "induction");
+    const result = await toggleOnboardingStepRecord("novatech", "emp-1", "induction");
 
     expect(result.activity).toBeUndefined();
     expect(mockPrisma.activityItem.create).not.toHaveBeenCalled();

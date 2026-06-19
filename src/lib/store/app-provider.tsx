@@ -265,15 +265,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return result.employee;
       },
       updateEmployee: async (id, updates) => {
-        const employee = await updateEmployeeRecord(id, updates);
+        const employee = await updateEmployeeRecord(state.tenantId, id, updates);
         dispatch({ type: "EMPLOYEE_UPDATED", employee });
       },
       updateEmployeePhoto: async (employeeId, photoUrl) => {
-        const employee = await updateEmployeePhotoRecord(employeeId, photoUrl);
+        const employee = await updateEmployeePhotoRecord(state.tenantId, employeeId, photoUrl);
         dispatch({ type: "EMPLOYEE_UPDATED", employee });
       },
       toggleOnboardingStep: async (employeeId, stepId) => {
-        const result = await toggleOnboardingStepRecord(employeeId, stepId);
+        const result = await toggleOnboardingStepRecord(state.tenantId, employeeId, stepId);
         dispatch({
           type: "ONBOARDING_STEP_TOGGLED",
           employee: result.employee,
@@ -290,7 +290,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       },
       decideLeaveRequest: async (id, status, decidedBy, decisionNote) => {
-        const result = await decideLeaveRequestRecord(id, status, decidedBy, decisionNote);
+        const result = await decideLeaveRequestRecord(state.tenantId, id, status, decidedBy, decisionNote);
         dispatch({
           type: "LEAVE_REQUEST_DECIDED",
           leaveRequest: result.leaveRequest,
@@ -299,11 +299,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       },
       startPayrollRun: async (runId) => {
-        const payrollRun = await startPayrollRunRecord(runId);
+        const payrollRun = await startPayrollRunRecord(state.tenantId, runId);
         dispatch({ type: "PAYROLL_RUN_STARTED", payrollRun });
       },
       completePayrollRun: async (runId) => {
-        const result = await completePayrollRunRecord(runId);
+        const result = await completePayrollRunRecord(state.tenantId, runId);
         dispatch({
           type: "PAYROLL_RUN_COMPLETED",
           payrollRun: result.payrollRun,
@@ -314,7 +314,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       },
       markNotificationRead: async (id) => {
-        await markNotificationReadRecord(id);
+        await markNotificationReadRecord(state.tenantId, id);
         dispatch({ type: "NOTIFICATION_READ", id });
       },
       markAllNotificationsRead: async (tenantId) => {

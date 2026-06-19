@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { runAsTenant } from "@/lib/db-context";
 import type {
   ActivityItem,
   Department,
@@ -43,35 +44,37 @@ export async function getAllTenants(): Promise<Tenant[]> {
  * `null` if the tenant doesn't exist (shouldn't happen for a signed-in user).
  */
 export async function getTenantWorkspace(tenantId: string): Promise<TenantWorkspace | null> {
-  const [tenant, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows] =
-    await Promise.all([
-      prisma.tenant.findUnique({ where: { id: tenantId } }),
-      prisma.employee.findMany({ where: { tenantId }, include: { leaveBalances: true } }),
-      prisma.department.findMany({ where: { tenantId } }),
-      prisma.leaveRequest.findMany({ where: { tenantId } }),
-      prisma.payrollRun.findMany({ where: { tenantId } }),
-      prisma.payslip.findMany({ where: { tenantId } }),
-      prisma.activityItem.findMany({ where: { tenantId } }),
-      prisma.notificationItem.findMany({ where: { tenantId } }),
-    ]);
+  return runAsTenant(tenantId, async (tx) => {
+    const [tenant, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows] =
+      await Promise.all([
+        tx.tenant.findUnique({ where: { id: tenantId } }),
+        tx.employee.findMany({ where: { tenantId }, include: { leaveBalances: true } }),
+        tx.department.findMany({ where: { tenantId } }),
+        tx.leaveRequest.findMany({ where: { tenantId } }),
+        tx.payrollRun.findMany({ where: { tenantId } }),
+        tx.payslip.findMany({ where: { tenantId } }),
+        tx.activityItem.findMany({ where: { tenantId } }),
+        tx.notificationItem.findMany({ where: { tenantId } }),
+      ]);
 
-  if (!tenant) return null;
+    if (!tenant) return null;
 
-  const payslipIdsByRun = new Map<string, string[]>();
-  for (const row of payslipRows) {
-    const ids = payslipIdsByRun.get(row.runId) ?? [];
-    ids.push(row.id);
-    payslipIdsByRun.set(row.runId, ids);
-  }
+    const payslipIdsByRun = new Map<string, string[]>();
+    for (const row of payslipRows) {
+      const ids = payslipIdsByRun.get(row.runId) ?? [];
+      ids.push(row.id);
+      payslipIdsByRun.set(row.runId, ids);
+    }
 
-  return {
-    currentTenant: mapTenant(tenant),
-    employees: employeeRows.map(mapEmployee),
-    departments: departmentRows.map(mapDepartment),
-    leaveRequests: leaveRequestRows.map(mapLeaveRequest),
-    payrollRuns: payrollRunRows.map((run) => mapPayrollRun(run, payslipIdsByRun.get(run.id) ?? [])),
-    payslips: payslipRows.map(mapPayslip),
-    activity: activityRows.map(mapActivityItem),
-    notifications: notificationRows.map(mapNotificationItem),
-  };
+    return {
+      currentTenant: mapTenant(tenant),
+      employees: employeeRows.map(mapEmployee),
+      departments: departmentRows.map(mapDepartment),
+      leaveRequests: leaveRequestRows.map(mapLeaveRequest),
+      payrollRuns: payrollRunRows.map((run) => mapPayrollRun(run, payslipIdsByRun.get(run.id) ?? [])),
+      payslips: payslipRows.map(mapPayslip),
+      activity: activityRows.map(mapActivityItem),
+      notifications: notificationRows.map(mapNotificationItem),
+    };
+  });
 }
