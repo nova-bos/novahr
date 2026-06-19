@@ -302,6 +302,16 @@ database. The migration is idempotent and safe to run on existing data.
 
 ---
 
+## Bug fixes and polish (merged to main)
+
+| Item | PR | What was fixed |
+|---|---|---|
+| Sidebar logo always dark | #5 | `forceDark` prop added to `Logo`/`LogoIcon`; sidebar always uses dark asset |
+| Auth pages logo always dark | #6 | Login and signup branding panels always show white wordmark |
+| Signup theme toggle | #7 | `ThemeToggle` added to `AuthShell` content panel, matching login page |
+
+---
+
 ## Future items (not yet scheduled)
 
 | Item | Why |
