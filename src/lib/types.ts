@@ -49,12 +49,15 @@ export interface SalaryInfo {
   housingAllowance?: number;
   pensionContributionPct?: number;
   medicalAid?: number;
+  hasLogbook?: boolean;
+  medicalAidDependants?: number;
 }
 
 export interface LeaveBalance {
   type: LeaveType;
   total: number;
   used: number;
+  cycleStartDate?: string;
 }
 
 export interface Employee {
@@ -80,6 +83,7 @@ export interface Employee {
   bankDetails: BankDetails;
   taxNumber: string;
   idNumber: string;
+  dateOfBirth?: string;
   address: string;
   emergencyContact: EmergencyContact;
   leaveBalances: LeaveBalance[];
@@ -195,6 +199,7 @@ export interface LeavePolicy {
   type: LeaveType;
   label: string;
   annualDays: number;
+  cycleMonths?: number;
   description: string;
   requiresApproval: boolean;
   paid: boolean;

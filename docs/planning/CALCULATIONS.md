@@ -8,6 +8,8 @@ Living document. When SARS publishes new tables or you need to change any value,
 3. The "Correct for 2026/27?" column flags anything that needs verification or is known to be wrong.
 4. When you have updated values, mark the row and share the file. The developer will apply them.
 
+**Decimal precision note:** All calculations use `decimal.js` with `ROUND_HALF_UP` rounding. There is no floating-point drift. Every intermediate value is rounded to 2 decimal places before being used in the next step.
+
 ---
 
 ## 1. Payslip line item structure
@@ -16,29 +18,37 @@ Every monthly payslip is built in this order. Items only appear if they apply to
 
 | # | Line item | Section | Always shown? | Source |
 |---|---|---|---|---|
-| 1 | Basic Salary | Earnings | Yes | annualGross / 12 |
+| 1 | Basic Salary | Earnings | Yes | annualGross / divisor |
 | 2 | Travel Allowance | Earnings | Only if set on employee | Fixed monthly rand amount |
 | 3 | Housing Allowance | Earnings | Only if set on employee | Fixed monthly rand amount |
 | 4 | PAYE (Income Tax) | Deductions | Yes | Tax table calculation |
-| 5 | UIF Contribution | Deductions | Yes | 1% of gross, capped |
-| 6 | Pension Fund | Deductions | Only if pensionContributionPct is set | % of basic salary |
-| 7 | Medical Aid | Deductions | Only if medicalAid amount is set | Fixed monthly rand amount |
+| 5 | UIF Contribution | Deductions | Yes | 1% of adjusted gross, capped |
+| 6 | Unpaid Leave | Deductions | Only if unpaid leave taken this period | Daily rate x unpaid days |
+| 7 | Pension Fund | Deductions | Only if pensionContributionPct is set | % of basic salary |
+| 8 | Medical Aid | Deductions | Only if medicalAid amount is set | Fixed monthly rand amount |
 
-**File:** `src/lib/payroll/calculator.ts` lines 39-68
+SDL is an employer cost and does not appear in the employee deductions. It is returned separately in the payroll breakdown for use in the EMP201 submission.
+
+**File:** `src/lib/payroll/calculator.ts` lines 93-105
 
 ---
 
-## 2. Basic salary calculation
+## 2. Basic salary and pay frequency
 
 ```
-basicSalary = round(annualGross / 12, 2 decimal places)
+divisors = { monthly: 12, biweekly: 26, weekly: 52 }
+basicSalary = Decimal(annualGross).dividedBy(divisor).toDecimalPlaces(2)
 ```
 
-- `annualGross` is the annual cost-to-company figure entered when adding or editing an employee.
-- Division by 12 is always used regardless of pay frequency (see section 11 on pay frequency).
-- Rounding: `Math.round(annualGross / 12 * 100) / 100` (standard half-up to 2 dp).
+| Pay frequency | Divisor | UIF cap per run |
+|---|---|---|
+| Monthly | 12 | R177.12 |
+| Bi-weekly | 26 | R81.75 (= 177.12 x 12 / 26) |
+| Weekly | 52 | R40.88 (= 177.12 x 12 / 52) |
 
-**File:** `src/lib/payroll/calculator.ts` line 37
+All three pay frequencies are now fully supported. PAYE is always calculated on the annualised taxable income and then divided by the divisor for the per-run amount.
+
+**File:** `src/lib/payroll/calculator.ts` lines 26, 79-80
 
 ---
 
@@ -48,192 +58,213 @@ basicSalary = round(annualGross / 12, 2 decimal places)
 grossPay = basicSalary + travelAllowance + housingAllowance
 ```
 
-Both allowances are optional monthly rand amounts stored on the employee record. If not set, they contribute zero and do not appear on the payslip.
+Both allowances are optional monthly rand amounts stored on the employee record. Gross pay is the contractual amount before any deductions including unpaid leave.
 
-**File:** `src/lib/payroll/calculator.ts` lines 39-48
+**File:** `src/lib/payroll/calculator.ts` lines 82-90
 
 ---
 
 ## 4. Taxable income: what is included and what is excluded
 
+The adjusted gross (after unpaid leave deduction) is used as the base for all tax calculations. Taxable income adds the correct inclusion fractions for each component and then subtracts the pension s11F deduction.
+
 ```
-annualTaxable = round(basicSalary * 12)
+travelInclusion   = hasLogbook ? 0.20 : 0.80
+travelTaxable     = travelAllowance x travelInclusion
+housingTaxable    = housingAllowance                    (100% taxable)
+adjustedBasic     = basicSalary - unpaidLeaveDeduction
+annualRemuneration = (adjustedBasic + travelTaxable + housingTaxable) x divisor
+annualTaxable      = annualRemuneration - pensionS11fDeduction
 ```
 
-**What is included:** basic salary only, annualised.
-
-**What is excluded:** travel allowance, housing allowance.
-
-This is a simplification. The correct SARS treatment is:
-
-| Allowance | Correct SARS treatment | Current app treatment |
+| Component | Inclusion in taxable income | Basis |
 |---|---|---|
-| Travel allowance | 80% is taxable (20% exempt if business use is declared) | 0% taxable (fully excluded) |
-| Housing allowance | 100% taxable as a fringe benefit | 0% taxable (fully excluded) |
+| Basic salary | 100% | Remuneration |
+| Travel allowance | 80% (or 20% with approved logbook) | SARS Budget 2026 Tax Guide |
+| Housing allowance | 100% | Fixed cash subsidy: fully taxable |
+| Pension contribution | Deducted before PAYE (see section 9) | Income Tax Act s11F |
 
-**Impact:** employees with travel or housing allowances will have PAYE understated. This needs to be corrected before go-live for real clients.
+**New field required:** `SalaryInfo.hasLogbook?: boolean` controls travel inclusion. Defaults to false (80%).
 
-**File:** `src/lib/payroll/calculator.ts` line 50
+**File:** `src/lib/payroll/calculator.ts` lines 92-107
 
 ---
 
-## 5. PAYE (income tax): tax brackets, rebates, and the monthly calculation
+## 5. PAYE: tax brackets, rebates, MATC, and monthly calculation
 
-### Tax brackets in the code (labeled TAX_BRACKETS_2025)
+### Tax brackets -- 2026/27 (1 March 2026 to 28 February 2027)
+
+Source: National Treasury Budget 2026 Tax Guide. Constant name: `TAX_BRACKETS_2026_27` in `calculator.ts`.
 
 | Bracket | Taxable income from | Taxable income to | Rate | Base tax on lower bound |
 |---|---|---|---|---|
-| 1 | R0 | R237,100 | 18% | R0 |
-| 2 | R237,101 | R370,500 | 26% | R42,678 |
-| 3 | R370,501 | R512,800 | 31% | R77,362 |
-| 4 | R512,801 | R673,000 | 36% | R121,475 |
-| 5 | R673,001 | R857,900 | 39% | R179,147 |
-| 6 | R857,901 | R1,817,000 | 41% | R251,258 |
-| 7 | R1,817,001 | No limit | 45% | R644,489 |
+| 1 | R1 | R245,100 | 18% | R0 |
+| 2 | R245,101 | R383,100 | 26% | R44,118 |
+| 3 | R383,101 | R530,200 | 31% | R79,998 |
+| 4 | R530,201 | R695,800 | 36% | R125,599 |
+| 5 | R695,801 | R887,000 | 39% | R185,215 |
+| 6 | R887,001 | R1,878,600 | 41% | R259,783 |
+| 7 | R1,878,601 | No limit | 45% | R666,339 |
 
-These match the SARS 2025/2026 tax year tables (1 March 2025 to 28 February 2026).
+Each bracket object also stores `prevUpTo` to eliminate index-based lookups and off-by-one risk.
 
-**Update required:** SARS publishes new brackets each year in the February budget. The 2026/2027 tables (effective 1 March 2026) are not yet in the code. Update these before processing any March 2026 payroll.
+**File:** `src/lib/payroll/calculator.ts` lines 11-19
 
-**File:** `src/lib/payroll/calculator.ts` lines 3-11
+### Rebates -- 2026/27
 
-### Rebates
-
-| Rebate | Current value in code | SARS 2025/2026 | Correct for 2026/27? |
+| Constant | Value | Applies to | File / line |
 |---|---|---|---|
-| Primary rebate (all taxpayers) | R17,235 per year | R17,235 | Needs 2026/27 value from SARS |
-| Secondary rebate (65+ years old) | Not implemented | R9,444 per year | Missing entirely |
-| Tertiary rebate (75+ years old) | Not implemented | R3,145 per year | Missing entirely |
+| `PRIMARY_REBATE_ANNUAL` | R17,820 | All individual taxpayers | `calculator.ts` line 21 |
+| `SECONDARY_REBATE_ANNUAL` | R9,765 | Employees aged 65 and older | `calculator.ts` line 22 |
+| `TERTIARY_REBATE_ANNUAL` | R3,249 | Employees aged 75 and older | `calculator.ts` line 23 |
 
-**Impact of missing secondary/tertiary rebates:** employees aged 65+ or 75+ will have PAYE overstated. This is a gap to address if you employ older workers.
+Age is determined from `Employee.dateOfBirth` (ISO date string, optional). If not set, only the primary rebate applies.
 
-**File:** `src/lib/payroll/calculator.ts` line 13
+**File:** `src/lib/payroll/calculator.ts` lines 21-23, 35-43
+
+### Tax thresholds (income below which PAYE is zero)
+
+| Age group | Annual threshold |
+|---|---|
+| Under 65 | R99,000 |
+| 65 to below 75 | R153,250 |
+| 75 and above | R171,300 |
+
+These are implicit in the bracket + rebate calculation. PAYE is floored at zero.
+
+### Medical Aid Tax Credit (s6A) -- 2026/27
+
+Credits reduce the PAYE liability after bracket tax is computed. They are not deducted from gross pay.
+
+| Constant | Value per month | Beneficiary |
+|---|---|---|
+| `MATC_MAIN` | R376 | Main member (taxpayer) |
+| `MATC_FIRST` | R376 | First dependant |
+| `MATC_EXTRA` | R254 | Each additional dependant beyond the first |
+
+**New field required:** `SalaryInfo.medicalAidDependants?: number` (0 = member only, 1 = member + 1 dependant, etc.). If not set, MATC is not applied.
+
+```
+matcAnnual = monthlyMatc(medicalAidDependants) x 12
+annualPAYE = max(bracketTax - totalRebate - matcAnnual, 0)
+monthlyPAYE = annualPAYE / divisor
+```
+
+**File:** `src/lib/payroll/calculator.ts` lines 25-27, 45-52, 109-113
 
 ### Monthly PAYE calculation
 
 ```
-annualPaye = base + (annualTaxable - lowerBound) x rate - primaryRebate
-monthlyPaye = round(annualPaye / 12, 2 decimal places)
+bracket = TAX_BRACKETS_2026_27.find(b => annualTaxable <= b.upTo)
+bracketTax = bracket.base + (annualTaxable - bracket.prevUpTo) x bracket.rate
+annualPAYE = max(bracketTax - totalRebate(dateOfBirth) - matcAnnual, 0)
+monthlyPAYE = Decimal(annualPAYE).dividedBy(divisor).toDecimalPlaces(2)
 ```
 
-The function finds the correct bracket, computes the annual tax, subtracts the primary rebate, then divides by 12 for the monthly deduction. It floors at zero (no negative PAYE).
-
-**File:** `src/lib/payroll/calculator.ts` lines 17-22, 51
-
-### When to update tax tables
-
-| Event | Action required |
-|---|---|
-| February budget speech (annually, usually last Wednesday of February) | SARS publishes new brackets and rebates effective 1 March. Update `TAX_BRACKETS_2025` (rename the constant to `TAX_BRACKETS_YYYY`) and `PRIMARY_REBATE_ANNUAL` in `calculator.ts` before the first payroll run of the new tax year. |
-| March payroll run | First payroll using the new tables. Verify one employee manually before completing the run. |
+**File:** `src/lib/payroll/calculator.ts` lines 55-61, 109-113
 
 ---
 
 ## 6. UIF (Unemployment Insurance Fund)
 
-### Constants
-
-| Constant | Current value in code | Correct for 2026? | File and line |
+| Constant | Value | Correct for 2026/27? | File / line |
 |---|---|---|---|
-| Employee UIF rate | 1% (0.01) | Yes, confirmed by UIF Act | `calculator.ts` line 14 |
-| Monthly earnings ceiling | R17,712/month | Verify: updated annually by UIF | Used to derive the cap below |
-| Monthly UIF cap | R177.12 | Correct if ceiling is R17,712 | `calculator.ts` line 15 |
-| Employer UIF rate | 1% | Not calculated in the app | See gap below |
-
-### Calculation
+| `UIF_RATE` | 1% (0.01) | Yes | `calculator.ts` line 29 |
+| `UIF_BASE_CAP` | R177.12/month | Verify annually | `calculator.ts` line 30 |
+| Employer rate | 1% (same as employee) | Yes | Same constant used |
+| UIF earnings ceiling | R17,712/month | Verify annually | Derived: 177.12 / 0.01 |
 
 ```
-employeeUIF = round(min(grossPay x 0.01, 177.12), 2 decimal places)
+uifCap = UIF_BASE_CAP x 12 / divisor     (scales with pay frequency)
+uif    = Decimal.min(adjustedGross x 0.01, uifCap).toDecimalPlaces(2)
 ```
 
-- Applied to gross pay (basic salary + allowances), not just basic salary.
-- If gross pay exceeds R17,712/month the contribution is capped at R177.12.
-- The employer's matching 1% contribution is not calculated or shown anywhere in the app.
+Both employee and employer UIF are calculated (employer matches employee exactly). Employer UIF is returned in the breakdown as `employerUif` but does not appear on the employee payslip.
 
-### Gaps
-
-- Employer UIF (matching 1%) is not calculated. Your payroll summary will not show the employer's total UIF liability.
-- The UIF earnings ceiling is updated by the Department of Employment annually. Verify the R17,712 figure against the latest Government Gazette before each tax year.
-
-**File:** `src/lib/payroll/calculator.ts` lines 14-15, 52
+**File:** `src/lib/payroll/calculator.ts` lines 29-30, 115-117
 
 ---
 
 ## 7. SDL (Skills Development Levy)
 
-| Item | Status |
-|---|---|
-| SDL rate | 1% of total remuneration (SETA Act) |
-| SDL threshold | Companies with annual payroll under R500,000 are exempt |
-| `sdlEnabled` config field | Exists in `payrollConfigs` (set to `true` for all 3 demo tenants) |
-| SDL calculation in code | NOT IMPLEMENTED. No SDL amount is computed anywhere. |
-| SDL on payslip | Does not appear |
+| Constant | Value | File / line |
+|---|---|---|
+| `SDL_RATE` | 1% (0.01) | `calculator.ts` line 32 |
+| Annual exempt threshold | R500,000 total payroll | Checked at run level |
 
-**This is a gap.** If your clients' annual payroll exceeds R500,000 they are legally required to pay SDL to SARS. The config flag exists but has no effect.
+SDL is an employer cost. It does not reduce employee net pay and does not appear on the payslip. It is returned in the breakdown as `employerSdl` for EMP201 reporting.
 
-**To implement:** add `const sdl = Math.round(grossPay * 0.01 * 100) / 100` in `calculateMonthlyPayroll`, add it to the deductions array, and surface it on the payslip. It is an employer cost, not an employee deduction, so whether to show it on the payslip is a business decision.
+```
+employerSdl = isSDLLiable ? adjustedGross x 0.01 : 0
+```
 
-**File:** `src/lib/config/payroll.ts` lines 8, 20, 30, 40 (`sdlEnabled` field; `sdlReferenceNumber` also stored here)
+`isSDLLiable` is determined at the payroll run level (total annual payroll across all employees >= R500,000) and passed into `calculateMonthlyPayroll` as an option.
+
+**File:** `src/lib/payroll/calculator.ts` line 32, 119-121
+
+Config field `sdlEnabled` in `src/lib/config/payroll.ts` stores the reference number but the liability check uses `isSDLLiable` at runtime.
 
 ---
 
 ## 8. Pension fund contribution
 
-### Calculation
+### Payslip deduction (what leaves the employee's pay)
 
 ```
-employeePension = round(basicSalary x pensionContributionPct, 2 decimal places)
+pensionMonthly = adjustedBasic x pensionContributionPct
 ```
 
-- `pensionContributionPct` is stored as a decimal: `0.075` means 7.5%.
-- Calculated on basic salary only, not on gross pay (allowances are excluded).
-- Default for all demo tenants: 7.5%.
-- If the field is not set on the employee, no pension deduction appears.
+`pensionContributionPct` is stored as a decimal (0.075 = 7.5%). Calculated on the adjusted basic salary (after unpaid leave deduction), not on gross pay including allowances.
 
-### Employer contribution
+### s11F deduction from taxable income (reduces PAYE base)
 
-Not calculated. The employer's matching or top-up contribution is not shown on the payslip or in the payroll run totals.
+```
+pensionAnnual      = pensionMonthly x divisor
+s11fCap            = min(annualRemuneration x 0.275, 430_000)
+pensionS11fDeduction = min(pensionAnnual, s11fCap)
+annualTaxable      = annualRemuneration - pensionS11fDeduction
+```
 
-### Tax deductibility
-
-SARS allows pension contributions up to 27.5% of taxable income (capped at R350,000/year) as a deduction from taxable income. The app does not apply this deduction, so PAYE may be slightly overstated for employees with pension contributions.
-
-**File:** `src/lib/payroll/calculator.ts` lines 59-61
-
-| Config | Current value | Where set |
+| Cap rule | Value for 2026/27 | Update when |
 |---|---|---|
-| Default pension % (all tenants) | 7.5% | `src/lib/config/payroll.ts` line 21 |
-| Per-employee pension % | Set per employee in the compensation step | `Employee.salary.pensionContributionPct` |
+| Maximum percentage of remuneration | 27.5% | Verify annually |
+| Maximum annual rand cap | R430,000 | Was R350,000 prior year; verify each February |
+
+**File:** `src/lib/payroll/calculator.ts` lines 34-35, 99-107
+
+### Config
+
+| Setting | Value | Where |
+|---|---|---|
+| Default pension % (all demo tenants) | 7.5% | `src/lib/config/payroll.ts` line 21 |
+| Per-employee pension % | Set per employee, stored as decimal (e.g. 0.075) | `Employee.salary.pensionContributionPct` |
 
 ---
 
 ## 9. Medical aid deduction
 
 ```
-medicalAidDeduction = employee.salary.medicalAid (fixed monthly rand amount)
+medicalAidDeduction = salary.medicalAid (fixed monthly rand amount)
 ```
 
-- Flat monthly rand amount per employee. No calculation is applied.
-- If not set on the employee, it does not appear on the payslip.
-- The employer's medical aid subsidy (if any) is not calculated or shown.
-- SARS Medical Tax Credits (MTC): not applied. For 2025/2026, the MTC is R364/month for the main member, R364 for the first dependant, and R246 for each additional dependant. These reduce PAYE directly. The app does not reduce PAYE by MTC.
+Flat monthly rand amount per employee. No calculation applied. The PAYE reduction via Medical Aid Tax Credit is handled separately in section 5.
 
-**Impact of missing MTC:** employees with medical aid will have PAYE overstated.
+**New field required:** `SalaryInfo.medicalAidDependants?: number` for the MATC credit.
 
-**File:** `src/lib/payroll/calculator.ts` lines 64-66
+**File:** `src/lib/payroll/calculator.ts` lines 125-127
 
 ---
 
 ## 10. Net pay calculation and rounding
 
 ```
-totalDeductions = PAYE + UIF + pension (if set) + medicalAid (if set)
-netPay = round(grossPay - totalDeductions, 2 decimal places)
+totalDeductions = PAYE + UIF + unpaidLeave (if any) + pension (if set) + medicalAid (if set)
+netPay = Decimal(grossPay - totalDeductions).toDecimalPlaces(2)
 ```
 
-All intermediate amounts are rounded to 2 decimal places before summing. The final net pay is rounded again. There should be no floating-point drift beyond 1 cent in practice.
+SDL and employer UIF are not included in `totalDeductions`. All intermediate amounts are computed with `decimal.js` using `ROUND_HALF_UP`. Final rounding is applied once to `netPay`.
 
-**File:** `src/lib/payroll/calculator.ts` lines 68-79
+**File:** `src/lib/payroll/calculator.ts` lines 129-135
 
 ---
 
@@ -241,114 +272,108 @@ All intermediate amounts are rounded to 2 decimal places before summing. The fin
 
 ### Current leave policy (global, applies to all tenants)
 
-| Leave type | Days per year in code | BCEA minimum | Gap? | File and line |
-|---|---|---|---|---|
-| Annual leave | 18 days | 15 working days | Above minimum, intentional | `config/leave.ts` line 5 |
-| Sick leave | 10 days | 30 days per 36-month cycle | See note below | `config/leave.ts` line 13 |
-| Family responsibility | 3 days | 3 days | Correct | `config/leave.ts` line 20 |
-| Unpaid leave | 5 days | No minimum (discretionary) | Discretionary policy | `config/leave.ts` line 27 |
+| Leave type | Days | Cycle | Paid | BCEA basis | File / line |
+|---|---|---|---|---|---|
+| Annual leave | 18 working days | 12 months | Yes | BCEA s20 minimum is 15 days. 18 is intentionally above minimum. | `config/leave.ts` line 5 |
+| Sick leave | 30 days | 36 months | Yes | BCEA s22: 30 days per 36-month cycle. | `config/leave.ts` line 13 |
+| Family responsibility | 3 days | 12 months | Yes | BCEA s27: exactly 3 days per cycle. | `config/leave.ts` line 20 |
+| Unpaid leave | 5 days | 12 months (discretionary) | No | No BCEA minimum. Discretionary policy. | `config/leave.ts` line 27 |
 
-### Important note on sick leave
+The `LeavePolicy` interface now includes `cycleMonths?: number`. Sick leave has `cycleMonths: 36`. All others use the default 12-month year cycle.
 
-The BCEA grants 30 sick days in every 36-month (3-year) cycle, not 10 days per year. The app treats sick leave as 10 days per calendar year, which is non-compliant. Options:
-
-1. Change to 30 days and reset every 3 years rather than every year (requires tracking cycle start date per employee).
-2. Keep 10 days/year as a simplification and note it in your employment contracts as a company policy that differs from the BCEA minimum (the BCEA allows more generous policies but not less generous ones for annual leave; sick leave works on a cycle and the 10/year interpretation is defensible only if the 36-month running total stays at or above 30).
-
-**File to update:** `src/lib/config/leave.ts` (annualDays value for each leave type)
+**File:** `src/lib/config/leave.ts`, `src/lib/types.ts` (LeavePolicy.cycleMonths)
 
 ---
 
 ## 12. Leave balance: how days are deducted
 
-When a leave request is approved, the `LeaveBalance.used` count for that employee and leave type is incremented by the `days` field on the `LeaveRequest`.
+When a leave request is approved, `LeaveBalance.used` is incremented by the `days` field on the `LeaveRequest`. The `days` field is entered manually by the employee when submitting the request.
 
-- `days` is entered manually by the employee when submitting the request. It is not calculated from the start and end dates against a calendar or public holiday list.
-- No public holiday exclusion is applied.
-- No half-day logic exists.
-- `LeaveBalance.total` is set when the employee record is created and does not auto-reset at the start of a new leave year.
+**New field:** `LeaveBalance.cycleStartDate?: string` (ISO date) tracks the start of the 36-month sick leave cycle.
 
-**File:** `src/lib/leave/actions.ts` (decideLeaveRequestRecord, the leaveBalance.update call)
+**Remaining gap:** leave days are not automatically calculated from calendar dates minus public holidays. Day counts rely on employee self-reporting.
 
 ---
 
 ## 13. Unpaid leave: effect on pay
 
-**Currently: none.** Unpaid leave is tracked (a `LeaveBalance` entry exists, days are deducted on approval) but taking unpaid leave does not reduce the employee's net pay on their payslip. The payroll calculator has no knowledge of approved unpaid leave requests for a given month.
-
-The correct deduction would be:
+When `unpaidLeaveDays > 0` is passed to `calculateMonthlyPayroll`:
 
 ```
-dailyRate = basicSalary / workingDaysInMonth (typically 21.67 on average, or exact count)
-unpaidDeduction = dailyRate x unpaidLeaveDaysApprovedThisMonth
+unpaidDeduction  = Decimal(basicSalary x unpaidLeaveDays / workingDaysInMonth).toDecimalPlaces(2)
+adjustedBasic    = basicSalary - unpaidDeduction
 ```
 
-This is not implemented. Employees who take unpaid leave in a month will receive full pay.
+The adjusted basic is then used as the base for all PAYE, UIF, SDL, and pension calculations for that period. Unpaid leave appears as a deduction line item on the payslip. `workingDaysInMonth` defaults to 21 if not supplied.
+
+**File:** `src/lib/payroll/calculator.ts` lines 84-88
 
 ---
 
-## 14. Pay frequency: what is stored vs what is calculated
+## 14. Pay frequency: fully supported
 
-| Frequency option | Stored on employee | Affects payroll calculation |
-|---|---|---|
-| Monthly | Yes | Yes, this is the only supported frequency |
-| Bi-weekly | Yes (can be selected in forms) | No, calculator always divides annualGross / 12 |
-| Weekly | Yes (can be selected in forms) | No, calculator always divides annualGross / 12 |
+All three frequency options are now fully implemented.
 
-**Gap:** employees set to bi-weekly or weekly pay still receive monthly payslips calculated as annualGross / 12. If you onboard clients with weekly or bi-weekly payroll, this must be implemented before they run their first payroll.
+| Value | Divisor | UIF cap per run | PAYE annualisation |
+|---|---|---|---|
+| monthly | 12 | R177.12 | annualTaxable / 12 |
+| biweekly | 26 | R81.75 | annualTaxable / 26 |
+| weekly | 52 | R40.88 | annualTaxable / 52 |
 
-The correct divisors would be `annualGross / 26` (bi-weekly) and `annualGross / 52` (weekly), along with corresponding UIF cap proration.
+**File:** `src/lib/payroll/calculator.ts` line 26
 
 ---
 
 ## 15. Tax year dates: annual update checklist
 
-| Date | Action |
-|---|---|
-| February budget speech (last week of February each year) | SARS announces new brackets, rebates, UIF ceiling, and MTC rates. Gather the new values from the SARS website or official budget documents. |
-| By 1 March (start of new tax year) | Update `TAX_BRACKETS_2025` (and rename the constant), `PRIMARY_REBATE_ANNUAL`, and `UIF_MONTHLY_CAP` in `src/lib/payroll/calculator.ts`. Update `taxYear` string in `src/lib/config/payroll.ts`. |
-| Before first payroll run of the new tax year | Do a manual check: pick one employee at a known salary, compute expected PAYE by hand using the SARS calculator at sarsefiling.co.za, and compare to the app output. |
+| What to update | When | Source | File / constant |
+|---|---|---|---|
+| Tax bracket thresholds and base tax | Before 1 March each year | National Treasury Budget Tax Guide | `calculator.ts` -- `TAX_BRACKETS_2026_27` (rename to next year) |
+| Primary, secondary, tertiary rebates | Before 1 March each year | National Treasury Budget Tax Guide | `calculator.ts` -- `*_REBATE_ANNUAL` |
+| Medical Aid Tax Credit monthly amounts | Before 1 March each year | National Treasury Budget Tax Guide | `calculator.ts` -- `MATC_*` |
+| Pension annual rand cap | Before 1 March each year | National Treasury Budget Tax Guide | `calculator.ts` -- `PENSION_MAX_RAND` |
+| UIF monthly remuneration ceiling | March -- check Department of Labour notice | UIF Act Determination | `calculator.ts` -- `UIF_BASE_CAP` |
+| Tax year label in payroll config | Before 1 March each year | Internal | `payroll.ts` -- `taxYear` |
 
-### Values to update each March
+### Values to update each March (current 2026/27 values for reference)
 
-| Value | File | Line | Current (2025/2026) | Updated to (fill in) |
-|---|---|---|---|---|
-| Tax bracket 1 threshold | `src/lib/payroll/calculator.ts` | 4 | R237,100 | |
-| Tax bracket 2 threshold | `src/lib/payroll/calculator.ts` | 5 | R370,500 | |
-| Tax bracket 3 threshold | `src/lib/payroll/calculator.ts` | 6 | R512,800 | |
-| Tax bracket 4 threshold | `src/lib/payroll/calculator.ts` | 7 | R673,000 | |
-| Tax bracket 5 threshold | `src/lib/payroll/calculator.ts` | 8 | R857,900 | |
-| Tax bracket 6 threshold | `src/lib/payroll/calculator.ts` | 9 | R1,817,000 | |
-| Bracket 2 base tax | `src/lib/payroll/calculator.ts` | 5 | R42,678 | |
-| Bracket 3 base tax | `src/lib/payroll/calculator.ts` | 6 | R77,362 | |
-| Bracket 4 base tax | `src/lib/payroll/calculator.ts` | 7 | R121,475 | |
-| Bracket 5 base tax | `src/lib/payroll/calculator.ts` | 8 | R179,147 | |
-| Bracket 6 base tax | `src/lib/payroll/calculator.ts` | 9 | R251,258 | |
-| Bracket 7 base tax | `src/lib/payroll/calculator.ts` | 10 | R644,489 | |
-| Primary rebate | `src/lib/payroll/calculator.ts` | 13 | R17,235 | |
-| UIF monthly cap | `src/lib/payroll/calculator.ts` | 15 | R177.12 | |
-| Tax year label | `src/lib/config/payroll.ts` | 18 (and lines 28, 38) | "2025/2026" | |
+| Value | File | Current (2026/27) | Updated to (fill in) |
+|---|---|---|---|
+| Bracket 1 threshold | `calculator.ts` line 12 | R245,100 | |
+| Bracket 2 threshold | `calculator.ts` line 13 | R383,100 | |
+| Bracket 3 threshold | `calculator.ts` line 14 | R530,200 | |
+| Bracket 4 threshold | `calculator.ts` line 15 | R695,800 | |
+| Bracket 5 threshold | `calculator.ts` line 16 | R887,000 | |
+| Bracket 6 threshold | `calculator.ts` line 17 | R1,878,600 | |
+| Bracket 2 base tax | `calculator.ts` line 13 | R44,118 | |
+| Bracket 3 base tax | `calculator.ts` line 14 | R79,998 | |
+| Bracket 4 base tax | `calculator.ts` line 15 | R125,599 | |
+| Bracket 5 base tax | `calculator.ts` line 16 | R185,215 | |
+| Bracket 6 base tax | `calculator.ts` line 17 | R259,783 | |
+| Bracket 7 base tax | `calculator.ts` line 18 | R666,339 | |
+| Primary rebate | `calculator.ts` line 21 | R17,820 | |
+| Secondary rebate (65+) | `calculator.ts` line 22 | R9,765 | |
+| Tertiary rebate (75+) | `calculator.ts` line 23 | R3,249 | |
+| MATC main member | `calculator.ts` line 25 | R376/month | |
+| MATC first dependant | `calculator.ts` line 26 | R376/month | |
+| MATC extra dependants | `calculator.ts` line 27 | R254/month | |
+| Pension max rand cap (s11F) | `calculator.ts` line 35 | R430,000/year | |
+| UIF monthly cap | `calculator.ts` line 30 | R177.12 | |
+| Tax year label | `payroll.ts` lines 18, 28, 38, 58 | "2026/2027" | |
 
 ---
 
-## 16. Known gaps and inaccuracies (priority order)
+## 16. Known gaps and remaining items
 
-These need to be resolved before the app can be used for real payroll. The higher the row, the more legally significant the gap.
+Most of the original gaps have been resolved in the 2026/27 update. The following items are still outstanding.
 
-| # | Gap | Legal risk | Effort to fix |
+| # | Gap | Impact | Effort |
 |---|---|---|---|
-| 1 | SDL not calculated despite sdlEnabled=true | High: mandatory for payroll over R500k/year | Low: one line of calculation, add to deductions |
-| 2 | Taxable income excludes travel and housing allowances entirely | High: understates PAYE for employees with allowances | Medium: apply 80% rule for travel, 100% for housing |
-| 3 | Sick leave is 10 days/year instead of 30 days/36 months (BCEA non-compliance) | High: employees are contractually entitled to more | Medium: requires per-employee cycle tracking |
-| 4 | Secondary rebate (65+) and tertiary rebate (75+) not applied | Medium: overstates PAYE for older employees | Low: add age check using employee.idNumber birth digits |
-| 5 | Medical Tax Credits (MTC) not deducted from PAYE | Medium: overstates PAYE for employees with medical aid | Low: add MTC reduction step in annualPaye() |
-| 6 | Pension contribution not deducted from taxable income before PAYE | Medium: slightly overstates PAYE for pension members | Medium: reduce annualTaxable by qualifying pension amount |
-| 7 | Unpaid leave does not reduce pay | Medium: employees get paid for unpaid leave | Medium: requires payroll to check approved leave for the period |
-| 8 | Employer UIF (1%) not calculated or shown in payroll totals | Low: employer liability is not surfaced | Low: calculate in completePayrollRunRecord |
-| 9 | Bi-weekly and weekly pay frequencies not implemented | Low: no clients use them yet | Medium: requires divisor change and period handling |
-| 10 | Leave days not calculated from calendar dates | Low: relies on employee self-reporting | Medium: requires calendar + public holiday lookup |
-| 11 | Leave balances do not auto-reset annually | Low: HR must reset manually if this feature is needed | Medium: requires a scheduled job |
-| 12 | 2026/2027 SARS tax tables not yet applied | High from 1 March 2026 onwards | Low: update 13 constants when SARS publishes them |
+| 1 | Leave days not calculated from calendar dates | Low: relies on employee self-reporting | Medium: requires calendar + public holiday lookup |
+| 2 | Leave balances do not auto-reset based on cycle | Low: HR must reset sick leave cycle manually | Medium: requires a scheduled job and cycleStartDate logic |
+| 3 | Leave policy is global static config, not per-tenant | Low: no clients yet | Medium: add LeavePolicies table |
+| 4 | `isSDLLiable` not wired from run level to buildPayslip | SDL not calculated in practice yet | Low: pass total annual payroll check into completePayrollRunRecord |
+| 5 | Employee `dateOfBirth` field is optional | Secondary/tertiary rebates silently skipped | Low: make required on new employee form |
 
 ---
 
@@ -357,8 +382,8 @@ These need to be resolved before the app can be used for real payroll. The highe
 When you have verified or updated any value in this document, share the file. The developer will:
 
 1. Open `src/lib/payroll/calculator.ts` and replace the relevant constant.
-2. Run `npm test` to confirm no calculator tests break.
-3. Do a manual spot-check (one employee, known salary, verify PAYE against SARS eFiling tax calculator).
+2. Run `npm test` to confirm all calculator tests pass with the new values.
+3. Do a manual spot-check using the SARS eFiling tax calculator for one employee at a known salary.
 4. Commit and deploy.
 
-For leave policy changes, the developer will update `src/lib/config/leave.ts` and check that existing `LeaveBalance` records in the database are also updated to match (the config drives new employees; existing employees have their totals stored in the `LeaveBalance` table).
+For leave policy changes, also update `src/lib/config/leave.ts` and check that existing `LeaveBalance.total` values in the database match the new policy for all existing employees.
