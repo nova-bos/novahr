@@ -12,7 +12,7 @@ describe("getPayrollConfig", () => {
       payeReferenceNumber: "",
       uifReferenceNumber: "",
       sdlReferenceNumber: "",
-      taxYear: "2025/2026",
+      taxYear: "2026/2027",
       uifEnabled: true,
       sdlEnabled: true,
       defaultPensionPct: 7.5,

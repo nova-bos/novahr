@@ -12,8 +12,9 @@ export const leavePolicies: LeavePolicy[] = [
   {
     type: "sick",
     label: "Sick Leave",
-    annualDays: 10,
-    description: "Paid leave for illness or injury. Medical certificates required for absences longer than 2 days.",
+    annualDays: 30,
+    cycleMonths: 36,
+    description: "Paid leave for illness or injury. 30 days per 36-month cycle per BCEA s22. Medical certificates required for absences longer than 2 days.",
     requiresApproval: true,
     paid: true,
   },

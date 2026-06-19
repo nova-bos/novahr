@@ -100,9 +100,9 @@ describe("completePayrollRunRecord", () => {
       makePayrollRunRow({
         status: "completed",
         totalGross: 50_000,
-        totalDeductions: 11_479.79,
-        totalNet: 38_520.21,
-        totalPaye: 11_302.67,
+        totalDeductions: 11_252.70,
+        totalNet: 38_747.30,
+        totalPaye: 11_075.58,
         totalUif: 177.12,
         employeeCount: 1,
         processedOn: new Date("2026-06-25T08:00:00Z"),
@@ -144,7 +144,7 @@ describe("completePayrollRunRecord", () => {
     expect(result.payrollRun.totalGross).toBe(50_000);
     expect(result.payslips).toHaveLength(1);
     expect(result.payslips[0].employeeId).toBe("emp-1");
-    expect(result.payslips[0].netPay).toBe(38_520.21);
+    expect(result.payslips[0].netPay).toBe(38_747.30);
     expect(result.activity.message).toBe("processed payroll for June 2026");
     expect(result.activity.actor).toBe("Werner Botha");
     expect(result.notification.description).toBe(
@@ -159,7 +159,7 @@ describe("completePayrollRunRecord", () => {
         expect.objectContaining({
           id: "novatech-run-2026-06-emp-1",
           employeeId: "emp-1",
-          netPay: 38_520.21,
+          netPay: 38_747.30,
         }),
       ],
     });
