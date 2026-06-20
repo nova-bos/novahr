@@ -83,8 +83,8 @@ export function AppSidebar() {
             href="/dashboard"
             className="flex min-w-0 items-center rounded-lg px-1 py-1 transition-colors hover:bg-sidebar-accent"
           >
-            <Logo className="group-data-[collapsible=icon]:hidden" forceDark />
-            <LogoIcon className="hidden group-data-[collapsible=icon]:block" forceDark />
+            <Logo className="group-data-[collapsible=icon]:hidden" />
+            <LogoIcon className="hidden group-data-[collapsible=icon]:block" />
           </Link>
           <SidebarCollapseToggle />
         </div>
