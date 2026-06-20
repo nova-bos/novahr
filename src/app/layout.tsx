@@ -24,13 +24,6 @@ export const metadata: Metadata = {
     template: "%s | NovaHR",
   },
   description: "Modern HR and payroll for growing South African companies.",
-  icons: {
-    icon: [
-      { url: "/icon-light-sq.png", media: "(prefers-color-scheme: light)", type: "image/png" },
-      { url: "/icon-dark-sq.png", media: "(prefers-color-scheme: dark)", type: "image/png" },
-    ],
-    apple: { url: "/icon-light-sq.png", type: "image/png" },
-  },
 };
 
 export default function RootLayout({
