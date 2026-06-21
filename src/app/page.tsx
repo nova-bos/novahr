@@ -23,7 +23,7 @@ export default async function LandingPage() {
   if (user) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="relative min-h-screen flex flex-col overflow-hidden">
       <MarketingNav />
       <main className="flex-1">
         <section className="container mx-auto max-w-6xl px-4">

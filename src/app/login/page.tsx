@@ -99,7 +99,7 @@ export default function LoginPage() {
           className="pointer-events-none absolute inset-0 opacity-50"
           style={{
             background:
-              "radial-gradient(circle at 15% 0%, var(--chart-2) 0%, transparent 45%), radial-gradient(circle at 90% 30%, var(--sidebar-primary) 0%, transparent 50%), radial-gradient(circle at 30% 100%, var(--chart-4) 0%, transparent 40%)",
+              "radial-gradient(circle at 15% 0%, var(--sidebar-primary) 0%, transparent 50%), radial-gradient(circle at 85% 25%, var(--primary) 0%, transparent 40%), radial-gradient(circle at 40% 100%, var(--sidebar-primary) 0%, transparent 45%)",
           }}
         />
         <div className="relative flex items-center">
@@ -127,7 +127,7 @@ export default function LoginPage() {
           className="pointer-events-none absolute inset-0 opacity-45"
           style={{
             background:
-              "radial-gradient(circle at 12% 18%, var(--chart-2) 0%, transparent 42%), radial-gradient(circle at 88% 12%, var(--sidebar-accent) 0%, transparent 40%), radial-gradient(circle at 78% 92%, var(--sidebar-primary) 0%, transparent 48%), radial-gradient(circle at 22% 100%, var(--chart-4) 0%, transparent 38%)",
+              "radial-gradient(circle at 10% 15%, var(--sidebar-primary) 0%, transparent 45%), radial-gradient(circle at 85% 10%, var(--primary) 0%, transparent 40%), radial-gradient(circle at 75% 90%, var(--sidebar-primary) 0%, transparent 50%), radial-gradient(circle at 20% 95%, var(--primary) 0%, transparent 40%)",
           }}
         />
         <div className="relative flex items-center">
@@ -163,7 +163,7 @@ export default function LoginPage() {
         >
           <path
             d="M0,120 C150,180 300,60 450,110 C520,130 560,90 600,100 L600,200 L0,200 Z"
-            fill="var(--chart-2)"
+            fill="var(--primary)"
             opacity="0.15"
           />
           <path
@@ -175,12 +175,12 @@ export default function LoginPage() {
       </div>
 
       {/* Sign-in panel */}
-      <div className="relative flex w-full flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/[0.04] px-4 py-10 sm:px-6 lg:w-1/2">
+      <div className="relative flex w-full flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/[0.06] px-4 py-10 sm:px-6 lg:w-1/2">
         <div className="absolute right-4 top-4 z-10">
           <ThemeToggle />
         </div>
-        <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-primary/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 -left-16 size-80 rounded-full bg-chart-2/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-primary/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-28 -left-16 size-80 rounded-full bg-primary/10 blur-3xl" />
         <svg
           className="pointer-events-none absolute left-0 top-0 hidden h-full w-24 -translate-x-1/2 lg:block"
           viewBox="0 0 100 800"
@@ -190,7 +190,7 @@ export default function LoginPage() {
           <defs>
             <linearGradient id="login-divider-gradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="var(--sidebar-primary)" />
-              <stop offset="100%" stopColor="var(--chart-2)" />
+              <stop offset="100%" stopColor="var(--primary)" />
             </linearGradient>
           </defs>
           <path
