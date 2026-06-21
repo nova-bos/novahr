@@ -8,6 +8,7 @@ import {
   CalendarRange,
   Eye,
   EyeOff,
+  Loader2,
   ShieldCheck,
   User,
   Users,
@@ -31,13 +32,6 @@ const ROLE_ICONS: Record<UserRole, LucideIcon> = {
   manager: Users,
   hr: ShieldCheck,
   exco: Building2,
-};
-
-const ROLE_BLURBS: Record<UserRole, string> = {
-  employee: "View your payslips, leave balance and personal profile.",
-  manager: "Manage your team and approve their leave requests.",
-  hr: "Full access to employees, payroll, leave and reports.",
-  exco: "Group-wide view across every NovaHR company.",
 };
 
 const FEATURES: { icon: LucideIcon; label: string }[] = [
@@ -92,233 +86,173 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col lg:flex-row">
-      {/* Mobile gradient banner */}
-      <div className="relative flex flex-col gap-3 overflow-hidden bg-sidebar px-6 pb-12 pt-8 text-sidebar-foreground lg:hidden">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-50"
-          style={{
-            background:
-              "radial-gradient(circle at 15% 0%, var(--sidebar-primary) 0%, transparent 50%), radial-gradient(circle at 85% 25%, var(--primary) 0%, transparent 40%), radial-gradient(circle at 40% 100%, var(--sidebar-primary) 0%, transparent 45%)",
-          }}
-        />
-        <div className="relative flex items-center">
-          <Logo height={26} forceDark />
-        </div>
-        <p className="relative max-w-sm text-sm text-sidebar-foreground/70">
-          Sign in as any persona below to preview NovaHR from their seat.
-        </p>
-        <svg
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-10 w-full"
-          viewBox="0 0 400 40"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M0,40 L0,20 C50,4 100,32 150,18 C200,4 250,32 300,16 C340,4 370,26 400,12 L400,40 Z"
-            fill="var(--background)"
-          />
-        </svg>
+    <div className="min-h-screen flex bg-background">
+      {/* Theme toggle */}
+      <div className="fixed top-4 right-4 z-10">
+        <ThemeToggle />
       </div>
 
-      {/* Branding panel */}
-      <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-sidebar p-10 text-sidebar-foreground lg:flex">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-45"
-          style={{
-            background:
-              "radial-gradient(circle at 10% 15%, var(--sidebar-primary) 0%, transparent 45%), radial-gradient(circle at 85% 10%, var(--primary) 0%, transparent 40%), radial-gradient(circle at 75% 90%, var(--sidebar-primary) 0%, transparent 50%), radial-gradient(circle at 20% 95%, var(--primary) 0%, transparent 40%)",
-          }}
-        />
-        <div className="relative flex items-center">
-          <Logo height={26} forceDark />
+      {/* Left branding panel */}
+      <div className="hidden md:flex md:w-[45%] relative flex-col justify-between p-10 overflow-hidden bg-sidebar">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-[100px]" />
+          <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-primary/10 blur-[80px]" />
         </div>
-        <div className="relative flex max-w-md flex-col gap-6">
-          <h1 className="text-3xl font-semibold leading-tight tracking-tight">
-            Modern HR &amp; payroll, built for growing teams.
-          </h1>
-          <p className="text-sm text-sidebar-foreground/70">
-            This is a live product walkthrough. Sign in as any persona below to see how NovaHR
-            looks from their seat: employee, manager, HR, or the executive committee.
-          </p>
-          <ul className="flex flex-col gap-3">
-            {FEATURES.map((feature) => (
-              <li key={feature.label} className="flex items-center gap-3 text-sm">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-sidebar-accent text-sidebar-foreground/80">
-                  <feature.icon className="size-4" />
-                </span>
-                {feature.label}
+
+        <div className="relative">
+          <Link href="/">
+            <Logo height={32} />
+          </Link>
+        </div>
+
+        <div className="relative space-y-8">
+          <div>
+            <h2 className="text-2xl font-bold text-sidebar-foreground leading-snug">
+              Modern HR &amp; payroll,<br />built for growing teams.
+            </h2>
+            <p className="mt-3 text-sm text-sidebar-foreground/70 leading-relaxed max-w-xs">
+              Sign in as any persona below to preview NovaHR from their seat: employee, manager, HR, or executive.
+            </p>
+          </div>
+
+          <ul className="space-y-3">
+            {FEATURES.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                  <Icon size={14} className="text-primary" />
+                </div>
+                <span className="text-sm text-sidebar-foreground/70">{label}</span>
               </li>
             ))}
           </ul>
         </div>
-        <p className="relative text-xs text-sidebar-foreground/50">
-          © {new Date().getFullYear()} NovaHR. All data shown is sample data.
+
+        <p className="relative text-[11px] text-sidebar-foreground/50">
+          &copy; {new Date().getFullYear()} NovaHR. All rights reserved.
         </p>
-        <svg
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-32 w-full"
-          viewBox="0 0 600 200"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <path
-            d="M0,120 C150,180 300,60 450,110 C520,130 560,90 600,100 L600,200 L0,200 Z"
-            fill="var(--primary)"
-            opacity="0.15"
-          />
-          <path
-            d="M0,150 C140,100 320,190 480,140 C540,120 580,160 600,150 L600,200 L0,200 Z"
-            fill="var(--sidebar-primary)"
-            opacity="0.3"
-          />
-        </svg>
       </div>
 
-      {/* Sign-in panel */}
-      <div className="relative flex w-full flex-1 items-center justify-center overflow-hidden bg-gradient-to-br from-background via-background to-primary/[0.06] px-4 py-10 sm:px-6 lg:w-1/2">
-        <div className="absolute right-4 top-4 z-10">
-          <ThemeToggle />
+      {/* Right form panel */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+        {/* Mobile logo */}
+        <div className="mb-8 md:hidden">
+          <Link href="/">
+            <Logo height={32} />
+          </Link>
         </div>
-        <div className="pointer-events-none absolute -right-20 -top-24 size-72 rounded-full bg-primary/15 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 -left-16 size-80 rounded-full bg-primary/10 blur-3xl" />
-        <svg
-          className="pointer-events-none absolute left-0 top-0 hidden h-full w-24 -translate-x-1/2 lg:block"
-          viewBox="0 0 100 800"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="login-divider-gradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--sidebar-primary)" />
-              <stop offset="100%" stopColor="var(--primary)" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M100,0 C60,100 95,220 65,320 C35,420 95,520 65,620 C40,700 90,760 100,800 L0,800 L0,0 Z"
-            fill="url(#login-divider-gradient)"
-            opacity="0.12"
-          />
-        </svg>
 
-        <div className="relative z-10 flex w-full max-w-md flex-col gap-6">
-          <div className="space-y-1.5">
-            <h2 className="text-2xl font-semibold tracking-tight">Sign in to NovaHR</h2>
-            <p className="text-sm text-muted-foreground">
-              Pick a role to preview the product as that person. We&apos;ll fill in their demo
-              email and password for you. Then just hit{" "}
-              <span className="font-medium text-foreground">Sign in</span>.
+        <div className="w-full max-w-sm">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Sign in to your NovaHR account
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            {demoUsers.map((persona) => {
-              const Icon = ROLE_ICONS[persona.role];
-              const selected = persona.id === selectedId;
-              return (
-                <button
-                  key={persona.id}
-                  type="button"
-                  onClick={() => selectPersona(persona.id)}
-                  aria-pressed={selected}
-                  className={cn(
-                    "flex flex-col gap-2 rounded-xl border p-3 text-left transition-colors",
-                    selected
-                      ? "border-primary bg-primary/[0.04] ring-1 ring-primary/30"
-                      : "border-border/70 hover:border-primary/30 hover:bg-muted/40"
-                  )}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Avatar size="sm">
-                      <AvatarFallback
-                        className="text-white"
-                        style={{ backgroundColor: persona.avatarColor }}
-                      >
-                        {persona.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex min-w-0 flex-col">
-                      <span className="truncate text-sm font-medium">{persona.name}</span>
-                      <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-                        <Icon className="size-3" />
-                        {ROLE_LABELS[persona.role]}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-xs leading-snug text-muted-foreground">
-                    {ROLE_BLURBS[persona.role]}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
+          {error && (
+            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
+                Email
+              </Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  setError("");
-                }}
+                onChange={(e) => { setEmail(e.target.value); setError(""); }}
                 autoComplete="email"
+                className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary"
               />
             </div>
+
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  href="/forgot-password"
-                  className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">
+                Password
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError("");
-                  }}
+                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   autoComplete="current-password"
-                  className="pr-10"
+                  className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary pr-10"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword((value) => !value)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
-
-            <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-              {submitting
-                ? "Signing in..."
-                : `Sign in as ${demoUsers.find((u) => u.id === selectedId)?.name.split(" ")[0]}`}
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium mt-2"
+            >
+              {submitting && <Loader2 size={16} className="animate-spin mr-2" />}
+              {submitting ? "Signing in..." : `Sign in as ${demoUsers.find((u) => u.id === selectedId)?.name.split(" ")[0] ?? "Demo"}`}
             </Button>
           </form>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Demo personas above use sample data. Sign out anytime from the sidebar to switch
-            roles.
-          </p>
-
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="mt-5 text-center text-sm text-muted-foreground">
             New to NovaHR?{" "}
-            <Link href="/signup" className="font-medium text-foreground underline-offset-4 hover:underline">
+            <Link href="/signup" className="text-primary hover:opacity-80 font-medium transition-opacity">
               Create your company
             </Link>
           </p>
+
+          {/* Demo personas */}
+          <div className="mt-6 rounded-xl border border-border bg-card p-4">
+            <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
+              Demo accounts
+            </p>
+            <div className="space-y-2">
+              {demoUsers.map((persona) => {
+                const Icon = ROLE_ICONS[persona.role];
+                const selected = persona.id === selectedId;
+                return (
+                  <button
+                    key={persona.id}
+                    type="button"
+                    onClick={() => selectPersona(persona.id)}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left transition-colors",
+                      selected
+                        ? "border-primary/30 bg-primary/5"
+                        : "border-border bg-muted/20 hover:border-primary/30 hover:bg-muted/30"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5 shrink-0">
+                        <AvatarFallback
+                          className="text-[9px] text-white font-semibold"
+                          style={{ backgroundColor: persona.avatarColor }}
+                        >
+                          {persona.initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-xs text-muted-foreground">{persona.name}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground/60">
+                      <Icon size={11} />
+                      <span>{ROLE_LABELS[persona.role]}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-center text-[10px] text-muted-foreground/50">Click a row to prefill</p>
+          </div>
         </div>
       </div>
     </div>
