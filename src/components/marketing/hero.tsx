@@ -11,8 +11,14 @@ const MOCK_ACTIVITY = [
 
 export function Hero() {
   return (
-    <section className="py-24 text-center lg:py-32">
-      <div className="mx-auto flex max-w-3xl flex-col items-center gap-6">
+    <section className="relative overflow-hidden py-24 text-center lg:py-32">
+      {/* Background glows */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div className="absolute left-1/2 top-1/4 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute left-1/4 top-1/2 h-[300px] w-[300px] rounded-full bg-primary/5 blur-[80px]" />
+        <div className="absolute right-1/4 top-1/3 h-[250px] w-[250px] rounded-full bg-primary/8 blur-[100px]" />
+      </div>
+      <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-6">
         <Badge variant="secondary" className="text-xs px-3 py-1 h-auto">
           South African HR &amp; Payroll Platform
         </Badge>
@@ -111,3 +117,4 @@ export function Hero() {
     </section>
   );
 }
+

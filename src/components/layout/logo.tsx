@@ -18,7 +18,7 @@ export function LogoIcon({
 }) {
   return (
     <span className={cn("inline-flex shrink-0", className)}>
-      <Image src="/logo-icon.png" width={size} height={size} alt="NovaHR" priority />
+      <Image src="/logo-icon.png" width={size} height={size} alt="NovaHR" priority className="rounded-md bg-black dark:bg-transparent" />
     </span>
   );
 }
@@ -31,7 +31,7 @@ export function Logo({ height = 24, className, forceDark: _ }: LogoProps) {
       className={cn("inline-flex shrink-0 items-center gap-2", className)}
       aria-label="NovaHR"
     >
-      <Image src="/logo-icon.png" width={iconSize} height={iconSize} alt="" aria-hidden priority />
+      <Image src="/logo-icon.png" width={iconSize} height={iconSize} alt="" aria-hidden priority className="rounded-md bg-black dark:bg-transparent" />
       <span
         className="font-semibold tracking-tight"
         style={{ fontSize: `${fontSize}px`, lineHeight: 1 }}
