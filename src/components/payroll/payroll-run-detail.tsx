@@ -90,7 +90,8 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
           <CardTitle>Payslips ({payslips.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto rounded-xl border border-border">
+          <Table className="min-w-[560px] w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Employee</TableHead>
@@ -148,6 +149,7 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
               })}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 

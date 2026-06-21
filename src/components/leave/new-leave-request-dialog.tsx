@@ -160,7 +160,7 @@ export function NewLeaveRequestDialog() {
       }}
     >
       <DialogTrigger asChild>
-        <Button>
+        <Button className="w-full sm:w-auto">
           <Plus />
           Request leave
         </Button>

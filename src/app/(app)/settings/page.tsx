@@ -23,13 +23,15 @@ export default function SettingsPage() {
         description="Manage your company profile, payroll configuration and leave policies."
       />
       <Tabs defaultValue="company" key={tenant.id}>
-        <TabsList>
-          <TabsTrigger value="company">Company</TabsTrigger>
-          <TabsTrigger value="payroll">Payroll</TabsTrigger>
-          <TabsTrigger value="leave">Leave policies</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="appearance">Appearance</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="inline-flex min-w-max w-full">
+            <TabsTrigger value="company">Company</TabsTrigger>
+            <TabsTrigger value="payroll">Payroll</TabsTrigger>
+            <TabsTrigger value="leave">Leave policies</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="company" className="mt-4">
           <CompanySettings />
         </TabsContent>

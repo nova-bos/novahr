@@ -82,7 +82,8 @@ export function MyPayslips() {
               <p className="text-sm text-muted-foreground">No payslips have been published yet.</p>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto rounded-xl border border-border">
+            <Table className="min-w-[520px] w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Period</TableHead>
@@ -122,6 +123,7 @@ export function MyPayslips() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

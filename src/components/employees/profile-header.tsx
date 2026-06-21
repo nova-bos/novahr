@@ -89,7 +89,7 @@ export function ProfileHeader({
           </div>
         </div>
         {canEdit && (
-          <Button onClick={onEdit} variant="outline" className="shrink-0">
+          <Button onClick={onEdit} variant="outline" className="w-full sm:w-auto sm:shrink-0">
             <Pencil />
             Edit profile
           </Button>

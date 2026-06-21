@@ -92,7 +92,8 @@ export function LeaveReport() {
           <CardTitle>Leave balance utilization</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto rounded-xl border border-border">
+          <Table className="min-w-[560px] w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Leave type</TableHead>
@@ -127,6 +128,7 @@ export function LeaveReport() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

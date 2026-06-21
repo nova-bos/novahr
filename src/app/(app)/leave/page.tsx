@@ -39,11 +39,13 @@ export default function LeavePage() {
       </PageHeader>
       <LeaveStats />
       <Tabs defaultValue="requests">
-        <TabsList>
-          <TabsTrigger value="requests">Requests</TabsTrigger>
-          <TabsTrigger value="balances">Balances</TabsTrigger>
-          <TabsTrigger value="policies">Policies</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <TabsList className="inline-flex min-w-max w-full">
+            <TabsTrigger value="requests">Requests</TabsTrigger>
+            <TabsTrigger value="balances">Balances</TabsTrigger>
+            <TabsTrigger value="policies">Policies</TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="requests" className="mt-4">
           <LeaveRequestsTable />
         </TabsContent>
