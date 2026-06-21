@@ -17,6 +17,13 @@ export interface NavItem {
   icon: LucideIcon;
 }
 
+export function getMobileNavItems(user: AppUser | null): NavItem[] {
+  const items = getNavItems(user);
+  if (items.length <= 5) return items;
+  // HR has 7 items: cap to Dashboard, Employees, Payroll, Leave, Settings
+  return [items[0], items[1], items[2], items[3], items[6]];
+}
+
 export function getNavItems(user: AppUser | null): NavItem[] {
   if (!user) return [];
 

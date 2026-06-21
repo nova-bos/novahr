@@ -121,7 +121,8 @@ export function LeaveRequestsTable() {
             </div>
           </div>
         ) : (
-          <Table>
+          <div className="overflow-x-auto rounded-xl border border-border">
+          <Table className="min-w-[700px] w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Employee</TableHead>
@@ -237,6 +238,7 @@ export function LeaveRequestsTable() {
               })}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>

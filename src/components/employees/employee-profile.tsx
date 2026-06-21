@@ -21,14 +21,16 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <Tabs defaultValue="overview">
-            <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="compensation">Compensation</TabsTrigger>
-              <TabsTrigger value="leave">Leave</TabsTrigger>
-              {employee.onboarding ? (
-                <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
-              ) : null}
-            </TabsList>
+            <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+              <TabsList className="inline-flex min-w-max w-full">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="compensation">Compensation</TabsTrigger>
+                <TabsTrigger value="leave">Leave</TabsTrigger>
+                {employee.onboarding ? (
+                  <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
+                ) : null}
+              </TabsList>
+            </div>
 
             <TabsContent value="overview" className="mt-4">
               <ProfileOverview employee={employee} />

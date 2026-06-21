@@ -78,7 +78,8 @@ export function PayrollReport() {
               <p className="text-sm text-muted-foreground">No payroll runs yet.</p>
             </div>
           ) : (
-            <Table>
+            <div className="overflow-x-auto rounded-xl border border-border">
+            <Table className="min-w-[760px] w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Period</TableHead>
@@ -124,6 +125,7 @@ export function PayrollReport() {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

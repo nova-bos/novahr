@@ -22,7 +22,7 @@ export function EmployeeStats() {
   ];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
         <Card key={stat.label}>
           <CardContent className="flex items-center gap-3">

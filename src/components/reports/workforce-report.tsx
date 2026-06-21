@@ -95,7 +95,8 @@ export function WorkforceReport() {
           <CardTitle>Department cost summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto rounded-xl border border-border">
+          <Table className="min-w-[600px] w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Department</TableHead>
@@ -136,6 +137,7 @@ export function WorkforceReport() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

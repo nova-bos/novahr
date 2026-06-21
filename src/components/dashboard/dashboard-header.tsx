@@ -19,7 +19,7 @@ export function DashboardHeader({ subtitle }: { subtitle?: string }) {
   return (
     <div className="flex flex-col gap-1">
       <h2 className="text-2xl font-semibold tracking-tight">
-        {getGreeting()}, {firstName}
+        {getGreeting()}, <span className="text-primary">{firstName}</span>
       </h2>
       <p className="text-sm text-muted-foreground">
         {subtitle ??

@@ -30,7 +30,8 @@ export function LeaveBalancesTable() {
   return (
     <Card>
       <CardContent>
-        <Table>
+        <div className="overflow-x-auto rounded-xl border border-border">
+        <Table className="min-w-[600px] w-full">
           <TableHeader>
             <TableRow>
               <TableHead>Employee</TableHead>
@@ -94,6 +95,7 @@ export function LeaveBalancesTable() {
             ))}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

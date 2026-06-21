@@ -74,9 +74,9 @@ export function EmployeeDirectory() {
               className="pl-8"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-1 gap-2 sm:flex-none">
             <Select value={department} onValueChange={setDepartment}>
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="flex-1 sm:w-44 sm:flex-none">
                 <SelectValue placeholder="Department" />
               </SelectTrigger>
               <SelectContent>
@@ -89,7 +89,7 @@ export function EmployeeDirectory() {
               </SelectContent>
             </Select>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -116,7 +116,8 @@ export function EmployeeDirectory() {
             </div>
           </div>
         ) : (
-          <Table>
+          <div className="overflow-x-auto rounded-xl border border-border">
+          <Table className="min-w-[700px] w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Employee</TableHead>
@@ -193,6 +194,7 @@ export function EmployeeDirectory() {
               ))}
             </TableBody>
           </Table>
+          </div>
         )}
       </CardContent>
     </Card>

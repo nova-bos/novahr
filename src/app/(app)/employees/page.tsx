@@ -43,7 +43,7 @@ export default function EmployeesPage() {
     <div className="flex flex-col gap-6">
       <PageHeader title={copy.title} description={copy.description}>
         {user.role === "hr" && (
-          <Button asChild>
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/employees/new">
               <UserPlus />
               Add employee
