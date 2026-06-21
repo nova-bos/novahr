@@ -165,13 +165,13 @@ export function NewLeaveRequestDialog() {
           Request leave
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
+      <DialogContent className="flex flex-col gap-0 p-0 sm:max-w-md max-h-[85svh]">
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+          <DialogHeader className="shrink-0 border-b px-6 py-4">
             <DialogTitle>Request leave</DialogTitle>
           </DialogHeader>
 
-          <div className="mt-4 flex flex-col gap-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="employee">Employee</Label>
               <Select value={employeeId} onValueChange={setEmployeeId} disabled={lockToSelf}>
@@ -293,7 +293,7 @@ export function NewLeaveRequestDialog() {
             />
           </div>
 
-          <DialogFooter className="mt-4">
+          <DialogFooter className="shrink-0 border-t px-6 py-4">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
