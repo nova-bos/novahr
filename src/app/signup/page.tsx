@@ -3,14 +3,21 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2, Users, ShieldCheck, CalendarRange } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AuthShell } from "@/components/auth/auth-shell";
+import { Logo } from "@/components/layout/logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { createCompanyAccount } from "./actions";
+
+const HIGHLIGHTS = [
+  { icon: Users, text: "Add your whole team in one go" },
+  { icon: ShieldCheck, text: "POPIA-ready and South African payroll compliant" },
+  { icon: CalendarRange, text: "Leave, payslips, and payroll from one place" },
+];
 
 export default function SignupPage() {
   const router = useRouter();
@@ -60,108 +67,145 @@ export default function SignupPage() {
 
   if (checkEmail) {
     return (
-      <AuthShell
-        heading="Almost there."
-        description="We just need to confirm it's really you before your company workspace goes live."
-      >
-        <div className="space-y-1.5 text-center">
-          <h2 className="text-2xl font-semibold tracking-tight">Check your email</h2>
-          <p className="text-sm text-muted-foreground">
-            We&apos;ve sent a confirmation link to <span className="font-medium">{email}</span>.
-            Click it, then come back and sign in to set up {companyName || "your company"}.
-          </p>
+      <div className="min-h-screen flex bg-background">
+        <div className="fixed top-4 right-4 z-10"><ThemeToggle /></div>
+        <div className="hidden md:flex md:w-[45%] relative flex-col justify-between p-10 overflow-hidden bg-sidebar">
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-[100px]" />
+            <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-primary/10 blur-[80px]" />
+          </div>
+          <div className="relative"><Link href="/"><Logo height={32} /></Link></div>
+          <div className="relative">
+            <h2 className="text-2xl font-bold text-sidebar-foreground leading-snug">Almost there.</h2>
+            <p className="mt-3 text-sm text-sidebar-foreground/70 leading-relaxed max-w-xs">
+              We just need to confirm it is really you before your company workspace goes live.
+            </p>
+          </div>
+          <p className="relative text-[11px] text-sidebar-foreground/50">&copy; {new Date().getFullYear()} NovaHR. All rights reserved.</p>
         </div>
-        <Button asChild size="lg" className="w-full">
-          <Link href="/login">Go to sign in</Link>
-        </Button>
-      </AuthShell>
+        <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+          <div className="w-full max-w-sm space-y-6">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>. Click it, then sign in to set up {companyName || "your company"}.
+              </p>
+            </div>
+            <Button asChild className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium">
+              <Link href="/login">Go to sign in</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <AuthShell
-      heading="Set up your company in minutes."
-      description="Create your workspace, add your team, and run your first payroll - all from one place."
-    >
-      <div className="space-y-1.5">
-        <h2 className="text-2xl font-semibold tracking-tight">Create your company</h2>
-        <p className="text-sm text-muted-foreground">
-          You&apos;ll be the first HR administrator for your new workspace.
+    <div className="min-h-screen flex bg-background">
+      <div className="fixed top-4 right-4 z-10"><ThemeToggle /></div>
+
+      {/* Left branding panel */}
+      <div className="hidden md:flex md:w-[45%] relative flex-col justify-between p-10 overflow-hidden bg-sidebar">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-[100px]" />
+          <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-primary/10 blur-[80px]" />
+        </div>
+
+        <div className="relative">
+          <Link href="/"><Logo height={32} /></Link>
+        </div>
+
+        <div className="relative space-y-8">
+          <div>
+            <h2 className="text-2xl font-bold text-sidebar-foreground leading-snug">
+              Set up your company<br />in minutes.
+            </h2>
+            <p className="mt-3 text-sm text-sidebar-foreground/70 leading-relaxed max-w-xs">
+              Create your workspace, add your team, and run your first payroll, all from one place.
+            </p>
+          </div>
+
+          <ul className="space-y-3">
+            {HIGHLIGHTS.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-center gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                  <Icon size={14} className="text-primary" />
+                </div>
+                <span className="text-sm text-sidebar-foreground/70">{text}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <p className="relative text-[11px] text-sidebar-foreground/50">
+          &copy; {new Date().getFullYear()} NovaHR. All rights reserved.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="companyName">Company name</Label>
-          <Input
-            id="companyName"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="Acme Co"
-            autoComplete="organization"
-            required
-          />
+      {/* Right form panel */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+        <div className="mb-8 md:hidden">
+          <Link href="/"><Logo height={32} /></Link>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="yourName">Your name</Label>
-          <Input
-            id="yourName"
-            value={yourName}
-            onChange={(e) => setYourName(e.target.value)}
-            placeholder="Jane Doe"
-            autoComplete="name"
-            required
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="email">Work email</Label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            required
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="new-password"
-              className="pr-10"
-              minLength={8}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((value) => !value)}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-            </button>
+
+        <div className="w-full max-w-sm">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-foreground">Create your company</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              You will be the first HR administrator for your new workspace.
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground">At least 8 characters.</p>
+
+          {error && (
+            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="companyName" className="text-sm font-medium text-muted-foreground">Company name</Label>
+              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Acme Co" autoComplete="organization" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="yourName" className="text-sm font-medium text-muted-foreground">Your name</Label>
+              <Input id="yourName" value={yourName} onChange={(e) => setYourName(e.target.value)} placeholder="Jane Doe" autoComplete="name" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">Work email</Label>
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" autoComplete="email" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-sm font-medium text-muted-foreground">Password</Label>
+              <div className="relative">
+                <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 8 characters" autoComplete="new-password" minLength={8} required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary pr-10" />
+                <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors" aria-label={showPassword ? "Hide password" : "Show password"}>
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <Button type="submit" disabled={submitting} className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium mt-2">
+              {submitting && <Loader2 size={16} className="animate-spin mr-2" />}
+              {submitting ? "Creating your company..." : "Create your company"}
+            </Button>
+          </form>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            By signing up, you agree to our Terms of Service and Privacy Policy.
+          </p>
+
+          <p className="mt-5 text-center text-sm text-muted-foreground">
+            Already have an account?{" "}
+            <Link href="/login" className="text-primary hover:opacity-80 font-medium transition-opacity">
+              Sign in
+            </Link>
+          </p>
         </div>
-
-        {error && <p className="text-sm text-destructive">{error}</p>}
-
-        <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-          {submitting ? "Creating your company..." : "Create your company"}
-        </Button>
-      </form>
-
-      <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <Link href="/login" className="font-medium text-foreground underline-offset-4 hover:underline">
-          Sign in
-        </Link>
-      </p>
-    </AuthShell>
+      </div>
+    </div>
   );
 }
