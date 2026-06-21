@@ -10,68 +10,34 @@ interface LogoProps {
 export function LogoIcon({
   size = 32,
   className,
-  forceDark,
+  forceDark: _,
 }: {
   size?: number;
   className?: string;
   forceDark?: boolean;
 }) {
-  if (forceDark) {
-    return (
-      <span className={cn("inline-flex shrink-0", className)}>
-        <Image src="/favicon-dark.png" width={size} height={size} alt="NovaHR" priority />
-      </span>
-    );
-  }
   return (
     <span className={cn("inline-flex shrink-0", className)}>
-      <Image
-        src="/favicon-light.png"
-        width={size}
-        height={size}
-        alt="NovaHR"
-        priority
-        className="dark:hidden"
-      />
-      <Image
-        src="/favicon-dark.png"
-        width={size}
-        height={size}
-        alt="NovaHR"
-        priority
-        className="hidden dark:block"
-      />
+      <Image src="/logo-icon.png" width={size} height={size} alt="NovaHR" priority />
     </span>
   );
 }
 
-export function Logo({ height = 24, className, forceDark }: LogoProps) {
-  const width = Math.round(height * 4.2);
-  if (forceDark) {
-    return (
-      <span className={cn("inline-flex shrink-0", className)} aria-label="NovaHR">
-        <Image src="/logo-dark.png" width={width} height={height} alt="NovaHR" priority />
-      </span>
-    );
-  }
+export function Logo({ height = 24, className, forceDark: _ }: LogoProps) {
+  const iconSize = Math.round(height * 1.15);
+  const fontSize = Math.round(height * 0.72);
   return (
-    <span className={cn("inline-flex shrink-0", className)} aria-label="NovaHR">
-      <Image
-        src="/logo-light.png"
-        width={width}
-        height={height}
-        alt="NovaHR"
-        priority
-        className="dark:hidden"
-      />
-      <Image
-        src="/logo-dark.png"
-        width={width}
-        height={height}
-        alt=""
-        priority
-        className="hidden dark:block"
-      />
+    <span
+      className={cn("inline-flex shrink-0 items-center gap-2", className)}
+      aria-label="NovaHR"
+    >
+      <Image src="/logo-icon.png" width={iconSize} height={iconSize} alt="" aria-hidden priority />
+      <span
+        className="font-semibold tracking-tight"
+        style={{ fontSize: `${fontSize}px`, lineHeight: 1 }}
+      >
+        Nova<span style={{ color: "var(--primary)" }}>HR</span>
+      </span>
     </span>
   );
 }
