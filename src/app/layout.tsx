@@ -25,11 +25,8 @@ export const metadata: Metadata = {
   },
   description: "Modern HR and payroll for growing South African companies.",
   icons: {
-    icon: [
-      { url: "/favicon-light.png", media: "(prefers-color-scheme: light)", type: "image/png" },
-      { url: "/favicon-dark.png", media: "(prefers-color-scheme: dark)", type: "image/png" },
-    ],
-    apple: { url: "/favicon-light.png", type: "image/png" },
+    icon: [{ url: "/logo-icon.png", type: "image/png" }],
+    apple: { url: "/logo-icon.png", type: "image/png" },
   },
 };
 
