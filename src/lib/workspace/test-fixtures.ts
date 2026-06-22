@@ -70,6 +70,8 @@ export function makeTenantRow(overrides: Partial<PrismaTenant> = {}): PrismaTena
     payDay: 25,
     bankName: "First National Bank",
     primaryContact: "Lerato Dlamini",
+    plan: "hr_payroll",
+    trialEndsAt: null,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     updatedAt: new Date("2026-01-01T00:00:00Z"),
     ...overrides,

@@ -69,6 +69,63 @@ enum NotificationType {
   warning
 }
 
+// ============================================================
+// PAYROLL COMPLIANCE ENUMS
+// ============================================================
+
+enum TenantPlan {
+  trial
+  hr
+  hr_payroll
+}
+
+enum PayrollProfileStatus {
+  active
+  inactive
+}
+
+enum EarningCategory {
+  basic_salary
+  overtime
+  bonus
+  commission
+  travel_allowance
+  housing_allowance
+  other_allowance
+}
+
+enum DeductionCategory {
+  paye
+  uif
+  medical_aid
+  retirement_fund
+  garnishee
+  loan_repayment
+  other
+}
+
+enum ComplianceType {
+  paye_return
+  uif_return
+  sdl_return
+  emp201
+  emp501
+}
+
+enum ComplianceStatus {
+  pending
+  submitted
+  accepted
+  rejected
+}
+
+enum BankExportStatus {
+  pending
+  approved
+  exported
+  cancelled
+}
+
 model Tenant {
   id                 String       @id @default(cuid())
   name               String
@@ -86,17 +143,29 @@ model Tenant {
   payDay             Int          @default(25)
   bankName           String
   primaryContact     String
+  plan               TenantPlan   @default(trial)
+  trialEndsAt        DateTime?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
-  users         User[]
-  employees     Employee[]
-  departments   Department[]
-  leaveRequests LeaveRequest[]
-  payrollRuns   PayrollRun[]
-  payslips      Payslip[]
-  activity      ActivityItem[]
-  notifications NotificationItem[]
+  users              User[]
+  employees          Employee[]
+  departments        Department[]
+  leaveRequests      LeaveRequest[]
+  payrollRuns        PayrollRun[]
+  payslips           Payslip[]
+  activity           ActivityItem[]
+  notifications      NotificationItem[]
+
+  // Payroll compliance relations
+  payrollProfiles    PayrollProfile[]
+  payrollSettings    PayrollSettings?
+  earningTypes       EarningType[]
+  deductionTypes     DeductionType[]
+  complianceRecords  ComplianceRecord[]
+  bankExports        BankExport[]
+  payrollItems       PayrollItem[]
+  salaryHistory      EmployeeSalaryHistory[]
 }
 
 model User {
@@ -164,6 +233,11 @@ model Employee {
   leaveRequests LeaveRequest[]
   payslips      Payslip[]
   user          User?
+
+  // Payroll compliance relations
+  payrollProfile PayrollProfile?
+  salaryHistory  EmployeeSalaryHistory[]
+  payrollItems   PayrollItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -233,7 +307,8 @@ model PayrollRun {
   employeeCount   Int              @default(0)
   processedOn     DateTime?
 
-  payslips Payslip[]
+  payslips    Payslip[]
+  bankExports BankExport[]
 
   @@index([tenantId])
 }
@@ -256,6 +331,7 @@ model Payslip {
   netPay          Float
   paye            Float
   uif             Float
+  payrollItems    PayrollItem[]
 
   @@index([tenantId])
   @@index([employeeId])
@@ -285,4 +361,173 @@ model NotificationItem {
   type        NotificationType
 
   @@index([tenantId])
+}
+
+// ============================================================
+// PAYROLL COMPLIANCE MODELS
+// ============================================================
+
+model PayrollProfile {
+  id                   String               @id @default(cuid())
+  tenantId             String
+  tenant               Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId           String               @unique
+  employee             Employee             @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  status               PayrollProfileStatus @default(active)
+  taxNumber            String?
+  uifNumber            String?
+  taxDirective         String?
+  taxDirectiveAmount   Float?
+  payFrequency         PayFrequency         @default(monthly)
+  effectiveDate        DateTime             @default(now())
+  medicalAidScheme     String?
+  medicalAidNumber     String?
+  medicalAidDependants Int                  @default(0)
+  retirementFundName   String?
+  retirementFundNumber String?
+  notes                String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+
+  @@index([tenantId])
+}
+
+model EarningType {
+  id          String          @id @default(cuid())
+  tenantId    String
+  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  category    EarningCategory
+  isTaxable   Boolean         @default(true)
+  isActive    Boolean         @default(true)
+  sortOrder   Int             @default(0)
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([tenantId])
+}
+
+model DeductionType {
+  id          String            @id @default(cuid())
+  tenantId    String
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  category    DeductionCategory
+  isEmployer  Boolean           @default(false)
+  isStatutory Boolean           @default(false)
+  isActive    Boolean           @default(true)
+  sortOrder   Int               @default(0)
+  description String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([tenantId])
+}
+
+model ComplianceRecord {
+  id          String           @id @default(cuid())
+  tenantId    String
+  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  period      String
+  type        ComplianceType
+  status      ComplianceStatus @default(pending)
+  totalPaye   Float            @default(0)
+  totalUif    Float            @default(0)
+  totalSdl    Float            @default(0)
+  totalAmount Float            @default(0)
+  dueDate     DateTime?
+  submittedOn DateTime?
+  reference   String?
+  notes       String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([tenantId, period, type])
+  @@index([tenantId])
+}
+
+model BankExport {
+  id           String           @id @default(cuid())
+  tenantId     String
+  tenant       Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payrollRunId String
+  payrollRun   PayrollRun       @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  status       BankExportStatus @default(pending)
+  totalAmount  Float
+  paymentCount Int
+  bankName     String?
+  fileFormat   String           @default("csv")
+  exportedAt   DateTime?
+  approvedBy   String?
+  approvedAt   DateTime?
+  notes        String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@index([tenantId])
+}
+
+model PayrollSettings {
+  id                 String   @id @default(cuid())
+  tenantId           String   @unique
+  tenant             Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  taxYearStart       String   @default("03")
+  taxYearEnd         String   @default("02")
+  sdlEnabled         Boolean  @default(true)
+  sdlRate            Float    @default(0.01)
+  uifEnabled         Boolean  @default(true)
+  uifEmployeeRate    Float    @default(0.01)
+  uifEmployerRate    Float    @default(0.01)
+  uifCeiling         Float    @default(17712)
+  payslipCompanyName String?
+  payslipLogoUrl     String?
+  payslipAccentColor String   @default("#6366f1")
+  requireApproval    Boolean  @default(false)
+  approvalUserId     String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model PayrollItem {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payslipId   String
+  payslip     Payslip  @relation(fields: [payslipId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  itemType    String
+  category    String
+  label       String
+  isStatutory Boolean  @default(false)
+  isEmployer  Boolean  @default(false)
+  amount      Float
+  ytdAmount   Float    @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([payslipId])
+  @@index([employeeId])
+}
+
+model EmployeeSalaryHistory {
+  id                String       @id @default(cuid())
+  tenantId          String
+  tenant            Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId        String
+  employee          Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  annualGross       Float
+  payFrequency      PayFrequency
+  travelAllowance   Float?
+  housingAllowance  Float?
+  medicalAid        Float?
+  pensionContribPct Float?
+  effectiveDate     DateTime
+  changedBy         String
+  changeReason      String?
+  createdAt         DateTime     @default(now())
+
+  @@index([tenantId])
+  @@index([employeeId])
 }

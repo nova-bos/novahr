@@ -156,6 +156,8 @@ export interface Department {
   budget: number;
 }
 
+export type TenantPlan = "trial" | "hr" | "hr_payroll";
+
 export interface Tenant {
   id: string;
   name: string;
@@ -173,6 +175,102 @@ export interface Tenant {
   payDay: number;
   bankName: string;
   primaryContact: string;
+  plan: TenantPlan;
+  trialEndsAt?: string;
+}
+
+// Payroll compliance types
+
+export interface PayrollProfile {
+  id: string;
+  tenantId: string;
+  employeeId: string;
+  status: "active" | "inactive";
+  taxNumber?: string;
+  uifNumber?: string;
+  taxDirective?: string;
+  taxDirectiveAmount?: number;
+  payFrequency: PayFrequency;
+  medicalAidScheme?: string;
+  medicalAidNumber?: string;
+  medicalAidDependants: number;
+  retirementFundName?: string;
+  retirementFundNumber?: string;
+  notes?: string;
+}
+
+export interface EarningType {
+  id: string;
+  tenantId: string;
+  name: string;
+  category: string;
+  isTaxable: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  description?: string;
+}
+
+export interface DeductionType {
+  id: string;
+  tenantId: string;
+  name: string;
+  category: string;
+  isEmployer: boolean;
+  isStatutory: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  description?: string;
+}
+
+export interface ComplianceRecord {
+  id: string;
+  tenantId: string;
+  period: string;
+  type: string;
+  status: string;
+  totalPaye: number;
+  totalUif: number;
+  totalSdl: number;
+  totalAmount: number;
+  dueDate?: string;
+  submittedOn?: string;
+  reference?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BankExport {
+  id: string;
+  tenantId: string;
+  payrollRunId: string;
+  status: string;
+  totalAmount: number;
+  paymentCount: number;
+  bankName?: string;
+  fileFormat: string;
+  exportedAt?: string;
+  createdAt: string;
+}
+
+export interface PayrollSettings {
+  id: string;
+  tenantId: string;
+  taxYearStart: string;
+  taxYearEnd: string;
+  sdlEnabled: boolean;
+  sdlRate: number;
+  uifEnabled: boolean;
+  uifEmployeeRate: number;
+  uifEmployerRate: number;
+  uifCeiling: number;
+  payslipCompanyName?: string;
+  payslipLogoUrl?: string;
+  payslipAccentColor: string;
+  requireApproval: boolean;
+  approvalUserId?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ActivityItem {

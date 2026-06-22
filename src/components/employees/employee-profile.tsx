@@ -9,6 +9,7 @@ import { ProfileCompensation } from "./profile-compensation";
 import { ProfileLeave } from "./profile-leave";
 import { ProfileOnboarding } from "./profile-onboarding";
 import { ProfileSidebar } from "./profile-sidebar";
+import { PayrollProfileSection } from "./payroll-profile-section";
 import { EditEmployeeDialog } from "./edit-employee-dialog";
 
 export function EmployeeProfile({ employee }: { employee: Employee }) {
@@ -49,8 +50,9 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
           </Tabs>
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 flex flex-col gap-6">
           <ProfileSidebar employee={employee} />
+          <PayrollProfileSection employeeId={employee.id} />
         </div>
       </div>
 

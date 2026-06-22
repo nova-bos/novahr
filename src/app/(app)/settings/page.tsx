@@ -4,15 +4,18 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanySettings } from "@/components/settings/company-settings";
 import { PayrollSettings } from "@/components/settings/payroll-settings";
+import { PayrollTaxSettings } from "@/components/settings/payroll-tax-settings";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
 import { useCurrentTenant } from "@/lib/store/hooks";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
+import { usePlan } from "@/lib/plan/use-plan";
 
 export default function SettingsPage() {
   const allowed = useRoleGuard(["hr"]);
   const tenant = useCurrentTenant();
+  const { can } = usePlan();
 
   if (!allowed) return null;
 
@@ -36,7 +39,10 @@ export default function SettingsPage() {
           <CompanySettings />
         </TabsContent>
         <TabsContent value="payroll" className="mt-4">
-          <PayrollSettings />
+          <div className="flex flex-col gap-6">
+            <PayrollSettings />
+            {can("payrollSettings") ? <PayrollTaxSettings /> : null}
+          </div>
         </TabsContent>
         <TabsContent value="leave" className="mt-4">
           <LeavePolicySettings />

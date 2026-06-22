@@ -2,8 +2,10 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Banknote, Receipt, ReceiptText, Wallet } from "lucide-react";
+import { ArrowLeft, Banknote, Download, Receipt, ReceiptText, Wallet } from "lucide-react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,16 +16,39 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency, formatDateLong, getInitials } from "@/lib/format";
-import { useEmployees, usePayslipsByRun } from "@/lib/store/hooks";
+import { useEmployees, usePayslipsByRun, useTenantId } from "@/lib/store/hooks";
 import type { PayrollRun, Payslip } from "@/lib/types";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
+import { usePlan } from "@/lib/plan/use-plan";
+import { generateBankExportCsvAction } from "@/lib/bank-exports/actions";
 import { PayrollStatusBadge } from "./payroll-status-badge";
 import { PayslipDialog } from "./payslip-dialog";
 
 export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const payslips = usePayslipsByRun(run.id);
   const employees = useEmployees();
+  const tenantId = useTenantId();
+  const { can } = usePlan();
   const [selected, setSelected] = React.useState<Payslip | null>(null);
+  const [isExporting, startExportTransition] = React.useTransition();
+
+  function handleBankExport() {
+    startExportTransition(async () => {
+      const result = await generateBankExportCsvAction(tenantId, run.id);
+      if (result.error) {
+        toast.error("Export failed", { description: result.error });
+        return;
+      }
+      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.filename;
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success("Bank export downloaded", { description: result.filename });
+    });
+  }
 
   const employeeById = React.useMemo(() => {
     const map = new Map<string, (typeof employees)[number]>();
@@ -81,6 +106,18 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
             {run.processedOn ? ` · Processed ${formatDateLong(run.processedOn)}` : ""}
           </p>
         </div>
+        {can("bankExports") && run.status === "completed" ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleBankExport}
+            disabled={isExporting}
+            className="w-full sm:w-auto"
+          >
+            <Download className="mr-2 size-4" />
+            {isExporting ? "Exporting..." : "Export to Bank"}
+          </Button>
+        ) : null}
       </div>
 
       <StatCardGrid stats={stats} />

@@ -18,6 +18,7 @@ export const tenants: Tenant[] = [
     payDay: 25,
     bankName: "First National Bank",
     primaryContact: "Lerato Dlamini",
+    plan: "hr_payroll" as const,
   },
   {
     id: "apex",
@@ -36,6 +37,7 @@ export const tenants: Tenant[] = [
     payDay: 25,
     bankName: "Standard Bank",
     primaryContact: "Nomvula Khumalo",
+    plan: "hr_payroll" as const,
   },
   {
     id: "horizon",
@@ -54,6 +56,7 @@ export const tenants: Tenant[] = [
     payDay: 25,
     bankName: "Nedbank",
     primaryContact: "Sipho Mokoena",
+    plan: "hr_payroll" as const,
   },
 ];
 

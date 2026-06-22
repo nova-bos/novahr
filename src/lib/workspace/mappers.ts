@@ -59,6 +59,8 @@ export function mapTenant(row: PrismaTenant): Tenant {
     payDay: row.payDay,
     bankName: row.bankName,
     primaryContact: row.primaryContact,
+    plan: (row.plan ?? "trial") as Tenant["plan"],
+    trialEndsAt: row.trialEndsAt?.toISOString(),
   };
 }
 
