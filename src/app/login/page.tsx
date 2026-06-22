@@ -86,7 +86,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen flex bg-background overflow-x-hidden">
       {/* Theme toggle */}
       <div className="fixed top-4 right-4 z-10">
         <ThemeToggle />
@@ -133,7 +133,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right form panel */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-6 py-12">
         {/* Mobile logo */}
         <div className="mb-8 md:hidden">
           <Link href="/">
@@ -232,7 +232,7 @@ export default function LoginPage() {
                         : "border-border bg-muted/20 hover:border-primary/30 hover:bg-muted/30"
                     )}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex min-w-0 items-center gap-2">
                       <Avatar className="h-5 w-5 shrink-0">
                         <AvatarFallback
                           className="text-[9px] text-white font-semibold"
@@ -241,9 +241,9 @@ export default function LoginPage() {
                           {persona.initials}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-xs text-muted-foreground">{persona.name}</span>
+                      <span className="truncate text-xs text-muted-foreground">{persona.name}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground/60">
+                    <div className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground/60">
                       <Icon size={11} />
                       <span>{ROLE_LABELS[persona.role]}</span>
                     </div>

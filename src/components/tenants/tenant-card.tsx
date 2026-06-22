@@ -58,20 +58,20 @@ export function TenantCard({ tenant }: { tenant: Tenant }) {
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div className="grid grid-cols-3 gap-2.5">
-          <div className="rounded-xl border border-border/70 p-3 text-center">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5">
+          <div className="rounded-xl border border-border/70 p-2 sm:p-3 text-center">
             <p className="text-lg font-semibold tabular-nums">{activeEmployees.length}</p>
             <p className="text-xs text-muted-foreground">Employees</p>
           </div>
-          <div className="rounded-xl border border-border/70 p-3 text-center">
+          <div className="rounded-xl border border-border/70 p-2 sm:p-3 text-center">
             <p className="text-lg font-semibold tabular-nums">{departments.length}</p>
             <p className="text-xs text-muted-foreground">Departments</p>
           </div>
-          <div className="rounded-xl border border-border/70 p-3 text-center">
+          <div className="rounded-xl border border-border/70 p-2 sm:p-3 text-center">
             <p className="text-lg font-semibold tabular-nums">
               {formatCurrencyCompact(monthlyGross)}
             </p>
-            <p className="text-xs text-muted-foreground">Monthly payroll</p>
+            <p className="text-xs text-muted-foreground leading-tight">Monthly payroll</p>
           </div>
         </div>
         <div className="flex flex-col gap-2 text-sm text-muted-foreground">

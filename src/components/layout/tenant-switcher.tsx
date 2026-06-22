@@ -25,7 +25,7 @@ export function TenantSwitcher() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="h-9 max-w-[220px] justify-between gap-2 border-border/70 bg-background px-2.5 font-normal shadow-none"
+          className="h-9 justify-between gap-2 border-border/70 bg-background px-2 sm:max-w-[220px] sm:px-2.5 font-normal shadow-none"
         >
           <span className="flex min-w-0 items-center gap-2">
             <span
@@ -34,9 +34,9 @@ export function TenantSwitcher() {
             >
               {tenant.initials}
             </span>
-            <span className="truncate text-sm font-medium">{tenant.name}</span>
+            <span className="hidden truncate text-sm font-medium sm:inline">{tenant.name}</span>
           </span>
-          <ChevronsUpDown className="size-3.5 shrink-0 text-muted-foreground" />
+          <ChevronsUpDown className="hidden size-3.5 shrink-0 text-muted-foreground sm:block" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
