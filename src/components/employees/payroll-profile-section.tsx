@@ -49,6 +49,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
       setLoading(false);
       return;
     }
+    if (!tenantId) return;
     getPayrollProfileAction(tenantId, employeeId).then((p) => {
       setProfile(p);
       setLoading(false);

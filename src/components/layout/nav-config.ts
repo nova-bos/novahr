@@ -22,8 +22,8 @@ export interface NavItem {
 export function getMobileNavItems(user: AppUser | null): NavItem[] {
   const items = getNavItems(user);
   if (items.length <= 5) return items;
-  // HR has 9 items: cap to Dashboard, Employees, Payroll, Leave, Settings
-  return [items[0], items[1], items[2], items[5], items[8]];
+  // HR has 9 items: Dashboard(0), Employees(1), Payroll(2), Leave(4), Settings(8)
+  return [items[0], items[1], items[2], items[4], items[8]];
 }
 
 export function getNavItems(user: AppUser | null): NavItem[] {
@@ -36,8 +36,8 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "Employees", href: "/employees", icon: Users },
         { title: "Payroll", href: "/payroll", icon: Wallet },
         { title: "Compliance", href: "/compliance", icon: ShieldCheck },
-        { title: "Deductions", href: "/deductions", icon: Minus },
         { title: "Leave", href: "/leave", icon: CalendarRange },
+        { title: "Deductions", href: "/deductions", icon: Minus },
         { title: "Reports", href: "/reports", icon: BarChart3 },
         { title: "Tenants", href: "/tenants", icon: Building2 },
         { title: "Settings", href: "/settings", icon: Settings },

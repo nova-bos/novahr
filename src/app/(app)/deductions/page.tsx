@@ -48,6 +48,8 @@ import {
   updateDeductionTypeAction,
   toggleDeductionTypeAction,
   deleteDeductionTypeAction,
+  ensureDefaultEarningTypes,
+  ensureDefaultDeductionTypes,
   type EarningTypeRow,
   type DeductionTypeRow,
 } from "@/lib/deductions/actions";
@@ -342,15 +344,19 @@ export default function DeductionsPage() {
   const [, startTransition] = React.useTransition();
 
   React.useEffect(() => {
-    if (!allowed) return;
-    getEarningTypesAction(tenantId).then((rows) => {
-      setEarningTypes(rows);
-      setLoadingEarnings(false);
-    });
-    getDeductionTypesAction(tenantId).then((rows) => {
-      setDeductionTypes(rows);
-      setLoadingDeductions(false);
-    });
+    if (!allowed || !tenantId) return;
+    ensureDefaultEarningTypes(tenantId).then(() =>
+      getEarningTypesAction(tenantId).then((rows) => {
+        setEarningTypes(rows);
+        setLoadingEarnings(false);
+      })
+    );
+    ensureDefaultDeductionTypes(tenantId).then(() =>
+      getDeductionTypesAction(tenantId).then((rows) => {
+        setDeductionTypes(rows);
+        setLoadingDeductions(false);
+      })
+    );
   }, [allowed, tenantId]);
 
   function refreshEarnings() {
@@ -473,7 +479,9 @@ export default function DeductionsPage() {
                 {loadingEarnings ? (
                   <p className="text-sm text-muted-foreground">Loading...</p>
                 ) : earningTypes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No earning types configured.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No earning types found. Click Add to create your first earning type.
+                  </p>
                 ) : (
                   <div className="overflow-x-auto rounded-xl border border-border">
                     <Table className="min-w-[480px] w-full">

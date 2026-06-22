@@ -29,7 +29,9 @@ export default function SettingsPage() {
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <TabsList className="inline-flex min-w-max w-full">
             <TabsTrigger value="company">Company</TabsTrigger>
-            <TabsTrigger value="payroll">Payroll</TabsTrigger>
+            {can("payrollSettings") ? (
+              <TabsTrigger value="payroll">Payroll</TabsTrigger>
+            ) : null}
             <TabsTrigger value="leave">Leave policies</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
@@ -38,12 +40,14 @@ export default function SettingsPage() {
         <TabsContent value="company" className="mt-4">
           <CompanySettings />
         </TabsContent>
-        <TabsContent value="payroll" className="mt-4">
-          <div className="flex flex-col gap-6">
-            <PayrollSettings />
-            {can("payrollSettings") ? <PayrollTaxSettings /> : null}
-          </div>
-        </TabsContent>
+        {can("payrollSettings") ? (
+          <TabsContent value="payroll" className="mt-4">
+            <div className="flex flex-col gap-6">
+              <PayrollSettings />
+              <PayrollTaxSettings />
+            </div>
+          </TabsContent>
+        ) : null}
         <TabsContent value="leave" className="mt-4">
           <LeavePolicySettings />
         </TabsContent>

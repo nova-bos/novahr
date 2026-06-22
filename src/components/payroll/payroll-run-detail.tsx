@@ -44,7 +44,10 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
       const link = document.createElement("a");
       link.href = url;
       link.download = result.filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       URL.revokeObjectURL(url);
       toast.success("Bank export downloaded", { description: result.filename });
     });

@@ -16,7 +16,7 @@ function DefaultUpgradePrompt() {
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
         <Lock size={20} className="text-primary" />
       </div>
-      <h3 className="text-base font-semibold text-foreground">Payroll feature</h3>
+      <h3 className="text-base font-semibold text-foreground">Plan upgrade required</h3>
       <p className="mt-1.5 text-sm text-muted-foreground max-w-xs">
         This feature is included in the HR and Payroll plan. Upgrade to unlock payroll runs, compliance tracking, and more.
       </p>

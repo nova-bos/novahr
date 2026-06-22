@@ -18,7 +18,6 @@ interface OverviewCardProps {
 
 function OverviewCard({ title, record, period, onSubmitted }: OverviewCardProps) {
   const [loading, setLoading] = useState(false);
-  const [inputRef, setInputRef] = useState("");
 
   async function handleMarkSubmitted() {
     if (!record) return;
@@ -30,7 +29,6 @@ function OverviewCard({ title, record, period, onSubmitted }: OverviewCardProps)
       onSubmitted(updated);
     } finally {
       setLoading(false);
-      setInputRef("");
     }
   }
 
