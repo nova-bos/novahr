@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanySettings } from "@/components/settings/company-settings";
 import { PayrollSettings } from "@/components/settings/payroll-settings";
 import { PayrollTaxSettings } from "@/components/settings/payroll-tax-settings";
+import { NetcashSettings } from "@/components/settings/netcash-settings";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
@@ -45,6 +46,7 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-6">
               <PayrollSettings />
               <PayrollTaxSettings />
+              <NetcashSettings />
             </div>
           </TabsContent>
         ) : null}

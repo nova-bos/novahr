@@ -1,21 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { getPayrollConfig, payrollConfigs } from "./payroll";
+import { getPayrollConfig } from "./payroll";
 
 describe("getPayrollConfig", () => {
-  it("returns the configured payroll config for a known tenant", () => {
-    expect(getPayrollConfig("novatech")).toBe(payrollConfigs.find((c) => c.tenantId === "novatech"));
+  it("returns defaults with empty reference numbers for any tenant", () => {
+    const config = getPayrollConfig("any-tenant");
+    expect(config.payeReferenceNumber).toBe("");
+    expect(config.uifReferenceNumber).toBe("");
+    expect(config.sdlReferenceNumber).toBe("");
+    expect(config.taxYear).toBe("2026/2027");
+    expect(config.uifEnabled).toBe(true);
+    expect(config.sdlEnabled).toBe(true);
+    expect(config.defaultPensionPct).toBe(7.5);
   });
 
-  it("falls back to sensible defaults for an unconfigured tenant", () => {
-    expect(getPayrollConfig("does-not-exist")).toEqual({
-      tenantId: "does-not-exist",
-      payeReferenceNumber: "",
-      uifReferenceNumber: "",
-      sdlReferenceNumber: "",
-      taxYear: "2026/2027",
-      uifEnabled: true,
-      sdlEnabled: true,
-      defaultPensionPct: 7.5,
-    });
+  it("includes the tenantId in the returned config", () => {
+    const config = getPayrollConfig("demo-co");
+    expect(config.tenantId).toBe("demo-co");
   });
 });

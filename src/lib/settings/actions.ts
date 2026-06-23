@@ -12,6 +12,11 @@ export interface PayrollSettingsResult {
   uifCeiling: number;
   payslipCompanyName: string | null;
   payslipLogoUrl: string | null;
+  netcashServiceKey: string | null;
+  netcashInstruction: string;
+  payeReferenceNumber: string | null;
+  uifReferenceNumber: string | null;
+  sdlReferenceNumber: string | null;
 }
 
 export async function getPayrollSettingsAction(
@@ -30,6 +35,11 @@ export async function getPayrollSettingsAction(
         uifCeiling: existing.uifCeiling,
         payslipCompanyName: existing.payslipCompanyName,
         payslipLogoUrl: existing.payslipLogoUrl,
+        netcashServiceKey: existing.netcashServiceKey,
+        netcashInstruction: existing.netcashInstruction,
+        payeReferenceNumber: existing.payeReferenceNumber,
+        uifReferenceNumber: existing.uifReferenceNumber,
+        sdlReferenceNumber: existing.sdlReferenceNumber,
       };
     }
     // Create with defaults
@@ -46,6 +56,11 @@ export async function getPayrollSettingsAction(
       uifCeiling: created.uifCeiling,
       payslipCompanyName: created.payslipCompanyName,
       payslipLogoUrl: created.payslipLogoUrl,
+      netcashServiceKey: created.netcashServiceKey,
+      netcashInstruction: created.netcashInstruction,
+      payeReferenceNumber: created.payeReferenceNumber,
+      uifReferenceNumber: created.uifReferenceNumber,
+      sdlReferenceNumber: created.sdlReferenceNumber,
     };
   });
 }
@@ -59,6 +74,49 @@ export async function updateTaxSettingsAction(
     uifEmployeeRate: number;
     uifEmployerRate: number;
     uifCeiling: number;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await runAsTenant(tenantId, async (tx) => {
+      return tx.payrollSettings.upsert({
+        where: { tenantId },
+        update: data,
+        create: { tenantId, ...data },
+      });
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
+export async function updateStatutoryReferencesAction(
+  tenantId: string,
+  data: {
+    payeReferenceNumber: string | null;
+    uifReferenceNumber: string | null;
+    sdlReferenceNumber: string | null;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await runAsTenant(tenantId, async (tx) => {
+      return tx.payrollSettings.upsert({
+        where: { tenantId },
+        update: data,
+        create: { tenantId, ...data },
+      });
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
+export async function updateNetcashSettingsAction(
+  tenantId: string,
+  data: {
+    netcashServiceKey: string | null;
+    netcashInstruction: string;
   }
 ): Promise<{ success: boolean; error?: string }> {
   try {

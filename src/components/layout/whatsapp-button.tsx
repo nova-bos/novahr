@@ -3,8 +3,7 @@
 import Link from "next/link"
 import { Phone } from "lucide-react"
 
-// TODO: replace with your support WhatsApp number (format: country code + number, no +)
-const WHATSAPP_NUMBER = "27600000000"
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? "27600000000"
 const WHATSAPP_MESSAGE = "Hi, I need help with NovaHR"
 
 export function WhatsAppButton() {

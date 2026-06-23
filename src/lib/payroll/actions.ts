@@ -14,12 +14,6 @@ import {
   toDateOnly,
 } from "../workspace/mappers";
 
-const PAYROLL_OWNER: Record<string, string> = {
-  novatech: "Werner Botha",
-  apex: "Thandiwe Mokoena",
-  horizon: "Annelie Joubert",
-};
-
 function sum<T>(items: T[], selector: (item: T) => number): number {
   return items.reduce((acc, item) => acc + selector(item), 0);
 }
@@ -120,7 +114,7 @@ export async function completePayrollRunRecord(
           tenantId: run.tenantId,
           type: "payroll_run",
           message: `processed payroll for ${formatMonthYear(run.period)}`,
-          actor: PAYROLL_OWNER[run.tenantId] ?? "Payroll Team",
+          actor: `${tenant.name} HR`,
         },
       });
 

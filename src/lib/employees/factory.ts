@@ -15,11 +15,13 @@ const AVATAR_COLORS = [
   "#14B8A6",
 ];
 
-const NUMBER_PREFIXES: Record<string, string> = {
-  novatech: "NT",
-  apex: "AF",
-  horizon: "HL",
-};
+// Derives a 2-3 char uppercase prefix from a company name.
+// "Nova Technologies" -> "NT", "Apex Financial Group" -> "AFG", "ACME" -> "ACM"
+export function deriveEmployeePrefix(companyName: string): string {
+  const words = companyName.trim().toUpperCase().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) return words.slice(0, 3).map((w) => w[0]).join("").slice(0, 3);
+  return (words[0] ?? "EMP").slice(0, 3);
+}
 
 const DEFAULT_LEAVE_TOTALS: Record<LeaveType, number> = {
   annual: 18,
@@ -64,8 +66,8 @@ export function newOnboardingPlan(startDate: string, buddy?: string): Onboarding
   };
 }
 
-export function createEmployee(input: NewEmployeeInput, existingCount: number): Employee {
-  const prefix = NUMBER_PREFIXES[input.tenantId] ?? input.tenantId.slice(0, 2).toUpperCase();
+export function createEmployee(input: NewEmployeeInput, existingCount: number, companyName?: string): Employee {
+  const prefix = deriveEmployeePrefix(companyName ?? input.tenantId);
   const num = existingCount + 1;
 
   return {

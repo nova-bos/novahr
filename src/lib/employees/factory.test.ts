@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createEmployee, newOnboardingPlan, type NewEmployeeInput } from "./factory";
+import { createEmployee, deriveEmployeePrefix, newOnboardingPlan, type NewEmployeeInput } from "./factory";
 import { ONBOARDING_STEPS } from "@/demo/employees";
 
 function makeInput(overrides: Partial<NewEmployeeInput> = {}): NewEmployeeInput {
@@ -20,25 +20,38 @@ function makeInput(overrides: Partial<NewEmployeeInput> = {}): NewEmployeeInput 
   };
 }
 
+describe("deriveEmployeePrefix", () => {
+  it("uses initials of multi-word company names", () => {
+    expect(deriveEmployeePrefix("Nova Technologies")).toBe("NT");
+    expect(deriveEmployeePrefix("Apex Financial Group")).toBe("AFG");
+    expect(deriveEmployeePrefix("Horizon Logistics")).toBe("HL");
+  });
+
+  it("uses first 3 chars of a single-word name", () => {
+    expect(deriveEmployeePrefix("ACME")).toBe("ACM");
+    expect(deriveEmployeePrefix("globex")).toBe("GLO");
+    expect(deriveEmployeePrefix("novatech")).toBe("NOV");
+  });
+
+  it("caps at 3 characters", () => {
+    expect(deriveEmployeePrefix("Alpha Beta Gamma Delta")).toBe("ABG");
+  });
+});
+
 describe("createEmployee", () => {
-  it("derives the employee number from the tenant's prefix and existing count", () => {
-    const employee = createEmployee(makeInput({ tenantId: "novatech" }), 0);
+  it("uses the company name prefix when provided", () => {
+    const employee = createEmployee(makeInput(), 0, "Nova Technologies");
     expect(employee.employeeNumber).toBe("NT-0001");
   });
 
-  it("uses the apex prefix for apex tenants", () => {
-    const employee = createEmployee(makeInput({ tenantId: "apex" }), 4);
-    expect(employee.employeeNumber).toBe("AF-0005");
-  });
-
-  it("uses the horizon prefix for horizon tenants", () => {
-    const employee = createEmployee(makeInput({ tenantId: "horizon" }), 9);
-    expect(employee.employeeNumber).toBe("HL-0010");
-  });
-
-  it("falls back to the first two letters of the tenant id for unknown tenants", () => {
+  it("falls back to the tenant ID for prefix when no company name given", () => {
     const employee = createEmployee(makeInput({ tenantId: "globex" }), 0);
-    expect(employee.employeeNumber).toBe("GL-0001");
+    expect(employee.employeeNumber).toBe("GLO-0001");
+  });
+
+  it("sequences numbers based on existing count", () => {
+    const employee = createEmployee(makeInput(), 4, "Apex Financial Group");
+    expect(employee.employeeNumber).toBe("AFG-0005");
   });
 
   it("sets initials and basic profile fields from the input", () => {

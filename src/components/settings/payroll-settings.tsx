@@ -20,6 +20,10 @@ import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant, usePayrollConfig } from "@/lib/store/hooks";
 import type { PayFrequency } from "@/lib/types";
 import { SettingRow } from "./setting-row";
+import {
+  getPayrollSettingsAction,
+  updateStatutoryReferencesAction,
+} from "@/lib/settings/actions";
 
 export function PayrollSettings() {
   const tenant = useCurrentTenant();
@@ -32,9 +36,10 @@ export function PayrollSettings() {
   const [defaultPensionPct, setDefaultPensionPct] = React.useState(
     config.defaultPensionPct.toString()
   );
-  const [payeReference] = React.useState(config.payeReferenceNumber);
-  const [uifReference] = React.useState(config.uifReferenceNumber);
-  const [sdlReference] = React.useState(config.sdlReferenceNumber);
+  const [payeReference, setPayeReference] = React.useState(config.payeReferenceNumber);
+  const [uifReference, setUifReference] = React.useState(config.uifReferenceNumber);
+  const [sdlReference, setSdlReference] = React.useState(config.sdlReferenceNumber);
+  const [savingRefs, setSavingRefs] = React.useState(false);
   const [uifEnabled, setUifEnabled] = React.useState<boolean>(() => {
     if (typeof window === "undefined") return config.uifEnabled;
     try {
@@ -67,6 +72,12 @@ export function PayrollSettings() {
     } catch {
       // ignore SSR or parse errors
     }
+    // Load statutory reference numbers from DB (they override the static config fallback)
+    getPayrollSettingsAction(tenant.id).then((s) => {
+      if (s.payeReferenceNumber) setPayeReference(s.payeReferenceNumber);
+      if (s.uifReferenceNumber) setUifReference(s.uifReferenceNumber);
+      if (s.sdlReferenceNumber) setSdlReference(s.sdlReferenceNumber);
+    });
   }, [tenant.id]);
 
   function handleUifChange(checked: boolean) {
@@ -92,6 +103,24 @@ export function PayrollSettings() {
       } catch {
         // ignore
       }
+    }
+  }
+
+  async function handleSaveRefs() {
+    setSavingRefs(true);
+    try {
+      const result = await updateStatutoryReferencesAction(tenant.id, {
+        payeReferenceNumber: payeReference || null,
+        uifReferenceNumber: uifReference || null,
+        sdlReferenceNumber: sdlReference || null,
+      });
+      if (!result.success) {
+        toast.error("Could not save reference numbers", { description: result.error });
+        return;
+      }
+      toast.success("Reference numbers saved");
+    } finally {
+      setSavingRefs(false);
     }
   }
 
@@ -197,7 +226,9 @@ export function PayrollSettings() {
               <Input
                 id="payeReference"
                 value={payeReference}
-                disabled
+                onChange={(e) => setPayeReference(e.target.value)}
+                placeholder="e.g. 7480123456"
+                disabled={savingRefs}
               />
             </div>
             <div className="space-y-1.5">
@@ -205,7 +236,9 @@ export function PayrollSettings() {
               <Input
                 id="uifReference"
                 value={uifReference}
-                disabled
+                onChange={(e) => setUifReference(e.target.value)}
+                placeholder="e.g. U123456789"
+                disabled={savingRefs}
               />
             </div>
             <div className="space-y-1.5">
@@ -213,13 +246,20 @@ export function PayrollSettings() {
               <Input
                 id="sdlReference"
                 value={sdlReference}
-                disabled
+                onChange={(e) => setSdlReference(e.target.value)}
+                placeholder="e.g. L123456789"
+                disabled={savingRefs}
               />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="taxYear">Tax year</Label>
               <Input id="taxYear" value={config.taxYear} disabled />
             </div>
+          </div>
+          <div className="flex justify-end mt-4">
+            <Button type="button" variant="outline" size="sm" onClick={handleSaveRefs} disabled={savingRefs}>
+              {savingRefs ? "Saving..." : "Save reference numbers"}
+            </Button>
           </div>
           <Separator className="my-5" />
           <div className="divide-y divide-border/70">
@@ -236,9 +276,6 @@ export function PayrollSettings() {
               onCheckedChange={handleSdlChange}
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Reference numbers are stored for display. PAYE, UIF and SDL submissions are not yet automated.
-          </p>
         </CardContent>
       </Card>
     </form>

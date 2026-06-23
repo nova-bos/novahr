@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Banknote, Download, Receipt, ReceiptText, Wallet } from "lucide-react";
+import { ArrowLeft, Banknote, Download, Receipt, ReceiptText, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import { useEmployees, usePayslipsByRun, useTenantId } from "@/lib/store/hooks";
 import type { PayrollRun, Payslip } from "@/lib/types";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import { usePlan } from "@/lib/plan/use-plan";
-import { generateBankExportCsvAction } from "@/lib/bank-exports/actions";
+import { generateBankExportCsvAction, generateNetcashNifAction, submitNetcashBatchAction } from "@/lib/bank-exports/actions";
 import { PayrollStatusBadge } from "./payroll-status-badge";
 import { PayslipDialog } from "./payslip-dialog";
 
@@ -31,6 +31,8 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const { can } = usePlan();
   const [selected, setSelected] = React.useState<Payslip | null>(null);
   const [isExporting, startExportTransition] = React.useTransition();
+  const [isNifExporting, startNifExportTransition] = React.useTransition();
+  const [isSubmitting, startSubmitTransition] = React.useTransition();
 
   function handleBankExport() {
     startExportTransition(async () => {
@@ -50,6 +52,40 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       toast.success("Bank export downloaded", { description: result.filename });
+    });
+  }
+
+  function handleNifExport() {
+    startNifExportTransition(async () => {
+      const result = await generateNetcashNifAction(tenantId, run.id);
+      if (result.error) {
+        toast.error("NIF export failed", { description: result.error });
+        return;
+      }
+      const blob = new Blob([result.nif], { type: "text/plain;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Netcash NIF downloaded", { description: result.filename });
+    });
+  }
+
+  function handleNetcashSubmit() {
+    startSubmitTransition(async () => {
+      const result = await submitNetcashBatchAction(tenantId, run.id);
+      if (result.error) {
+        toast.error("Netcash submission failed", { description: result.error });
+        return;
+      }
+      toast.success("Batch submitted to Netcash", {
+        description: `File token: ${result.token}. You will receive a load report by email.`,
+      });
     });
   }
 
@@ -110,16 +146,38 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
           </p>
         </div>
         {can("bankExports") && run.status === "completed" ? (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleBankExport}
-            disabled={isExporting}
-            className="w-full sm:w-auto"
-          >
-            <Download className="mr-2 size-4" />
-            {isExporting ? "Exporting..." : "Export to Bank"}
-          </Button>
+          <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBankExport}
+              disabled={isExporting}
+              className="flex-1 sm:flex-none"
+            >
+              <Download className="mr-2 size-4" />
+              {isExporting ? "Exporting..." : "Export CSV"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNifExport}
+              disabled={isNifExporting}
+              className="flex-1 sm:flex-none"
+            >
+              <Download className="mr-2 size-4" />
+              {isNifExporting ? "Generating..." : "Download Netcash NIF"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNetcashSubmit}
+              disabled={isSubmitting}
+              className="flex-1 sm:flex-none"
+            >
+              <Send className="mr-2 size-4" />
+              {isSubmitting ? "Submitting..." : "Submit to Netcash"}
+            </Button>
+          </div>
         ) : null}
       </div>
 

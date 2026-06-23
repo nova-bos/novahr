@@ -69,9 +69,11 @@ export function TenantSwitcher() {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 text-muted-foreground" disabled>
-          <Building2 className="size-4" />
-          Manage workspaces
+        <DropdownMenuItem asChild className="gap-2 text-muted-foreground">
+          <a href="/settings">
+            <Building2 className="size-4" />
+            Workspace settings
+          </a>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

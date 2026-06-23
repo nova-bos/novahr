@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { useApp } from "./app-provider";
-import { tenants } from "@/demo/tenants";
 import { leavePolicies } from "@/lib/config/leave";
 import { getPayrollConfig } from "@/lib/config/payroll";
 import type {
@@ -32,7 +31,11 @@ export function useCurrentTenant(): Tenant {
 }
 
 export function useTenants(): Tenant[] {
-  return tenants;
+  const { state } = useApp();
+  return React.useMemo(
+    () => (state.currentTenant ? [state.currentTenant] : []),
+    [state.currentTenant]
+  );
 }
 
 export function useEmployees(): Employee[] {

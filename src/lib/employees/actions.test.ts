@@ -3,7 +3,8 @@ import { makeEmployee, makeEmployeeRow } from "../workspace/test-fixtures";
 
 const mockPrisma = vi.hoisted(() => {
   const tx = {
-    employee: { create: vi.fn(), update: vi.fn(), findUniqueOrThrow: vi.fn() },
+    tenant: { findUniqueOrThrow: vi.fn().mockResolvedValue({ name: "NovaTech Solutions" }) },
+    employee: { create: vi.fn(), update: vi.fn(), findUniqueOrThrow: vi.fn(), count: vi.fn().mockResolvedValue(0) },
     activityItem: { create: vi.fn() },
     notificationItem: { create: vi.fn() },
   };

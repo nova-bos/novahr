@@ -4,6 +4,7 @@ import type { Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
 import type { ActivityItem, Employee, NotificationItem, Onboarding } from "@/lib/types";
 import { mapActivityItem, mapEmployee, mapNotificationItem } from "../workspace/mappers";
+import { deriveEmployeePrefix } from "./factory";
 
 export async function createEmployeeRecord(
   employee: Employee
@@ -11,10 +12,20 @@ export async function createEmployeeRecord(
   const isOnboarding = employee.status === "probation";
 
   return runAsTenant(employee.tenantId, async (tx) => {
+    // Generate employee number server-side using the real company name so
+    // new tenants get a meaningful prefix (e.g. "NT-0001") instead of a
+    // CUID fragment.
+    const [tenant, existingCount] = await Promise.all([
+      tx.tenant.findUniqueOrThrow({ where: { id: employee.tenantId }, select: { name: true } }),
+      tx.employee.count({ where: { tenantId: employee.tenantId } }),
+    ]);
+    const prefix = deriveEmployeePrefix(tenant.name);
+    const employeeNumber = `${prefix}-${String(existingCount + 1).padStart(4, "0")}`;
+
     const created = await tx.employee.create({
       data: {
         tenantId: employee.tenantId,
-        employeeNumber: employee.employeeNumber,
+        employeeNumber,
         firstName: employee.firstName,
         lastName: employee.lastName,
         preferredName: employee.preferredName,

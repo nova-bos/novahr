@@ -97,7 +97,15 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function PayslipDocument({ employee, payslip }: { employee: Employee; payslip: Payslip }) {
+export function PayslipDocument({
+  employee,
+  payslip,
+  companyName,
+}: {
+  employee: Employee;
+  payslip: Payslip;
+  companyName?: string;
+}) {
   const period = formatMonthYear(payslip.period);
   const payDate = formatDate(payslip.payDate);
 
@@ -107,7 +115,7 @@ export function PayslipDocument({ employee, payslip }: { employee: Employee; pay
         {/* Header */}
         <View style={s.header}>
           <View>
-            <Text style={s.brand}>NovaHR</Text>
+            <Text style={s.brand}>{companyName ?? "NovaHR"}</Text>
             <Text style={s.brandSub}>Employee payslip</Text>
           </View>
           <View style={s.headerRight}>

@@ -16,14 +16,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatDate, getInitials } from "@/lib/format";
 import type { Employee, Payslip } from "@/lib/types";
+import { useCurrentTenant } from "@/lib/store/hooks";
 
-async function downloadPayslipPdf(employee: Employee, payslip: Payslip): Promise<void> {
+async function downloadPayslipPdf(employee: Employee, payslip: Payslip, companyName: string): Promise<void> {
   const [{ pdf }, { PayslipDocument }] = await Promise.all([
     import("@react-pdf/renderer"),
     import("@/lib/payroll/pdf"),
   ]);
   const blob = await pdf(
-    <PayslipDocument employee={employee} payslip={payslip} />
+    <PayslipDocument employee={employee} payslip={payslip} companyName={companyName} />
   ).toBlob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -46,6 +47,7 @@ export function PayslipDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const tenant = useCurrentTenant();
   const [downloading, setDownloading] = React.useState(false);
 
   if (!payslip) return null;
@@ -54,7 +56,7 @@ export function PayslipDialog({
     if (!payslip) return;
     setDownloading(true);
     try {
-      await downloadPayslipPdf(employee, payslip);
+      await downloadPayslipPdf(employee, payslip, tenant.name);
     } catch {
       toast.error("Could not generate PDF", { description: "Please try again." });
     } finally {

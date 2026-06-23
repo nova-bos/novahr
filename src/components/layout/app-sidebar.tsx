@@ -155,9 +155,11 @@ export function AppSidebar() {
                     </Link>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem disabled>
-                  <HelpCircle />
-                  Help &amp; support
+                <DropdownMenuItem asChild>
+                  <a href="mailto:hello@novahr.co.za">
+                    <HelpCircle />
+                    Help &amp; support
+                  </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
