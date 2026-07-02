@@ -19,9 +19,24 @@ const TYPE_COLORS: Record<LeaveType, string> = {
   sick: "var(--chart-2)",
   family: "var(--chart-3)",
   unpaid: "var(--chart-4)",
+  maternity: "var(--chart-5)",
+  parental: "var(--chart-1)",
+  adoption: "var(--chart-2)",
+  commissioning: "var(--chart-3)",
+  study: "var(--chart-4)",
 };
 
-const TYPES: LeaveType[] = ["annual", "sick", "family", "unpaid"];
+const TYPES: LeaveType[] = [
+  "annual",
+  "sick",
+  "family",
+  "maternity",
+  "parental",
+  "adoption",
+  "commissioning",
+  "study",
+  "unpaid",
+];
 
 export function LeaveUsageChart() {
   const requests = useLeaveRequests();

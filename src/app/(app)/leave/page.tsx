@@ -6,6 +6,7 @@ import { NewLeaveRequestDialog } from "@/components/leave/new-leave-request-dial
 import { LeaveRequestsTable } from "@/components/leave/leave-requests-table";
 import { LeaveBalancesTable } from "@/components/leave/leave-balances-table";
 import { LeavePolicies } from "@/components/leave/leave-policies";
+import { PublicHolidaysCard } from "@/components/leave/public-holidays-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth/auth-provider";
 
@@ -44,6 +45,7 @@ export default function LeavePage() {
             <TabsTrigger value="requests">Requests</TabsTrigger>
             <TabsTrigger value="balances">Balances</TabsTrigger>
             <TabsTrigger value="policies">Policies</TabsTrigger>
+            <TabsTrigger value="holidays">Public holidays</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="requests" className="mt-4">
@@ -54,6 +56,9 @@ export default function LeavePage() {
         </TabsContent>
         <TabsContent value="policies" className="mt-4">
           <LeavePolicies />
+        </TabsContent>
+        <TabsContent value="holidays" className="mt-4">
+          <PublicHolidaysCard />
         </TabsContent>
       </Tabs>
     </div>

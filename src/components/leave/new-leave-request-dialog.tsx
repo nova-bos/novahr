@@ -25,6 +25,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/client";
 import { validateLeaveRequest } from "@/lib/schemas/leave";
+import { workingDaysBetween } from "@/lib/leave/business-days";
+import {
+  CORE_LEAVE_TYPES,
+  FAMILY_LEAVE_TYPES,
+  OTHER_LEAVE_TYPES,
+  getLeavePolicy,
+} from "@/lib/config/leave";
 import { useApp } from "@/lib/store/app-provider";
 import { useTenantId } from "@/lib/store/hooks";
 import { useAuth } from "@/lib/auth/auth-provider";
@@ -34,18 +41,16 @@ import { cn } from "@/lib/utils";
 import type { LeaveType } from "@/lib/types";
 import { LeaveDocumentUpload } from "./leave-document-upload";
 
-const LEAVE_TYPES: LeaveType[] = ["annual", "sick", "family", "unpaid"];
 const LEAVE_DOC_BUCKET = "leave-documents";
+
+const LEAVE_TYPE_GROUPS: { label: string; types: LeaveType[] }[] = [
+  { label: "Standard", types: [...CORE_LEAVE_TYPES] },
+  { label: "Family and parental", types: [...FAMILY_LEAVE_TYPES] },
+  { label: "Other", types: [...OTHER_LEAVE_TYPES] },
+];
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-function daysBetween(start: string, end: string): number {
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  const diff = Math.round((endDate.getTime() - startDate.getTime()) / 86_400_000);
-  return Math.max(1, diff + 1);
 }
 
 export function NewLeaveRequestDialog() {
@@ -88,7 +93,8 @@ export function NewLeaveRequestDialog() {
 
   const selectedEmployee = employees.find((e) => e.id === employeeId);
   const balance = selectedEmployee?.leaveBalances.find((b) => b.type === type);
-  const requestedDays = daysBetween(startDate, endDate);
+  const requestedDays = workingDaysBetween(startDate, endDate);
+  const selectedPolicy = getLeavePolicy(type);
   const available = balance ? balance.total - balance.used : 0;
   const remainingAfter = available - requestedDays;
   const isOverLimit = Boolean(balance) && remainingAfter < 0;
@@ -101,6 +107,9 @@ export function NewLeaveRequestDialog() {
     event.preventDefault();
 
     const errors = validateLeaveRequest({ employeeId, type, startDate, endDate, reason });
+    if (requestedDays <= 0 && !errors.endDate) {
+      errors.endDate = "The selected dates contain no working days.";
+    }
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -127,12 +136,10 @@ export function NewLeaveRequestDialog() {
       }
 
       await addLeaveRequest({
-        tenantId,
         employeeId: employee.id,
         type,
         startDate,
         endDate,
-        days: daysBetween(startDate, endDate),
         reason: reason.trim(),
         documentUrl,
       });
@@ -198,13 +205,21 @@ export function NewLeaveRequestDialog() {
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {LEAVE_TYPES.map((leaveType) => (
-                    <SelectItem key={leaveType} value={leaveType}>
-                      {leaveTypeLabel(leaveType)}
-                    </SelectItem>
+                  {LEAVE_TYPE_GROUPS.map((group) => (
+                    <React.Fragment key={group.label}>
+                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                        {group.label}
+                      </div>
+                      {group.types.map((leaveType) => (
+                        <SelectItem key={leaveType} value={leaveType}>
+                          {leaveTypeLabel(leaveType)}
+                        </SelectItem>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">{selectedPolicy.description}</p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -268,7 +283,8 @@ export function NewLeaveRequestDialog() {
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">
-                {requestedDays} {requestedDays === 1 ? "day" : "days"} requested
+                {requestedDays} working {requestedDays === 1 ? "day" : "days"} requested
+                (weekends and public holidays excluded)
               </p>
             )}
 

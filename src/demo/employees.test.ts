@@ -12,9 +12,14 @@ describe("defaultLeaveBalances", () => {
   it("returns the standard leave totals with nothing used yet", () => {
     expect(defaultLeaveBalances()).toEqual([
       { type: "annual", total: 18, used: 0 },
-      { type: "sick", total: 10, used: 0 },
-      { type: "unpaid", total: 5, used: 0 },
+      { type: "sick", total: 30, used: 0 },
       { type: "family", total: 3, used: 0 },
+      { type: "maternity", total: 88, used: 0 },
+      { type: "parental", total: 10, used: 0 },
+      { type: "adoption", total: 50, used: 0 },
+      { type: "commissioning", total: 50, used: 0 },
+      { type: "study", total: 5, used: 0 },
+      { type: "unpaid", total: 5, used: 0 },
     ]);
   });
 });

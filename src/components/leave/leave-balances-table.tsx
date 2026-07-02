@@ -16,10 +16,14 @@ import { useScopedEmployees } from "@/lib/auth/scope";
 import { getInitials } from "@/lib/format";
 import type { LeaveType } from "@/lib/types";
 
+// Accrual-style balances shown per employee. Event-based statutory leave
+// (maternity, parental, adoption, commissioning) is tracked when requested
+// rather than as a running balance column.
 const COLUMNS: { type: LeaveType; label: string }[] = [
   { type: "annual", label: "Annual" },
   { type: "sick", label: "Sick" },
   { type: "family", label: "Family" },
+  { type: "study", label: "Study" },
   { type: "unpaid", label: "Unpaid" },
 ];
 

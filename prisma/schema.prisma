@@ -37,6 +37,11 @@ enum LeaveType {
   sick
   unpaid
   family
+  maternity
+  parental
+  adoption
+  commissioning
+  study
 }
 
 enum LeaveStatus {
@@ -126,6 +131,12 @@ enum BankExportStatus {
   cancelled
 }
 
+enum InviteStatus {
+  pending
+  accepted
+  revoked
+}
+
 model Tenant {
   id                 String       @id @default(cuid())
   name               String
@@ -166,6 +177,7 @@ model Tenant {
   bankExports        BankExport[]
   payrollItems       PayrollItem[]
   salaryHistory      EmployeeSalaryHistory[]
+  invites            Invite[]
 }
 
 model User {
@@ -514,6 +526,26 @@ model PayrollItem {
   @@index([tenantId])
   @@index([payslipId])
   @@index([employeeId])
+}
+
+model Invite {
+  id         String       @id @default(cuid())
+  tenantId   String
+  tenant     Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email      String
+  name       String
+  role       UserRole     @default(employee)
+  employeeId String?
+  // SHA-256 hash of the invite token. The raw token only ever appears in the
+  // invite email link and is never stored.
+  tokenHash  String       @unique
+  status     InviteStatus @default(pending)
+  invitedBy  String
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime     @default(now())
+
+  @@index([tenantId])
 }
 
 model EmployeeSalaryHistory {

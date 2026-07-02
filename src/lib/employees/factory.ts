@@ -1,5 +1,6 @@
 import type { Employee, EmploymentStatus, EmploymentType, LeaveBalance, LeaveType, Onboarding } from "@/lib/types";
 import { getInitials } from "@/lib/format";
+import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 import { ONBOARDING_STEPS } from "@/demo/employees";
 
 const AVATAR_COLORS = [
@@ -22,13 +23,6 @@ export function deriveEmployeePrefix(companyName: string): string {
   if (words.length >= 2) return words.slice(0, 3).map((w) => w[0]).join("").slice(0, 3);
   return (words[0] ?? "EMP").slice(0, 3);
 }
-
-const DEFAULT_LEAVE_TOTALS: Record<LeaveType, number> = {
-  annual: 18,
-  sick: 10,
-  unpaid: 5,
-  family: 3,
-};
 
 export interface NewEmployeeInput {
   tenantId: string;

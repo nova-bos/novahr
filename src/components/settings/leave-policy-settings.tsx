@@ -15,7 +15,9 @@ export function LeavePolicySettings() {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-        Leave policies shown below are your workspace defaults. Per-company customization will be available in a future update.
+        These policies follow the BCEA and current South African legislation, including the
+        Constitutional Court&apos;s Van Wyk ruling on parental leave. Statutory minimums cannot be
+        reduced; per-company customization above the minimums will be available in a future update.
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {policies.map((policy) => (

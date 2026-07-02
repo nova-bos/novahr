@@ -4,7 +4,17 @@ import type { FieldErrors } from "./employee";
 export const leaveRequestSchema = z
   .object({
     employeeId: z.string().min(1, "Please select an employee"),
-    type: z.enum(["annual", "sick", "family", "unpaid"]),
+    type: z.enum([
+      "annual",
+      "sick",
+      "family",
+      "unpaid",
+      "maternity",
+      "parental",
+      "adoption",
+      "commissioning",
+      "study",
+    ]),
     startDate: z.string().min(1, "Start date is required"),
     endDate: z.string().min(1, "End date is required"),
     reason: z.string().min(3, "Please add a reason for this request"),

@@ -7,6 +7,7 @@ import type {
   Onboarding,
 } from "@/lib/types";
 import { getInitials } from "@/lib/format";
+import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 
 export const AVATAR_COLORS = [
   "#4C6FFF",
@@ -20,13 +21,6 @@ export const AVATAR_COLORS = [
   "#6366F1",
   "#14B8A6",
 ];
-
-const DEFAULT_LEAVE_TOTALS: Record<LeaveType, number> = {
-  annual: 18,
-  sick: 10,
-  unpaid: 5,
-  family: 3,
-};
 
 export const ONBOARDING_STEPS: { id: string; label: string }[] = [
   { id: "personal-info", label: "Personal information" },

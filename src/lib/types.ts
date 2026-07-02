@@ -1,7 +1,16 @@
 export type EmploymentStatus = "active" | "on_leave" | "probation" | "terminated";
 export type EmploymentType = "full_time" | "part_time" | "contract";
 export type PayFrequency = "monthly" | "biweekly" | "weekly";
-export type LeaveType = "annual" | "sick" | "unpaid" | "family";
+export type LeaveType =
+  | "annual"
+  | "sick"
+  | "unpaid"
+  | "family"
+  | "maternity"
+  | "parental"
+  | "adoption"
+  | "commissioning"
+  | "study";
 export type LeaveStatus = "pending" | "approved" | "rejected";
 export type PayrollRunStatus = "scheduled" | "processing" | "completed";
 export type ActivityType =

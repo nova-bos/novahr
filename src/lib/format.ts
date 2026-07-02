@@ -60,7 +60,18 @@ export function employmentTypeLabel(type: "full_time" | "part_time" | "contract"
   }
 }
 
-export function leaveTypeLabel(type: "annual" | "sick" | "unpaid" | "family"): string {
+export function leaveTypeLabel(
+  type:
+    | "annual"
+    | "sick"
+    | "unpaid"
+    | "family"
+    | "maternity"
+    | "parental"
+    | "adoption"
+    | "commissioning"
+    | "study"
+): string {
   switch (type) {
     case "annual":
       return "Annual leave";
@@ -70,6 +81,16 @@ export function leaveTypeLabel(type: "annual" | "sick" | "unpaid" | "family"): s
       return "Unpaid leave";
     case "family":
       return "Family responsibility leave";
+    case "maternity":
+      return "Maternity leave";
+    case "parental":
+      return "Parental leave";
+    case "adoption":
+      return "Adoption leave";
+    case "commissioning":
+      return "Commissioning parental leave";
+    case "study":
+      return "Study leave";
   }
 }
 
