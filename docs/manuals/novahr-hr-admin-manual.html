@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaHR: HR Administrator User Manual</title>
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     COVER
+══════════════════════════════════════════════════════════════ -->
+<div class="page cover">
+  <div class="cover-logo">
+    <img src="../../public/logo-icon.png" alt="NovaHR">
+    <span>Nova<em>HR</em></span>
+  </div>
+  <h1>HR Administrator<br>User Manual</h1>
+  <p class="cover-subtitle">South African HR and Payroll Platform</p>
+  <p class="cover-subtitle">Complete guide to managing your company workspace</p>
+  <span class="cover-role-badge">HR Administrator Role</span>
+  <div class="cover-footer">
+    <p>NovaHR | Version 1.0 | July 2026 | Confidential</p>
+    <p style="margin-top:4px">novahr-five.vercel.app &nbsp;|&nbsp; mtshwenewesley@gmail.com</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+══════════════════════════════════════════════════════════════ -->
+<div class="page toc">
+  <div class="page-header"><span class="brand">NovaHR</span><span>HR Administrator Manual</span></div>
+  <div class="section-header"><h2>Table of Contents</h2></div>
+  <ol>
+    <li class="toc-section">Getting Started</li>
+    <li><span class="toc-num">1</span> What the HR Admin role can do<span class="toc-dots"></span><span class="toc-page">3</span></li>
+    <li><span class="toc-num">2</span> Creating your company account<span class="toc-dots"></span><span class="toc-page">3</span></li>
+    <li><span class="toc-num">3</span> Logging in<span class="toc-dots"></span><span class="toc-page">4</span></li>
+    <li class="toc-section">Dashboard and Navigation</li>
+    <li><span class="toc-num">4</span> Understanding your dashboard<span class="toc-dots"></span><span class="toc-page">5</span></li>
+    <li><span class="toc-num">5</span> Navigation sidebar<span class="toc-dots"></span><span class="toc-page">6</span></li>
+    <li class="toc-section">Employee Management</li>
+    <li><span class="toc-num">6</span> Viewing the employee directory<span class="toc-dots"></span><span class="toc-page">7</span></li>
+    <li><span class="toc-num">7</span> Adding a new employee<span class="toc-dots"></span><span class="toc-page">8</span></li>
+    <li><span class="toc-num">8</span> Viewing and editing an employee profile<span class="toc-dots"></span><span class="toc-page">10</span></li>
+    <li class="toc-section">Leave Management</li>
+    <li><span class="toc-num">9</span> Viewing all leave requests<span class="toc-dots"></span><span class="toc-page">11</span></li>
+    <li><span class="toc-num">10</span> Approving or rejecting a leave request<span class="toc-dots"></span><span class="toc-page">12</span></li>
+    <li><span class="toc-num">11</span> Submitting leave on behalf of an employee<span class="toc-dots"></span><span class="toc-page">12</span></li>
+    <li><span class="toc-num">12</span> Leave balances and policies<span class="toc-dots"></span><span class="toc-page">13</span></li>
+    <li><span class="toc-num">13</span> Public holidays calendar<span class="toc-dots"></span><span class="toc-page">13</span></li>
+    <li class="toc-section">Payroll</li>
+    <li><span class="toc-num">14</span> Payroll overview<span class="toc-dots"></span><span class="toc-page">14</span></li>
+    <li><span class="toc-num">15</span> Running a payroll<span class="toc-dots"></span><span class="toc-page">15</span></li>
+    <li class="toc-section">Compliance and Reports</li>
+    <li><span class="toc-num">16</span> PAYE, UIF and SDL returns<span class="toc-dots"></span><span class="toc-page">16</span></li>
+    <li><span class="toc-num">17</span> Reports and analytics<span class="toc-dots"></span><span class="toc-page">17</span></li>
+    <li class="toc-section">Workspace Settings</li>
+    <li><span class="toc-num">18</span> Company settings<span class="toc-dots"></span><span class="toc-page">18</span></li>
+    <li><span class="toc-num">19</span> Inviting users to your workspace<span class="toc-dots"></span><span class="toc-page">18</span></li>
+    <li><span class="toc-num">20</span> Managing departments<span class="toc-dots"></span><span class="toc-page">19</span></li>
+    <li><span class="toc-num">21</span> Payroll settings<span class="toc-dots"></span><span class="toc-page">19</span></li>
+    <li><span class="toc-num">22</span> Billing and plan management<span class="toc-dots"></span><span class="toc-page">20</span></li>
+  </ol>
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>July 2026</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 1: INTRODUCTION
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 1: Getting Started</span></div>
+
+  <!-- 1. Role overview -->
+  <div class="section-header">
+    <h2>1. What the HR Administrator role can do</h2>
+    <p>Full access to every feature in NovaHR</p>
+  </div>
+
+  <div class="intro-box">
+    <div class="role-badge">HR Administrator</div>
+    <h3>Your role in NovaHR</h3>
+    <p>As an HR Administrator you have unrestricted access to the entire NovaHR workspace. You are the person who set up the company account and you are responsible for onboarding staff, managing leave, running payroll, and keeping statutory returns up to date.</p>
+  </div>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h4>What you can do</h4>
+      <ul>
+        <li>Add, edit, and terminate employees</li>
+        <li>Approve or reject any leave request</li>
+        <li>Run monthly payroll and issue payslips</li>
+        <li>Track PAYE, UIF, and SDL compliance</li>
+        <li>View workforce and payroll reports</li>
+        <li>Invite other users (HR, managers, employees)</li>
+        <li>Configure company, departments and payroll settings</li>
+        <li>Manage your billing plan</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>What only HR can see</h4>
+      <ul>
+        <li>All employee salaries and banking details</li>
+        <li>Full payslip history for every employee</li>
+        <li>PAYE / SDL / UIF return numbers</li>
+        <li>Company bank and Netcash credentials</li>
+        <li>Workspace user list and invite tokens</li>
+        <li>Billing plan and subscription status</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- 2. Signup -->
+  <div class="section-header">
+    <h2>2. Creating your company account</h2>
+    <p>One-time setup that takes under 2 minutes</p>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/signup/03-signup.png" alt="Signup page">
+    <span class="pin" style="top:22%;left:51%">1</span>
+    <span class="pin" style="top:44%;left:51%">2</span>
+    <span class="pin" style="top:66%;left:51%">3</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Enter your company's legal trading name</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Your name and email become the first HR Admin account</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Choose a strong password (minimum 8 characters)</div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-body"><strong>Go to novahr-five.vercel.app</strong> and click <em>Get started free</em> on the landing page, or navigate directly to <em>/signup</em>.</div></div>
+    <div class="step"><div class="step-body"><strong>Enter your company name.</strong> This is used as your workspace name and appears on payslips. You can update it later in Settings.</div></div>
+    <div class="step"><div class="step-body"><strong>Fill in your name and email address.</strong> This email becomes your login and all system notifications will be sent here.</div></div>
+    <div class="step"><div class="step-body"><strong>Set a password</strong> and click <em>Create my company</em>. You are immediately signed in and land on your empty dashboard.</div></div>
+  </div>
+
+  <div class="tip"><span class="tip-icon">💡</span><div>Your account starts a <strong>14-day free trial</strong> with access to all features including payroll. A countdown banner appears in the last 7 days. Contact <em>mtshwenewesley@gmail.com</em> to upgrade before your trial ends.</div></div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 3</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 2: LOGIN AND DASHBOARD
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 1: Getting Started</span></div>
+
+  <!-- 3. Login -->
+  <div class="section-header">
+    <h2>3. Logging in</h2>
+    <p>Returning to your workspace</p>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/signup/02-login.png" alt="Login page">
+    <span class="pin" style="top:28%;left:68%">1</span>
+    <span class="pin" style="top:38%;left:68%">2</span>
+    <span class="pin" style="top:48%;left:68%">3</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Enter your registered email address</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Enter your password</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Click <em>Sign in</em> to access your workspace</div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-body"><strong>Go to novahr-five.vercel.app</strong> and you will be taken to the login page automatically if you are not signed in.</div></div>
+    <div class="step"><div class="step-body"><strong>Enter your email and password</strong> in the form on the right side of the screen. The email is the one you used during signup.</div></div>
+    <div class="step"><div class="step-body"><strong>Click Sign in.</strong> You are taken to your HR dashboard within seconds.</div></div>
+  </div>
+
+  <div class="tip"><span class="tip-icon">🔐</span><div>Forgot your password? Click <em>Forgot password</em> below the sign-in button. You will receive an email with a reset link. The link expires after 1 hour.</div></div>
+
+  <hr>
+
+  <!-- 4. Dashboard -->
+  <div class="section-header">
+    <h2>4. Understanding your dashboard</h2>
+    <p>Your command centre for the whole company</p>
+  </div>
+
+  <div class="screen-wrap no-break">
+    <img src="../screenshots/hr/01-dashboard.png" alt="HR Admin Dashboard">
+    <span class="pin" style="top:8%;left:7%">1</span>
+    <span class="pin" style="top:15%;left:36%">2</span>
+    <span class="pin" style="top:31%;left:25%">3</span>
+    <span class="pin" style="top:31%;left:72%">4</span>
+    <span class="pin" style="top:50%;left:25%">5</span>
+    <span class="pin" style="top:50%;left:72%">6</span>
+    <span class="pin" style="top:94%;left:7%">7</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Navigation sidebar: jump to any section</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Stat cards: headcount, payroll, pending leave, next run</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Payroll trend chart: gross vs. net over 7 months</div>
+    <div class="legend-item"><span class="pin-ref">4</span> Department headcount breakdown (donut chart)</div>
+    <div class="legend-item"><span class="pin-ref">5</span> Recent activity feed: all workspace events</div>
+    <div class="legend-item"><span class="pin-ref">6</span> Upcoming payroll card: next run date and projected gross</div>
+    <div class="legend-item"><span class="pin-ref">7</span> Your profile badge: name, role, and tenant switcher</div>
+  </div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 4</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 3: NAVIGATION + EMPLOYEES
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 2: Dashboard and Navigation</span></div>
+
+  <!-- 5. Sidebar -->
+  <div class="section-header">
+    <h2>5. Navigation sidebar</h2>
+    <p>Access every feature from the left column</p>
+  </div>
+
+  <table>
+    <tr><th>Menu item</th><th>What it does</th></tr>
+    <tr><td><strong>Dashboard</strong></td><td>Your overview: stats, charts, activity, and upcoming payroll</td></tr>
+    <tr><td><strong>Employees</strong></td><td>Full employee directory, profiles, and the add-employee wizard</td></tr>
+    <tr><td><strong>Payroll</strong></td><td>Payroll runs, payslip history, bank export</td></tr>
+    <tr><td><strong>Compliance</strong></td><td>PAYE, UIF, SDL return tracking and status</td></tr>
+    <tr><td><strong>Leave</strong></td><td>All leave requests, balances, policies, and public holidays</td></tr>
+    <tr><td><strong>Deductions</strong></td><td>Earnings and deduction type catalogue</td></tr>
+    <tr><td><strong>Reports</strong></td><td>Workforce, leave, and payroll analytics</td></tr>
+    <tr><td><strong>Billing</strong></td><td>Subscription plan, pricing tiers, and employee count vs. limits</td></tr>
+    <tr><td><strong>Settings</strong></td><td>Company details, users, departments, payroll configuration</td></tr>
+  </table>
+
+  <div class="tip"><span class="tip-icon">⌨️</span><div>Press <span class="kbd">Cmd K</span> (Mac) or <span class="kbd">Ctrl K</span> (Windows) to open the command menu and jump to any page instantly by typing its name.</div></div>
+
+  <hr>
+
+  <!-- 6. Employees list -->
+  <div class="section-header">
+    <h2>6. Viewing the employee directory</h2>
+    <p>See every person in your organisation</p>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/02-employees-list.png" alt="Employee directory">
+    <span class="pin" style="top:10%;left:82%">1</span>
+    <span class="pin" style="top:18%;left:18%">2</span>
+    <span class="pin" style="top:18%;left:67%">3</span>
+    <span class="pin" style="top:18%;left:82%">4</span>
+    <span class="pin" style="top:37%;left:50%">5</span>
+    <span class="pin" style="top:90%;left:82%">6</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Add employee button (opens 4-step wizard)</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Search by name, role, or email</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Filter by department</div>
+    <div class="legend-item"><span class="pin-ref">4</span> Filter by employment status</div>
+    <div class="legend-item"><span class="pin-ref">5</span> Employee table: click any row to open their full profile</div>
+    <div class="legend-item"><span class="pin-ref">6</span> Onboarding progress bar for new starters</div>
+  </div>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h4>Status badges</h4>
+      <ul>
+        <li><span class="badge badge-green">Active</span> Currently employed</li>
+        <li><span class="badge badge-blue">On leave</span> On approved leave</li>
+        <li><span class="badge badge-orange">Onboarding</span> New starter in progress</li>
+        <li><span class="badge badge-gray">Terminated</span> No longer active</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>Column tips</h4>
+      <ul>
+        <li><strong>Annual salary</strong> is the gross CTC figure</li>
+        <li><strong>Onboarding %</strong> shows checklist completion</li>
+        <li>Click any column header to sort the table</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 5</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 4: ADD EMPLOYEE
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 3: Employee Management</span></div>
+
+  <div class="section-header">
+    <h2>7. Adding a new employee</h2>
+    <p>The 4-step onboarding wizard</p>
+  </div>
+
+  <p class="text-muted" style="margin-bottom:12px">Click <strong>Add employee</strong> in the top-right of the Employees page to open the wizard. You can save your progress at any time.</p>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/06-employee-profile.png" alt="Add employee wizard: Step 1">
+    <span class="pin" style="top:11%;left:16%">1</span>
+    <span class="pin" style="top:11%;left:38%">2</span>
+    <span class="pin" style="top:11%;left:61%">3</span>
+    <span class="pin" style="top:11%;left:84%">4</span>
+    <span class="pin" style="top:32%;left:50%">5</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Step 1: Personal details and contact info</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Step 2: Role, department, and reporting line</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Step 3: Compensation, salary, and banking</div>
+    <div class="legend-item"><span class="pin-ref">4</span> Step 4: Review everything before saving</div>
+    <div class="legend-item"><span class="pin-ref">5</span> Form fields for the current step</div>
+  </div>
+
+  <h3>Step 1: Personal details</h3>
+  <div class="steps">
+    <div class="step"><div class="step-body"><strong>First name and last name.</strong> These appear on payslips and in the directory.</div></div>
+    <div class="step"><div class="step-body"><strong>ID number.</strong> The 13-digit SA ID number. The system automatically derives the employee's date of birth from this for tax rebate calculations (primary, secondary, or tertiary rebate based on age).</div></div>
+    <div class="step"><div class="step-body"><strong>Email and phone number.</strong> The email receives all NovaHR notifications: payslips, leave decisions, and workspace invitations.</div></div>
+    <div class="step"><div class="step-body"><strong>Tax number (optional).</strong> SARS income tax reference. Required for EMP501 year-end reconciliation.</div></div>
+    <div class="step"><div class="step-body"><strong>Emergency contact.</strong> Name, relationship, and phone number for HR records.</div></div>
+  </div>
+
+  <h3>Step 2: Role and employment</h3>
+  <div class="steps">
+    <div class="step"><div class="step-body"><strong>Job title and department.</strong> The department must already exist in Settings; if you have not created it yet you can come back after.</div></div>
+    <div class="step"><div class="step-body"><strong>Employment type.</strong> Full-time, part-time, or contract. This affects how leave entitlements are applied.</div></div>
+    <div class="step"><div class="step-body"><strong>Reporting manager.</strong> Select from existing employees. The manager can then see this employee's leave requests on their own dashboard.</div></div>
+    <div class="step"><div class="step-body"><strong>Start date and location.</strong> The start date is used for service length and probation period tracking.</div></div>
+    <div class="step"><div class="step-body"><strong>NovaHR role.</strong> Choose <em>Employee</em> (self-service only), <em>Manager</em> (can see and approve their team's leave), or <em>HR Administrator</em> (full access). If you want this person to log into NovaHR, you will also need to invite them in Settings > Users.</div></div>
+  </div>
+
+  <div class="tip"><span class="tip-icon">💡</span><div>An employee does not automatically receive a login. After adding them here, go to <strong>Settings &gt; Users &gt; Invite user</strong> to send them a login invitation. See section 19 for the full invite flow.</div></div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 6</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 5: ADD EMPLOYEE CONT + PROFILE
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 3: Employee Management</span></div>
+
+  <h3>Step 3: Compensation and banking</h3>
+  <div class="steps">
+    <div class="step"><div class="step-body"><strong>Annual gross salary (CTC).</strong> This is the total cost-to-company figure. The payroll calculator works backwards from this to compute monthly gross, tax, and net.</div></div>
+    <div class="step"><div class="step-body"><strong>Travel and housing allowances.</strong> Travel allowance is taxed at 80% inclusion unless the employee has a logbook (20% inclusion). Enter any fixed monthly allowance amounts here.</div></div>
+    <div class="step"><div class="step-body"><strong>Pension contribution %.</strong> The employee's percentage of gross salary contributed to a qualifying retirement fund. Deductible under SARS section 11F up to 27.5% of income or R430,000 per year.</div></div>
+    <div class="step"><div class="step-body"><strong>Medical aid.</strong> Toggle on if the employee is a medical aid member. The number of dependants (set in their payroll profile later) determines the monthly medical aid tax credit applied to PAYE.</div></div>
+    <div class="step"><div class="step-body"><strong>Bank account details.</strong> Bank name, account number, branch code, and account type. Used for the EFT bank export and Netcash batch payment.</div></div>
+  </div>
+
+  <h3>Step 4: Review and create</h3>
+  <p class="text-sm">Check all the details you have entered. Click <strong>Create employee</strong> to save. The employee is assigned a unique employee number (for example NT-0015) automatically. Their leave balances are seeded with the default statutory entitlements for all 9 leave types.</p>
+
+  <div class="success"><span class="tip-icon">✅</span><div>Once created, the employee appears in the directory with an <strong>Onboarding</strong> status badge and a progress tracker showing which onboarding checklist items are still outstanding.</div></div>
+
+  <hr>
+
+  <!-- 8. Employee profile -->
+  <div class="section-header">
+    <h2>8. Viewing and editing an employee profile</h2>
+    <p>Full details accessible to HR admins</p>
+  </div>
+
+  <p class="text-sm" style="margin-bottom:12px">Click any employee row in the directory to open their profile page. The profile is divided into tabs covering all aspects of the employee's record.</p>
+
+  <table>
+    <tr><th>Profile tab</th><th>What is shown</th><th>Who can edit</th></tr>
+    <tr><td><strong>Personal</strong></td><td>Name, ID number, address, emergency contact</td><td>HR, employee (self)</td></tr>
+    <tr><td><strong>Job</strong></td><td>Title, department, manager, start date, employment type</td><td>HR</td></tr>
+    <tr><td><strong>Compensation</strong></td><td>Annual gross, allowances, pension %, banking details</td><td>HR only</td></tr>
+    <tr><td><strong>Leave</strong></td><td>Leave balances per type, request history</td><td>HR (balances); any approved user (requests)</td></tr>
+    <tr><td><strong>Payslips</strong></td><td>Monthly payslip history, downloadable PDFs</td><td>HR (all); employee (own)</td></tr>
+    <tr><td><strong>Onboarding</strong></td><td>Checklist with tick-box items; photo upload</td><td>HR, employee (self)</td></tr>
+  </table>
+
+  <div class="tip"><span class="tip-icon">✏️</span><div>To edit a field, click the pencil icon next to it or the <em>Edit</em> button on the relevant tab. Changes save immediately when you click <em>Save changes</em>.</div></div>
+
+  <div class="warning"><span class="tip-icon">⚠️</span><div><strong>Salary changes</strong> take effect on the next payroll run. Changing a salary mid-month after a run has started does not retroactively change that run's payslips.</div></div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 7</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 6: LEAVE MANAGEMENT
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 4: Leave Management</span></div>
+
+  <div class="section-header">
+    <h2>9. Viewing all leave requests</h2>
+    <p>One place to see every leave request in the company</p>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/07-leave-list.png" alt="Leave management page">
+    <span class="pin" style="top:6%;left:82%">1</span>
+    <span class="pin" style="top:15%;left:20%">2</span>
+    <span class="pin" style="top:15%;left:65%">3</span>
+    <span class="pin" style="top:35%;left:50%">4</span>
+    <span class="pin" style="top:35%;left:88%">5</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Request leave button: submit leave for any employee</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Filter requests by type and date range</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Switch between Requests, Balances, Policies, Public holidays tabs</div>
+    <div class="legend-item"><span class="pin-ref">4</span> Leave request list: employee, type, dates, working days, status</div>
+    <div class="legend-item"><span class="pin-ref">5</span> Approve and Reject action buttons on pending requests</div>
+  </div>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h4>Request status colours</h4>
+      <ul>
+        <li><span class="badge badge-orange">Pending</span> Awaiting a decision from HR or manager</li>
+        <li><span class="badge badge-green">Approved</span> Approved and balance decremented</li>
+        <li><span class="badge badge-gray">Rejected</span> Declined with a reason</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>SA leave types in NovaHR</h4>
+      <ul>
+        <li>Annual (18 working days/year)</li>
+        <li>Sick (30 days per 36-month cycle)</li>
+        <li>Family responsibility (3 days/year)</li>
+        <li>Maternity (4 months / 88 days)</li>
+        <li>Parental (10 days)</li>
+        <li>Adoption / Commissioning (10 weeks each)</li>
+        <li>Study and Unpaid (5 days each)</li>
+      </ul>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>10. Approving or rejecting a leave request</h2>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-body"><strong>Go to Leave</strong> in the sidebar. Pending requests appear at the top of the list with an orange badge.</div></div>
+    <div class="step"><div class="step-body"><strong>Click the green tick</strong> to approve, or the <strong>red X</strong> to reject. For rejections you will be prompted to enter a short reason which is included in the notification email to the employee.</div></div>
+    <div class="step"><div class="step-body"><strong>After approval,</strong> the employee's leave balance is automatically decremented by the number of working days in the request (weekends and public holidays are excluded from the count).</div></div>
+  </div>
+
+  <div class="tip"><span class="tip-icon">📧</span><div>The employee receives an email notification for every approval or rejection (when email is configured). The decision also appears in their NovaHR notification bell.</div></div>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>11. Submitting leave on behalf of an employee</h2>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/10-new-leave-dialog.png" alt="New leave request dialog">
+    <span class="pin" style="top:17%;left:55%">1</span>
+    <span class="pin" style="top:30%;left:55%">2</span>
+    <span class="pin" style="top:51%;left:55%">3</span>
+    <span class="pin" style="top:67%;left:55%">4</span>
+    <span class="pin" style="top:82%;left:75%">5</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Select the employee you are requesting leave for</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Choose the leave type; a policy description appears below</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Pick start and end dates; working-day count updates live</div>
+    <div class="legend-item"><span class="pin-ref">4</span> Add a reason (required); attach a document such as a medical certificate</div>
+    <div class="legend-item"><span class="pin-ref">5</span> Click Submit request; the request is immediately visible in the list</div>
+  </div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 8</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 7: LEAVE BALANCES + HOLIDAYS
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 4: Leave Management</span></div>
+
+  <div class="section-header">
+    <h2>12. Leave balances and policies</h2>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/08-leave-balances.png" alt="Leave balances tab">
+  </div>
+
+  <p class="text-sm" style="margin-top:8px">The <strong>Balances</strong> tab shows each active employee with progress bars for annual, sick, family responsibility, study, and unpaid leave. The figures show days used out of total entitlement (for example 12/18 means 12 days used of 18 total).</p>
+
+  <div class="tip"><span class="tip-icon">📋</span><div>The <strong>Policies</strong> tab shows the statutory basis for each leave type, including the relevant BCEA section. Refer to this when employees ask about their entitlements.</div></div>
+
+  <h3>Leave balance rules</h3>
+  <table>
+    <tr><th>Leave type</th><th>Entitlement</th><th>Cycle</th><th>UIF paid?</th></tr>
+    <tr><td>Annual</td><td>18 working days</td><td>Per leave year</td><td>No (employer paid)</td></tr>
+    <tr><td>Sick</td><td>30 working days</td><td>Per 36-month cycle</td><td>No (employer paid)</td></tr>
+    <tr><td>Family responsibility</td><td>3 days</td><td>Per year</td><td>No (employer paid)</td></tr>
+    <tr><td>Maternity</td><td>4 months (88 days)</td><td>Per event</td><td>Yes</td></tr>
+    <tr><td>Parental</td><td>10 consecutive days</td><td>Per birth/adoption</td><td>Yes</td></tr>
+    <tr><td>Adoption</td><td>10 weeks (50 days)</td><td>Per adoption</td><td>Yes</td></tr>
+    <tr><td>Commissioning parental</td><td>10 weeks (50 days)</td><td>Per surrogacy</td><td>Yes</td></tr>
+    <tr><td>Study</td><td>5 days</td><td>Per year</td><td>No (employer paid)</td></tr>
+    <tr><td>Unpaid</td><td>5 days</td><td>Per year</td><td>No</td></tr>
+  </table>
+
+  <div class="warning"><span class="tip-icon">⚠️</span><div><strong>Maternity, parental, adoption, and commissioning</strong> leave is funded by UIF, not the employer. Employees must apply directly to UIF. NovaHR records the leave type and balances but does not submit UIF claims on behalf of employees.</div></div>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>13. Public holidays calendar</h2>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/09-public-holidays.png" alt="Public holidays tab">
+  </div>
+
+  <p class="text-sm" style="margin-top:8px">The <strong>Public holidays</strong> tab shows all South African public holidays for 2026, 2027, and 2028. Use the year switcher at the top right to change the year.</p>
+
+  <div class="tip"><span class="tip-icon">📅</span><div>Public holidays are <strong>automatically excluded</strong> when NovaHR counts working days on leave requests. If a public holiday falls on a Sunday, the following Monday is treated as the observed holiday (for example Women's Day, 9 August 2026 falls on a Sunday and 10 August is the paid holiday).</div></div>
+
+  <div class="note"><span class="tip-icon">📌</span><div>BCEA section 18 requires that an employee who works on a public holiday must receive double their ordinary daily pay. NovaHR does not automatically calculate this because it depends on whether the employee actually works; record it as an overtime earning on the payslip.</div></div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 9</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 8: PAYROLL
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 5: Payroll</span></div>
+
+  <div class="section-header">
+    <h2>14. Payroll overview</h2>
+    <p>Monthly runs using SARS 2026/27 tax tables</p>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/11-payroll.png" alt="Payroll page">
+    <span class="pin" style="top:13%;left:25%">1</span>
+    <span class="pin" style="top:13%;left:45%">2</span>
+    <span class="pin" style="top:13%;left:65%">3</span>
+    <span class="pin" style="top:13%;left:85%">4</span>
+    <span class="pin" style="top:31%;left:82%">5</span>
+    <span class="pin" style="top:52%;left:50%">6</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Next pay date for the scheduled upcoming run</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Projected gross for this month (current roster)</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Projected net after all tax and deductions</div>
+    <div class="legend-item"><span class="pin-ref">4</span> Year-to-date total across all completed runs</div>
+    <div class="legend-item"><span class="pin-ref">5</span> Start payroll run button for the current period</div>
+    <div class="legend-item"><span class="pin-ref">6</span> Payroll history table with all past runs and their status</div>
+  </div>
+
+  <h3>What the payroll calculator does</h3>
+  <p class="text-sm">NovaHR runs all calculations server-side using SARS tax year 2026/27 (1 March 2026 to 28 February 2027) tables:</p>
+
+  <table>
+    <tr><th>Component</th><th>Calculation</th></tr>
+    <tr><td>PAYE</td><td>Seven tax brackets from 18% to 45%; rebates applied by age from SA ID number</td></tr>
+    <tr><td>Primary rebate</td><td>R17,820/year for all taxpayers</td></tr>
+    <tr><td>Secondary rebate</td><td>R9,765/year for employees 65 and older</td></tr>
+    <tr><td>Tertiary rebate</td><td>R3,249/year for employees 75 and older</td></tr>
+    <tr><td>Medical aid credit (MATC)</td><td>R376/month main member, R376 first dependant, R254 each additional</td></tr>
+    <tr><td>Pension deduction (s11F)</td><td>Lesser of 27.5% of remuneration or R430,000/year</td></tr>
+    <tr><td>Travel allowance</td><td>80% included in taxable income; 20% with logbook</td></tr>
+    <tr><td>UIF employee</td><td>1% of gross, capped at R177.12/month</td></tr>
+    <tr><td>UIF employer</td><td>1% of gross, capped at R177.12/month</td></tr>
+    <tr><td>SDL</td><td>1% employer levy; only applied when annual payroll exceeds R500,000</td></tr>
+  </table>
+
+  <div class="note"><span class="tip-icon">📌</span><div>All PAYE brackets, rebates, and UIF ceilings are based on the SARS 2026 Budget Tax Guide. Review these in <strong>Settings &gt; Payroll</strong> and update after each March National Budget.</div></div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 10</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 9: RUNNING PAYROLL
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 5: Payroll</span></div>
+
+  <div class="section-header">
+    <h2>15. Running a payroll</h2>
+    <p>Step-by-step guide to completing a monthly payroll run</p>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-body">
+      <strong>Go to Payroll in the sidebar.</strong> You will see the upcoming run card at the top showing the pay date, number of eligible employees, and projected gross. Click <strong>Start payroll run</strong>.
+    </div></div>
+    <div class="step"><div class="step-body">
+      <strong>The system pre-calculates each payslip.</strong> For each active employee it fetches their current salary, allowances, pension %, medical aid dependants, any unpaid leave days taken this month, and applies the PAYE/UIF/SDL formulas. This happens automatically.
+    </div></div>
+    <div class="step"><div class="step-body">
+      <strong>Review individual payslips.</strong> Click any employee row to view their detailed payslip. Check that gross earnings, deductions (PAYE, UIF, pension, medical aid), and net pay look correct. If a salary was recently changed, verify the figures here before finalising.
+    </div></div>
+    <div class="step"><div class="step-body">
+      <strong>Export for bank payment (optional).</strong> Click <em>Export EFT CSV</em> to download a bank-ready payments file. If your bank supports Netcash, click <em>Netcash NIF</em> to download the formatted batch file, or <em>Submit to Netcash</em> to send it directly via the API.
+    </div></div>
+    <div class="step"><div class="step-body">
+      <strong>Complete the run.</strong> Click <strong>Complete payroll run</strong>. This:
+      <ul style="margin:6px 0 0 0;padding-left:16px;font-size:12px">
+        <li>Locks the run (payslips become read-only)</li>
+        <li>Emails a payslip PDF to each employee (if email is configured)</li>
+        <li>Creates a PAYE, UIF, and SDL return record in Compliance for this period</li>
+        <li>Schedules the next run automatically (same pay date next month)</li>
+      </ul>
+    </div></div>
+  </div>
+
+  <div class="success"><span class="tip-icon">✅</span><div>After completing a run, the payslip history table on the Payroll page updates immediately. Each payslip shows the net pay, gross pay, and PAYE deducted for that period.</div></div>
+
+  <div class="warning"><span class="tip-icon">⚠️</span><div>A completed payroll run <strong>cannot be edited or deleted</strong>. If you discover an error after completing a run, make a correcting adjustment in the following month's run (record it as a deduction or bonus earning).</div></div>
+
+  <h3>Unpaid leave deductions</h3>
+  <p class="text-sm">If an employee was on unpaid leave during the month, the days are automatically deducted from their gross pay pro rata. For example, if an employee earns R20,000/month and took 2 unpaid days out of 22 working days, R1,818 is deducted from their gross before tax is calculated.</p>
+
+  <h3>Viewing and downloading a payslip</h3>
+  <div class="steps">
+    <div class="step"><div class="step-body">Go to <strong>Payroll</strong> and click any completed run in the history table.</div></div>
+    <div class="step"><div class="step-body">Click an employee's name to open their payslip for that period.</div></div>
+    <div class="step"><div class="step-body">Click <strong>Download PDF</strong> to save a branded payslip PDF. The PDF includes your company name, logo (from Settings), and all earnings and deductions itemised.</div></div>
+  </div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 11</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 10: COMPLIANCE AND REPORTS
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 6: Compliance and Reports</span></div>
+
+  <div class="section-header">
+    <h2>16. PAYE, UIF, and SDL returns</h2>
+    <p>Track your statutory filings and stay compliant</p>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/12-compliance.png" alt="Compliance page">
+    <span class="pin" style="top:16%;left:25%">1</span>
+    <span class="pin" style="top:16%;left:50%">2</span>
+    <span class="pin" style="top:16%;left:75%">3</span>
+    <span class="pin" style="top:45%;left:50%">4</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> PAYE total for the selected period</div>
+    <div class="legend-item"><span class="pin-ref">2</span> UIF employer + employee contributions for the period</div>
+    <div class="legend-item"><span class="pin-ref">3</span> SDL levy for the period</div>
+    <div class="legend-item"><span class="pin-ref">4</span> Return history table: period, status, due date, and reference number</div>
+  </div>
+
+  <p class="text-sm" style="margin-bottom:10px">After each payroll run is completed, NovaHR automatically creates return records for PAYE, UIF, and SDL with:</p>
+
+  <table>
+    <tr><th>Status</th><th>Meaning</th><th>Action required</th></tr>
+    <tr><td><span class="badge badge-orange">Pending</span></td><td>Return generated, not yet filed</td><td>File the EMP201 with SARS via eFiling; enter the reference number here</td></tr>
+    <tr><td><span class="badge badge-blue">Submitted</span></td><td>You have entered a SARS reference number</td><td>Wait for SARS to process</td></tr>
+    <tr><td><span class="badge badge-green">Accepted</span></td><td>SARS confirmed receipt</td><td>No action needed</td></tr>
+    <tr><td><span class="badge badge-gray">Rejected</span></td><td>SARS returned the filing</td><td>Correct and re-file via eFiling</td></tr>
+  </table>
+
+  <div class="note"><span class="tip-icon">📌</span><div>The EMP201 must be filed and paid to SARS by the <strong>7th of the following month</strong> (or the last business day before). NovaHR shows the due date on each return so you never miss a deadline.</div></div>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>17. Reports and analytics</h2>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/13-reports.png" alt="Reports page">
+  </div>
+
+  <p class="text-sm" style="margin-top:8px">The Reports section provides three dashboards:</p>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h4>Workforce report</h4>
+      <ul>
+        <li>Headcount trend over time</li>
+        <li>Employment type breakdown (full-time vs. part-time)</li>
+        <li>Department size comparison</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h4>Payroll report</h4>
+      <ul>
+        <li>Monthly payroll cost trend</li>
+        <li>Net vs. PAYE vs. UIF composition chart</li>
+        <li>Year-to-date totals</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-box" style="margin-top:8px">
+    <h4>Leave report</h4>
+    <ul>
+      <li>Total approved leave days by type (bar chart)</li>
+      <li>Leave usage over time</li>
+    </ul>
+  </div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 12</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 11: SETTINGS
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 7: Workspace Settings</span></div>
+
+  <div class="section-header">
+    <h2>18. Company settings</h2>
+    <p>Your company's legal and contact details</p>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/15-settings-company.png" alt="Settings: Company tab">
+  </div>
+
+  <p class="text-sm" style="margin-top:8px">Go to <strong>Settings</strong> in the sidebar and stay on the <strong>Company</strong> tab. Fill in:</p>
+
+  <table>
+    <tr><th>Field</th><th>Why it matters</th></tr>
+    <tr><td>Legal company name</td><td>Appears on payslips and official documents</td></tr>
+    <tr><td>Company registration number</td><td>CIPC registration; used on employment contracts</td></tr>
+    <tr><td>VAT number</td><td>For invoices issued by the company</td></tr>
+    <tr><td>Industry</td><td>Used in workforce reports</td></tr>
+    <tr><td>Physical address</td><td>Appears on payslips and PAYE returns</td></tr>
+    <tr><td>Primary contact</td><td>Contact details for SARS and legal correspondence</td></tr>
+  </table>
+
+  <div class="tip"><span class="tip-icon">💡</span><div>Upload your company logo in <strong>Settings &gt; Payroll &gt; Payslip branding</strong>. The logo appears on every payslip PDF.</div></div>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>19. Inviting users to your workspace</h2>
+    <p>Give employees, managers, and other HR staff access to NovaHR</p>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/17-invite-user.png" alt="Invite user dialog">
+    <span class="pin" style="top:22%;left:56%">1</span>
+    <span class="pin" style="top:38%;left:56%">2</span>
+    <span class="pin" style="top:54%;left:56%">3</span>
+    <span class="pin" style="top:80%;left:72%">4</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Employee's display name on the invite</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Email address; the invite link is sent here</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Role: Employee, Manager, HR Administrator, or Executive</div>
+    <div class="legend-item"><span class="pin-ref">4</span> Send invite button; or copy the link manually if email is not configured</div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-body"><strong>Go to Settings &gt; Users tab</strong> and click <em>Invite user</em>.</div></div>
+    <div class="step"><div class="step-body"><strong>Enter the person's name, email, and role.</strong> The role description appears below the dropdown to help you choose correctly.</div></div>
+    <div class="step"><div class="step-body"><strong>Click Send invite.</strong> The system generates a secure single-use token and emails a link to the person. The link expires in 7 days.</div></div>
+    <div class="step"><div class="step-body"><strong>The invitee clicks the link</strong> in their email, sets a password on the accept-invite page, and is immediately signed into NovaHR. No further action needed on your end.</div></div>
+  </div>
+
+  <div class="note"><span class="tip-icon">📋</span><div>If email is not yet configured, a <em>Copy link</em> button appears after you click Send invite. You can paste this link into WhatsApp or email it manually.</div></div>
+
+  <div class="warning"><span class="tip-icon">⚠️</span><div>Invite links are <strong>single-use</strong> and expire after 7 days. If someone's link expires before they accept it, go to Settings &gt; Users, revoke the old invite, and send a new one.</div></div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 13</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     PAGE 12: DEPARTMENTS, PAYROLL SETTINGS, BILLING
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Section 7: Workspace Settings</span></div>
+
+  <div class="section-header">
+    <h2>20. Managing departments</h2>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/18-settings-departments.png" alt="Settings: Departments tab">
+    <span class="pin" style="top:12%;left:83%">1</span>
+    <span class="pin" style="top:35%;left:18%">2</span>
+    <span class="pin" style="top:35%;left:83%">3</span>
+  </div>
+  <div class="legend">
+    <div class="legend-item"><span class="pin-ref">1</span> Add department button (name, description, and department head)</div>
+    <div class="legend-item"><span class="pin-ref">2</span> Colour-coded department name with live employee headcount</div>
+    <div class="legend-item"><span class="pin-ref">3</span> Edit or delete department from the options menu</div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-body"><strong>Create a department</strong> by clicking <em>Add department</em>. Give it a name (for example "Engineering"), an optional description, and optionally assign a department head (must be an existing employee).</div></div>
+    <div class="step"><div class="step-body"><strong>Rename or update</strong> any department using the three-dot menu on the right of its row.</div></div>
+    <div class="step"><div class="step-body"><strong>Delete a department</strong> by choosing Delete from the menu. All employees in that department are automatically reassigned to the built-in "Unassigned" department. You can then reassign them individually from their profiles.</div></div>
+  </div>
+
+  <div class="tip"><span class="tip-icon">💡</span><div>Create your departments <strong>before</strong> adding employees so you can assign them during the add-employee wizard. You can always update an employee's department later from their profile.</div></div>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>21. Payroll settings</h2>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/19-settings-payroll.png" alt="Settings: Payroll tab">
+  </div>
+
+  <p class="text-sm" style="margin-top:8px">The <strong>Payroll</strong> tab in Settings controls how payroll runs are scheduled and paid.</p>
+
+  <table>
+    <tr><th>Setting</th><th>Description</th></tr>
+    <tr><td>Pay frequency</td><td>Monthly (default), bi-weekly, or weekly</td></tr>
+    <tr><td>Pay day</td><td>Day of the month for monthly pay (e.g. 25)</td></tr>
+    <tr><td>Company bank account</td><td>Used on payslips as the paying bank</td></tr>
+    <tr><td>SDL enabled</td><td>Toggle off if your annual payroll is below R500,000</td></tr>
+    <tr><td>UIF rate</td><td>Default 1% for employee and employer</td></tr>
+    <tr><td>PAYE reference number</td><td>Your SARS PAYE registration number (7-digit)</td></tr>
+    <tr><td>UIF reference number</td><td>Your UIF employer registration number</td></tr>
+    <tr><td>Payslip branding</td><td>Company name, logo, and accent colour on PDFs</td></tr>
+    <tr><td>Netcash service key</td><td>Required for direct Netcash batch submission</td></tr>
+  </table>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>22. Billing and plan management</h2>
+  </div>
+
+  <div class="screen-wrap">
+    <img src="../screenshots/hr/20-billing.png" alt="Billing page">
+  </div>
+
+  <p class="text-sm" style="margin-top:8px">Go to <strong>Billing</strong> in the sidebar to see your current plan, employee count, and available upgrade tiers.</p>
+
+  <table>
+    <tr><th>Plan</th><th>Price</th><th>Employee limit</th><th>Features</th></tr>
+    <tr><td>Starter</td><td>R499/month</td><td>Up to 10 employees</td><td>Full HR, leave, payroll</td></tr>
+    <tr><td>Growth</td><td>R999/month</td><td>Up to 30 employees</td><td>Full HR, leave, payroll</td></tr>
+    <tr><td>Scale</td><td>R2,499/month</td><td>Unlimited</td><td>Full HR, leave, payroll</td></tr>
+  </table>
+
+  <div class="tip"><span class="tip-icon">💳</span><div>To upgrade, email <strong>mtshwenewesley@gmail.com</strong> with your company name and chosen plan. Payment is by EFT invoice. Your plan is activated within 1 business day of payment confirmation.</div></div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Page 14</span></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     APPENDIX
+══════════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="page-header"><span class="brand">NovaHR</span><span>Appendix</span></div>
+
+  <div class="section-header">
+    <h2>Quick Reference: Keyboard Shortcuts</h2>
+  </div>
+
+  <table>
+    <tr><th>Shortcut</th><th>Action</th></tr>
+    <tr><td><span class="kbd">Cmd K</span> / <span class="kbd">Ctrl K</span></td><td>Open command menu to navigate anywhere</td></tr>
+    <tr><td><span class="kbd">Esc</span></td><td>Close any open dialog or modal</td></tr>
+  </table>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>Quick Reference: Roles in NovaHR</h2>
+  </div>
+
+  <table>
+    <tr><th>Role</th><th>Can see</th><th>Can edit</th><th>Payroll access</th></tr>
+    <tr><td><strong>HR Admin</strong></td><td>Everything</td><td>Everything</td><td>Full access</td></tr>
+    <tr><td><strong>Manager</strong></td><td>Own record + direct reports</td><td>Own record only</td><td>Team payroll cost (read only)</td></tr>
+    <tr><td><strong>Employee</strong></td><td>Own record only</td><td>Own profile and leave</td><td>Own payslips only</td></tr>
+    <tr><td><strong>Executive</strong></td><td>All dashboards and reports</td><td>Nothing</td><td>Read-only summary</td></tr>
+  </table>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>Quick Reference: Monthly Payroll Checklist</h2>
+  </div>
+
+  <ul class="clean">
+    <li>&#x2610; Verify all new employees and salary changes are recorded before running payroll</li>
+    <li>&#x2610; Check for any approved unpaid leave days to confirm they will reduce gross pay</li>
+    <li>&#x2610; Review the payslip for each employee before completing the run</li>
+    <li>&#x2610; Export the EFT CSV or submit via Netcash on or before pay day</li>
+    <li>&#x2610; File EMP201 with SARS by the 7th of the following month (or last business day before)</li>
+    <li>&#x2610; Enter the SARS reference number in Compliance to mark the return as Submitted</li>
+  </ul>
+
+  <hr>
+
+  <div class="section-header">
+    <h2>Getting help</h2>
+  </div>
+
+  <p class="text-sm">If you run into a problem that is not covered by this manual, reach out via:</p>
+  <ul class="clean">
+    <li>&#x2709; Email: mtshwenewesley@gmail.com</li>
+    <li>&#x1F4DE; WhatsApp: Use the button on the NovaHR landing page (novahr-five.vercel.app)</li>
+  </ul>
+
+  <div class="note" style="margin-top:20px"><span class="tip-icon">📌</span><div>This manual covers NovaHR version 1.0, current as of July 2026. Features and screenshots may differ slightly in later versions. The statutory figures (PAYE tables, UIF ceiling, rebates) reflect the SARS 2026/27 tax year and must be reviewed after the annual March budget.</div></div>
+
+  <div class="page-footer"><span>novahr-five.vercel.app</span><span>Appendix</span></div>
+</div>
+
+</body>
+</html>

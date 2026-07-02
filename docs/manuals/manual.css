@@ -1,0 +1,392 @@
+/* NovaHR User Manual Stylesheet
+   Print-ready at A4. Open in Chrome and use Print > Save as PDF (paper size A4, margins default).
+*/
+
+:root {
+  --brand:   #4C6FFF;
+  --brand-d: #3351cc;
+  --orange:  #f97316;
+  --pin-bg:  #f97316;
+  --text:    #0f172a;
+  --muted:   #64748b;
+  --border:  #e2e8f0;
+  --bg-pale: #f8fafc;
+  --green:   #16a34a;
+  --radius:  10px;
+  --font:    -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  background: #fff;
+}
+
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 14mm 16mm 12mm;
+  page-break-after: always;
+}
+
+/* ── Cover page ──────────────────────────────────────────────────────────── */
+.cover {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 297mm;
+  background: linear-gradient(135deg, #0f172a 60%, #1e3a8a);
+  color: #fff;
+  padding: 20mm 20mm;
+}
+
+.cover-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 60px;
+}
+
+.cover-logo img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #000;
+}
+
+.cover-logo span {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.cover-logo span em { color: var(--brand); font-style: normal; }
+
+.cover h1 {
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+.cover-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,0.65);
+  margin-bottom: 8px;
+}
+
+.cover-role-badge {
+  display: inline-block;
+  margin-top: 24px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+}
+
+.cover-footer {
+  margin-top: auto;
+  padding-top: 40px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+
+/* ── TOC ─────────────────────────────────────────────────────────────────── */
+.toc { page-break-after: always; }
+.toc h2 { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
+.toc ol { padding-left: 0; list-style: none; }
+.toc ol li { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; border-bottom: 1px dotted var(--border); font-size: 13px; }
+.toc ol li:last-child { border-bottom: none; }
+.toc-num { font-weight: 700; color: var(--brand); min-width: 22px; }
+.toc-dots { flex: 1; border-bottom: 1px dotted var(--border); margin: 0 6px; }
+.toc-page { color: var(--muted); font-size: 12px; }
+.toc-section { font-weight: 700; font-size: 14px; color: var(--brand); padding-top: 10px; list-style: none; }
+
+/* ── Section headings ────────────────────────────────────────────────────── */
+.section-header {
+  border-left: 4px solid var(--brand);
+  padding: 4px 0 4px 12px;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.section-header p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+h3 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 20px 0 8px;
+}
+
+h3::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand);
+  margin-right: 8px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+/* ── Step boxes ──────────────────────────────────────────────────────────── */
+.steps { counter-reset: step; margin: 12px 0; }
+
+.step {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 0 12px;
+  margin-bottom: 14px;
+  counter-increment: step;
+}
+
+.step::before {
+  content: counter(step);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.step-body { padding-top: 4px; }
+.step-body strong { font-weight: 600; }
+.step-body p { margin: 4px 0; font-size: 12.5px; color: var(--text); }
+
+/* ── Screenshot wrapper with callout pins ────────────────────────────────── */
+.screen-wrap {
+  position: relative;
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin: 14px 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+
+.screen-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Numbered callout pins */
+.pin {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--pin-bg);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Arrow indicator: small triangle pointing down from pin */
+.pin::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--pin-bg);
+  margin-top: -1px;
+}
+
+/* Highlight box around a region */
+.highlight {
+  position: absolute;
+  border: 2px solid var(--orange);
+  border-radius: 5px;
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.2);
+  pointer-events: none;
+}
+
+/* ── Callout legend ──────────────────────────────────────────────────────── */
+.legend {
+  background: var(--bg-pale);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin: -8px 0 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 20px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11.5px;
+}
+
+.pin-ref {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--pin-bg);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+/* ── Tip and note boxes ──────────────────────────────────────────────────── */
+.tip, .warning, .note, .success {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  margin: 12px 0;
+  font-size: 12px;
+}
+
+.tip    { background: #eff6ff; border-left: 3px solid var(--brand); }
+.warning{ background: #fff7ed; border-left: 3px solid var(--orange); }
+.note   { background: #f1f5f9; border-left: 3px solid var(--muted); }
+.success{ background: #f0fdf4; border-left: 3px solid var(--green); }
+
+.tip-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Two column layout ───────────────────────────────────────────────────── */
+.cols-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0; }
+.col-box { background: var(--bg-pale); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+.col-box h4 { font-size: 12px; font-weight: 700; margin-bottom: 6px; }
+.col-box ul { padding-left: 14px; font-size: 11.5px; }
+.col-box ul li { margin-bottom: 3px; }
+
+/* ── Table ───────────────────────────────────────────────────────────────── */
+table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 11.5px; }
+th { background: var(--bg-pale); text-align: left; padding: 7px 10px; font-weight: 600; border-bottom: 2px solid var(--border); }
+td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+/* ── Role badge ──────────────────────────────────────────────────────────── */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+/* ── Intro box ───────────────────────────────────────────────────────────── */
+.intro-box {
+  background: linear-gradient(135deg, #eff6ff, #fff);
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 18px;
+}
+
+.intro-box h3 { margin-top: 0; font-size: 15px; }
+.intro-box h3::before { display: none; }
+.intro-box p { font-size: 12.5px; margin-top: 6px; color: var(--muted); }
+
+/* ── Divider ─────────────────────────────────────────────────────────────── */
+hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+/* ── Page header (running header) ────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.page-header .brand { font-weight: 700; color: var(--brand); font-size: 12px; }
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+.page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* ── Print styles ────────────────────────────────────────────────────────── */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body { background: #fff; }
+  .page { width: 100%; margin: 0; padding: 12mm 15mm 10mm; }
+  .page-break { page-break-before: always; }
+  .no-break { page-break-inside: avoid; }
+  .cover { min-height: 100vh; }
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+/* ── Utility ─────────────────────────────────────────────────────────────── */
+.mt-0 { margin-top: 0 !important; }
+.mb-0 { margin-bottom: 0 !important; }
+.text-muted { color: var(--muted); font-size: 11.5px; }
+.text-sm { font-size: 11.5px; }
+ul.clean { list-style: none; padding: 0; }
+ul.clean li { padding: 3px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+ul.clean li:last-child { border-bottom: none; }
+.kbd { display: inline-block; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; padding: 1px 5px; font-family: monospace; font-size: 10.5px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+.badge-green  { background: #dcfce7; color: #16a34a; }
+.badge-blue   { background: #dbeafe; color: #1d4ed8; }
+.badge-orange { background: #ffedd5; color: #c2410c; }
+.badge-gray   { background: #f1f5f9; color: #475569; }
