@@ -84,7 +84,7 @@ export function ExcoDashboard() {
       <DashboardHeader subtitle={`Here's how the group is performing today, ${formatDateLong(new Date())}.`} />
       <StatCardGrid stats={stats} />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Group overview</CardTitle>

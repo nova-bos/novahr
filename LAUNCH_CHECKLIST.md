@@ -8,20 +8,24 @@ Items are ordered by priority. Blockers must be resolved before soft launch.
 ## BLOCKERS (must fix before any paying customer)
 
 ### 1. Department CRUD UI
+**Status:** FIXED (July 2026). Settings > Departments: add, rename, delete with employee reassignment to Unassigned.
 **Problem:** The `Department` table exists in the schema and the employee onboarding wizard has a department dropdown, but there is no UI to create or manage departments. New signups start with zero departments, making the employee form unusable.
 **Fix needed:** A simple settings page or modal to add, rename, and delete departments for the tenant.
 **Files:** `prisma/schema.prisma` (Department model exists), `src/app/(app)/settings/page.tsx` (add a Departments tab)
 
 ### 2. Multi-user invite flow
+**Status:** FIXED (July 2026). Settings > Users: email invites via Resend with hashed one-time tokens (7-day expiry), /accept-invite/[token] page, revoke support, manual link copy when email is not configured.
 **Problem:** The signup action creates exactly one HR admin user per tenant. There is no way to invite a manager, payroll officer, or employee-portal user from inside the app.
 **Fix needed:** An invite-by-email flow. User receives email link, sets password, is associated with the tenant. Needs: invite token table, Resend invite email, `/accept-invite/[token]` route, user management UI in Settings.
 
 ### 3. Billing and subscription management
+**Status:** PARTIALLY FIXED (July 2026). 14-day trialEndsAt set at signup, TrialGate lock screen on expiry, /billing page with plans and contact-sales CTA. Payment gateway (PayFast/Stripe) still to come; plans are flipped manually in the database after invoicing.
 **Problem:** All accounts are on `trial` plan with no `trialEndsAt` set, meaning trials never expire. There is no payment gateway, no upgrade flow, and no way to collect revenue.
 **Fix needed:** Integrate PayFast (SA-preferred) or Stripe. Add a `trialEndsAt` to the signup action. Enforce plan gating when trial expires. Add a billing/upgrade page.
 **Files:** `src/lib/auth/actions.ts` (signup), `src/lib/plan/use-plan.ts` (gating), `src/app/(app)/billing/` (new route needed)
 
 ### 4. Terms of Service and Privacy Policy pages
+**Status:** FIXED (July 2026). /terms and /privacy live with POPIA-aware content.
 **Problem:** The signup page links to `/terms` and `/privacy` but neither route exists. This is a legal requirement.
 **Fix needed:** Create `src/app/terms/page.tsx` and `src/app/privacy/page.tsx` with real content.
 
@@ -34,6 +38,7 @@ Items are ordered by priority. Blockers must be resolved before soft launch.
 ## HIGH PRIORITY (fix before growth)
 
 ### 6. Leave policy settings
+**Status:** PARTIALLY ADDRESSED (July 2026). Policies now cover all 9 SA leave types with BCEA-correct defaults (sick raised to 30/36-month cycle) and render read-only with statutory context. Per-tenant customization above statutory minimums still to come.
 **Problem:** All leave policy inputs in Settings > Leave policies are `disabled`. Every tenant is locked to 18 days annual, 10 sick, 5 unpaid, 3 family.
 **Fix needed:** Remove `disabled` props, wire inputs to a `updateLeavePolicyAction` server action that updates the `LeaveBalance` defaults for new employees.
 **File:** `src/components/settings/leave-policy-settings.tsx`

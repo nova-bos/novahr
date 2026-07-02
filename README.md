@@ -4,6 +4,20 @@ HR and payroll SaaS for South African SMEs. Built with Next.js 15, Supabase, and
 
 Production: https://novahr-five.vercel.app
 
+## Feature highlights
+
+- **Employees**: directory, profiles, onboarding wizard, photo uploads, salary history
+- **Leave**: all 9 SA leave types (BCEA + Van Wyk interim order), working-day counting with
+  SA public holidays, approvals with email notifications, supporting documents
+- **Payroll**: SARS 2026/27 PAYE/UIF/SDL, medical aid tax credits, pension s11F, payslip
+  PDFs, bank export CSV, Netcash NIF
+- **Compliance**: PAYE/UIF/SDL return tracking per period (EMP201-ready totals)
+- **Teams**: role-based access (HR, manager, employee, exco), email invitations,
+  department management
+- **Billing**: 14-day trial with in-app expiry lock and upgrade page
+- **Security**: server-side route protection, per-action authorization, role-scoped data,
+  Postgres row-level security (see `docs/security.md`)
+
 ---
 
 ## Tech stack
@@ -102,7 +116,7 @@ CI runs on every push: `eslint`, `tsc --noEmit`, `vitest run`.
 | `npm run dev` | Start development server |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
-| `npm test` | Run Vitest test suite (172 tests) |
+| `npm test` | Run Vitest test suite (233 tests) |
 | `npx tsc --noEmit` | Type-check without emitting |
 | `npx prisma migrate deploy` | Apply pending migrations |
 | `npx prisma db seed` | Seed demo tenants and users |
@@ -139,6 +153,9 @@ docs/
   planning/
     ACTION_PLAN.md  business plan to first paying client
     ROADMAP.md      technical roadmap (all upcoming items)
+  security.md       auth/authz model and role matrix
+  leave.md          SA leave framework, working days, public holidays
+  TESTING_ROADMAP.md  release testing plan and statutory review calendar
   uat-checklist.md
   testing.md
   database.md

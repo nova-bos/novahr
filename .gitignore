@@ -46,3 +46,7 @@ next-env.d.ts
 *.docx
 *.csv
 docs/BUSINESS_DOCUMENT_REGISTER.md
+
+# Business documents (not part of codebase)
+*.xlsx
+NOVAHR_FINANCIAL_ANALYSIS.md

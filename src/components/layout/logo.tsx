@@ -7,10 +7,11 @@ interface LogoProps {
   forceDark?: boolean;
 }
 
+// forceDark is accepted for API compatibility with older callers; the icon
+// asset now adapts via CSS (black chip in light mode, transparent in dark).
 export function LogoIcon({
   size = 32,
   className,
-  forceDark: _,
 }: {
   size?: number;
   className?: string;
@@ -23,7 +24,7 @@ export function LogoIcon({
   );
 }
 
-export function Logo({ height = 24, className, forceDark: _ }: LogoProps) {
+export function Logo({ height = 24, className }: LogoProps) {
   const iconSize = Math.round(height * 1.15);
   const fontSize = Math.round(height * 0.72);
   return (

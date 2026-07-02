@@ -28,6 +28,25 @@ If you're picking this codebase up for the first time, read these docs in order:
 11. [`uat-checklist.md`](./uat-checklist.md), manual UAT checklist (checkbox format) covering
     all phases plus the MVP polish improvements.
 
+## Production hardening (July 2026)
+
+A full production-readiness pass. The important changes:
+
+- **Server-side security**: middleware now enforces route protection; every server action
+  authenticates the session and authorizes by role via `src/lib/auth/require.ts`; the
+  workspace payload is sanitized per role so employees never receive colleagues' salaries,
+  banking or ID numbers. See [`security.md`](./security.md).
+- **All SA leave types**: maternity, parental, adoption, commissioning parental and study
+  leave added alongside annual/sick/family/unpaid, with BCEA-correct entitlements and the
+  Van Wyk interim position. Leave is counted in working days, excluding weekends and SA
+  public holidays (calendar shown in-app). See [`leave.md`](./leave.md).
+- **Payroll correctness**: 2026/27 SARS tables verified against the Budget 2026 Tax Guide;
+  medical aid tax credits now flow from payroll profiles into PAYE.
+- **Launch blockers closed**: departments CRUD (Settings > Departments), email invite flow
+  with hashed one-time tokens (Settings > Users, `/accept-invite/[token]`), 14-day trial
+  expiry with lock screen and `/billing` upgrade page, `/terms` and `/privacy` pages.
+- **Testing**: 233 unit tests; release plan in [`TESTING_ROADMAP.md`](./TESTING_ROADMAP.md).
+
 ## MVP improvements (post-Phase 4)
 
 - **Settings persistence**: Company profile and payroll settings (pay frequency, pay day,

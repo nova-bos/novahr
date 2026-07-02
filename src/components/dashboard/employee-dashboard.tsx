@@ -99,7 +99,7 @@ export function EmployeeDashboard() {
       <DashboardHeader subtitle={`Here's your overview for today, ${formatDateLong(new Date())}.`} />
       <StatCardGrid stats={stats} />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>My profile</CardTitle>
@@ -158,7 +158,7 @@ export function EmployeeDashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <Link
           href="/payroll"
           className="group flex flex-col gap-2.5 rounded-xl border border-border/70 p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.03]"

@@ -12,7 +12,7 @@ export interface StatItem {
 
 export function StatCardGrid({ stats }: { stats: StatItem[] }) {
   return (
-    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => (
         <Card key={stat.label}>
           <CardContent className="flex items-start justify-between gap-3">
