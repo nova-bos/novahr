@@ -9,6 +9,7 @@ import {
   UserRound,
   ShieldCheck,
   Minus,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 import type { AppUser } from "@/lib/auth/types";
@@ -19,11 +20,12 @@ export interface NavItem {
   icon: LucideIcon;
 }
 
+const MOBILE_NAV_HREFS = ["/dashboard", "/employees", "/payroll", "/leave", "/settings"];
+
 export function getMobileNavItems(user: AppUser | null): NavItem[] {
   const items = getNavItems(user);
   if (items.length <= 5) return items;
-  // HR has 9 items: Dashboard(0), Employees(1), Payroll(2), Leave(4), Settings(8)
-  return [items[0], items[1], items[2], items[4], items[8]];
+  return items.filter((item) => MOBILE_NAV_HREFS.includes(item.href));
 }
 
 export function getNavItems(user: AppUser | null): NavItem[] {
@@ -40,6 +42,7 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "Deductions", href: "/deductions", icon: Minus },
         { title: "Reports", href: "/reports", icon: BarChart3 },
         { title: "Tenants", href: "/tenants", icon: Building2 },
+        { title: "Billing", href: "/billing", icon: CreditCard },
         { title: "Settings", href: "/settings", icon: Settings },
       ];
     case "manager":

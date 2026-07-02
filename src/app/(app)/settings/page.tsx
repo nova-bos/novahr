@@ -7,6 +7,8 @@ import { PayrollSettings } from "@/components/settings/payroll-settings";
 import { PayrollTaxSettings } from "@/components/settings/payroll-tax-settings";
 import { NetcashSettings } from "@/components/settings/netcash-settings";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
+import { DepartmentSettings } from "@/components/settings/department-settings";
+import { UserSettings } from "@/components/settings/user-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
 import { useCurrentTenant } from "@/lib/store/hooks";
@@ -30,6 +32,8 @@ export default function SettingsPage() {
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <TabsList className="inline-flex min-w-max w-full">
             <TabsTrigger value="company">Company</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="departments">Departments</TabsTrigger>
             {can("payrollSettings") ? (
               <TabsTrigger value="payroll">Payroll</TabsTrigger>
             ) : null}
@@ -40,6 +44,12 @@ export default function SettingsPage() {
         </div>
         <TabsContent value="company" className="mt-4">
           <CompanySettings />
+        </TabsContent>
+        <TabsContent value="users" className="mt-4">
+          <UserSettings />
+        </TabsContent>
+        <TabsContent value="departments" className="mt-4">
+          <DepartmentSettings />
         </TabsContent>
         {can("payrollSettings") ? (
           <TabsContent value="payroll" className="mt-4">

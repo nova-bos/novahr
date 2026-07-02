@@ -49,6 +49,9 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
     };
   }
 
+  // New companies start on a 14-day full-feature trial.
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
   await prisma.$transaction(async (tx) => {
     const tenant = await tx.tenant.create({
       data: {
@@ -64,6 +67,8 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
         city: "",
         bankName: "",
         primaryContact: yourName,
+        plan: "trial",
+        trialEndsAt,
       },
     });
 

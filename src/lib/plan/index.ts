@@ -21,8 +21,8 @@ export function canAccess(plan: TenantPlan | undefined, feature: PlanFeature): b
   if (!plan) return false;
   if (plan === "trial") return true;
   if (plan === "hr_payroll") return true;
-  // "hr" plan: no payroll features
-  return false;
+  // "hr" plan: everything except payroll features
+  return !(PAYROLL_FEATURES as readonly string[]).includes(feature);
 }
 
 export function isTrialExpired(trialEndsAt: string | undefined): boolean {
