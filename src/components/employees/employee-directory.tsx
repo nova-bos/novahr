@@ -41,7 +41,8 @@ export function EmployeeDirectory() {
 
   const [search, setSearch] = React.useState("");
   const [department, setDepartment] = React.useState("all");
-  const [status, setStatus] = React.useState("all");
+  const [status, setStatus] = React.useState("active");
+  const [showTerminated, setShowTerminated] = React.useState(false);
 
   const departments = React.useMemo(
     () => Array.from(new Set(employees.map((e) => e.department))).sort(),
@@ -51,6 +52,10 @@ export function EmployeeDirectory() {
   const filtered = React.useMemo(() => {
     const query = search.trim().toLowerCase();
     return employees
+      .filter((e) => {
+        if (!showTerminated && e.status === "terminated") return false;
+        return true;
+      })
       .filter((e) => (department === "all" ? true : e.department === department))
       .filter((e) => (status === "all" ? true : e.status === status))
       .filter((e) => {
@@ -59,7 +64,7 @@ export function EmployeeDirectory() {
         return haystack.includes(query);
       })
       .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
-  }, [employees, department, status, search]);
+  }, [employees, department, status, search, showTerminated]);
 
   return (
     <Card>
@@ -93,7 +98,7 @@ export function EmployeeDirectory() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                {STATUS_OPTIONS.map((option) => (
+                {STATUS_OPTIONS.filter((o) => o.value !== "terminated").map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -101,6 +106,20 @@ export function EmployeeDirectory() {
               </SelectContent>
             </Select>
           </div>
+          <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={showTerminated}
+              onChange={(e) => {
+                setShowTerminated(e.target.checked);
+                if (e.target.checked && status !== "all" && status !== "terminated") {
+                  setStatus("all");
+                }
+              }}
+              className="size-4 rounded border-border"
+            />
+            Show terminated
+          </label>
         </div>
 
         {filtered.length === 0 ? (

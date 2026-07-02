@@ -7,7 +7,12 @@ export const companyProfileSchema = z.object({
   industry: z.string().min(1, "Industry is required"),
   founded: z.string().refine((v) => v === "" || /^\d{4}$/.test(v), "Founded year must be 4 digits"),
   registrationNumber: z.string(),
-  vatNumber: z.string(),
+  vatNumber: z
+    .string()
+    .refine(
+      (v) => v === "" || /^\d{10}$/.test(v),
+      "VAT number must be exactly 10 digits"
+    ),
   city: z.string(),
   address: z.string(),
   primaryContact: z.string().min(1, "Primary contact is required"),

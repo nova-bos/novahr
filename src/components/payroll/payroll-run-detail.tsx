@@ -21,6 +21,9 @@ import type { PayrollRun, Payslip } from "@/lib/types";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import { usePlan } from "@/lib/plan/use-plan";
 import { generateBankExportCsvAction, generateNetcashNifAction, submitNetcashBatchAction } from "@/lib/bank-exports/actions";
+import { getPayslipSettingsAction } from "@/lib/settings/actions";
+import { approvePayrollRunAction, rejectPayrollApprovalAction } from "@/lib/payroll/approval-actions";
+import { useCurrentTenant } from "@/lib/store/hooks";
 import { PayrollStatusBadge } from "./payroll-status-badge";
 import { PayslipDialog } from "./payslip-dialog";
 
@@ -28,11 +31,92 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const payslips = usePayslipsByRun(run.id);
   const employees = useEmployees();
   const tenantId = useTenantId();
+  const tenant = useCurrentTenant();
   const { can } = usePlan();
   const [selected, setSelected] = React.useState<Payslip | null>(null);
   const [isExporting, startExportTransition] = React.useTransition();
   const [isNifExporting, startNifExportTransition] = React.useTransition();
   const [isSubmitting, startSubmitTransition] = React.useTransition();
+  const [bulkDownloading, setBulkDownloading] = React.useState(false);
+  const [bulkProgress, setBulkProgress] = React.useState<string | null>(null);
+  const [isApproving, startApproveTransition] = React.useTransition();
+  const [isRejecting, startRejectTransition] = React.useTransition();
+
+  function handleApprove() {
+    startApproveTransition(async () => {
+      try {
+        await approvePayrollRunAction(run.id);
+        toast.success("Payroll approved. Payslip emails will be sent shortly.");
+      } catch (err) {
+        toast.error("Could not approve payroll", {
+          description: err instanceof Error ? err.message : "Please try again.",
+        });
+      }
+    });
+  }
+
+  function handleReject() {
+    startRejectTransition(async () => {
+      try {
+        await rejectPayrollApprovalAction(run.id, "Sent back for review.");
+        toast.info("Payroll sent back for review.");
+      } catch (err) {
+        toast.error("Could not reject payroll", {
+          description: err instanceof Error ? err.message : "Please try again.",
+        });
+      }
+    });
+  }
+
+  async function handleBulkDownload() {
+    setBulkDownloading(true);
+    try {
+      const [{ pdf }, { PayslipDocument }, JSZip] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/lib/payroll/pdf"),
+        import("jszip").then((m) => m.default),
+      ]);
+      const zip = new JSZip();
+      const settings = await getPayslipSettingsAction(tenantId);
+      for (let i = 0; i < payslips.length; i++) {
+        const ps = payslips[i];
+        const emp = employees.find((e) => e.id === ps.employeeId);
+        if (!emp) continue;
+        setBulkProgress(`Generating ${i + 1} of ${payslips.length}...`);
+        const blob = await pdf(
+          <PayslipDocument
+            employee={emp}
+            payslip={ps}
+            companyName={settings.companyName ?? tenant.name}
+            logoUrl={settings.logoUrl ?? undefined}
+            accentColor={settings.accentColor}
+            template={settings.template}
+            footerNote={settings.footerNote ?? undefined}
+            showBanking={settings.showBanking}
+            showYtd={settings.showYtd}
+            companyAddress={`${tenant.address}, ${tenant.city}`}
+          />
+        ).toBlob();
+        const arrayBuffer = await blob.arrayBuffer();
+        zip.file(`payslip-${emp.lastName.toLowerCase()}-${ps.period}.pdf`, arrayBuffer);
+      }
+      setBulkProgress("Building archive...");
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `NovaHR_Payslips_${run.period}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Could not generate payslip archive");
+    } finally {
+      setBulkDownloading(false);
+      setBulkProgress(null);
+    }
+  }
 
   function handleBankExport() {
     startExportTransition(async () => {
@@ -145,8 +229,19 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
             {run.processedOn ? ` · Processed ${formatDateLong(run.processedOn)}` : ""}
           </p>
         </div>
-        {can("bankExports") && run.status === "completed" ? (
+        {run.status === "completed" ? (
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBulkDownload}
+              disabled={bulkDownloading}
+              className="flex-1 sm:flex-none"
+            >
+              <Download className="mr-2 size-4" />
+              {bulkDownloading ? (bulkProgress ?? "Generating...") : "Download all payslips"}
+            </Button>
+            {can("bankExports") ? (
             <Button
               variant="outline"
               size="sm"
@@ -157,29 +252,64 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
               <Download className="mr-2 size-4" />
               {isExporting ? "Exporting..." : "Export CSV"}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNifExport}
-              disabled={isNifExporting}
-              className="flex-1 sm:flex-none"
-            >
-              <Download className="mr-2 size-4" />
-              {isNifExporting ? "Generating..." : "Download Netcash NIF"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNetcashSubmit}
-              disabled={isSubmitting}
-              className="flex-1 sm:flex-none"
-            >
-              <Send className="mr-2 size-4" />
-              {isSubmitting ? "Submitting..." : "Submit to Netcash"}
-            </Button>
+            ) : null}
+            {can("bankExports") ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNifExport}
+                  disabled={isNifExporting}
+                  className="flex-1 sm:flex-none"
+                >
+                  <Download className="mr-2 size-4" />
+                  {isNifExporting ? "Generating..." : "Download Netcash NIF"}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNetcashSubmit}
+                  disabled={isSubmitting}
+                  className="flex-1 sm:flex-none"
+                >
+                  <Send className="mr-2 size-4" />
+                  {isSubmitting ? "Submitting..." : "Submit to Netcash"}
+                </Button>
+              </>
+            ) : null}
           </div>
         ) : null}
       </div>
+
+      {run.status === "awaiting_approval" ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Payroll awaiting sign-off</p>
+            <p className="text-xs text-amber-700 mt-1">
+              This run has been processed and is waiting for approval before employees are paid.
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleReject}
+              disabled={isRejecting || isApproving}
+              className="border-amber-300 text-amber-800 hover:bg-amber-100"
+            >
+              {isRejecting ? "Sending back..." : "Send back"}
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleApprove}
+              disabled={isApproving || isRejecting}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              {isApproving ? "Approving..." : "Approve"}
+            </Button>
+          </div>
+        </div>
+      ) : null}
 
       <StatCardGrid stats={stats} />
 

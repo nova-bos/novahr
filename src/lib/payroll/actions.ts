@@ -120,10 +120,70 @@ export async function completePayrollRunRecord(
         })),
       });
 
+      // Normalize payslip line items into the PayrollItem table for structured querying.
+      const STATUTORY_LABELS = new Set(["paye", "uif", "unpaid leave", "sdl"]);
+      const payrollItemsData = newPayslips.flatMap((p) => {
+        const items: Prisma.PayrollItemCreateManyInput[] = [];
+        // Basic salary as an earning
+        items.push({
+          tenantId: p.tenantId,
+          payslipId: p.id,
+          employeeId: p.employeeId,
+          itemType: "earning",
+          category: "basic",
+          label: "Basic Salary",
+          isStatutory: false,
+          isEmployer: false,
+          amount: p.basicSalary,
+        });
+        // Additional earnings (allowances)
+        for (const earning of p.earnings as { label: string; amount: number }[]) {
+          items.push({
+            tenantId: p.tenantId,
+            payslipId: p.id,
+            employeeId: p.employeeId,
+            itemType: "earning",
+            category: "allowance",
+            label: earning.label,
+            isStatutory: false,
+            isEmployer: false,
+            amount: earning.amount,
+          });
+        }
+        // Deductions
+        for (const deduction of p.deductions as { label: string; amount: number }[]) {
+          const isStatutory = STATUTORY_LABELS.has(deduction.label.toLowerCase());
+          items.push({
+            tenantId: p.tenantId,
+            payslipId: p.id,
+            employeeId: p.employeeId,
+            itemType: "deduction",
+            category: isStatutory ? "statutory" : "voluntary",
+            label: deduction.label,
+            isStatutory,
+            isEmployer: false,
+            amount: deduction.amount,
+          });
+        }
+        return items;
+      });
+
+      if (payrollItemsData.length > 0) {
+        await tx.payrollItem.createMany({ data: payrollItemsData, skipDuplicates: true });
+      }
+
+      // Check if approval is required before completing
+      const payrollSettingsRow = await tx.payrollSettings.findUnique({
+        where: { tenantId: run.tenantId },
+        select: { requireApproval: true, approvalUserId: true },
+      });
+      const needsApproval = payrollSettingsRow?.requireApproval && payrollSettingsRow?.approvalUserId;
+      const runStatus = needsApproval ? "awaiting_approval" : "completed";
+
       const payrollRun = await tx.payrollRun.update({
         where: { id: run.id },
         data: {
-          status: "completed",
+          status: runStatus,
           totalGross,
           totalDeductions,
           totalNet,
@@ -138,7 +198,9 @@ export async function completePayrollRunRecord(
         data: {
           tenantId: run.tenantId,
           type: "payroll_run",
-          message: `processed payroll for ${formatMonthYear(run.period)}`,
+          message: needsApproval
+            ? `processed payroll for ${formatMonthYear(run.period)} (awaiting approval)`
+            : `processed payroll for ${formatMonthYear(run.period)}`,
           actor: `${tenant.name} HR`,
         },
       });
@@ -146,9 +208,11 @@ export async function completePayrollRunRecord(
       const notification = await tx.notificationItem.create({
         data: {
           tenantId: run.tenantId,
-          title: "Payslips published",
-          description: `${formatMonthYear(run.period)} payslips have been generated for ${newPayslips.length} employees.`,
-          type: "success",
+          title: needsApproval ? "Payroll awaiting approval" : "Payslips published",
+          description: needsApproval
+            ? `${formatMonthYear(run.period)} payroll for ${newPayslips.length} employees is awaiting sign-off.`
+            : `${formatMonthYear(run.period)} payslips have been generated for ${newPayslips.length} employees.`,
+          type: needsApproval ? "warning" : "success",
         },
       });
 
@@ -170,17 +234,20 @@ export async function completePayrollRunRecord(
     }
   );
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  for (const payslip of newPayslips) {
-    const emp = eligible.find((e) => e.id === payslip.employeeId);
-    if (!emp) continue;
-    void sendPayslipEmail({
-      recipientEmail: emp.email,
-      employeeName: `${emp.firstName} ${emp.lastName}`,
-      period: payslip.period,
-      netPay: payslip.netPay,
-      appUrl,
-    });
+  // Only send payslip emails if the run went straight to completed (no approval required)
+  if (payrollRun.status === "completed") {
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    for (const payslip of newPayslips) {
+      const emp = eligible.find((e) => e.id === payslip.employeeId);
+      if (!emp) continue;
+      void sendPayslipEmail({
+        recipientEmail: emp.email,
+        employeeName: `${emp.firstName} ${emp.lastName}`,
+        period: payslip.period,
+        netPay: payslip.netPay,
+        appUrl,
+      });
+    }
   }
 
   return {

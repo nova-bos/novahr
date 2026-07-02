@@ -11,9 +11,15 @@ import { ProfileOnboarding } from "./profile-onboarding";
 import { ProfileSidebar } from "./profile-sidebar";
 import { PayrollProfileSection } from "./payroll-profile-section";
 import { EditEmployeeDialog } from "./edit-employee-dialog";
+import { TerminateEmployeeDialog } from "./terminate-employee-dialog";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/lib/auth/auth-provider";
 
 export function EmployeeProfile({ employee }: { employee: Employee }) {
   const [editOpen, setEditOpen] = React.useState(false);
+  const [terminateOpen, setTerminateOpen] = React.useState(false);
+  const { user } = useAuth();
 
   return (
     <div className="flex flex-col gap-6">
@@ -56,7 +62,34 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
         </div>
       </div>
 
+      {user?.role === "hr" && employee.status !== "terminated" ? (
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle className="text-destructive text-base">Danger zone</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Terminate employment</p>
+                <p className="text-xs text-muted-foreground">
+                  This action will change the employee status to terminated and deactivate their
+                  payroll profile.
+                </p>
+              </div>
+              <Button variant="destructive" size="sm" onClick={() => setTerminateOpen(true)}>
+                Terminate
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <EditEmployeeDialog employee={employee} open={editOpen} onOpenChange={setEditOpen} />
+      <TerminateEmployeeDialog
+        employee={employee}
+        open={terminateOpen}
+        onOpenChange={setTerminateOpen}
+      />
     </div>
   );
 }

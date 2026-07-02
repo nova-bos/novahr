@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Banknote, FileText, History, ShieldCheck, Wallet } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Banknote, Download, FileText, History, ShieldCheck, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { usePayrollRuns } from "@/lib/store/hooks";
 import { formatCurrency, formatCurrencyCompact, formatDate, formatMonthYear } from "@/lib/format";
+import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { PayrollStatusBadge } from "@/components/payroll/payroll-status-badge";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import { PayrollCompositionChart } from "./payroll-composition-chart";
@@ -22,6 +24,23 @@ export function PayrollReport() {
   const router = useRouter();
   const completed = runs.filter((r) => r.status === "completed");
   const sorted = completed.slice().sort((a, b) => (a.period < b.period ? 1 : -1));
+
+  function handleExport() {
+    const csv = toCSV(
+      ["Period", "Pay Date", "Status", "Employees", "Gross (ZAR)", "PAYE (ZAR)", "UIF (ZAR)", "Net (ZAR)"],
+      sorted.map((r) => [
+        formatMonthYear(r.period),
+        formatDate(r.payDate),
+        r.status,
+        r.employeeCount,
+        r.totalGross.toFixed(2),
+        r.totalPaye.toFixed(2),
+        r.totalUif.toFixed(2),
+        r.totalNet.toFixed(2),
+      ])
+    );
+    downloadCSV(csv, `payroll-report-${new Date().toISOString().slice(0, 10)}`);
+  }
 
   const ytdGross = completed.reduce((sum, r) => sum + r.totalGross, 0);
   const ytdNet = completed.reduce((sum, r) => sum + r.totalNet, 0);
@@ -68,6 +87,12 @@ export function PayrollReport() {
       <Card>
         <CardHeader>
           <CardTitle>Payroll run history</CardTitle>
+          <CardAction>
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={sorted.length === 0}>
+              <Download className="size-4" />
+              Export CSV
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent>
           {sorted.length === 0 ? (

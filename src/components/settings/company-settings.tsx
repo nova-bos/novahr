@@ -89,6 +89,7 @@ export function CompanySettings() {
           <div className="space-y-1.5">
             <Label htmlFor="vatNumber">VAT number</Label>
             <Input id="vatNumber" value={vatNumber} onChange={(e) => setVatNumber(e.target.value)} disabled={saving} />
+            {errors.vatNumber ? <p className="text-xs text-destructive">{errors.vatNumber}</p> : null}
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="city">City</Label>

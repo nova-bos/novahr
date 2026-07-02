@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { PRICING_TIERS } from "@/lib/marketing/pricing";
 import { usePlan } from "@/lib/plan/use-plan";
+import { getPlanDisplayName } from "@/lib/config/plans";
 import { useEmployees } from "@/lib/store/hooks";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { formatDate } from "@/lib/format";
@@ -21,7 +22,7 @@ const CONTACT_EMAIL = "mtshwenewesley@gmail.com";
 
 export default function BillingPage() {
   const allowed = useRoleGuard(["hr"]);
-  const { isTrial, trialExpired, daysLeft, trialEndsAt } = usePlan();
+  const { plan, isTrial, trialExpired, daysLeft, trialEndsAt } = usePlan();
   const employees = useEmployees();
   const activeCount = employees.filter((e) => e.status !== "terminated").length;
 
@@ -37,7 +38,10 @@ export default function BillingPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Billing" description={trialCopy} />
+      <PageHeader
+        title="Billing"
+        description={`${trialCopy} Current plan: ${getPlanDisplayName(plan)}.`}
+      />
 
       <div className="grid gap-4 lg:grid-cols-3">
         {PRICING_TIERS.map((tier) => {

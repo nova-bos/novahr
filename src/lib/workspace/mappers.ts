@@ -195,6 +195,9 @@ export function mapPayrollRun(row: PrismaPayrollRun, payslipIds: string[]): Payr
     employeeCount: row.employeeCount,
     payslipIds,
     processedOn: row.processedOn ? toTimestamp(row.processedOn) : undefined,
+    approvedBy: row.approvedBy ?? undefined,
+    approvedAt: row.approvedAt ? toTimestamp(row.approvedAt) : undefined,
+    approvalNote: row.approvalNote ?? undefined,
   };
 }
 

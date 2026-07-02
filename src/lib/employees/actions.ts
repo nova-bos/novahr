@@ -5,7 +5,37 @@ import { runAsTenant } from "@/lib/db-context";
 import { requireEmployeeScope, requireRole } from "@/lib/auth/require";
 import type { ActivityItem, Employee, NotificationItem, Onboarding } from "@/lib/types";
 import { mapActivityItem, mapEmployee, mapNotificationItem } from "../workspace/mappers";
-import { deriveEmployeePrefix } from "./factory";
+import { claimNextEmployeeNumber } from "@/lib/employee-numbers/actions";
+import { formatCurrency } from "@/lib/format";
+import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
+import type { LeaveType } from "@/lib/types";
+
+export interface SalaryHistoryEntry {
+  id: string;
+  annualGross: number;
+  payFrequency: string;
+  effectiveDate: string;
+  changedBy: string;
+  changeReason: string | null;
+}
+
+export async function getSalaryHistoryAction(employeeId: string): Promise<SalaryHistoryEntry[]> {
+  const session = await requireRole("hr");
+  return runAsTenant(session.tenantId, async (tx) => {
+    const history = await tx.employeeSalaryHistory.findMany({
+      where: { employeeId, tenantId: session.tenantId },
+      orderBy: { effectiveDate: "desc" },
+    });
+    return history.map((h) => ({
+      id: h.id,
+      annualGross: h.annualGross,
+      payFrequency: h.payFrequency,
+      effectiveDate: h.effectiveDate.toISOString().slice(0, 10),
+      changedBy: h.changedBy,
+      changeReason: h.changeReason,
+    }));
+  });
+}
 
 export async function createEmployeeRecord(
   employee: Employee
@@ -14,15 +44,26 @@ export async function createEmployeeRecord(
   const isOnboarding = employee.status === "probation";
 
   return runAsTenant(session.tenantId, async (tx) => {
-    // Generate employee number server-side using the real company name so
-    // new tenants get a meaningful prefix (e.g. "NT-0001") instead of a
-    // CUID fragment.
-    const [tenant, existingCount] = await Promise.all([
-      tx.tenant.findUniqueOrThrow({ where: { id: session.tenantId }, select: { name: true } }),
-      tx.employee.count({ where: { tenantId: session.tenantId } }),
-    ]);
-    const prefix = deriveEmployeePrefix(tenant.name);
-    const employeeNumber = `${prefix}-${String(existingCount + 1).padStart(4, "0")}`;
+    // Generate employee number using the configurable format system.
+    const employeeNumber = await claimNextEmployeeNumber(session.tenantId, tx);
+
+    // Load tenant leave policy (if configured) to seed leave balances correctly.
+    const leavePolicy = await tx.tenantLeavePolicy.findUnique({
+      where: { tenantId: session.tenantId },
+    });
+    const leaveTotals: Record<LeaveType, number> = leavePolicy
+      ? {
+          annual: leavePolicy.annualDays,
+          sick: leavePolicy.sickDays,
+          family: leavePolicy.familyDays,
+          maternity: leavePolicy.maternityDays,
+          parental: leavePolicy.parentalDays,
+          adoption: leavePolicy.adoptionDays,
+          commissioning: leavePolicy.commissioningDays,
+          study: leavePolicy.studyDays,
+          unpaid: leavePolicy.unpaidDays,
+        }
+      : DEFAULT_LEAVE_TOTALS;
 
     const created = await tx.employee.create({
       data: {
@@ -61,10 +102,10 @@ export async function createEmployeeRecord(
         emergencyContactPhone: employee.emergencyContact.phone,
         onboarding: employee.onboarding as Prisma.InputJsonValue | undefined,
         leaveBalances: {
-          create: employee.leaveBalances.map((balance) => ({
-            type: balance.type,
-            total: balance.total,
-            used: balance.used,
+          create: (Object.keys(leaveTotals) as LeaveType[]).map((type) => ({
+            type,
+            total: leaveTotals[type],
+            used: 0,
           })),
         },
       },
@@ -144,6 +185,29 @@ export async function updateEmployeeRecord(
   }
 
   return runAsTenant(tenantId, async (tx) => {
+    // Track salary changes for history
+    const existing = await tx.employee.findUnique({ where: { id } });
+    const salaryChanged =
+      (salary?.annualGross !== undefined && salary.annualGross !== existing?.salaryAnnualGross) ||
+      (salary?.payFrequency !== undefined && salary.payFrequency !== existing?.salaryPayFrequency);
+    if (salaryChanged && existing) {
+      await tx.employeeSalaryHistory.create({
+        data: {
+          tenantId,
+          employeeId: id,
+          annualGross: existing.salaryAnnualGross,
+          payFrequency: existing.salaryPayFrequency,
+          travelAllowance: existing.salaryTravelAllowance,
+          housingAllowance: existing.salaryHousingAllowance,
+          medicalAid: existing.salaryMedicalAid,
+          pensionContribPct: existing.salaryPensionContributionPct,
+          effectiveDate: new Date(),
+          changedBy: session.id,
+          changeReason: "Salary update",
+        },
+      });
+    }
+
     const updated = await tx.employee.update({
       where: { id },
       data,

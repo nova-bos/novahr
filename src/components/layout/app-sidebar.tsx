@@ -9,6 +9,7 @@ import {
   HelpCircle,
   LogOut,
   Settings,
+  User,
   X,
 } from "lucide-react";
 
@@ -147,6 +148,12 @@ export function AppSidebar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/account">
+                    <User />
+                    My account
+                  </Link>
+                </DropdownMenuItem>
                 {user?.role === "hr" && (
                   <DropdownMenuItem asChild>
                     <Link href="/settings">

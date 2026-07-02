@@ -3,14 +3,17 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanySettings } from "@/components/settings/company-settings";
+import { EmployeeNumberSettings } from "@/components/settings/employee-number-settings";
 import { PayrollSettings } from "@/components/settings/payroll-settings";
 import { PayrollTaxSettings } from "@/components/settings/payroll-tax-settings";
 import { NetcashSettings } from "@/components/settings/netcash-settings";
+import { PayslipSettings } from "@/components/settings/payslip-settings";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
 import { DepartmentSettings } from "@/components/settings/department-settings";
 import { UserSettings } from "@/components/settings/user-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
+import { AuditLog } from "@/components/settings/audit-log";
 import { useCurrentTenant } from "@/lib/store/hooks";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { usePlan } from "@/lib/plan/use-plan";
@@ -40,10 +43,14 @@ export default function SettingsPage() {
             <TabsTrigger value="leave">Leave policies</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
+            <TabsTrigger value="audit">Audit log</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="company" className="mt-4">
-          <CompanySettings />
+          <div className="flex flex-col gap-6">
+            <CompanySettings />
+            <EmployeeNumberSettings />
+          </div>
         </TabsContent>
         <TabsContent value="users" className="mt-4">
           <UserSettings />
@@ -55,6 +62,7 @@ export default function SettingsPage() {
           <TabsContent value="payroll" className="mt-4">
             <div className="flex flex-col gap-6">
               <PayrollSettings />
+              <PayslipSettings />
               <PayrollTaxSettings />
               <NetcashSettings />
             </div>
@@ -68,6 +76,9 @@ export default function SettingsPage() {
         </TabsContent>
         <TabsContent value="appearance" className="mt-4">
           <AppearanceSettings />
+        </TabsContent>
+        <TabsContent value="audit" className="mt-4">
+          <AuditLog />
         </TabsContent>
       </Tabs>
     </div>

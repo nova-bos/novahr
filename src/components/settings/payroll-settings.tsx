@@ -40,6 +40,7 @@ export function PayrollSettings() {
   const [uifReference, setUifReference] = React.useState(config.uifReferenceNumber);
   const [sdlReference, setSdlReference] = React.useState(config.sdlReferenceNumber);
   const [savingRefs, setSavingRefs] = React.useState(false);
+  const [refErrors, setRefErrors] = React.useState<Record<string, string>>({});
   const [uifEnabled, setUifEnabled] = React.useState<boolean>(() => {
     if (typeof window === "undefined") return config.uifEnabled;
     try {
@@ -106,7 +107,34 @@ export function PayrollSettings() {
     }
   }
 
+  function validatePayeRef(v: string) {
+    if (!v) return null;
+    return /^7\d{9}$/.test(v) ? null : "PAYE reference must be 10 digits starting with 7";
+  }
+
+  function validateUifRef(v: string) {
+    if (!v) return null;
+    return /^U\d+$/i.test(v) ? null : "UIF reference must start with U followed by digits";
+  }
+
+  function validateSdlRef(v: string) {
+    if (!v) return null;
+    return /^L\d+$/i.test(v) ? null : "SDL reference must start with L followed by digits";
+  }
+
   async function handleSaveRefs() {
+    const errs: Record<string, string> = {};
+    const payeErr = validatePayeRef(payeReference);
+    const uifErr = validateUifRef(uifReference);
+    const sdlErr = validateSdlRef(sdlReference);
+    if (payeErr) errs.payeReference = payeErr;
+    if (uifErr) errs.uifReference = uifErr;
+    if (sdlErr) errs.sdlReference = sdlErr;
+    if (Object.keys(errs).length > 0) {
+      setRefErrors(errs);
+      return;
+    }
+    setRefErrors({});
     setSavingRefs(true);
     try {
       const result = await updateStatutoryReferencesAction(tenant.id, {
@@ -226,30 +254,42 @@ export function PayrollSettings() {
               <Input
                 id="payeReference"
                 value={payeReference}
-                onChange={(e) => setPayeReference(e.target.value)}
+                onChange={(e) => {
+                  setPayeReference(e.target.value);
+                  if (refErrors.payeReference) setRefErrors((prev) => ({ ...prev, payeReference: "" }));
+                }}
                 placeholder="e.g. 7480123456"
                 disabled={savingRefs}
               />
+              {refErrors.payeReference ? <p className="text-xs text-destructive">{refErrors.payeReference}</p> : null}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="uifReference">UIF reference number</Label>
               <Input
                 id="uifReference"
                 value={uifReference}
-                onChange={(e) => setUifReference(e.target.value)}
+                onChange={(e) => {
+                  setUifReference(e.target.value);
+                  if (refErrors.uifReference) setRefErrors((prev) => ({ ...prev, uifReference: "" }));
+                }}
                 placeholder="e.g. U123456789"
                 disabled={savingRefs}
               />
+              {refErrors.uifReference ? <p className="text-xs text-destructive">{refErrors.uifReference}</p> : null}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="sdlReference">SDL reference number</Label>
               <Input
                 id="sdlReference"
                 value={sdlReference}
-                onChange={(e) => setSdlReference(e.target.value)}
+                onChange={(e) => {
+                  setSdlReference(e.target.value);
+                  if (refErrors.sdlReference) setRefErrors((prev) => ({ ...prev, sdlReference: "" }));
+                }}
                 placeholder="e.g. L123456789"
                 disabled={savingRefs}
               />
+              {refErrors.sdlReference ? <p className="text-xs text-destructive">{refErrors.sdlReference}</p> : null}
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="taxYear">Tax year</Label>

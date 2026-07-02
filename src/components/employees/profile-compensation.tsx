@@ -1,3 +1,4 @@
+import * as React from "react";
 import Link from "next/link";
 import { ArrowRight, Banknote, Landmark } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -8,10 +9,18 @@ import { formatCurrency, formatDate, maskAccountNumber } from "@/lib/format";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { usePayslipsByEmployee } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
+import { getSalaryHistoryAction, type SalaryHistoryEntry } from "@/lib/employees/actions";
 
 export function ProfileCompensation({ employee }: { employee: Employee }) {
   const breakdown = calculateMonthlyPayroll(employee);
   const payslips = usePayslipsByEmployee(employee.id);
+  const [salaryHistory, setSalaryHistory] = React.useState<SalaryHistoryEntry[]>([]);
+
+  React.useEffect(() => {
+    getSalaryHistoryAction(employee.id)
+      .then(setSalaryHistory)
+      .catch(() => {});
+  }, [employee.id]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -219,6 +228,38 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
           </CardContent>
         </Card>
       ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Salary history</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {salaryHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No previous salary records.</p>
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Effective date</th>
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Annual gross</th>
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {salaryHistory.map((entry) => (
+                    <tr key={entry.id} className="border-b last:border-0">
+                      <td className="py-2 pr-4 text-muted-foreground">{formatDate(entry.effectiveDate)}</td>
+                      <td className="py-2 pr-4 font-medium tabular-nums">{formatCurrency(entry.annualGross)}</td>
+                      <td className="py-2 text-muted-foreground">{entry.changeReason ?? "-"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

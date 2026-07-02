@@ -12,7 +12,7 @@ export type LeaveType =
   | "commissioning"
   | "study";
 export type LeaveStatus = "pending" | "approved" | "rejected";
-export type PayrollRunStatus = "scheduled" | "processing" | "completed";
+export type PayrollRunStatus = "scheduled" | "processing" | "awaiting_approval" | "completed";
 export type ActivityType =
   | "hire"
   | "leave_request"
@@ -153,6 +153,9 @@ export interface PayrollRun {
   employeeCount: number;
   payslipIds: string[];
   processedOn?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  approvalNote?: string;
 }
 
 export interface Department {

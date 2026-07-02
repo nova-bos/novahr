@@ -248,6 +248,65 @@ export async function sendInviteEmail(args: InviteEmailArgs): Promise<boolean> {
   }
 }
 
+interface ContactFormEmailArgs {
+  name: string;
+  email: string;
+  company?: string;
+  message: string;
+}
+
+const SUPPORT_INBOX = process.env.SUPPORT_EMAIL ?? "hello@novahr.co.za";
+
+export async function sendContactFormEmail(args: ContactFormEmailArgs): Promise<void> {
+  const client = getResend();
+  if (!client) return;
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">New contact form submission</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Someone submitted the contact form on the NovaHR website.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Name</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${esc(args.name)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Email</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;"><a href="mailto:${esc(args.email)}" style="color:#18181b;">${esc(args.email)}</a></p>
+        </td>
+      </tr>
+      ${args.company ? `
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Company</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${esc(args.company)}</p>
+        </td>
+      </tr>` : ""}
+      <tr>
+        <td style="padding-bottom:20px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Message</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;white-space:pre-wrap;">${esc(args.message)}</p>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  try {
+    await client.emails.send({
+      from: FROM,
+      to: SUPPORT_INBOX,
+      replyTo: args.email,
+      subject: `New enquiry from ${args.name}${args.company ? ` (${args.company})` : ""}`,
+      html: baseLayout("New contact form submission", body),
+    });
+  } catch {
+    // Email failure must never break the caller
+  }
+}
+
 interface PayslipEmailArgs {
   recipientEmail: string;
   employeeName: string;

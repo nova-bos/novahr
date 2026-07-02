@@ -1,7 +1,8 @@
 "use client";
 
-import { Building2, TrendingUp, UserPlus, Users } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Building2, Download, TrendingUp, UserPlus, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   Table,
@@ -15,6 +16,7 @@ import { useDepartments, useEmployees } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatCurrencyCompact } from "@/lib/format";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
+import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { HeadcountChart } from "./headcount-chart";
 import { EmploymentMixChart } from "./employment-mix-chart";
 
@@ -81,6 +83,20 @@ export function WorkforceReport() {
     return { dept, headcount: members.length, cost, annualCost, utilization };
   });
 
+  function handleExportDepartments() {
+    const csv = toCSV(
+      ["Department", "Headcount", "Monthly Cost (ZAR)", "Annual Budget (ZAR)", "Budget Utilization (%)"],
+      departmentRows.map(({ dept, headcount, cost, annualCost, utilization }) => [
+        dept.name,
+        headcount,
+        cost.toFixed(2),
+        annualCost.toFixed(2),
+        Math.round(utilization),
+      ])
+    );
+    downloadCSV(csv, `workforce-report-${new Date().toISOString().slice(0, 10)}`);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <StatCardGrid stats={stats} />
@@ -93,6 +109,12 @@ export function WorkforceReport() {
       <Card>
         <CardHeader>
           <CardTitle>Department cost summary</CardTitle>
+          <CardAction>
+            <Button variant="outline" size="sm" onClick={handleExportDepartments}>
+              <Download className="size-4" />
+              Export CSV
+            </Button>
+          </CardAction>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-xl border border-border">

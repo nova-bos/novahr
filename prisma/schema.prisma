@@ -53,7 +53,15 @@ enum LeaveStatus {
 enum PayrollRunStatus {
   scheduled
   processing
+  awaiting_approval
   completed
+}
+
+enum PayslipTemplate {
+  classic
+  modern
+  corporate
+  branded
 }
 
 enum ActivityType {
@@ -178,21 +186,24 @@ model Tenant {
   payrollItems       PayrollItem[]
   salaryHistory      EmployeeSalaryHistory[]
   invites            Invite[]
+  employeeNumberConfig  EmployeeNumberConfig?
+  leavePolicy           TenantLeavePolicy?
 }
 
 model User {
-  id          String    @id // Supabase auth.users.id
-  tenantId    String
-  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  email       String    @unique
-  name        String
-  title       String
-  role        UserRole  @default(hr)
-  employeeId  String?   @unique
-  employee    Employee? @relation(fields: [employeeId], references: [id])
-  avatarColor String
-  initials    String
-  createdAt   DateTime  @default(now())
+  id                      String    @id // Supabase auth.users.id
+  tenantId                String
+  tenant                  Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  email                   String    @unique
+  name                    String
+  title                   String
+  role                    UserRole  @default(hr)
+  employeeId              String?   @unique
+  employee                Employee? @relation(fields: [employeeId], references: [id])
+  avatarColor             String
+  initials                String
+  notificationPreferences Json?
+  createdAt               DateTime  @default(now())
 
   @@index([tenantId])
 }
@@ -319,8 +330,11 @@ model PayrollRun {
   employeeCount   Int              @default(0)
   processedOn     DateTime?
 
-  payslips    Payslip[]
-  bankExports BankExport[]
+  payslips     Payslip[]
+  bankExports  BankExport[]
+  approvedBy   String?
+  approvedAt   DateTime?
+  approvalNote String?
 
   @@index([tenantId])
 }
@@ -494,7 +508,11 @@ model PayrollSettings {
   uifCeiling         Float    @default(17712)
   payslipCompanyName String?
   payslipLogoUrl     String?
-  payslipAccentColor String   @default("#6366f1")
+  payslipAccentColor String          @default("#6366f1")
+  payslipTemplate    PayslipTemplate @default(classic)
+  payslipFooterNote  String?
+  payslipShowBanking Boolean         @default(false)
+  payslipShowYtd     Boolean         @default(true)
   requireApproval      Boolean  @default(false)
   approvalUserId       String?
   netcashServiceKey    String?
@@ -567,4 +585,36 @@ model EmployeeSalaryHistory {
 
   @@index([tenantId])
   @@index([employeeId])
+}
+
+model EmployeeNumberConfig {
+  id         String   @id @default(cuid())
+  tenantId   String   @unique
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  prefix     String   @default("EMP")
+  padLength  Int      @default(4)
+  separator  String   @default("-")
+  nextNumber Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TenantLeavePolicy {
+  id                      String   @id @default(cuid())
+  tenantId                String   @unique
+  tenant                  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  annualDays              Float    @default(15)
+  sickDays                Float    @default(30)
+  familyDays              Float    @default(3)
+  maternityDays           Float    @default(88)
+  parentalDays            Float    @default(10)
+  adoptionDays            Float    @default(50)
+  commissioningDays       Float    @default(50)
+  studyDays               Float    @default(5)
+  unpaidDays              Float    @default(5)
+  annualCarryover         Boolean  @default(true)
+  annualMaxCarryoverDays  Float    @default(10)
+  sickRequireDocDays      Int      @default(2)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
