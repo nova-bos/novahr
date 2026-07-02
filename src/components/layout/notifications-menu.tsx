@@ -30,7 +30,7 @@ const ICON_STYLES: Record<NotificationItem["type"], string> = {
 export function NotificationsMenu() {
   const notifications = useNotifications();
   const unreadCount = useUnreadNotificationCount();
-  const { markNotificationRead, markAllNotificationsRead, state } = useApp();
+  const { markNotificationRead, markAllNotificationsRead } = useApp();
 
   return (
     <Popover>
@@ -51,7 +51,7 @@ export function NotificationsMenu() {
               variant="ghost"
               size="sm"
               className="h-7 gap-1.5 px-2 text-xs text-muted-foreground"
-              onClick={() => void markAllNotificationsRead(state.tenantId)}
+              onClick={() => void markAllNotificationsRead()}
             >
               <CheckCheck className="size-3.5" />
               Mark all read

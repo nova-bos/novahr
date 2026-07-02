@@ -1,6 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
+import { requireTenant } from "@/lib/auth/require";
 import type { EarningCategory, DeductionCategory } from "@prisma/client";
 
 export interface EarningTypeRow {
@@ -27,6 +28,7 @@ export interface DeductionTypeRow {
 // ---- Earning Types ----
 
 export async function getEarningTypesAction(tenantId: string): Promise<EarningTypeRow[]> {
+  await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
     const rows = await tx.earningType.findMany({
       where: { tenantId },
@@ -48,6 +50,7 @@ export async function createEarningTypeAction(
   tenantId: string,
   data: { name: string; category: EarningCategory; isTaxable: boolean; description?: string }
 ): Promise<{ id: string; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     const row = await runAsTenant(tenantId, async (tx) => {
       const count = await tx.earningType.count({ where: { tenantId } });
@@ -73,6 +76,7 @@ export async function updateEarningTypeAction(
   id: string,
   data: { name?: string; category?: EarningCategory; isTaxable?: boolean; description?: string }
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.earningType.update({ where: { id }, data });
@@ -88,6 +92,7 @@ export async function toggleEarningTypeAction(
   id: string,
   isActive: boolean
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.earningType.update({ where: { id }, data: { isActive } });
@@ -102,6 +107,7 @@ export async function deleteEarningTypeAction(
   tenantId: string,
   id: string
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.earningType.delete({ where: { id } });
@@ -113,6 +119,7 @@ export async function deleteEarningTypeAction(
 }
 
 export async function ensureDefaultEarningTypes(tenantId: string): Promise<void> {
+  await requireTenant(tenantId, "hr");
   await runAsTenant(tenantId, async (tx) => {
     const count = await tx.earningType.count({ where: { tenantId } });
     if (count > 0) return;
@@ -133,6 +140,7 @@ export async function ensureDefaultEarningTypes(tenantId: string): Promise<void>
 // ---- Deduction Types ----
 
 export async function getDeductionTypesAction(tenantId: string): Promise<DeductionTypeRow[]> {
+  await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
     const rows = await tx.deductionType.findMany({
       where: { tenantId },
@@ -155,6 +163,7 @@ export async function createDeductionTypeAction(
   tenantId: string,
   data: { name: string; category: DeductionCategory; isEmployer: boolean; isStatutory: boolean; description?: string }
 ): Promise<{ id: string; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     const row = await runAsTenant(tenantId, async (tx) => {
       const count = await tx.deductionType.count({ where: { tenantId } });
@@ -181,6 +190,7 @@ export async function updateDeductionTypeAction(
   id: string,
   data: { name?: string; category?: DeductionCategory; isEmployer?: boolean; description?: string }
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.deductionType.update({ where: { id }, data });
@@ -196,6 +206,7 @@ export async function toggleDeductionTypeAction(
   id: string,
   isActive: boolean
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.deductionType.update({ where: { id }, data: { isActive } });
@@ -210,6 +221,7 @@ export async function deleteDeductionTypeAction(
   tenantId: string,
   id: string
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     const existing = await runAsTenant(tenantId, async (tx) => {
       return tx.deductionType.findUnique({ where: { id }, select: { isStatutory: true } });
@@ -227,6 +239,7 @@ export async function deleteDeductionTypeAction(
 }
 
 export async function ensureDefaultDeductionTypes(tenantId: string): Promise<void> {
+  await requireTenant(tenantId, "hr");
   await runAsTenant(tenantId, async (tx) => {
     const count = await tx.deductionType.count({ where: { tenantId } });
     if (count > 0) return;

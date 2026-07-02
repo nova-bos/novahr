@@ -1,6 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
+import { requireTenant } from "@/lib/auth/require";
 
 export interface PayrollSettingsResult {
   id: string;
@@ -22,6 +23,7 @@ export interface PayrollSettingsResult {
 export async function getPayrollSettingsAction(
   tenantId: string
 ): Promise<PayrollSettingsResult> {
+  await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
     const existing = await tx.payrollSettings.findUnique({ where: { tenantId } });
     if (existing) {
@@ -76,6 +78,7 @@ export async function updateTaxSettingsAction(
     uifCeiling: number;
   }
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({
@@ -98,6 +101,7 @@ export async function updateStatutoryReferencesAction(
     sdlReferenceNumber: string | null;
   }
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({
@@ -119,6 +123,7 @@ export async function updateNetcashSettingsAction(
     netcashInstruction: string;
   }
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({
@@ -140,6 +145,7 @@ export async function updatePayslipBrandingAction(
     payslipLogoUrl: string | null;
   }
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({

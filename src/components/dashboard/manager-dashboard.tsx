@@ -44,7 +44,7 @@ export function ManagerDashboard() {
 
   async function handleDecision(id: string, status: "approved" | "rejected", name: string) {
     try {
-      await decideLeaveRequest(id, status, user?.name ?? "Manager");
+      await decideLeaveRequest(id, status);
       toast(status === "approved" ? "Leave request approved" : "Leave request rejected", {
         description: `${name}'s leave request has been ${status}.`,
       });
@@ -92,7 +92,7 @@ export function ManagerDashboard() {
         subtitle={`Here's how your team is doing today, ${formatDateLong(new Date())}.`}
       />
       <StatCardGrid stats={stats} />
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>My team</CardTitle>

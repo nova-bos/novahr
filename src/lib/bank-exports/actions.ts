@@ -1,12 +1,14 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
+import { requireTenant } from "@/lib/auth/require";
 import { generateNifFile, submitNifBatch, type NifInstruction } from "@/lib/bank-exports/netcash";
 
 export async function generateBankExportCsvAction(
   tenantId: string,
   payrollRunId: string
 ): Promise<{ csv: string; filename: string; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     const result = await runAsTenant(tenantId, async (tx) => {
       const run = await tx.payrollRun.findUnique({ where: { id: payrollRunId } });
@@ -67,6 +69,7 @@ export async function generateNetcashNifAction(
   tenantId: string,
   payrollRunId: string
 ): Promise<{ nif: string; filename: string; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     const result = await runAsTenant(tenantId, async (tx) => {
       const run = await tx.payrollRun.findUnique({ where: { id: payrollRunId } });
@@ -129,6 +132,7 @@ export async function submitNetcashBatchAction(
   tenantId: string,
   payrollRunId: string
 ): Promise<{ token: string; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     const result = await runAsTenant(tenantId, async (tx) => {
       const run = await tx.payrollRun.findUnique({ where: { id: payrollRunId } });
@@ -190,6 +194,7 @@ export async function createBankExportRecordAction(
   payrollRunId: string,
   data: { totalAmount: number; paymentCount: number; approvedBy?: string }
 ): Promise<{ id: string; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     const record = await runAsTenant(tenantId, async (tx) => {
       return tx.bankExport.create({

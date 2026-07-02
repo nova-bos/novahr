@@ -6,6 +6,29 @@ const mockPrisma = vi.hoisted(() => ({
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 
+vi.mock("@/lib/db-context", () => ({
+  runAsTenant: vi.fn((_tenantId: string, fn: (tx: unknown) => unknown) => fn(mockPrisma)),
+}));
+
+const mockSession = vi.hoisted(() => ({
+  current: {
+    id: "user-1",
+    tenantId: "novatech",
+    role: "hr",
+    name: "Lerato Dlamini",
+    email: "hr@novatech.co.za",
+    employeeId: undefined as string | undefined,
+  },
+}));
+
+vi.mock("@/lib/auth/require", () => ({
+  requireUser: vi.fn(async () => mockSession.current),
+  requireRole: vi.fn(async () => mockSession.current),
+  requireEmployeeScope: vi.fn(async () => mockSession.current),
+  requireTenant: vi.fn(async () => mockSession.current),
+}));
+
+
 import { updateTenantPayrollSettings, updateTenantProfile } from "./actions";
 import { makeTenantRow } from "@/lib/workspace/test-fixtures";
 import { mapTenant } from "@/lib/workspace/mappers";
@@ -19,7 +42,7 @@ describe("updateTenantProfile", () => {
     const row = makeTenantRow();
     mockPrisma.tenant.update.mockResolvedValue(row);
 
-    await updateTenantProfile("novatech", { name: "NovaTech Solutions" });
+    await updateTenantProfile({ name: "NovaTech Solutions" });
 
     expect(mockPrisma.tenant.update).toHaveBeenCalledWith({
       where: { id: "novatech" },
@@ -31,7 +54,7 @@ describe("updateTenantProfile", () => {
     const row = makeTenantRow({ name: "Updated Name" });
     mockPrisma.tenant.update.mockResolvedValue(row);
 
-    const result = await updateTenantProfile("novatech", { name: "Updated Name" });
+    const result = await updateTenantProfile({ name: "Updated Name" });
 
     expect(result).toEqual(mapTenant(row));
   });
@@ -52,7 +75,7 @@ describe("updateTenantProfile", () => {
       primaryContact: "Jane Smith",
     };
 
-    await updateTenantProfile("novatech", data);
+    await updateTenantProfile(data);
 
     expect(mockPrisma.tenant.update).toHaveBeenCalledWith({
       where: { id: "novatech" },
@@ -66,7 +89,7 @@ describe("updateTenantPayrollSettings", () => {
     const row = makeTenantRow();
     mockPrisma.tenant.update.mockResolvedValue(row);
 
-    await updateTenantPayrollSettings("novatech", {
+    await updateTenantPayrollSettings({
       payFrequency: "monthly",
       payDay: 25,
       bankName: "First National Bank",
@@ -82,7 +105,7 @@ describe("updateTenantPayrollSettings", () => {
     const row = makeTenantRow({ payDay: 28, bankName: "Absa Bank" });
     mockPrisma.tenant.update.mockResolvedValue(row);
 
-    const result = await updateTenantPayrollSettings("novatech", { payDay: 28, bankName: "Absa Bank" });
+    const result = await updateTenantPayrollSettings({ payDay: 28, bankName: "Absa Bank" });
 
     expect(result).toEqual(mapTenant(row));
   });

@@ -12,20 +12,19 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/store/app-provider";
-import { useCurrentTenant, useEmployees, useLeaveRequests } from "@/lib/store/hooks";
+import { useEmployees, useLeaveRequests } from "@/lib/store/hooks";
 import { formatDate, getInitials, leaveTypeLabel } from "@/lib/format";
 
 export function LeaveApprovals() {
   const leaveRequests = useLeaveRequests();
   const employees = useEmployees();
-  const tenant = useCurrentTenant();
   const { decideLeaveRequest } = useApp();
 
   const pending = leaveRequests.filter((r) => r.status === "pending").slice(0, 4);
 
   async function handleDecision(id: string, status: "approved" | "rejected", name: string) {
     try {
-      await decideLeaveRequest(id, status, tenant.primaryContact);
+      await decideLeaveRequest(id, status);
       toast(status === "approved" ? "Leave request approved" : "Leave request rejected", {
         description: `${name}'s leave request has been ${status}.`,
       });

@@ -13,6 +13,7 @@ const mockPrisma = vi.hoisted(() => {
     payslip: { ...tx.payslip, findMany: vi.fn() },
     tenant: { findUniqueOrThrow: vi.fn() },
     employee: { findMany: vi.fn() },
+    payrollProfile: { findMany: vi.fn().mockResolvedValue([]) },
     activityItem: tx.activityItem,
     notificationItem: tx.notificationItem,
     $transaction: vi.fn((cb: (t: typeof tx) => unknown) => cb(tx)),
@@ -23,6 +24,25 @@ vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("@/lib/db-context", () => ({
   runAsTenant: vi.fn((_tenantId: string, fn: (tx: unknown) => unknown) => fn(mockPrisma)),
 }));
+
+const mockSession = vi.hoisted(() => ({
+  current: {
+    id: "user-1",
+    tenantId: "novatech",
+    role: "hr",
+    name: "Lerato Dlamini",
+    email: "hr@novatech.co.za",
+    employeeId: undefined as string | undefined,
+  },
+}));
+
+vi.mock("@/lib/auth/require", () => ({
+  requireUser: vi.fn(async () => mockSession.current),
+  requireRole: vi.fn(async () => mockSession.current),
+  requireEmployeeScope: vi.fn(async () => mockSession.current),
+  requireTenant: vi.fn(async () => mockSession.current),
+}));
+
 
 import { completePayrollRunRecord, startPayrollRunRecord } from "./actions";
 
@@ -57,7 +77,7 @@ describe("startPayrollRunRecord", () => {
       { id: "novatech-run-2026-06-emp-2" },
     ]);
 
-    const result = await startPayrollRunRecord("novatech", "novatech-run-2026-06");
+    const result = await startPayrollRunRecord("novatech-run-2026-06");
 
     expect(result.status).toBe("processing");
     expect(result.payslipIds).toEqual(["novatech-run-2026-06-emp-1", "novatech-run-2026-06-emp-2"]);
@@ -138,7 +158,7 @@ describe("completePayrollRunRecord", () => {
       })
     );
 
-    const result = await completePayrollRunRecord("novatech", "novatech-run-2026-06");
+    const result = await completePayrollRunRecord("novatech-run-2026-06");
 
     expect(result.payrollRun.status).toBe("completed");
     expect(result.payrollRun.totalGross).toBe(50_000);
@@ -199,7 +219,7 @@ describe("completePayrollRunRecord", () => {
       type: "success",
     });
 
-    const result = await completePayrollRunRecord("novatech", "novatech-run-2026-06");
+    const result = await completePayrollRunRecord("novatech-run-2026-06");
 
     expect(result.nextRun).toBeUndefined();
     expect(mockPrisma.payrollRun.create).not.toHaveBeenCalled();

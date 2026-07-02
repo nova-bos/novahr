@@ -20,6 +20,11 @@ import {
   updateEmployeePhotoRecord,
 } from "../employees/actions";
 import { createLeaveRequestRecord, decideLeaveRequestRecord, type CreateLeaveRequestInput } from "../leave/actions";
+import {
+  createDepartmentRecord,
+  deleteDepartmentRecord,
+  updateDepartmentRecord,
+} from "../departments/actions";
 import { completePayrollRunRecord, startPayrollRunRecord } from "../payroll/actions";
 import { markAllNotificationsReadRecord, markNotificationReadRecord } from "../notifications/actions";
 import { getTenantWorkspace, type TenantWorkspace } from "../workspace/actions";
@@ -70,7 +75,10 @@ export type Action =
     }
   | { type: "NOTIFICATION_READ"; id: string }
   | { type: "ALL_NOTIFICATIONS_READ"; tenantId: string }
-  | { type: "TENANT_UPDATED"; tenant: Tenant };
+  | { type: "TENANT_UPDATED"; tenant: Tenant }
+  | { type: "DEPARTMENT_ADDED"; department: Department }
+  | { type: "DEPARTMENT_UPDATED"; department: Department }
+  | { type: "DEPARTMENT_DELETED"; id: string };
 
 export const initialState: AppState = {
   tenantId: "",
@@ -203,6 +211,20 @@ export function reducer(state: AppState, action: Action): AppState {
     case "TENANT_UPDATED":
       return { ...state, currentTenant: action.tenant };
 
+    case "DEPARTMENT_ADDED":
+      return { ...state, departments: [...state.departments, action.department] };
+
+    case "DEPARTMENT_UPDATED":
+      return {
+        ...state,
+        departments: state.departments.map((d) =>
+          d.id === action.department.id ? action.department : d
+        ),
+      };
+
+    case "DEPARTMENT_DELETED":
+      return { ...state, departments: state.departments.filter((d) => d.id !== action.id) };
+
     default:
       return state;
   }
@@ -219,15 +241,20 @@ interface AppContextValue {
   decideLeaveRequest: (
     id: string,
     status: Extract<LeaveStatus, "approved" | "rejected">,
-    decidedBy: string,
     decisionNote?: string
   ) => Promise<void>;
   startPayrollRun: (runId: string) => Promise<void>;
   completePayrollRun: (runId: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
-  markAllNotificationsRead: (tenantId: string) => Promise<void>;
-  updateTenantProfile: (data: Parameters<typeof updateTenantProfileAction>[1]) => Promise<void>;
-  updateTenantPayrollSettings: (data: Parameters<typeof updateTenantPayrollSettingsAction>[1]) => Promise<void>;
+  markAllNotificationsRead: () => Promise<void>;
+  updateTenantProfile: (data: Parameters<typeof updateTenantProfileAction>[0]) => Promise<void>;
+  updateTenantPayrollSettings: (data: Parameters<typeof updateTenantPayrollSettingsAction>[0]) => Promise<void>;
+  addDepartment: (data: { name: string; description?: string; headId?: string }) => Promise<void>;
+  updateDepartment: (
+    id: string,
+    data: { name?: string; description?: string; headId?: string | null }
+  ) => Promise<void>;
+  deleteDepartment: (id: string) => Promise<void>;
 }
 
 const AppContext = React.createContext<AppContextValue | null>(null);
@@ -238,7 +265,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (!state.tenantId) return;
     let active = true;
-    getTenantWorkspace(state.tenantId)
+    getTenantWorkspace()
       .then((workspace) => {
         if (active) dispatch({ type: "SET_WORKSPACE", workspace });
       })
@@ -265,15 +292,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return result.employee;
       },
       updateEmployee: async (id, updates) => {
-        const employee = await updateEmployeeRecord(state.tenantId, id, updates);
+        const employee = await updateEmployeeRecord(id, updates);
         dispatch({ type: "EMPLOYEE_UPDATED", employee });
       },
       updateEmployeePhoto: async (employeeId, photoUrl) => {
-        const employee = await updateEmployeePhotoRecord(state.tenantId, employeeId, photoUrl);
+        const employee = await updateEmployeePhotoRecord(employeeId, photoUrl);
         dispatch({ type: "EMPLOYEE_UPDATED", employee });
       },
       toggleOnboardingStep: async (employeeId, stepId) => {
-        const result = await toggleOnboardingStepRecord(state.tenantId, employeeId, stepId);
+        const result = await toggleOnboardingStepRecord(employeeId, stepId);
         dispatch({
           type: "ONBOARDING_STEP_TOGGLED",
           employee: result.employee,
@@ -289,8 +316,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           notification: result.notification,
         });
       },
-      decideLeaveRequest: async (id, status, decidedBy, decisionNote) => {
-        const result = await decideLeaveRequestRecord(state.tenantId, id, status, decidedBy, decisionNote);
+      decideLeaveRequest: async (id, status, decisionNote) => {
+        const result = await decideLeaveRequestRecord(id, status, decisionNote);
         dispatch({
           type: "LEAVE_REQUEST_DECIDED",
           leaveRequest: result.leaveRequest,
@@ -299,11 +326,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       },
       startPayrollRun: async (runId) => {
-        const payrollRun = await startPayrollRunRecord(state.tenantId, runId);
+        const payrollRun = await startPayrollRunRecord(runId);
         dispatch({ type: "PAYROLL_RUN_STARTED", payrollRun });
       },
       completePayrollRun: async (runId) => {
-        const result = await completePayrollRunRecord(state.tenantId, runId);
+        const result = await completePayrollRunRecord(runId);
         dispatch({
           type: "PAYROLL_RUN_COMPLETED",
           payrollRun: result.payrollRun,
@@ -314,20 +341,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
       },
       markNotificationRead: async (id) => {
-        await markNotificationReadRecord(state.tenantId, id);
+        await markNotificationReadRecord(id);
         dispatch({ type: "NOTIFICATION_READ", id });
       },
-      markAllNotificationsRead: async (tenantId) => {
-        await markAllNotificationsReadRecord(tenantId);
-        dispatch({ type: "ALL_NOTIFICATIONS_READ", tenantId });
+      markAllNotificationsRead: async () => {
+        await markAllNotificationsReadRecord();
+        dispatch({ type: "ALL_NOTIFICATIONS_READ", tenantId: state.tenantId });
       },
       updateTenantProfile: async (data) => {
-        const updated = await updateTenantProfileAction(state.tenantId, data);
+        const updated = await updateTenantProfileAction(data);
         dispatch({ type: "TENANT_UPDATED", tenant: updated });
       },
       updateTenantPayrollSettings: async (data) => {
-        const updated = await updateTenantPayrollSettingsAction(state.tenantId, data);
+        const updated = await updateTenantPayrollSettingsAction(data);
         dispatch({ type: "TENANT_UPDATED", tenant: updated });
+      },
+      addDepartment: async (data) => {
+        const department = await createDepartmentRecord(data);
+        dispatch({ type: "DEPARTMENT_ADDED", department });
+      },
+      updateDepartment: async (id, data) => {
+        const department = await updateDepartmentRecord(id, data);
+        dispatch({ type: "DEPARTMENT_UPDATED", department });
+      },
+      deleteDepartment: async (id) => {
+        await deleteDepartmentRecord(id);
+        dispatch({ type: "DEPARTMENT_DELETED", id });
       },
     }),
     [state]

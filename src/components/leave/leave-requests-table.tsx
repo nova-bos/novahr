@@ -69,7 +69,7 @@ export function LeaveRequestsTable() {
 
   async function handleDecision(id: string, decision: "approved" | "rejected", name: string) {
     try {
-      await decideLeaveRequest(id, decision, user?.name ?? "HR");
+      await decideLeaveRequest(id, decision);
       toast(decision === "approved" ? "Leave request approved" : "Leave request rejected", {
         description: `${name}'s leave request has been ${decision}.`,
       });

@@ -6,21 +6,12 @@ import { TenantCard } from "@/components/tenants/tenant-card";
 import { TenantProfile } from "@/components/tenants/tenant-profile";
 import { useCurrentTenant } from "@/lib/store/hooks";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
-import { getAllTenants } from "@/lib/workspace/actions";
-import { tenants as demoTenants } from "@/demo/tenants";
-import type { Tenant } from "@/lib/types";
 
 export default function TenantsPage() {
   const allowed = useRoleGuard(["hr", "exco"]);
   const tenant = useCurrentTenant();
-  const [liveTenants, setLiveTenants] = React.useState<Tenant[]>([]);
 
-  React.useEffect(() => {
-    getAllTenants().then(setLiveTenants);
-  }, []);
-
-  // Use liveTenants if loaded, otherwise fall back to the demo array (handles loading state)
-  const displayTenants = liveTenants.length > 0 ? liveTenants : demoTenants;
+  const displayTenants = [tenant];
 
   if (!allowed) return null;
 

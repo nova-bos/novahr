@@ -12,15 +12,37 @@ const mockPrisma = vi.hoisted(() => ({
   notificationItem: { findMany: vi.fn() },
 }));
 
+const mockSession = vi.hoisted(() => ({
+  current: {
+    id: "user-1",
+    tenantId: "novatech",
+    role: "hr",
+    name: "Lerato Dlamini",
+    email: "hr@novatech.co.za",
+    employeeId: undefined as string | undefined,
+  },
+}));
+
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));
 vi.mock("@/lib/db-context", () => ({
   runAsTenant: vi.fn((_tenantId: string, fn: (tx: unknown) => unknown) => fn(mockPrisma)),
+}));
+vi.mock("@/lib/auth/require", () => ({
+  requireUser: vi.fn(async () => mockSession.current),
 }));
 
 import { getAllTenants, getTenantWorkspace } from "./actions";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockSession.current = {
+    id: "user-1",
+    tenantId: "novatech",
+    role: "hr",
+    name: "Lerato Dlamini",
+    email: "hr@novatech.co.za",
+    employeeId: undefined,
+  };
 });
 
 function makeDepartmentRow(overrides: Record<string, unknown> = {}) {
@@ -123,73 +145,133 @@ function makeNotificationRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function mockWorkspaceRows(overrides: {
+  employees?: unknown[];
+  payslips?: unknown[];
+  leaveRequests?: unknown[];
+  payrollRuns?: unknown[];
+} = {}) {
+  mockPrisma.tenant.findUnique.mockResolvedValue(makeTenantRow());
+  mockPrisma.employee.findMany.mockResolvedValue(overrides.employees ?? [makeEmployeeRow()]);
+  mockPrisma.department.findMany.mockResolvedValue([makeDepartmentRow()]);
+  mockPrisma.leaveRequest.findMany.mockResolvedValue(overrides.leaveRequests ?? [makeLeaveRequestRow()]);
+  mockPrisma.payrollRun.findMany.mockResolvedValue(overrides.payrollRuns ?? [makePayrollRunRow()]);
+  mockPrisma.payslip.findMany.mockResolvedValue(overrides.payslips ?? [makePayslipRow()]);
+  mockPrisma.activityItem.findMany.mockResolvedValue([makeActivityRow()]);
+  mockPrisma.notificationItem.findMany.mockResolvedValue([makeNotificationRow()]);
+}
+
 describe("getAllTenants", () => {
-  it("queries all tenants ordered by name and maps each row", async () => {
-    mockPrisma.tenant.findMany.mockResolvedValue([
-      makeTenantRow({ id: "t-1", name: "Alpha Corp" }),
-      makeTenantRow({ id: "t-2", name: "Beta Ltd" }),
-    ]);
+  it("returns only the session user's tenant", async () => {
+    mockPrisma.tenant.findUnique.mockResolvedValue(makeTenantRow({ id: "novatech" }));
 
     const result = await getAllTenants();
 
-    expect(mockPrisma.tenant.findMany).toHaveBeenCalledWith({ orderBy: { name: "asc" } });
-    expect(result).toHaveLength(2);
-    expect(result[0].id).toBe("t-1");
-    expect(result[0].name).toBe("Alpha Corp");
-    expect(result[1].id).toBe("t-2");
-    expect(result[1].name).toBe("Beta Ltd");
+    expect(mockPrisma.tenant.findUnique).toHaveBeenCalledWith({ where: { id: "novatech" } });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("novatech");
   });
 });
 
 describe("getTenantWorkspace", () => {
   it("returns null when the tenant does not exist", async () => {
+    mockWorkspaceRows();
     mockPrisma.tenant.findUnique.mockResolvedValue(null);
-    mockPrisma.employee.findMany.mockResolvedValue([]);
-    mockPrisma.department.findMany.mockResolvedValue([]);
-    mockPrisma.leaveRequest.findMany.mockResolvedValue([]);
-    mockPrisma.payrollRun.findMany.mockResolvedValue([]);
-    mockPrisma.payslip.findMany.mockResolvedValue([]);
-    mockPrisma.activityItem.findMany.mockResolvedValue([]);
-    mockPrisma.notificationItem.findMany.mockResolvedValue([]);
 
-    const result = await getTenantWorkspace("does-not-exist");
+    const result = await getTenantWorkspace();
 
     expect(result).toBeNull();
   });
 
-  it("maps every record and groups payslips by run", async () => {
-    mockPrisma.tenant.findUnique.mockResolvedValue(makeTenantRow());
-    mockPrisma.employee.findMany.mockResolvedValue([makeEmployeeRow()]);
-    mockPrisma.department.findMany.mockResolvedValue([makeDepartmentRow()]);
-    mockPrisma.leaveRequest.findMany.mockResolvedValue([makeLeaveRequestRow()]);
-    mockPrisma.payrollRun.findMany.mockResolvedValue([
-      makePayrollRunRow({ id: "novatech-run-2026-05", period: "2026-05" }),
-      makePayrollRunRow({ id: "novatech-run-2026-06", period: "2026-06", status: "scheduled" }),
-    ]);
-    mockPrisma.payslip.findMany.mockResolvedValue([
-      makePayslipRow({ id: "novatech-run-2026-05-emp-1", runId: "novatech-run-2026-05", employeeId: "emp-1" }),
-      makePayslipRow({ id: "novatech-run-2026-05-emp-2", runId: "novatech-run-2026-05", employeeId: "emp-2" }),
-      makePayslipRow({ id: "novatech-run-2026-06-emp-1", runId: "novatech-run-2026-06", employeeId: "emp-1" }),
-    ]);
-    mockPrisma.activityItem.findMany.mockResolvedValue([makeActivityRow()]);
-    mockPrisma.notificationItem.findMany.mockResolvedValue([makeNotificationRow()]);
+  it("maps every record and groups payslips by run for HR users", async () => {
+    mockWorkspaceRows({
+      payrollRuns: [
+        makePayrollRunRow({ id: "novatech-run-2026-05", period: "2026-05" }),
+        makePayrollRunRow({ id: "novatech-run-2026-06", period: "2026-06", status: "scheduled" }),
+      ],
+      payslips: [
+        makePayslipRow({ id: "novatech-run-2026-05-emp-1", runId: "novatech-run-2026-05", employeeId: "emp-1" }),
+        makePayslipRow({ id: "novatech-run-2026-05-emp-2", runId: "novatech-run-2026-05", employeeId: "emp-2" }),
+        makePayslipRow({ id: "novatech-run-2026-06-emp-1", runId: "novatech-run-2026-06", employeeId: "emp-1" }),
+      ],
+    });
 
-    const result = await getTenantWorkspace("novatech");
+    const result = await getTenantWorkspace();
 
     expect(result).not.toBeNull();
     expect(result!.currentTenant.id).toBe("novatech");
     expect(result!.employees).toHaveLength(1);
     expect(result!.employees[0].id).toBe("emp-1");
+    expect(result!.employees[0].salary.annualGross).toBeGreaterThan(0);
     expect(result!.departments).toHaveLength(1);
-    expect(result!.departments[0].id).toBe("dept-1");
     expect(result!.leaveRequests).toHaveLength(1);
     expect(result!.payslips).toHaveLength(3);
-    expect(result!.activity).toHaveLength(1);
-    expect(result!.notifications).toHaveLength(1);
 
     const runMay = result!.payrollRuns.find((r) => r.id === "novatech-run-2026-05");
     const runJune = result!.payrollRuns.find((r) => r.id === "novatech-run-2026-06");
     expect(runMay?.payslipIds).toEqual(["novatech-run-2026-05-emp-1", "novatech-run-2026-05-emp-2"]);
     expect(runJune?.payslipIds).toEqual(["novatech-run-2026-06-emp-1"]);
+  });
+
+  it("sanitizes other employees' pay, banking and identifiers for employee-role users", async () => {
+    mockSession.current.role = "employee";
+    mockSession.current.employeeId = "emp-1";
+
+    mockWorkspaceRows({
+      employees: [
+        makeEmployeeRow({ id: "emp-1" }),
+        makeEmployeeRow({ id: "emp-2", firstName: "Sipho", lastName: "Nkosi" }),
+      ],
+      payslips: [
+        makePayslipRow({ id: "ps-1", employeeId: "emp-1" }),
+        makePayslipRow({ id: "ps-2", employeeId: "emp-2" }),
+      ],
+      leaveRequests: [
+        makeLeaveRequestRow({ id: "leave-1", employeeId: "emp-1" }),
+        makeLeaveRequestRow({ id: "leave-2", employeeId: "emp-2" }),
+      ],
+    });
+
+    const result = await getTenantWorkspace();
+
+    const self = result!.employees.find((e) => e.id === "emp-1")!;
+    const other = result!.employees.find((e) => e.id === "emp-2")!;
+
+    expect(self.salary.annualGross).toBeGreaterThan(0);
+    expect(other.salary.annualGross).toBe(0);
+    expect(other.bankDetails.accountNumber).toBe("");
+    expect(other.idNumber).toBe("");
+    expect(other.taxNumber).toBe("");
+    expect(other.leaveBalances).toEqual([]);
+
+    expect(result!.payslips.map((p) => p.id)).toEqual(["ps-1"]);
+    expect(result!.leaveRequests.map((r) => r.id)).toEqual(["leave-1"]);
+    expect(result!.payrollRuns[0].totalGross).toBe(0);
+  });
+
+  it("keeps direct reports visible but sanitized colleagues hidden for managers", async () => {
+    mockSession.current.role = "manager";
+    mockSession.current.employeeId = "emp-1";
+
+    mockWorkspaceRows({
+      employees: [
+        makeEmployeeRow({ id: "emp-1" }),
+        makeEmployeeRow({ id: "emp-2", managerId: "emp-1" }),
+        makeEmployeeRow({ id: "emp-3", managerId: "someone-else" }),
+      ],
+      leaveRequests: [
+        makeLeaveRequestRow({ id: "leave-1", employeeId: "emp-2" }),
+        makeLeaveRequestRow({ id: "leave-2", employeeId: "emp-3" }),
+      ],
+    });
+
+    const result = await getTenantWorkspace();
+
+    const report = result!.employees.find((e) => e.id === "emp-2")!;
+    const outsider = result!.employees.find((e) => e.id === "emp-3")!;
+
+    expect(report.salary.annualGross).toBeGreaterThan(0);
+    expect(outsider.salary.annualGross).toBe(0);
+    expect(result!.leaveRequests.map((r) => r.id)).toEqual(["leave-1"]);
   });
 });

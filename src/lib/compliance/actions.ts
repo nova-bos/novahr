@@ -2,6 +2,7 @@
 
 import { ComplianceStatus, ComplianceType } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
+import { requireTenant } from "@/lib/auth/require";
 import { getComplianceDueDate, calculateSdl } from "./utils";
 
 export interface ComplianceRecordRow {
@@ -78,6 +79,7 @@ export async function getComplianceRecordsAction(
   tenantId: string,
   year?: string
 ): Promise<ComplianceRecordRow[]> {
+  await requireTenant(tenantId, "hr", "exco");
   const targetYear = year ?? new Date().getFullYear().toString();
   return runAsTenant(tenantId, async (tx) => {
     const records = await tx.complianceRecord.findMany({
@@ -99,6 +101,7 @@ export async function getCurrentMonthComplianceAction(tenantId: string): Promise
   uif: ComplianceRecordRow | null;
   sdl: ComplianceRecordRow | null;
 }> {
+  await requireTenant(tenantId, "hr", "exco");
   const now = new Date();
   const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
@@ -134,6 +137,7 @@ export async function generateComplianceFromRunAction(
   tenantId: string,
   payrollRunId: string
 ): Promise<{ paye: ComplianceRecordRow; uif: ComplianceRecordRow; sdl: ComplianceRecordRow }> {
+  await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
     const run = await tx.payrollRun.findUniqueOrThrow({ where: { id: payrollRunId } });
     const period = run.period;
@@ -210,6 +214,7 @@ export async function markComplianceSubmittedAction(
   recordId: string,
   reference: string
 ): Promise<ComplianceRecordRow> {
+  await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
     const record = await tx.complianceRecord.update({
       where: { id: recordId },
@@ -230,6 +235,7 @@ export async function getComplianceSummaryAction(
   tenantId: string,
   year?: string
 ): Promise<ComplianceSummary> {
+  await requireTenant(tenantId, "hr", "exco");
   const targetYear = year ?? new Date().getFullYear().toString();
   return runAsTenant(tenantId, async (tx) => {
     const records = await tx.complianceRecord.findMany({

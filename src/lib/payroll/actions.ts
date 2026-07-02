@@ -2,6 +2,7 @@
 
 import type { Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
+import { requireRole } from "@/lib/auth/require";
 import { formatMonthYear } from "@/lib/format";
 import { sendPayslipEmail } from "@/lib/email";
 import { buildPayslip, incrementPeriod } from "./calculator";
@@ -22,8 +23,9 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-export async function startPayrollRunRecord(tenantId: string, runId: string): Promise<PayrollRun> {
-  return runAsTenant(tenantId, async (tx) => {
+export async function startPayrollRunRecord(runId: string): Promise<PayrollRun> {
+  const session = await requireRole("hr");
+  return runAsTenant(session.tenantId, async (tx) => {
     const [run, payslips] = await Promise.all([
       tx.payrollRun.update({ where: { id: runId }, data: { status: "processing" } }),
       tx.payslip.findMany({ where: { runId } }),
@@ -33,7 +35,6 @@ export async function startPayrollRunRecord(tenantId: string, runId: string): Pr
 }
 
 export async function completePayrollRunRecord(
-  tenantId: string,
   runId: string
 ): Promise<{
   payrollRun: PayrollRun;
@@ -42,16 +43,40 @@ export async function completePayrollRunRecord(
   activity: ActivityItem;
   notification: NotificationItem;
 }> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
   const { payrollRun, activity, notification, nextRun, newPayslips, eligible } = await runAsTenant(
     tenantId,
     async (tx) => {
       const run = await tx.payrollRun.findUniqueOrThrow({ where: { id: runId } });
       const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: run.tenantId } });
-      const employeeRows = await tx.employee.findMany({
-        where: { tenantId: run.tenantId },
-        include: { leaveBalances: true },
-      });
-      const employees = employeeRows.map(mapEmployee);
+      const [employeeRows, payrollProfiles] = await Promise.all([
+        tx.employee.findMany({
+          where: { tenantId: run.tenantId },
+          include: { leaveBalances: true },
+        }),
+        tx.payrollProfile.findMany({
+          where: { tenantId: run.tenantId },
+          select: { employeeId: true, medicalAidDependants: true },
+        }),
+      ]);
+
+      // Medical aid dependants live on the payroll profile; feed them into the
+      // calculator so the s6A medical aid tax credit is applied to PAYE.
+      const dependantsByEmployee = new Map(
+        payrollProfiles.map((p) => [p.employeeId, p.medicalAidDependants])
+      );
+      const employees = employeeRows.map(mapEmployee).map((e) =>
+        e.salary.medicalAid != null
+          ? {
+              ...e,
+              salary: {
+                ...e.salary,
+                medicalAidDependants: dependantsByEmployee.get(e.id) ?? 0,
+              },
+            }
+          : e
+      );
 
       const payDateStr = toDateOnly(run.payDate);
       const eligible = employees.filter((e) => e.status !== "terminated" && e.startDate <= payDateStr);

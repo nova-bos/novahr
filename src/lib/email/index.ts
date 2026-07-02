@@ -7,6 +7,16 @@ function getResend(): Resend | null {
   return new Resend(process.env.RESEND_API_KEY);
 }
 
+/** Escapes user-provided strings before interpolating them into email HTML. */
+function esc(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const FROM = process.env.EMAIL_FROM ?? "NovaHR <noreply@novahr.co.za>";
 
 function baseLayout(title: string, body: string): string {
@@ -70,13 +80,13 @@ export async function sendLeaveRequestEmail(args: LeaveRequestEmailArgs): Promis
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">New leave request</h2>
-    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">${args.employeeName} has submitted a leave request that needs your review.</p>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">${esc(args.employeeName)} has submitted a leave request that needs your review.</p>
 
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
       <tr>
         <td style="padding-bottom:14px;">
           <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Employee</p>
-          <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#18181b;">${args.employeeName}</p>
+          <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#18181b;">${esc(args.employeeName)}</p>
         </td>
       </tr>
       <tr>
@@ -94,7 +104,7 @@ export async function sendLeaveRequestEmail(args: LeaveRequestEmailArgs): Promis
       <tr>
         <td style="padding-bottom:20px;">
           <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Reason</p>
-          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${args.reason}</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${esc(args.reason)}</p>
         </td>
       </tr>
     </table>
@@ -109,7 +119,7 @@ export async function sendLeaveRequestEmail(args: LeaveRequestEmailArgs): Promis
       from: FROM,
       to: args.recipientEmails,
       subject: `Leave request from ${args.employeeName} (${args.days} ${dayWord} of ${label.toLowerCase()})`,
-      html: baseLayout(`Leave request: ${args.employeeName}`, body),
+      html: baseLayout(`Leave request: ${esc(args.employeeName)}`, body),
     });
   } catch {
     // Email failure must never break the main action
@@ -144,7 +154,7 @@ export async function sendLeaveDecisionEmail(args: LeaveDecisionEmailArgs): Prom
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Your leave request has been ${isApproved ? "approved" : "rejected"}</h2>
-    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Hi ${args.employeeName.split(" ")[0]}, here is the outcome of your recent leave request.</p>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Hi ${esc(args.employeeName.split(" ")[0])}, here is the outcome of your recent leave request.</p>
 
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
       <tr>
@@ -170,14 +180,14 @@ export async function sendLeaveDecisionEmail(args: LeaveDecisionEmailArgs): Prom
       <tr>
         <td style="padding-bottom:14px;">
           <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Decided by</p>
-          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${args.decidedBy}</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${esc(args.decidedBy)}</p>
         </td>
       </tr>
       ${args.decisionNote ? `
       <tr>
         <td style="padding-bottom:20px;">
           <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Note</p>
-          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${args.decisionNote}</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${esc(args.decisionNote)}</p>
         </td>
       </tr>` : `<tr><td style="padding-bottom:6px;"></td></tr>`}
     </table>
@@ -199,6 +209,45 @@ export async function sendLeaveDecisionEmail(args: LeaveDecisionEmailArgs): Prom
   }
 }
 
+interface InviteEmailArgs {
+  recipientEmail: string;
+  recipientName: string;
+  inviterName: string;
+  companyName: string;
+  roleLabel: string;
+  inviteUrl: string;
+}
+
+export async function sendInviteEmail(args: InviteEmailArgs): Promise<boolean> {
+  const client = getResend();
+  if (!client) return false;
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">You've been invited to ${esc(args.companyName)}</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Hi ${esc(args.recipientName.split(" ")[0])}, ${esc(args.inviterName)} has invited you to join ${esc(args.companyName)} on NovaHR as ${esc(args.roleLabel)}.</p>
+
+    <p style="margin:0 0 8px;font-size:15px;color:#52525b;">Click the button below to set your password and activate your account. This link expires in 7 days.</p>
+
+    <p style="margin:28px 0 0;">
+      <a href="${args.inviteUrl}" style="display:inline-block;padding:10px 20px;background:#18181b;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Accept invitation</a>
+    </p>
+
+    <p style="margin:20px 0 0;font-size:12px;color:#a1a1aa;">If the button doesn't work, copy this link into your browser:<br/>${args.inviteUrl}</p>
+  `;
+
+  try {
+    await client.emails.send({
+      from: FROM,
+      to: args.recipientEmail,
+      subject: `${args.inviterName} invited you to join ${args.companyName} on NovaHR`,
+      html: baseLayout(`Invitation to ${esc(args.companyName)}`, body),
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 interface PayslipEmailArgs {
   recipientEmail: string;
   employeeName: string;
@@ -216,7 +265,7 @@ export async function sendPayslipEmail(args: PayslipEmailArgs): Promise<void> {
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Your ${periodLabel} payslip is ready</h2>
-    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Hi ${args.employeeName.split(" ")[0]}, your payslip for ${periodLabel} has been published.</p>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Hi ${esc(args.employeeName.split(" ")[0])}, your payslip for ${periodLabel} has been published.</p>
 
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
       <tr>

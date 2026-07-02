@@ -2,6 +2,7 @@
 
 import type { Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
+import { requireEmployeeScope, requireRole } from "@/lib/auth/require";
 import type { ActivityItem, Employee, NotificationItem, Onboarding } from "@/lib/types";
 import { mapActivityItem, mapEmployee, mapNotificationItem } from "../workspace/mappers";
 import { deriveEmployeePrefix } from "./factory";
@@ -9,22 +10,23 @@ import { deriveEmployeePrefix } from "./factory";
 export async function createEmployeeRecord(
   employee: Employee
 ): Promise<{ employee: Employee; activity: ActivityItem; notification: NotificationItem }> {
+  const session = await requireRole("hr");
   const isOnboarding = employee.status === "probation";
 
-  return runAsTenant(employee.tenantId, async (tx) => {
+  return runAsTenant(session.tenantId, async (tx) => {
     // Generate employee number server-side using the real company name so
     // new tenants get a meaningful prefix (e.g. "NT-0001") instead of a
     // CUID fragment.
     const [tenant, existingCount] = await Promise.all([
-      tx.tenant.findUniqueOrThrow({ where: { id: employee.tenantId }, select: { name: true } }),
-      tx.employee.count({ where: { tenantId: employee.tenantId } }),
+      tx.tenant.findUniqueOrThrow({ where: { id: session.tenantId }, select: { name: true } }),
+      tx.employee.count({ where: { tenantId: session.tenantId } }),
     ]);
     const prefix = deriveEmployeePrefix(tenant.name);
     const employeeNumber = `${prefix}-${String(existingCount + 1).padStart(4, "0")}`;
 
     const created = await tx.employee.create({
       data: {
-        tenantId: employee.tenantId,
+        tenantId: session.tenantId,
         employeeNumber,
         firstName: employee.firstName,
         lastName: employee.lastName,
@@ -101,10 +103,11 @@ export async function createEmployeeRecord(
 }
 
 export async function updateEmployeeRecord(
-  tenantId: string,
   id: string,
   updates: Partial<Employee>
 ): Promise<Employee> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
   // leaveBalances and onboarding are not Prisma columns; strip them before building the update payload
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { salary, bankDetails, emergencyContact, leaveBalances, onboarding, startDate, ...rest } = updates;
@@ -151,11 +154,11 @@ export async function updateEmployeeRecord(
 }
 
 export async function updateEmployeePhotoRecord(
-  tenantId: string,
   employeeId: string,
   photoUrl: string
 ): Promise<Employee> {
-  return runAsTenant(tenantId, async (tx) => {
+  const session = await requireEmployeeScope(employeeId);
+  return runAsTenant(session.tenantId, async (tx) => {
     const updated = await tx.employee.update({
       where: { id: employeeId },
       data: { photoUrl },
@@ -166,11 +169,11 @@ export async function updateEmployeePhotoRecord(
 }
 
 export async function toggleOnboardingStepRecord(
-  tenantId: string,
   employeeId: string,
   stepId: string
 ): Promise<{ employee: Employee; activity?: ActivityItem }> {
-  return runAsTenant(tenantId, async (tx) => {
+  const session = await requireEmployeeScope(employeeId);
+  return runAsTenant(session.tenantId, async (tx) => {
     const existing = await tx.employee.findUniqueOrThrow({
       where: { id: employeeId },
       include: { leaveBalances: true },

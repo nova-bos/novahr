@@ -1,6 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
+import { requireTenant } from "@/lib/auth/require";
 import type { PayFrequency } from "@prisma/client";
 
 export interface PayrollProfileData {
@@ -33,6 +34,7 @@ export async function getPayrollProfileAction(
   tenantId: string,
   employeeId: string
 ): Promise<PayrollProfileResult | null> {
+  await requireTenant(tenantId, "hr");
   try {
     const profile = await runAsTenant(tenantId, async (tx) => {
       return tx.payrollProfile.findUnique({ where: { employeeId } });
@@ -61,6 +63,7 @@ export async function upsertPayrollProfileAction(
   employeeId: string,
   data: PayrollProfileData
 ): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollProfile.upsert({
