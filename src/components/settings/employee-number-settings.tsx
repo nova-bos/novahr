@@ -38,12 +38,13 @@ export function EmployeeNumberSettings() {
     getEmployeeNumberConfigAction(tenant.id).then((cfg) => {
       setPrefix(cfg.prefix);
       setPadLength(cfg.padLength.toString());
-      setSeparator(cfg.separator);
+      setSeparator(cfg.separator === "" ? "none" : cfg.separator);
       setNextNumber(cfg.nextNumber);
     });
   }, [tenant.id]);
 
-  const preview = `${prefix}${separator}${String(nextNumber).padStart(Number(padLength), "0")}`;
+  const actualSeparator = separator === "none" ? "" : separator;
+  const preview = `${prefix}${actualSeparator}${String(nextNumber).padStart(Number(padLength), "0")}`;
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -51,7 +52,7 @@ export function EmployeeNumberSettings() {
     const result = await updateEmployeeNumberConfigAction(tenant.id, {
       prefix,
       padLength: Number(padLength),
-      separator,
+      separator: actualSeparator,
     });
     setSaving(false);
     if (result.success) {
@@ -93,7 +94,7 @@ export function EmployeeNumberSettings() {
               <SelectContent>
                 <SelectItem value="-">Hyphen (EMP-0001)</SelectItem>
                 <SelectItem value="/">Slash (EMP/0001)</SelectItem>
-                <SelectItem value="">None (EMP0001)</SelectItem>
+                <SelectItem value="none">None (EMP0001)</SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -31,7 +31,8 @@ const MINIMUMS: Partial<Record<keyof LeavePolicyData, number>> = {
   unpaidDays: 0,
 };
 
-export const LEAVE_MINIMUMS = MINIMUMS;
+// LEAVE_MINIMUMS is intentionally not exported from this "use server" file.
+// Import it from @/lib/config/leave instead.
 
 const DEFAULTS: LeavePolicyData = {
   annualDays: 15,

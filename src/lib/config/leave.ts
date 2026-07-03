@@ -114,6 +114,18 @@ export const FAMILY_LEAVE_TYPES: LeaveType[] = [
 /** Company-policy leave types. */
 export const OTHER_LEAVE_TYPES: LeaveType[] = ["study", "unpaid"];
 
+export const LEAVE_MINIMUMS: Partial<Record<string, number>> = {
+  annualDays: 15,
+  sickDays: 30,
+  familyDays: 3,
+  maternityDays: 88,
+  parentalDays: 10,
+  adoptionDays: 50,
+  commissioningDays: 50,
+  studyDays: 5,
+  unpaidDays: 0,
+};
+
 export function getLeavePolicy(type: LeaveType): LeavePolicy {
   const policy = leavePolicies.find((p) => p.type === type);
   if (!policy) throw new Error(`Unknown leave type: ${type}`);
