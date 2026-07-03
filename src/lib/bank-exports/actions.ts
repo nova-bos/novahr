@@ -3,6 +3,7 @@
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant } from "@/lib/auth/require";
 import { generateNifFile, submitNifBatch, type NifInstruction } from "@/lib/bank-exports/netcash";
+import { getNetcashServiceKeys } from "@/lib/settings/actions";
 
 export async function generateBankExportCsvAction(
   tenantId: string,
@@ -100,7 +101,7 @@ export async function generateNetcashNifAction(
 
     const { run, settings, payslips } = result;
 
-    const serviceKey = settings?.netcashServiceKey ?? "";
+    const serviceKey = "";
     const instruction = (settings?.netcashInstruction ?? "DatedSalaries") as NifInstruction;
     const batchName = `NovaHR-${run.period}`;
 
@@ -138,11 +139,6 @@ export async function submitNetcashBatchAction(
       const run = await tx.payrollRun.findUnique({ where: { id: payrollRunId } });
       if (!run) return null;
 
-      const settings = await tx.payrollSettings.findUnique({ where: { tenantId } });
-      if (!settings?.netcashServiceKey) {
-        throw new Error("No Netcash service key configured. Add it in Settings > Payroll > Netcash.");
-      }
-
       const payslips = await tx.payslip.findMany({
         where: { runId: payrollRunId },
         include: {
@@ -159,16 +155,21 @@ export async function submitNetcashBatchAction(
         },
       });
 
-      return { run, settings, payslips };
+      return { run, payslips };
     });
 
     if (!result) return { token: "", error: "Payroll run not found." };
 
-    const { run, settings, payslips } = result;
+    const { run, payslips } = result;
+    const keys = await getNetcashServiceKeys(tenantId);
+
+    if (!keys.salaryKey) {
+      return { token: "", error: "No Netcash salary key configured. Add it in Settings > Payroll > Netcash." };
+    }
 
     const nif = generateNifFile({
-      serviceKey: settings.netcashServiceKey!,
-      instruction: (settings.netcashInstruction ?? "DatedSalaries") as NifInstruction,
+      serviceKey: keys.salaryKey,
+      instruction: (keys.instruction ?? "DatedSalaries") as NifInstruction,
       batchName: `NovaHR-${run.period}`,
       actionDate: run.payDate,
       employees: payslips.map((p) => ({
@@ -182,7 +183,7 @@ export async function submitNetcashBatchAction(
       })),
     });
 
-    return submitNifBatch(settings.netcashServiceKey!, nif);
+    return submitNifBatch(keys.salaryKey, nif);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     return { token: "", error: message };

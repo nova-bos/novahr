@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { createCompanyAccount } from "./actions";
 
 const HIGHLIGHTS = [
@@ -154,6 +155,14 @@ export default function SignupPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               You will be the first HR administrator for your new workspace.
             </p>
+          </div>
+
+          <GoogleSignInButton label="Continue with Google" />
+
+          <div className="relative my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or create with email</span>
+            <div className="h-px flex-1 bg-border" />
           </div>
 
           {error && (

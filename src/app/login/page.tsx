@@ -26,6 +26,7 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import { demoUsers } from "@/lib/auth/demo-users";
 import { ROLE_LABELS, type UserRole } from "@/lib/auth/types";
 import { cn } from "@/lib/utils";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 const ROLE_ICONS: Record<UserRole, LucideIcon> = {
   employee: User,
@@ -154,6 +155,14 @@ export default function LoginPage() {
               {error}
             </div>
           )}
+
+          <GoogleSignInButton label="Continue with Google" />
+
+          <div className="relative my-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs text-muted-foreground">or sign in with email</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">

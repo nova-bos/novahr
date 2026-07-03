@@ -5,6 +5,7 @@ import {
   CalendarX,
   ClipboardCheck,
   FileText,
+  Settings,
   TrendingUp,
   UserMinus,
   UserPlus,
@@ -38,6 +39,7 @@ const ICONS: Record<ActivityType, LucideIcon> = {
   document: FileText,
   termination: UserMinus,
   onboarding: UserPlus,
+  settings_updated: Settings,
 };
 
 const ICON_STYLES: Record<ActivityType, string> = {
@@ -50,6 +52,7 @@ const ICON_STYLES: Record<ActivityType, string> = {
   document: "bg-muted text-muted-foreground",
   termination: "bg-destructive/10 text-destructive",
   onboarding: "bg-info/10 text-info",
+  settings_updated: "bg-muted text-muted-foreground",
 };
 
 export function ActivityFeed() {

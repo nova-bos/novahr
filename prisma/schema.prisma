@@ -74,6 +74,7 @@ enum ActivityType {
   document
   termination
   onboarding
+  settings_updated
 }
 
 enum NotificationType {
@@ -237,10 +238,12 @@ model Employee {
   salaryPensionContributionPct     Float?
   salaryMedicalAid                  Float?
 
-  bankName          String
-  bankAccountNumber String
-  bankBranchCode    String
-  bankAccountType   String
+  bankName              String
+  bankAccountNumber     String
+  bankBranchCode        String
+  bankAccountType       String
+  bankAccountValidated  Boolean   @default(false)
+  bankValidatedAt       DateTime?
 
   taxNumber String
   idNumber  String
@@ -515,8 +518,11 @@ model PayrollSettings {
   payslipShowYtd     Boolean         @default(true)
   requireApproval      Boolean  @default(false)
   approvalUserId       String?
-  netcashServiceKey    String?
-  netcashInstruction   String   @default("DatedSalaries")
+  netcashSalaryKey          String?
+  netcashBankValidationKey  String?
+  netcashAccountServicesKey String?
+  netcashInstruction        String   @default("DatedSalaries")
+  netcashEnvironment        String   @default("production")
   payeReferenceNumber  String?
   uifReferenceNumber   String?
   sdlReferenceNumber   String?

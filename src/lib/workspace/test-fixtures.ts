@@ -33,6 +33,8 @@ export function makeEmployeeRow(overrides: Partial<EmployeeWithBalances> = {}): 
     bankAccountNumber: "1234567890",
     bankBranchCode: "051001",
     bankAccountType: "Cheque",
+    bankAccountValidated: false,
+    bankValidatedAt: null,
     taxNumber: "1234567890",
     idNumber: "9001015800082",
     address: "1 Main Street, Cape Town",

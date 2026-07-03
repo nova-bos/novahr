@@ -22,7 +22,8 @@ export type ActivityType =
   | "promotion"
   | "document"
   | "termination"
-  | "onboarding";
+  | "onboarding"
+  | "settings_updated";
 
 export interface OnboardingStep {
   id: string;

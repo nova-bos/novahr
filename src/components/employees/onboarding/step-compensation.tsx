@@ -10,9 +10,8 @@ import {
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/format";
 import type { FieldErrors } from "@/lib/schemas/employee";
+import { SA_BANKS } from "@/lib/services/netcash/helpers";
 import type { NewEmployeeForm } from "./types";
-
-const BANKS = ["Standard Bank", "First National Bank", "Absa", "Nedbank", "Capitec"];
 
 interface StepProps {
   form: NewEmployeeForm;
@@ -119,15 +118,22 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
               <Label htmlFor="bank">Bank</Label>
               <Select
                 value={form.bank}
-                onValueChange={(value) => setForm((f) => ({ ...f, bank: value }))}
+                onValueChange={(value) => {
+                  const found = SA_BANKS.find((b) => b.name === value);
+                  setForm((f) => ({
+                    ...f,
+                    bank: value,
+                    branchCode: found ? found.universalBranchCode : f.branchCode,
+                  }));
+                }}
               >
                 <SelectTrigger id="bank" className="w-full">
                   <SelectValue placeholder="Select bank" />
                 </SelectTrigger>
                 <SelectContent>
-                  {BANKS.map((bank) => (
-                    <SelectItem key={bank} value={bank}>
-                      {bank}
+                  {SA_BANKS.map((b) => (
+                    <SelectItem key={b.name} value={b.name}>
+                      {b.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -169,6 +175,7 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
                 onChange={(e) => setForm((f) => ({ ...f, branchCode: e.target.value }))}
                 placeholder="051001"
               />
+              <p className="text-xs text-muted-foreground">Auto-filled when you select a bank above.</p>
               <FieldError message={errors.branchCode} />
             </div>
           </div>

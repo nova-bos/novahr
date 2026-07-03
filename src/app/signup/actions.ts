@@ -106,6 +106,80 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
   return data.session ? { status: "success" } : { status: "check-email" };
 }
 
+export async function completeGoogleSignup(
+  companyName: string
+): Promise<CreateCompanyResult> {
+  const name = companyName.trim();
+  if (name.length < 2) {
+    return { status: "error", message: "Company name must be at least 2 characters." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) {
+    return { status: "error", message: "Session expired. Please sign in again." };
+  }
+
+  const { user } = data;
+  const existing = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true } });
+  if (existing) return { status: "success" };
+
+  const yourName = (user.user_metadata?.full_name as string | undefined) ?? user.email?.split("@")[0] ?? "Admin";
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+  await prisma.$transaction(async (tx) => {
+    const tenant = await tx.tenant.create({
+      data: {
+        name,
+        legalName: name,
+        initials: deriveInitials(name),
+        industry: "General",
+        color: "#4C6FFF",
+        founded: String(new Date().getFullYear()),
+        registrationNumber: "",
+        vatNumber: "",
+        address: "",
+        city: "",
+        bankName: "",
+        primaryContact: yourName,
+        plan: "trial",
+        trialEndsAt,
+      },
+    });
+
+    await tx.user.create({
+      data: {
+        id: user.id,
+        tenantId: tenant.id,
+        email: user.email!,
+        name: yourName,
+        title: "HR Administrator",
+        role: "hr",
+        avatarColor: "#4C6FFF",
+        initials: deriveInitials(yourName),
+      },
+    });
+
+    const now = new Date();
+    const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const payDay = 25;
+    const payDate = new Date(`${period}-${String(payDay).padStart(2, "0")}`);
+    await tx.payrollRun.create({
+      data: {
+        id: `${tenant.id}-run-${period}`,
+        tenantId: tenant.id,
+        period,
+        label: `${formatMonthYear(period)} Payroll`,
+        payDate,
+        status: "scheduled",
+        employeeCount: 0,
+      },
+    });
+  });
+
+  return { status: "success" };
+}
+
 function deriveInitials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return "??";

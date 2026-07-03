@@ -6,9 +6,11 @@ import { requireEmployeeScope, requireRole } from "@/lib/auth/require";
 import type { ActivityItem, Employee, NotificationItem, Onboarding } from "@/lib/types";
 import { mapActivityItem, mapEmployee, mapNotificationItem } from "../workspace/mappers";
 import { claimNextEmployeeNumber } from "@/lib/employee-numbers/actions";
-import { formatCurrency } from "@/lib/format";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 import type { LeaveType } from "@/lib/types";
+import { getNetcashServiceKeys } from "@/lib/settings/actions";
+import { validateBankAccount } from "@/lib/services/netcash";
+import { mapAccountType } from "@/lib/services/netcash/helpers";
 
 export interface SalaryHistoryEntry {
   id: string;
@@ -280,4 +282,48 @@ export async function toggleOnboardingStepRecord(
 
     return { employee: mapEmployee(updated), activity: mapActivityItem(activity) };
   });
+}
+
+export async function validateEmployeeBankAccountAction(
+  employeeId: string
+): Promise<{ success: boolean; valid?: boolean; message?: string; error?: string }> {
+  const session = await requireEmployeeScope(employeeId);
+  try {
+    const keys = await getNetcashServiceKeys(session.tenantId);
+    if (!keys.bankValidationKey) {
+      return { success: false, error: "No bank validation key configured. Add it in Settings > Payroll > Netcash." };
+    }
+
+    const emp = await runAsTenant(session.tenantId, async (tx) =>
+      tx.employee.findUniqueOrThrow({
+        where: { id: employeeId },
+        select: { bankAccountNumber: true, bankBranchCode: true, bankAccountType: true },
+      })
+    );
+
+    const accountType: "1" | "2" = mapAccountType(emp.bankAccountType) === "2" ? "2" : "1";
+    const branch = emp.bankBranchCode.replace(/\D/g, "").padStart(6, "0").slice(0, 6);
+
+    const result = await validateBankAccount(
+      keys.bankValidationKey,
+      emp.bankAccountNumber,
+      branch,
+      accountType,
+      keys.environment
+    );
+
+    await runAsTenant(session.tenantId, async (tx) => {
+      await tx.employee.update({
+        where: { id: employeeId },
+        data: {
+          bankAccountValidated: result.valid,
+          bankValidatedAt: result.valid ? new Date() : null,
+        },
+      });
+    });
+
+    return { success: true, valid: result.valid, message: result.message };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Validation failed." };
+  }
 }

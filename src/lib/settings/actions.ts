@@ -2,6 +2,9 @@
 
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole, requireTenant } from "@/lib/auth/require";
+import { encryptServiceKey, decryptServiceKey } from "@/lib/crypto/service-keys";
+import { prisma } from "@/lib/prisma";
+import { isValidServiceKey } from "@/lib/services/netcash";
 
 export interface PayrollSettingsResult {
   id: string;
@@ -13,11 +16,54 @@ export interface PayrollSettingsResult {
   uifCeiling: number;
   payslipCompanyName: string | null;
   payslipLogoUrl: string | null;
-  netcashServiceKey: string | null;
+  hasSalaryKey: boolean;
+  hasBankValidationKey: boolean;
+  hasAccountServicesKey: boolean;
   netcashInstruction: string;
+  netcashEnvironment: string;
   payeReferenceNumber: string | null;
   uifReferenceNumber: string | null;
   sdlReferenceNumber: string | null;
+}
+
+function toPayrollSettingsResult(s: {
+  id: string;
+  sdlEnabled: boolean;
+  sdlRate: number;
+  uifEnabled: boolean;
+  uifEmployeeRate: number;
+  uifEmployerRate: number;
+  uifCeiling: number;
+  payslipCompanyName: string | null;
+  payslipLogoUrl: string | null;
+  netcashSalaryKey: string | null;
+  netcashBankValidationKey: string | null;
+  netcashAccountServicesKey: string | null;
+  netcashInstruction: string;
+  netcashEnvironment: string;
+  payeReferenceNumber: string | null;
+  uifReferenceNumber: string | null;
+  sdlReferenceNumber: string | null;
+}): PayrollSettingsResult {
+  return {
+    id: s.id,
+    sdlEnabled: s.sdlEnabled,
+    sdlRate: s.sdlRate,
+    uifEnabled: s.uifEnabled,
+    uifEmployeeRate: s.uifEmployeeRate,
+    uifEmployerRate: s.uifEmployerRate,
+    uifCeiling: s.uifCeiling,
+    payslipCompanyName: s.payslipCompanyName,
+    payslipLogoUrl: s.payslipLogoUrl,
+    hasSalaryKey: !!s.netcashSalaryKey,
+    hasBankValidationKey: !!s.netcashBankValidationKey,
+    hasAccountServicesKey: !!s.netcashAccountServicesKey,
+    netcashInstruction: s.netcashInstruction,
+    netcashEnvironment: s.netcashEnvironment,
+    payeReferenceNumber: s.payeReferenceNumber,
+    uifReferenceNumber: s.uifReferenceNumber,
+    sdlReferenceNumber: s.sdlReferenceNumber,
+  };
 }
 
 export async function getPayrollSettingsAction(
@@ -26,45 +72,34 @@ export async function getPayrollSettingsAction(
   await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
     const existing = await tx.payrollSettings.findUnique({ where: { tenantId } });
-    if (existing) {
-      return {
-        id: existing.id,
-        sdlEnabled: existing.sdlEnabled,
-        sdlRate: existing.sdlRate,
-        uifEnabled: existing.uifEnabled,
-        uifEmployeeRate: existing.uifEmployeeRate,
-        uifEmployerRate: existing.uifEmployerRate,
-        uifCeiling: existing.uifCeiling,
-        payslipCompanyName: existing.payslipCompanyName,
-        payslipLogoUrl: existing.payslipLogoUrl,
-        netcashServiceKey: existing.netcashServiceKey,
-        netcashInstruction: existing.netcashInstruction,
-        payeReferenceNumber: existing.payeReferenceNumber,
-        uifReferenceNumber: existing.uifReferenceNumber,
-        sdlReferenceNumber: existing.sdlReferenceNumber,
-      };
-    }
-    // Create with defaults
-    const created = await tx.payrollSettings.create({
-      data: { tenantId },
-    });
-    return {
-      id: created.id,
-      sdlEnabled: created.sdlEnabled,
-      sdlRate: created.sdlRate,
-      uifEnabled: created.uifEnabled,
-      uifEmployeeRate: created.uifEmployeeRate,
-      uifEmployerRate: created.uifEmployerRate,
-      uifCeiling: created.uifCeiling,
-      payslipCompanyName: created.payslipCompanyName,
-      payslipLogoUrl: created.payslipLogoUrl,
-      netcashServiceKey: created.netcashServiceKey,
-      netcashInstruction: created.netcashInstruction,
-      payeReferenceNumber: created.payeReferenceNumber,
-      uifReferenceNumber: created.uifReferenceNumber,
-      sdlReferenceNumber: created.sdlReferenceNumber,
-    };
+    if (existing) return toPayrollSettingsResult(existing);
+    const created = await tx.payrollSettings.create({ data: { tenantId } });
+    return toPayrollSettingsResult(created);
   });
+}
+
+export async function getNetcashServiceKeys(tenantId: string): Promise<{
+  salaryKey: string | null;
+  bankValidationKey: string | null;
+  accountServicesKey: string | null;
+  instruction: string;
+  environment: "production" | "uat";
+}> {
+  const settings = await prisma.payrollSettings.findUnique({ where: { tenantId } });
+  if (!settings) return { salaryKey: null, bankValidationKey: null, accountServicesKey: null, instruction: "DatedSalaries", environment: "production" };
+
+  function safeDecrypt(val: string | null): string | null {
+    if (!val) return null;
+    try { return decryptServiceKey(val); } catch { return null; }
+  }
+
+  return {
+    salaryKey: safeDecrypt(settings.netcashSalaryKey),
+    bankValidationKey: safeDecrypt(settings.netcashBankValidationKey),
+    accountServicesKey: safeDecrypt(settings.netcashAccountServicesKey),
+    instruction: settings.netcashInstruction,
+    environment: settings.netcashEnvironment as "production" | "uat",
+  };
 }
 
 export async function updateTaxSettingsAction(
@@ -191,22 +226,72 @@ export async function updatePayslipSettingsAction(
 export async function updateNetcashSettingsAction(
   tenantId: string,
   data: {
-    netcashServiceKey: string | null;
-    netcashInstruction: string;
+    salaryKey?: string | null;
+    bankValidationKey?: string | null;
+    accountServicesKey?: string | null;
+    netcashInstruction?: string;
+    netcashEnvironment?: string;
   }
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
   try {
+    const update: Record<string, string | null> = {};
+    const changed: string[] = [];
+
+    if (data.salaryKey !== undefined) {
+      update.netcashSalaryKey = data.salaryKey ? encryptServiceKey(data.salaryKey) : null;
+      changed.push("salary key");
+    }
+    if (data.bankValidationKey !== undefined) {
+      update.netcashBankValidationKey = data.bankValidationKey ? encryptServiceKey(data.bankValidationKey) : null;
+      changed.push("bank validation key");
+    }
+    if (data.accountServicesKey !== undefined) {
+      update.netcashAccountServicesKey = data.accountServicesKey ? encryptServiceKey(data.accountServicesKey) : null;
+      changed.push("account services key");
+    }
+    if (data.netcashInstruction !== undefined) update.netcashInstruction = data.netcashInstruction;
+    if (data.netcashEnvironment !== undefined) update.netcashEnvironment = data.netcashEnvironment;
+
     await runAsTenant(tenantId, async (tx) => {
-      return tx.payrollSettings.upsert({
+      await tx.payrollSettings.upsert({
         where: { tenantId },
-        update: data,
-        create: { tenantId, ...data },
+        update,
+        create: { tenantId, ...update },
       });
+      if (changed.length > 0) {
+        await tx.activityItem.create({
+          data: {
+            tenantId,
+            type: "settings_updated",
+            message: `Netcash credentials updated: ${changed.join(", ")}`,
+            actor: "HR Admin",
+          },
+        });
+      }
     });
+
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
+export async function testNetcashKeyAction(
+  tenantId: string,
+  keyType: "salary" | "bankValidation" | "accountServices",
+  rawKey: string
+): Promise<{ valid: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
+  try {
+    const settings = await prisma.payrollSettings.findUnique({ where: { tenantId } });
+    const environment = (settings?.netcashEnvironment ?? "production") as "production" | "uat";
+    const instruction = settings?.netcashInstruction ?? "DatedSalaries";
+    const testInstruction = keyType === "salary" ? instruction : "BankAccountValidation";
+    const result = await isValidServiceKey(rawKey, testInstruction, environment);
+    return result;
+  } catch (err) {
+    return { valid: false, error: err instanceof Error ? err.message : "Test failed." };
   }
 }
 
