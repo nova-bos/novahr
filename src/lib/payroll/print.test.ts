@@ -31,6 +31,8 @@ const mockEmployee: Employee = {
     accountNumber: "62000000001",
     branchCode: "250655",
     accountType: "Cheque",
+    validated: false,
+    validatedAt: null,
   },
   taxNumber: "1234567890",
   idNumber: "9001010001089",

@@ -133,6 +133,8 @@ describe("mapEmployee", () => {
     bankAccountNumber: "1234567890",
     bankBranchCode: "051001",
     bankAccountType: "Cheque",
+    bankAccountValidated: false,
+    bankValidatedAt: null,
     taxNumber: "1234567890",
     idNumber: "9001015800082",
     address: "1 Main Street, Cape Town",
@@ -340,6 +342,9 @@ describe("mapPayrollRun", () => {
     totalUif: 0,
     employeeCount: 12,
     processedOn: null,
+    approvedBy: null,
+    approvedAt: null,
+    approvalNote: null,
   };
 
   it("maps an unprocessed run with no processedOn timestamp", () => {

@@ -290,8 +290,8 @@ export async function validateEmployeeBankAccountAction(
   const session = await requireEmployeeScope(employeeId);
   try {
     const keys = await getNetcashServiceKeys(session.tenantId);
-    if (!keys.bankValidationKey) {
-      return { success: false, error: "No bank validation key configured. Add it in Settings > Payroll > Netcash." };
+    if (!keys.accountServicesKey) {
+      return { success: false, error: "No account services key configured. Add it in Settings > Payroll > Netcash." };
     }
 
     const emp = await runAsTenant(session.tenantId, async (tx) =>
@@ -305,7 +305,7 @@ export async function validateEmployeeBankAccountAction(
     const branch = emp.bankBranchCode.replace(/\D/g, "").padStart(6, "0").slice(0, 6);
 
     const result = await validateBankAccount(
-      keys.bankValidationKey,
+      keys.accountServicesKey,
       emp.bankAccountNumber,
       branch,
       accountType,

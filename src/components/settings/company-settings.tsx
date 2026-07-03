@@ -2,18 +2,34 @@
 
 import * as React from "react";
 import { toast } from "sonner";
+import { createBrowserClient } from "@supabase/ssr";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { validateCompanyProfile } from "@/lib/schemas/tenant";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant } from "@/lib/store/hooks";
+import { getPayslipSettingsAction, updatePayslipSettingsAction } from "@/lib/settings/actions";
+
+function getSupabase() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 
 export function CompanySettings() {
   const tenant = useCurrentTenant();
   const { updateTenantProfile } = useApp();
+
+  const [logoUrl, setLogoUrl] = React.useState<string | null>(null);
+  const [uploadingLogo, setUploadingLogo] = React.useState(false);
+
+  React.useEffect(() => {
+    getPayslipSettingsAction(tenant.id).then((s) => setLogoUrl(s.logoUrl));
+  }, [tenant.id]);
 
   const [name, setName] = React.useState(tenant.name);
   const [legalName, setLegalName] = React.useState(tenant.legalName);
@@ -50,8 +66,83 @@ export function CompanySettings() {
     }
   }
 
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo must be under 2 MB");
+      return;
+    }
+    setUploadingLogo(true);
+    try {
+      const supabase = getSupabase();
+      const ext = file.name.split(".").pop() ?? "png";
+      const path = `${tenant.id}/logo.${ext}`;
+      const { error } = await supabase.storage.from("payslip-assets").upload(path, file, {
+        upsert: true,
+        contentType: file.type,
+      });
+      if (error) throw error;
+      const { data } = supabase.storage.from("payslip-assets").getPublicUrl(path);
+      const url = data.publicUrl;
+      setLogoUrl(url);
+      const result = await updatePayslipSettingsAction(tenant.id, { logoUrl: url });
+      if (!result.success) throw new Error(result.error);
+      toast.success("Logo uploaded");
+    } catch (err) {
+      toast.error("Logo upload failed", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  }
+
+  async function handleRemoveLogo() {
+    setLogoUrl(null);
+    await updatePayslipSettingsAction(tenant.id, { logoUrl: null });
+    toast.success("Logo removed");
+  }
+
   return (
     <form onSubmit={handleSave} className="flex flex-col gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Company logo</CardTitle>
+          <CardDescription>Used on payslips and documents. PNG, JPG or SVG, max 2 MB.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex items-center gap-6">
+          {logoUrl ? (
+            <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoUrl}
+                alt="Company logo"
+                className="h-10 w-20 object-contain rounded border border-border"
+              />
+              <Button type="button" variant="outline" size="sm" onClick={handleRemoveLogo}>
+                Remove
+              </Button>
+            </div>
+          ) : null}
+          <div>
+            <Label htmlFor="logo-upload" className="cursor-pointer">
+              <Button type="button" variant="outline" size="sm" asChild disabled={uploadingLogo}>
+                <span>{uploadingLogo ? "Uploading..." : logoUrl ? "Replace logo" : "Upload logo"}</span>
+              </Button>
+            </Label>
+            <input
+              id="logo-upload"
+              type="file"
+              accept="image/png,image/jpeg,image/svg+xml"
+              className="sr-only"
+              onChange={handleLogoUpload}
+              disabled={uploadingLogo}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Company profile</CardTitle>

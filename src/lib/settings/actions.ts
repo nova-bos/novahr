@@ -17,7 +17,6 @@ export interface PayrollSettingsResult {
   payslipCompanyName: string | null;
   payslipLogoUrl: string | null;
   hasSalaryKey: boolean;
-  hasBankValidationKey: boolean;
   hasAccountServicesKey: boolean;
   netcashInstruction: string;
   netcashEnvironment: string;
@@ -37,7 +36,6 @@ function toPayrollSettingsResult(s: {
   payslipCompanyName: string | null;
   payslipLogoUrl: string | null;
   netcashSalaryKey: string | null;
-  netcashBankValidationKey: string | null;
   netcashAccountServicesKey: string | null;
   netcashInstruction: string;
   netcashEnvironment: string;
@@ -56,7 +54,6 @@ function toPayrollSettingsResult(s: {
     payslipCompanyName: s.payslipCompanyName,
     payslipLogoUrl: s.payslipLogoUrl,
     hasSalaryKey: !!s.netcashSalaryKey,
-    hasBankValidationKey: !!s.netcashBankValidationKey,
     hasAccountServicesKey: !!s.netcashAccountServicesKey,
     netcashInstruction: s.netcashInstruction,
     netcashEnvironment: s.netcashEnvironment,
@@ -80,13 +77,12 @@ export async function getPayrollSettingsAction(
 
 export async function getNetcashServiceKeys(tenantId: string): Promise<{
   salaryKey: string | null;
-  bankValidationKey: string | null;
   accountServicesKey: string | null;
   instruction: string;
   environment: "production" | "uat";
 }> {
   const settings = await prisma.payrollSettings.findUnique({ where: { tenantId } });
-  if (!settings) return { salaryKey: null, bankValidationKey: null, accountServicesKey: null, instruction: "DatedSalaries", environment: "production" };
+  if (!settings) return { salaryKey: null, accountServicesKey: null, instruction: "DatedSalaries", environment: "production" };
 
   function safeDecrypt(val: string | null): string | null {
     if (!val) return null;
@@ -95,7 +91,6 @@ export async function getNetcashServiceKeys(tenantId: string): Promise<{
 
   return {
     salaryKey: safeDecrypt(settings.netcashSalaryKey),
-    bankValidationKey: safeDecrypt(settings.netcashBankValidationKey),
     accountServicesKey: safeDecrypt(settings.netcashAccountServicesKey),
     instruction: settings.netcashInstruction,
     environment: settings.netcashEnvironment as "production" | "uat",
@@ -227,7 +222,6 @@ export async function updateNetcashSettingsAction(
   tenantId: string,
   data: {
     salaryKey?: string | null;
-    bankValidationKey?: string | null;
     accountServicesKey?: string | null;
     netcashInstruction?: string;
     netcashEnvironment?: string;
@@ -241,10 +235,6 @@ export async function updateNetcashSettingsAction(
     if (data.salaryKey !== undefined) {
       update.netcashSalaryKey = data.salaryKey ? encryptServiceKey(data.salaryKey) : null;
       changed.push("salary key");
-    }
-    if (data.bankValidationKey !== undefined) {
-      update.netcashBankValidationKey = data.bankValidationKey ? encryptServiceKey(data.bankValidationKey) : null;
-      changed.push("bank validation key");
     }
     if (data.accountServicesKey !== undefined) {
       update.netcashAccountServicesKey = data.accountServicesKey ? encryptServiceKey(data.accountServicesKey) : null;
@@ -279,7 +269,7 @@ export async function updateNetcashSettingsAction(
 
 export async function testNetcashKeyAction(
   tenantId: string,
-  keyType: "salary" | "bankValidation" | "accountServices",
+  keyType: "salary" | "accountServices",
   rawKey: string
 ): Promise<{ valid: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");

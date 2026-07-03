@@ -119,7 +119,6 @@ export function NetcashSettings() {
   const tenantId = useTenantId();
 
   const [hasSalaryKey, setHasSalaryKey] = React.useState(false);
-  const [hasBankValidationKey, setHasBankValidationKey] = React.useState(false);
   const [hasAccountServicesKey, setHasAccountServicesKey] = React.useState(false);
   const [instruction, setInstruction] = React.useState("DatedSalaries");
   const [environment, setEnvironment] = React.useState("production");
@@ -130,7 +129,6 @@ export function NetcashSettings() {
     if (!can("payrollSettings")) return;
     getPayrollSettingsAction(tenantId).then((s) => {
       setHasSalaryKey(s.hasSalaryKey);
-      setHasBankValidationKey(s.hasBankValidationKey);
       setHasAccountServicesKey(s.hasAccountServicesKey);
       setInstruction(s.netcashInstruction ?? "DatedSalaries");
       setEnvironment(s.netcashEnvironment ?? "production");
@@ -141,7 +139,7 @@ export function NetcashSettings() {
   if (!can("payrollSettings")) return null;
   if (!loaded) return <p className="text-sm text-muted-foreground">Loading...</p>;
 
-  async function saveKey(field: "salaryKey" | "bankValidationKey" | "accountServicesKey", value: string | null) {
+  async function saveKey(field: "salaryKey" | "accountServicesKey", value: string | null) {
     const result = await updateNetcashSettingsAction(tenantId, { [field]: value });
     if (!result.success) {
       toast.error("Could not save key", { description: result.error });
@@ -149,11 +147,10 @@ export function NetcashSettings() {
     }
     toast.success("Key saved securely.");
     if (field === "salaryKey") setHasSalaryKey(!!value);
-    if (field === "bankValidationKey") setHasBankValidationKey(!!value);
     if (field === "accountServicesKey") setHasAccountServicesKey(!!value);
   }
 
-  async function testKey(keyType: "salary" | "bankValidation" | "accountServices", rawKey: string) {
+  async function testKey(keyType: "salary" | "accountServices", rawKey: string) {
     const result = await testNetcashKeyAction(tenantId, keyType, rawKey);
     if (result.valid) {
       toast.success("Key is valid.", { description: "Connection to Netcash confirmed." });
@@ -205,16 +202,8 @@ export function NetcashSettings() {
           onTest={(v) => testKey("salary", v)}
         />
         <KeyField
-          label="Bank validation key"
-          description="Used to validate employee bank accounts before payment. Found under Account Services in your Netcash portal."
-          hasKey={hasBankValidationKey}
-          disabled={false}
-          onSave={(v) => saveKey("bankValidationKey", v)}
-          onTest={(v) => testKey("bankValidation", v)}
-        />
-        <KeyField
           label="Account services key"
-          description="Used for balance and payment limit queries. Found under Account Services in your Netcash portal."
+          description="Used to validate employee bank accounts and query account balance and payment limits. Found under Account Services in your Netcash portal."
           hasKey={hasAccountServicesKey}
           disabled={false}
           onSave={(v) => saveKey("accountServicesKey", v)}

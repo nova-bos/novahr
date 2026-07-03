@@ -519,7 +519,6 @@ model PayrollSettings {
   requireApproval      Boolean  @default(false)
   approvalUserId       String?
   netcashSalaryKey          String?
-  netcashBankValidationKey  String?
   netcashAccountServicesKey String?
   netcashInstruction        String   @default("DatedSalaries")
   netcashEnvironment        String   @default("production")

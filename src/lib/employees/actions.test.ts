@@ -133,7 +133,7 @@ describe("updateEmployeeRecord", () => {
       jobTitle: "Senior Engineer",
       startDate: "2024-02-01",
       salary: { annualGross: 700_000, currency: "ZAR", payFrequency: "monthly", travelAllowance: 2_000 },
-      bankDetails: { bank: "Capitec", accountNumber: "111", branchCode: "470010", accountType: "Savings" },
+      bankDetails: { bank: "Capitec", accountNumber: "111", branchCode: "470010", accountType: "Savings", validated: false, validatedAt: null },
       emergencyContact: { name: "Jane Doe", relationship: "Sister", phone: "+27 82 000 0000" },
     });
 

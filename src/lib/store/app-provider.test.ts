@@ -56,7 +56,7 @@ function makeEmployee(overrides: Partial<Employee> = {}): Employee {
     startDate: "2024-01-15",
     location: "Cape Town",
     salary: { annualGross: 600_000, currency: "ZAR", payFrequency: "monthly" },
-    bankDetails: { bank: "Standard Bank", accountNumber: "1234567890", branchCode: "051001", accountType: "Cheque" },
+    bankDetails: { bank: "Standard Bank", accountNumber: "1234567890", branchCode: "051001", accountType: "Cheque", validated: false, validatedAt: null },
     taxNumber: "1234567890",
     idNumber: "9001015800082",
     address: "1 Main Street, Cape Town",
