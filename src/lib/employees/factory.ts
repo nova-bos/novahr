@@ -95,6 +95,8 @@ export function createEmployee(input: NewEmployeeInput, existingCount: number, c
       accountNumber: "0000000000",
       branchCode: "000000",
       accountType: "Cheque",
+      validated: false,
+      validatedAt: null,
     },
     taxNumber: "Pending registration",
     idNumber: "Pending verification",

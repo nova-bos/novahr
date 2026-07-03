@@ -103,6 +103,8 @@ export function makeEmployee(overrides: Partial<Employee> = {}): Employee {
       accountNumber: "1234567890",
       branchCode: "051001",
       accountType: "Cheque",
+      validated: false,
+      validatedAt: null,
     },
     taxNumber: "1234567890",
     idNumber: "9001015800082",

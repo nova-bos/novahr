@@ -59,7 +59,7 @@ function sanitizeEmployee(employee: Employee): Employee {
       currency: employee.salary.currency,
       payFrequency: employee.salary.payFrequency,
     },
-    bankDetails: { bank: "", accountNumber: "", branchCode: "", accountType: "Cheque" },
+    bankDetails: { bank: "", accountNumber: "", branchCode: "", accountType: "Cheque", validated: false, validatedAt: null },
     taxNumber: "",
     idNumber: "",
     dateOfBirth: undefined,

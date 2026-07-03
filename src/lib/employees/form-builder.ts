@@ -43,6 +43,8 @@ export function buildEmployeeFromForm(
       accountNumber: form.accountNumber.trim(),
       branchCode: form.branchCode.trim(),
       accountType: form.accountType,
+      validated: false,
+      validatedAt: null,
     },
     taxNumber: form.taxNumber.trim(),
     idNumber: form.idNumber.trim(),

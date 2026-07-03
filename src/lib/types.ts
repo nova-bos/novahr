@@ -43,6 +43,8 @@ export interface BankDetails {
   accountNumber: string;
   branchCode: string;
   accountType: "Cheque" | "Savings";
+  validated: boolean;
+  validatedAt: string | null;
 }
 
 export interface EmergencyContact {

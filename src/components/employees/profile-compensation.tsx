@@ -1,6 +1,9 @@
+"use client";
+
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Banknote, Landmark } from "lucide-react";
+import { ArrowRight, Banknote, CheckCircle2, Landmark, Loader2, ShieldAlert } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,18 +12,40 @@ import { formatCurrency, formatDate, maskAccountNumber } from "@/lib/format";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { usePayslipsByEmployee } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
-import { getSalaryHistoryAction, type SalaryHistoryEntry } from "@/lib/employees/actions";
+import { getSalaryHistoryAction, validateEmployeeBankAccountAction, type SalaryHistoryEntry } from "@/lib/employees/actions";
 
 export function ProfileCompensation({ employee }: { employee: Employee }) {
   const breakdown = calculateMonthlyPayroll(employee);
   const payslips = usePayslipsByEmployee(employee.id);
   const [salaryHistory, setSalaryHistory] = React.useState<SalaryHistoryEntry[]>([]);
+  const [validated, setValidated] = React.useState(employee.bankDetails.validated);
+  const [validatedAt, setValidatedAt] = React.useState(employee.bankDetails.validatedAt);
+  const [validating, startValidating] = React.useTransition();
 
   React.useEffect(() => {
     getSalaryHistoryAction(employee.id)
       .then(setSalaryHistory)
       .catch(() => {});
   }, [employee.id]);
+
+  function handleValidate() {
+    startValidating(async () => {
+      const result = await validateEmployeeBankAccountAction(employee.id);
+      if (!result.success) {
+        toast.error("Validation failed", { description: result.error });
+        return;
+      }
+      if (result.valid) {
+        setValidated(true);
+        setValidatedAt(new Date().toISOString());
+        toast.success("Bank account verified.", { description: result.message });
+      } else {
+        setValidated(false);
+        setValidatedAt(null);
+        toast.error("Account did not pass validation.", { description: result.message });
+      }
+    });
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -150,6 +175,31 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
       <Card>
         <CardHeader>
           <CardTitle>Banking details</CardTitle>
+          <CardAction>
+            {validated ? (
+              <div className="flex items-center gap-1.5 text-xs text-success font-medium">
+                <CheckCircle2 className="size-3.5" />
+                Verified{validatedAt ? ` ${formatDate(validatedAt)}` : ""}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+                  <ShieldAlert className="size-3.5" />
+                  Not verified
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleValidate}
+                  disabled={validating}
+                  className="h-7 px-2.5 text-xs"
+                >
+                  {validating ? <Loader2 className="size-3 animate-spin mr-1" /> : null}
+                  {validating ? "Verifying..." : "Verify account"}
+                </Button>
+              </div>
+            )}
+          </CardAction>
         </CardHeader>
         <CardContent>
           <div className="grid gap-5 sm:grid-cols-3">

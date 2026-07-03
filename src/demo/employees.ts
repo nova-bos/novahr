@@ -120,6 +120,8 @@ function buildEmployee(seed: EmployeeSeed): Employee {
       accountNumber: seed.accountNumber,
       branchCode: seed.branchCode,
       accountType: seed.accountType,
+      validated: false,
+      validatedAt: null,
     },
     taxNumber: seed.taxNumber,
     idNumber: seed.idNumber,

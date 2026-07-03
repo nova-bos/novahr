@@ -110,6 +110,8 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
       accountNumber: row.bankAccountNumber,
       branchCode: row.bankBranchCode,
       accountType: row.bankAccountType as BankDetails["accountType"],
+      validated: row.bankAccountValidated,
+      validatedAt: row.bankValidatedAt?.toISOString() ?? null,
     },
     taxNumber: row.taxNumber,
     idNumber: row.idNumber,
