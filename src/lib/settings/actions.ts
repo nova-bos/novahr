@@ -4,7 +4,7 @@ import { runAsTenant } from "@/lib/db-context";
 import { requireRole, requireTenant } from "@/lib/auth/require";
 import { encryptServiceKey, decryptServiceKey } from "@/lib/crypto/service-keys";
 import { prisma } from "@/lib/prisma";
-import { isValidServiceKey } from "@/lib/services/netcash";
+import { isValidServiceKey } from "@/lib/services/netcash/auth";
 
 export interface PayrollSettingsResult {
   id: string;
