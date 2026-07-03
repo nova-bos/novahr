@@ -195,6 +195,8 @@ describe("mapEmployee", () => {
       accountNumber: "1234567890",
       branchCode: "051001",
       accountType: "Cheque",
+      validated: false,
+      validatedAt: null,
     });
     expect(employee.onboarding).toEqual({ progress: 50, startDate: "2024-01-15", steps: [] });
     expect(employee.leaveBalances).toEqual([

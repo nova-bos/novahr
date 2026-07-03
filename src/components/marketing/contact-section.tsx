@@ -106,7 +106,7 @@ export function ContactSection() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   disabled={submitting}
-                  placeholder="Your name"
+                  placeholder="e.g. Jane Doe"
                 />
               </div>
               <div className="space-y-1.5">
@@ -118,7 +118,7 @@ export function ContactSection() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={submitting}
-                  placeholder="you@company.com"
+                  placeholder="e.g. john.smith@company.co.za"
                 />
               </div>
             </div>
@@ -129,7 +129,7 @@ export function ContactSection() {
                 value={company}
                 onChange={(e) => setCompany(e.target.value)}
                 disabled={submitting}
-                placeholder="Your company name"
+                placeholder="e.g. Nova Technologies (Pty) Ltd"
               />
             </div>
             <div className="space-y-1.5">

@@ -1,5 +1,6 @@
 import {
   NIWS_VALIDATION_ENDPOINT,
+  NIWS_NAMESPACE,
   soapCall,
   extractResult,
   escapeXml,
@@ -28,7 +29,7 @@ export async function validateBankAccount(
   accountType: "1" | "2",
   environment: "production" | "uat" = "production"
 ): Promise<BankValidationResult> {
-  const body = `<ValidateBankAccount xmlns="http://ws.netcash.co.za/NIWS/">
+  const body = `<ValidateBankAccount xmlns="${NIWS_NAMESPACE}">
     <ServiceKey>${escapeXml(accountServicesKey)}</ServiceKey>
     <AccountNumber>${escapeXml(accountNumber)}</AccountNumber>
     <BranchCode>${escapeXml(branchCode)}</BranchCode>
@@ -37,7 +38,7 @@ export async function validateBankAccount(
 
   const xml = await soapCall(
     NIWS_VALIDATION_ENDPOINT,
-    "http://ws.netcash.co.za/NIWS/INIWS_Validation/ValidateBankAccount",
+    "ValidateBankAccount",
     body,
     environment
   );

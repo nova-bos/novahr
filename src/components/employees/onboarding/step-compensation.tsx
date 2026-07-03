@@ -44,7 +44,7 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
                 min={0}
                 value={form.annualGross}
                 onChange={(e) => setForm((f) => ({ ...f, annualGross: e.target.value }))}
-                placeholder="600000"
+                placeholder="e.g. R25 000"
               />
               {annualGross > 0 ? (
                 <p className="text-xs text-muted-foreground">
@@ -163,7 +163,7 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
                 id="accountNumber"
                 value={form.accountNumber}
                 onChange={(e) => setForm((f) => ({ ...f, accountNumber: e.target.value }))}
-                placeholder="62012345678"
+                placeholder="e.g. 62123456789"
               />
               <FieldError message={errors.accountNumber} />
             </div>
@@ -173,7 +173,7 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
                 id="branchCode"
                 value={form.branchCode}
                 onChange={(e) => setForm((f) => ({ ...f, branchCode: e.target.value }))}
-                placeholder="051001"
+                placeholder="e.g. 250655"
               />
               <p className="text-xs text-muted-foreground">Auto-filled when you select a bank above.</p>
               <FieldError message={errors.branchCode} />

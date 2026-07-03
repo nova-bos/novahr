@@ -79,7 +79,7 @@ export function EmployeeNumberSettings() {
               id="emp-prefix"
               value={prefix}
               onChange={(e) => setPrefix(e.target.value.toUpperCase().slice(0, 6))}
-              placeholder="EMP"
+              placeholder="e.g. EMP"
               maxLength={6}
               disabled={saving}
             />

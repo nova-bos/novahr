@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Banknote, Download, Receipt, ReceiptText, Send, Wallet } from "lucide-react";
+import { ArrowLeft, Banknote, Download, Loader2, Receipt, ReceiptText, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -266,14 +266,17 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
                   {isNifExporting ? "Generating..." : "Download Netcash NIF"}
                 </Button>
                 <Button
-                  variant="outline"
-                  size="sm"
+                  size="lg"
                   onClick={handleNetcashSubmit}
                   disabled={isSubmitting}
-                  className="flex-1 sm:flex-none"
+                  className="w-full sm:w-auto sm:order-first"
                 >
-                  <Send className="mr-2 size-4" />
-                  {isSubmitting ? "Submitting..." : "Submit to Netcash"}
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 size-4 animate-spin" />
+                  ) : (
+                    <Send className="mr-2 size-4" />
+                  )}
+                  {isSubmitting ? "Submitting..." : "Submit payroll to Netcash"}
                 </Button>
               </>
             ) : null}

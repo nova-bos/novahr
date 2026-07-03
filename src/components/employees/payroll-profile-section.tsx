@@ -182,7 +182,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
                   id="pp-uifNumber"
                   value={formUifNumber}
                   onChange={(e) => setFormUifNumber(e.target.value)}
-                  placeholder="UIF reference"
+                  placeholder="e.g. U123456789"
                   disabled={isSaving}
                 />
               </div>
@@ -205,7 +205,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
                   id="pp-medicalAidNumber"
                   value={formMedicalAidNumber}
                   onChange={(e) => setFormMedicalAidNumber(e.target.value)}
-                  placeholder="Membership number"
+                  placeholder="e.g. MED12345678"
                   disabled={isSaving}
                 />
               </div>
@@ -240,7 +240,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
                   id="pp-retirementFundNumber"
                   value={formRetirementFundNumber}
                   onChange={(e) => setFormRetirementFundNumber(e.target.value)}
-                  placeholder="Fund reference"
+                  placeholder="e.g. PF-2026-0042"
                   disabled={isSaving}
                 />
               </div>

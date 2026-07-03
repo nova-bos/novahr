@@ -48,7 +48,7 @@ export function StepRole({ form, setForm, errors }: StepProps) {
                 id="jobTitle"
                 value={form.jobTitle}
                 onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
-                placeholder="Software Engineer"
+                placeholder="e.g. Software Engineer"
               />
               <FieldError message={errors.jobTitle} />
             </div>
@@ -107,7 +107,7 @@ export function StepRole({ form, setForm, errors }: StepProps) {
                 id="location"
                 value={form.location}
                 onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
-                placeholder="Cape Town, HQ"
+                placeholder="e.g. Cape Town, HQ"
               />
               <FieldError message={errors.location} />
             </div>

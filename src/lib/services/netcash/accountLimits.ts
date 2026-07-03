@@ -1,4 +1,12 @@
-import { NIWS_NIF_ENDPOINT, soapCall, extractResult, escapeXml } from "./client";
+import {
+  NIWS_NIF_ENDPOINT,
+  NIWS_NAMESPACE,
+  NetcashError,
+  soapCall,
+  extractResult,
+  escapeXml,
+  logNetcash,
+} from "./client";
 
 export interface LimitsResult {
   lineLimit: number | null;
@@ -6,32 +14,34 @@ export interface LimitsResult {
   error?: string;
 }
 
+// GetPaymentLimits returns a LimitResponse data contract:
+// Errors { ErrorCode } and Limits { DailyLimit, LineLimit } as xs:decimal
+// rand values. The daily limit is surfaced as the batch limit.
 export async function getPaymentLimits(
-  salaryKey: string,
+  serviceKey: string,
   environment: "production" | "uat" = "production"
 ): Promise<LimitsResult> {
-  const body = `<GetPaymentLimits xmlns="http://ws.netcash.co.za/NIWS/">
-    <ServiceKey>${escapeXml(salaryKey)}</ServiceKey>
+  const body = `<GetPaymentLimits xmlns="${NIWS_NAMESPACE}">
+    <ServiceKey>${escapeXml(serviceKey)}</ServiceKey>
   </GetPaymentLimits>`;
 
   try {
-    const xml = await soapCall(
-      NIWS_NIF_ENDPOINT,
-      "http://ws.netcash.co.za/NIWS/INIWS_NIF/GetPaymentLimits",
-      body,
-      environment
-    );
+    const xml = await soapCall(NIWS_NIF_ENDPOINT, "GetPaymentLimits", body, environment);
+
+    const errorCode = extractResult(xml, "ErrorCode");
+    if (errorCode) {
+      logNetcash("GetPaymentLimits error code", { environment, errorCode });
+      return { lineLimit: null, batchLimit: null, error: "Netcash could not return payment limits. Check the service key configuration." };
+    }
+
     const lineRaw = extractResult(xml, "LineLimit");
-    const batchRaw = extractResult(xml, "BatchLimit");
+    const dailyRaw = extractResult(xml, "DailyLimit");
     return {
-      lineLimit: lineRaw ? parseFloat(lineRaw) / 100 : null,
-      batchLimit: batchRaw ? parseFloat(batchRaw) / 100 : null,
+      lineLimit: lineRaw !== null && !isNaN(parseFloat(lineRaw)) ? parseFloat(lineRaw) : null,
+      batchLimit: dailyRaw !== null && !isNaN(parseFloat(dailyRaw)) ? parseFloat(dailyRaw) : null,
     };
   } catch (err) {
-    return {
-      lineLimit: null,
-      batchLimit: null,
-      error: err instanceof Error ? err.message : "Network error.",
-    };
+    if (err instanceof NetcashError) return { lineLimit: null, batchLimit: null, error: err.message };
+    return { lineLimit: null, batchLimit: null, error: "Could not reach Netcash." };
   }
 }

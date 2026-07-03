@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SettingRow } from "./setting-row";
 import { usePlan } from "@/lib/plan/use-plan";
 import { useTenantId } from "@/lib/store/hooks";
 import {
   getPayrollSettingsAction,
   updateTaxSettingsAction,
-  updatePayslipBrandingAction,
   type PayrollSettingsResult,
 } from "@/lib/settings/actions";
 
@@ -27,10 +27,8 @@ export function PayrollTaxSettings() {
   const [uifEmployeeRate, setUifEmployeeRate] = React.useState("1");
   const [uifEmployerRate, setUifEmployerRate] = React.useState("1");
   const [uifCeiling, setUifCeiling] = React.useState("17712");
-  const [payslipCompanyName, setPayslipCompanyName] = React.useState("");
 
   const [isSavingTax, startSaveTaxTransition] = React.useTransition();
-  const [isSavingBranding, startSaveBrandingTransition] = React.useTransition();
 
   React.useEffect(() => {
     if (!can("payrollSettings")) return;
@@ -42,12 +40,19 @@ export function PayrollTaxSettings() {
       setUifEmployeeRate(String(Math.round(s.uifEmployeeRate * 100)));
       setUifEmployerRate(String(Math.round(s.uifEmployerRate * 100)));
       setUifCeiling(String(s.uifCeiling));
-      setPayslipCompanyName(s.payslipCompanyName ?? "");
     });
   }, [tenantId, can]);
 
   if (!can("payrollSettings")) return null;
-  if (!settings) return <p className="text-sm text-muted-foreground">Loading...</p>;
+  if (!settings) {
+    return (
+      <div className="space-y-3" aria-busy="true" aria-label="Loading tax settings">
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-3/4" />
+        <Skeleton className="h-9 w-1/2" />
+      </div>
+    );
+  }
 
   function handleSaveTax() {
     startSaveTaxTransition(async () => {
@@ -64,20 +69,6 @@ export function PayrollTaxSettings() {
         return;
       }
       toast.success("Tax settings saved");
-    });
-  }
-
-  function handleSaveBranding() {
-    startSaveBrandingTransition(async () => {
-      const result = await updatePayslipBrandingAction(tenantId, {
-        payslipCompanyName: payslipCompanyName || null,
-        payslipLogoUrl: null,
-      });
-      if (!result.success) {
-        toast.error("Could not save branding", { description: result.error });
-        return;
-      }
-      toast.success("Payslip branding saved");
     });
   }
 
@@ -164,28 +155,6 @@ export function PayrollTaxSettings() {
         </CardFooter>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Payslip branding</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="payslipCompanyName">Company name on payslip</Label>
-            <Input
-              id="payslipCompanyName"
-              value={payslipCompanyName}
-              onChange={(e) => setPayslipCompanyName(e.target.value)}
-              placeholder="Leave blank to use your company name"
-              disabled={isSavingBranding}
-            />
-          </div>
-        </CardContent>
-        <CardFooter className="justify-end">
-          <Button onClick={handleSaveBranding} disabled={isSavingBranding}>
-            {isSavingBranding ? "Saving..." : "Save branding"}
-          </Button>
-        </CardFooter>
-      </Card>
     </div>
   );
 }

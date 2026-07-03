@@ -31,7 +31,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 id="firstName"
                 value={form.firstName}
                 onChange={(e) => setForm((f) => ({ ...f, firstName: e.target.value }))}
-                placeholder="Thandiwe"
+                placeholder="e.g. Thandiwe"
               />
               <FieldError message={errors.firstName} />
             </div>
@@ -41,7 +41,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 id="lastName"
                 value={form.lastName}
                 onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
-                placeholder="Nkosi"
+                placeholder="e.g. Nkosi"
               />
               <FieldError message={errors.lastName} />
             </div>
@@ -51,7 +51,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 id="preferredName"
                 value={form.preferredName}
                 onChange={(e) => setForm((f) => ({ ...f, preferredName: e.target.value }))}
-                placeholder="Thandi"
+                placeholder="e.g. Thandi"
               />
             </div>
             <div className="space-y-1.5">
@@ -60,7 +60,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 id="idNumber"
                 value={form.idNumber}
                 onChange={(e) => setForm((f) => ({ ...f, idNumber: e.target.value }))}
-                placeholder="9203155012089"
+                placeholder="e.g. 9001015009087"
               />
               <FieldError message={errors.idNumber} />
             </div>
@@ -71,7 +71,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                placeholder="thandiwe.nkosi@company.co.za"
+                placeholder="e.g. john.smith@company.co.za"
               />
               <FieldError message={errors.email} />
             </div>
@@ -81,7 +81,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 id="phone"
                 value={form.phone}
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                placeholder="071 234 5678"
+                placeholder="e.g. 076 123 4567"
               />
               <FieldError message={errors.phone} />
             </div>
@@ -91,7 +91,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 id="taxNumber"
                 value={form.taxNumber}
                 onChange={(e) => setForm((f) => ({ ...f, taxNumber: e.target.value }))}
-                placeholder="9012345678"
+                placeholder="e.g. 9123456789"
               />
               <FieldError message={errors.taxNumber} />
             </div>
@@ -102,7 +102,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 rows={2}
                 value={form.address}
                 onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
-                placeholder="12 Long Street, Cape Town, 8001"
+                placeholder="e.g. 12 Long Street, Cape Town, 8001"
               />
             </div>
           </div>
@@ -121,7 +121,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 id="emergencyName"
                 value={form.emergencyName}
                 onChange={(e) => setForm((f) => ({ ...f, emergencyName: e.target.value }))}
-                placeholder="Nomsa Nkosi"
+                placeholder="e.g. Nomsa Nkosi"
               />
             </div>
             <div className="space-y-1.5">
@@ -132,7 +132,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 onChange={(e) =>
                   setForm((f) => ({ ...f, emergencyRelationship: e.target.value }))
                 }
-                placeholder="Spouse"
+                placeholder="e.g. Spouse"
               />
             </div>
             <div className="space-y-1.5">
@@ -141,7 +141,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 id="emergencyPhone"
                 value={form.emergencyPhone}
                 onChange={(e) => setForm((f) => ({ ...f, emergencyPhone: e.target.value }))}
-                placeholder="082 345 6789"
+                placeholder="e.g. 082 345 6789"
               />
               <FieldError message={errors.emergencyPhone} />
             </div>

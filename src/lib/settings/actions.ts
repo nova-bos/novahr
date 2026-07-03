@@ -271,38 +271,20 @@ export async function testNetcashKeyAction(
   tenantId: string,
   keyType: "salary" | "accountServices",
   rawKey: string
-): Promise<{ valid: boolean; error?: string }> {
+): Promise<{ valid: boolean; status: string; message: string }> {
   await requireTenant(tenantId, "hr");
   try {
     const settings = await prisma.payrollSettings.findUnique({ where: { tenantId } });
     const environment = (settings?.netcashEnvironment ?? "production") as "production" | "uat";
     const instruction = settings?.netcashInstruction ?? "DatedSalaries";
     const testInstruction = keyType === "salary" ? instruction : "BankAccountValidation";
-    const result = await isValidServiceKey(rawKey, testInstruction, environment);
-    return result;
+    return await isValidServiceKey(rawKey, testInstruction, environment);
   } catch (err) {
-    return { valid: false, error: err instanceof Error ? err.message : "Test failed." };
-  }
-}
-
-export async function updatePayslipBrandingAction(
-  tenantId: string,
-  data: {
-    payslipCompanyName: string | null;
-    payslipLogoUrl: string | null;
-  }
-): Promise<{ success: boolean; error?: string }> {
-  await requireTenant(tenantId, "hr");
-  try {
-    await runAsTenant(tenantId, async (tx) => {
-      return tx.payrollSettings.upsert({
-        where: { tenantId },
-        update: data,
-        create: { tenantId, ...data },
-      });
-    });
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+    console.error("[netcash] testNetcashKeyAction failed", err instanceof Error ? err.message : err);
+    return {
+      valid: false,
+      status: "server_error",
+      message: "The key test could not be completed. Please try again.",
+    };
   }
 }

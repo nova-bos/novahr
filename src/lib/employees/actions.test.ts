@@ -4,7 +4,18 @@ import { makeEmployee, makeEmployeeRow } from "../workspace/test-fixtures";
 const mockPrisma = vi.hoisted(() => {
   const tx = {
     tenant: { findUniqueOrThrow: vi.fn().mockResolvedValue({ name: "NovaTech Solutions" }) },
-    employee: { create: vi.fn(), update: vi.fn(), findUniqueOrThrow: vi.fn(), count: vi.fn().mockResolvedValue(0) },
+    employee: {
+      create: vi.fn(),
+      update: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue(null),
+      findUniqueOrThrow: vi.fn(),
+      count: vi.fn().mockResolvedValue(0),
+    },
+    employeeNumberConfig: {
+      upsert: vi.fn().mockResolvedValue({ prefix: "EMP", separator: "-", padLength: 4, nextNumber: 2 }),
+    },
+    employeeSalaryHistory: { create: vi.fn() },
+    tenantLeavePolicy: { findUnique: vi.fn().mockResolvedValue(null) },
     activityItem: { create: vi.fn() },
     notificationItem: { create: vi.fn() },
   };
@@ -89,7 +100,13 @@ describe("createEmployeeRecord", () => {
         lastName: "Patel",
         status: "active",
         startDate: new Date("2024-01-15"),
-        leaveBalances: { create: input.leaveBalances },
+        employeeNumber: "EMP-0001",
+        leaveBalances: {
+          create: expect.arrayContaining([
+            expect.objectContaining({ type: "annual", used: 0 }),
+            expect.objectContaining({ type: "sick", used: 0 }),
+          ]),
+        },
       }),
       include: { leaveBalances: true },
     });

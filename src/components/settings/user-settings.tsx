@@ -235,7 +235,7 @@ export function UserSettings() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@company.co.za"
+                placeholder="e.g. john.smith@company.co.za"
                 required
               />
             </div>

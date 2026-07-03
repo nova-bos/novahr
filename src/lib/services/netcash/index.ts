@@ -5,5 +5,8 @@ export type { BalanceResult } from "./accountBalance";
 export { getPaymentLimits } from "./accountLimits";
 export type { LimitsResult } from "./accountLimits";
 export { isValidServiceKey } from "./auth";
+export type { ServiceKeyCheckResult } from "./auth";
+export { NetcashError, NETCASH_STATUS_MESSAGES } from "./client";
+export type { NetcashStatus } from "./client";
 export { SA_BANKS, getBankByName, mapAccountType } from "./helpers";
 export type { SABank } from "./helpers";

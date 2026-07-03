@@ -174,17 +174,17 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="companyName" className="text-sm font-medium text-muted-foreground">Company name</Label>
-              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Acme Co" autoComplete="organization" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
+              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="e.g. Nova Technologies (Pty) Ltd" autoComplete="organization" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="yourName" className="text-sm font-medium text-muted-foreground">Your name</Label>
-              <Input id="yourName" value={yourName} onChange={(e) => setYourName(e.target.value)} placeholder="Jane Doe" autoComplete="name" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
+              <Input id="yourName" value={yourName} onChange={(e) => setYourName(e.target.value)} placeholder="e.g. Jane Doe" autoComplete="name" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">Work email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" autoComplete="email" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
+              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. john.smith@company.co.za" autoComplete="email" required className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary" />
             </div>
 
             <div className="space-y-1.5">

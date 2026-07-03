@@ -8,7 +8,7 @@ import {
   Settings,
   UserRound,
   ShieldCheck,
-  Minus,
+  BanknoteArrowDown,
   CreditCard,
   type LucideIcon,
 } from "lucide-react";
@@ -39,7 +39,7 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "Payroll", href: "/payroll", icon: Wallet },
         { title: "Compliance", href: "/compliance", icon: ShieldCheck },
         { title: "Leave", href: "/leave", icon: CalendarRange },
-        { title: "Deductions", href: "/deductions", icon: Minus },
+        { title: "Deductions", href: "/deductions", icon: BanknoteArrowDown },
         { title: "Reports", href: "/reports", icon: BarChart3 },
         { title: "Tenants", href: "/tenants", icon: Building2 },
         { title: "Billing", href: "/billing", icon: CreditCard },

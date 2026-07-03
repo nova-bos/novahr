@@ -4,6 +4,8 @@ import { makeEmployeeRow, makeTenantRow } from "../workspace/test-fixtures";
 const mockPrisma = vi.hoisted(() => {
   const tx = {
     payslip: { createMany: vi.fn() },
+    payrollItem: { createMany: vi.fn() },
+    payrollSettings: { findUnique: vi.fn().mockResolvedValue(null) },
     payrollRun: { update: vi.fn(), create: vi.fn() },
     activityItem: { create: vi.fn() },
     notificationItem: { create: vi.fn() },
@@ -11,6 +13,8 @@ const mockPrisma = vi.hoisted(() => {
   return {
     payrollRun: { ...tx.payrollRun, findUniqueOrThrow: vi.fn(), findUnique: vi.fn() },
     payslip: { ...tx.payslip, findMany: vi.fn() },
+    payrollItem: tx.payrollItem,
+    payrollSettings: tx.payrollSettings,
     tenant: { findUniqueOrThrow: vi.fn() },
     employee: { findMany: vi.fn() },
     payrollProfile: { findMany: vi.fn().mockResolvedValue([]) },

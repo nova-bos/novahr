@@ -101,8 +101,8 @@ export interface NetcashSubmitResult {
 // Returns a file token that can be used with RequestFileUploadReport to poll
 // for the load report. Netcash also sends the report by email automatically.
 //
-// The exact SOAP action URL can be confirmed from:
-//   https://ws.netcash.co.za/NIWS/niws_nif.svc?wsdl
+// The NIWS_NIF contract namespace is http://tempuri.org/ (verified against
+// the live WSDL); any other namespace triggers an ActionNotSupported fault.
 export async function submitNifBatch(
   serviceKey: string,
   nifContent: string
@@ -115,7 +115,7 @@ export async function submitNifBatch(
   const soapEnvelope = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
-    <BatchFileUpload xmlns="http://ws.netcash.co.za/NIWS/">
+    <BatchFileUpload xmlns="http://tempuri.org/">
       <ServiceKey>${serviceKey}</ServiceKey>
       <File>${escaped}</File>
     </BatchFileUpload>
@@ -127,19 +127,22 @@ export async function submitNifBatch(
       method: "POST",
       headers: {
         "Content-Type": "text/xml; charset=utf-8",
-        SOAPAction: '"http://ws.netcash.co.za/NIWS/INIWS_NIF/BatchFileUpload"',
+        SOAPAction: '"http://tempuri.org/INIWS_NIF/BatchFileUpload"',
       },
       body: soapEnvelope,
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!res.ok) {
-      return { token: "", error: `Netcash returned HTTP ${res.status}: ${res.statusText}` };
+      console.error("[netcash] BatchFileUpload http error", res.status);
+      return { token: "", error: "Netcash could not accept the batch right now. Please try again shortly." };
     }
 
     const xml = await res.text();
-    const match = xml.match(/<BatchFileUploadResult>([^<]+)<\/BatchFileUploadResult>/);
+    const match = xml.match(/<BatchFileUploadResult[^>]*>([^<]+)<\/BatchFileUploadResult>/);
     if (!match) {
-      return { token: "", error: `Unexpected Netcash response: ${xml.slice(0, 200)}` };
+      console.error("[netcash] BatchFileUpload unexpected response", xml.slice(0, 300));
+      return { token: "", error: "Netcash returned an unexpected response. The batch was not confirmed; please retry." };
     }
     // Netcash error codes start with 1xx; a valid token is a GUID or alphanumeric string
     const value = match[1].trim();
@@ -154,6 +157,13 @@ export async function submitNifBatch(
     }
     return { token: value };
   } catch (err) {
-    return { token: "", error: err instanceof Error ? err.message : "Network error contacting Netcash" };
+    const isTimeout = err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError");
+    console.error("[netcash] BatchFileUpload failed", err instanceof Error ? err.name : err);
+    return {
+      token: "",
+      error: isTimeout
+        ? "Netcash took too long to respond. The batch may not have been received; please check before retrying."
+        : "Could not reach Netcash. Check your connection and try again.",
+    };
   }
 }

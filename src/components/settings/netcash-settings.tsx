@@ -9,6 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePlan } from "@/lib/plan/use-plan";
 import { useTenantId } from "@/lib/store/hooks";
 import {
@@ -79,7 +80,7 @@ function KeyField({ label, description, hasKey, disabled, onSave, onTest }: KeyF
             type={show ? "text" : "password"}
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+            placeholder="e.g. 7f9c2b4e-1a3d-4c5f-8e6a-9b0d1c2e3f4a"
             disabled={saving || testing}
             className="pr-10 font-mono text-sm"
           />
@@ -137,7 +138,15 @@ export function NetcashSettings() {
   }, [tenantId, can]);
 
   if (!can("payrollSettings")) return null;
-  if (!loaded) return <p className="text-sm text-muted-foreground">Loading...</p>;
+  if (!loaded) {
+    return (
+      <div className="space-y-3" aria-busy="true" aria-label="Loading Netcash settings">
+        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-9 w-3/4" />
+        <Skeleton className="h-9 w-1/2" />
+      </div>
+    );
+  }
 
   async function saveKey(field: "salaryKey" | "accountServicesKey", value: string | null) {
     const result = await updateNetcashSettingsAction(tenantId, { [field]: value });
@@ -152,10 +161,20 @@ export function NetcashSettings() {
 
   async function testKey(keyType: "salary" | "accountServices", rawKey: string) {
     const result = await testNetcashKeyAction(tenantId, keyType, rawKey);
+    const statusLabels: Record<string, string> = {
+      connected: environment === "uat" ? "Testing environment connected" : "Connected",
+      invalid_key: "Invalid service key",
+      auth_failed: "Authentication failed",
+      timeout: "Timeout",
+      network_error: "Network error",
+      server_unavailable: "Server unavailable",
+      server_error: "Server error",
+    };
+    const label = statusLabels[result.status] ?? "Test failed";
     if (result.valid) {
-      toast.success("Key is valid.", { description: "Connection to Netcash confirmed." });
+      toast.success(label, { description: result.message });
     } else {
-      toast.error("Key test failed.", { description: result.error ?? "Check the key and try again." });
+      toast.error(label, { description: result.message });
     }
   }
 

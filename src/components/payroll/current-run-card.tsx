@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { CalendarClock, CheckCircle2, Loader2 } from "lucide-react";
+import { CalendarClock, CheckCircle2, Loader2, Play } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -31,6 +31,8 @@ export function CurrentRunCard() {
   const runs = usePayrollRuns();
   const employees = useEmployees();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [isStarting, startStartTransition] = React.useTransition();
+  const [isFinalizing, startFinalizeTransition] = React.useTransition();
 
   const run = runs.find((r) => r.status === "scheduled" || r.status === "processing");
 
@@ -45,33 +47,37 @@ export function CurrentRunCard() {
   );
   const projectedNet = eligible.reduce((sum, e) => sum + calculateMonthlyPayroll(e).netPay, 0);
 
-  async function handleStart() {
+  function handleStart() {
     if (!run) return;
-    try {
-      await startPayrollRun(run.id);
-      toast.success("Payroll run started", {
-        description: `${formatMonthYear(run.period)} payroll is now processing. Review and finalize to publish payslips.`,
-      });
-    } catch {
-      toast.error("Couldn't start payroll run", {
-        description: "Please try again.",
-      });
-    }
+    startStartTransition(async () => {
+      try {
+        await startPayrollRun(run.id);
+        toast.success("Payroll run started", {
+          description: `${formatMonthYear(run.period)} payroll is now processing. Review and finalize to publish payslips.`,
+        });
+      } catch {
+        toast.error("Couldn't start payroll run", {
+          description: "Please try again.",
+        });
+      }
+    });
   }
 
-  async function handleFinalize() {
+  function handleFinalize() {
     if (!run) return;
-    try {
-      await completePayrollRun(run.id);
-      setConfirmOpen(false);
-      toast.success("Payroll completed", {
-        description: `Payslips for ${formatMonthYear(run.period)} have been published to ${eligible.length} employees.`,
-      });
-    } catch {
-      toast.error("Couldn't complete payroll run", {
-        description: "Please try again.",
-      });
-    }
+    startFinalizeTransition(async () => {
+      try {
+        await completePayrollRun(run.id);
+        setConfirmOpen(false);
+        toast.success("Payroll completed", {
+          description: `Payslips for ${formatMonthYear(run.period)} have been published to ${eligible.length} employees.`,
+        });
+      } catch {
+        toast.error("Couldn't complete payroll run", {
+          description: "Please try again.",
+        });
+      }
+    });
   }
 
   return (
@@ -112,9 +118,9 @@ export function CurrentRunCard() {
       </CardContent>
       <CardFooter className="flex justify-end gap-2 border-t-0 bg-transparent pt-0">
         {run.status === "scheduled" ? (
-          <Button onClick={handleStart}>
-            <Loader2 />
-            Start payroll run
+          <Button onClick={handleStart} disabled={isStarting}>
+            {isStarting ? <Loader2 className="animate-spin" /> : <Play />}
+            {isStarting ? "Starting..." : "Start payroll run"}
           </Button>
         ) : (
           <Button onClick={() => setConfirmOpen(true)}>
@@ -144,10 +150,13 @@ export function CurrentRunCard() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)} disabled={isFinalizing}>
               Cancel
             </Button>
-            <Button onClick={handleFinalize}>Confirm & publish</Button>
+            <Button onClick={handleFinalize} disabled={isFinalizing}>
+              {isFinalizing ? <Loader2 className="animate-spin" /> : null}
+              {isFinalizing ? "Publishing..." : "Confirm & publish"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -93,7 +93,7 @@ export default function CompleteSetupPage() {
                 id="companyName"
                 value={companyName}
                 onChange={(e) => { setCompanyName(e.target.value); setError(""); }}
-                placeholder="Acme Co"
+                placeholder="e.g. Nova Technologies (Pty) Ltd"
                 autoComplete="organization"
                 required
                 autoFocus
