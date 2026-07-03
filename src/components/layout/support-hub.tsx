@@ -236,14 +236,10 @@ export function SupportHub() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <button
-          type="button"
-          aria-label="Help and support"
-          className="fixed bottom-20 right-4 z-50 sm:bottom-6 sm:right-6 flex h-11 items-center gap-2 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-        >
-          <HelpCircle className="size-4" />
-          <span className="hidden sm:inline">Help</span>
-        </button>
+        <Button variant="ghost" size="icon" className="size-9 text-muted-foreground">
+          <HelpCircle className="size-[18px]" />
+          <span className="sr-only">Help and support</span>
+        </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-md">
         <SheetHeader className="pb-2">

@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import { getNavItems, type NavItem } from "./nav-config";
 import { TenantSwitcher } from "./tenant-switcher";
 import { NotificationsMenu } from "./notifications-menu";
+import { SupportHub } from "./support-hub";
 import { CommandMenu } from "./command-menu";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -27,6 +28,7 @@ export function Topbar() {
         {pageTitle(pathname, navItems)}
       </h1>
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <SupportHub />
         <NotificationsMenu />
         <ThemeToggle />
         {canSwitchTenant && <TenantSwitcher />}
