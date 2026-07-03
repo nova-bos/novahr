@@ -172,11 +172,23 @@ export async function updateEmployeeRecord(
     if (salary.medicalAid !== undefined) data.salaryMedicalAid = salary.medicalAid;
   }
 
+  const bankFieldsChanged =
+    bankDetails !== undefined &&
+    (bankDetails.bank !== undefined ||
+      bankDetails.accountNumber !== undefined ||
+      bankDetails.branchCode !== undefined ||
+      bankDetails.accountType !== undefined);
   if (bankDetails) {
     if (bankDetails.bank !== undefined) data.bankName = bankDetails.bank;
     if (bankDetails.accountNumber !== undefined) data.bankAccountNumber = bankDetails.accountNumber;
     if (bankDetails.branchCode !== undefined) data.bankBranchCode = bankDetails.branchCode;
     if (bankDetails.accountType !== undefined) data.bankAccountType = bankDetails.accountType;
+  }
+  if (bankFieldsChanged) {
+    // Changed banking details must be re-verified before they are trusted
+    // for salary payments.
+    data.bankAccountValidated = false;
+    data.bankValidatedAt = null;
   }
 
   if (emergencyContact) {
@@ -187,8 +199,10 @@ export async function updateEmployeeRecord(
   }
 
   return runAsTenant(tenantId, async (tx) => {
-    // Track salary changes for history
-    const existing = await tx.employee.findUnique({ where: { id } });
+    // Track salary changes for history. The tenant filter also guards the
+    // update below against cross-tenant ids.
+    const existing = await tx.employee.findFirst({ where: { id, tenantId } });
+    if (!existing) throw new Error("Employee not found.");
     const salaryChanged =
       (salary?.annualGross !== undefined && salary.annualGross !== existing?.salaryAnnualGross) ||
       (salary?.payFrequency !== undefined && salary.payFrequency !== existing?.salaryPayFrequency);
@@ -215,6 +229,21 @@ export async function updateEmployeeRecord(
       data,
       include: { leaveBalances: true },
     });
+
+    if (bankFieldsChanged) {
+      // Bank detail edits are the classic payroll fraud vector; always leave
+      // an audit trail of who changed them.
+      await tx.activityItem.create({
+        data: {
+          tenantId,
+          type: "settings_updated",
+          message: `updated banking details for ${updated.firstName} ${updated.lastName}`,
+          actor: session.name,
+          employeeId: id,
+        },
+      });
+    }
+
     return mapEmployee(updated);
   });
 }

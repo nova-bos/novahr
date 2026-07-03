@@ -5,6 +5,7 @@ import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { runAsTenant } from "@/lib/db-context";
+import { checkRateLimit, clientKey } from "@/lib/security/rate-limit";
 import { requireRole } from "@/lib/auth/require";
 import { sendInviteEmail } from "@/lib/email";
 import type { UserRole } from "@prisma/client";
@@ -86,6 +87,11 @@ export async function createInviteAction(input: {
 }): Promise<{ invite?: InviteRow; inviteUrl?: string; emailSent?: boolean; error?: string }> {
   const session = await requireRole("hr");
 
+  const inviteRate = checkRateLimit(session.tenantId, { name: "invite-create", limit: 20, windowMs: 60 * 60 * 1000 });
+  if (!inviteRate.allowed) {
+    return { error: "Too many invitations sent. Try again in a few minutes." };
+  }
+
   const parsed = createInviteSchema.safeParse(input);
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
@@ -154,9 +160,13 @@ export async function listInvitesAction(): Promise<InviteRow[]> {
 
 export async function revokeInviteAction(id: string): Promise<{ success: boolean }> {
   const session = await requireRole("hr");
-  await runAsTenant(session.tenantId, (tx) =>
-    tx.invite.update({ where: { id }, data: { status: "revoked" } })
+  const revoked = await runAsTenant(session.tenantId, (tx) =>
+    tx.invite.updateMany({
+      where: { id, tenantId: session.tenantId },
+      data: { status: "revoked" },
+    })
   );
+  if (revoked.count === 0) throw new Error("Invite not found.");
   return { success: true };
 }
 
@@ -188,6 +198,10 @@ export interface PublicInviteInfo {
 export async function getInviteByTokenAction(
   token: string
 ): Promise<{ invite?: PublicInviteInfo; error?: string }> {
+  const lookupRate = checkRateLimit(await clientKey(), { name: "invite-lookup", limit: 20, windowMs: 10 * 60 * 1000 });
+  if (!lookupRate.allowed) {
+    return { error: "Too many attempts. Please wait a few minutes and try again." };
+  }
   const row = await prisma.invite.findUnique({
     where: { tokenHash: hashToken(token) },
     include: { tenant: { select: { name: true } } },
@@ -223,6 +237,11 @@ export async function acceptInviteAction(input: {
   name: string;
   password: string;
 }): Promise<{ status: "success"; email: string } | { status: "error"; message: string }> {
+  const acceptRate = checkRateLimit(await clientKey(), { name: "invite-accept", limit: 10, windowMs: 10 * 60 * 1000 });
+  if (!acceptRate.allowed) {
+    return { status: "error", message: "Too many attempts. Please wait a few minutes and try again." };
+  }
+
   const parsed = acceptInviteSchema.safeParse(input);
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid input" };

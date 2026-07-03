@@ -53,6 +53,11 @@ export async function updateDepartmentRecord(
   const session = await requireRole("hr");
 
   return runAsTenant(session.tenantId, async (tx) => {
+    const existing = await tx.department.findFirst({
+      where: { id, tenantId: session.tenantId },
+      select: { id: true },
+    });
+    if (!existing) throw new Error("Department not found.");
     const row = await tx.department.update({
       where: { id },
       data: {
@@ -69,7 +74,9 @@ export async function deleteDepartmentRecord(id: string): Promise<{ reassigned: 
   const session = await requireRole("hr");
 
   return runAsTenant(session.tenantId, async (tx) => {
-    const department = await tx.department.findUniqueOrThrow({ where: { id } });
+    const department = await tx.department.findFirstOrThrow({
+      where: { id, tenantId: session.tenantId },
+    });
 
     // Employees keep working when their department is removed: move them to
     // an unassigned state rather than blocking the delete.

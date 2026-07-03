@@ -5,7 +5,7 @@ import { runAsTenant } from "@/lib/db-context";
 import { requireRole } from "@/lib/auth/require";
 import { formatMonthYear } from "@/lib/format";
 import { sendPayslipEmail } from "@/lib/email";
-import { buildPayslip, incrementPeriod } from "./calculator";
+import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator";
 import type { ActivityItem, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
   mapActivityItem,
@@ -26,6 +26,11 @@ function round2(n: number): number {
 export async function startPayrollRunRecord(runId: string): Promise<PayrollRun> {
   const session = await requireRole("hr");
   return runAsTenant(session.tenantId, async (tx) => {
+    const owned = await tx.payrollRun.findFirst({
+      where: { id: runId, tenantId: session.tenantId },
+      select: { id: true },
+    });
+    if (!owned) throw new Error("Payroll run not found.");
     const [run, payslips] = await Promise.all([
       tx.payrollRun.update({ where: { id: runId }, data: { status: "processing" } }),
       tx.payslip.findMany({ where: { runId } }),
@@ -48,7 +53,7 @@ export async function completePayrollRunRecord(
   const { payrollRun, activity, notification, nextRun, newPayslips, eligible } = await runAsTenant(
     tenantId,
     async (tx) => {
-      const run = await tx.payrollRun.findUniqueOrThrow({ where: { id: runId } });
+      const run = await tx.payrollRun.findFirstOrThrow({ where: { id: runId, tenantId } });
       const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: run.tenantId } });
       const [employeeRows, payrollProfiles] = await Promise.all([
         tx.employee.findMany({
@@ -84,7 +89,33 @@ export async function completePayrollRunRecord(
       const totalAnnualPayroll = sum(eligible, (e) => e.salary.annualGross);
       const isSDLLiable = totalAnnualPayroll >= 500_000;
 
-      const newPayslips = eligible.map((e) => buildPayslip(e, run.id, run.period, payDateStr, { isSDLLiable }));
+      // Per-tenant statutory configuration; falls back to statutory defaults
+      // when the tenant has never opened payroll settings.
+      const tenantSettings = await tx.payrollSettings.findUnique({
+        where: { tenantId: run.tenantId },
+        select: {
+          uifEnabled: true,
+          uifEmployeeRate: true,
+          uifEmployerRate: true,
+          uifCeiling: true,
+          sdlEnabled: true,
+          sdlRate: true,
+        },
+      });
+      const statutory = tenantSettings
+        ? {
+            uifEnabled: tenantSettings.uifEnabled,
+            uifEmployeeRate: tenantSettings.uifEmployeeRate,
+            uifEmployerRate: tenantSettings.uifEmployerRate,
+            uifCeiling: tenantSettings.uifCeiling,
+            sdlEnabled: tenantSettings.sdlEnabled,
+            sdlRate: tenantSettings.sdlRate,
+          }
+        : STATUTORY_DEFAULTS;
+
+      const newPayslips = eligible.map((e) =>
+        buildPayslip(e, run.id, run.period, payDateStr, { isSDLLiable, statutory })
+      );
 
       const totalGross = round2(sum(newPayslips, (p) => p.grossPay));
       const totalDeductions = round2(sum(newPayslips, (p) => p.totalDeductions));

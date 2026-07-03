@@ -44,6 +44,23 @@ function makeEmployee(salary: SalaryInfo, dateOfBirth?: string): Employee {
 // ---- PAYE: brackets and rebates ----
 
 describe("calculateMonthlyPayroll", () => {
+  // Tripwire for the gazetted 2026/27 SARS figures (verified 2026-07-04
+  // against sars.gov.za). The under-65 tax threshold is exactly R99,000:
+  // at that income the bracket tax (18%) equals the primary rebate R17,820.
+  // If someone edits the brackets or rebate, these boundary assertions fail.
+  it("matches the SARS 2026/27 tax threshold of R99,000 for under-65s", () => {
+    const atThreshold = calculateMonthlyPayroll(
+      makeEmployee({ annualGross: 99_000, currency: "ZAR", payFrequency: "monthly" })
+    );
+    expect(atThreshold.paye).toBe(0);
+
+    const justAbove = calculateMonthlyPayroll(
+      makeEmployee({ annualGross: 99_120, currency: "ZAR", payFrequency: "monthly" })
+    );
+    // R120 above threshold taxed at 18% = R21.60/year = R1.80/month
+    expect(justAbove.paye).toBeCloseTo(1.8, 2);
+  });
+
   it("returns zero PAYE when annual income is below the primary rebate threshold", () => {
     const employee = makeEmployee({
       annualGross: 90_000,
@@ -238,6 +255,44 @@ describe("calculateMonthlyPayroll", () => {
   });
 
   // ---- SDL ----
+
+  it("applies per-tenant statutory settings for UIF ceiling, rates and toggles", () => {
+    const employee = makeEmployee({
+      annualGross: 600_000,
+      currency: "ZAR",
+      payFrequency: "monthly",
+    });
+
+    const custom = calculateMonthlyPayroll(employee, {
+      isSDLLiable: true,
+      statutory: {
+        uifEnabled: true,
+        uifEmployeeRate: 0.01,
+        uifEmployerRate: 0.01,
+        uifCeiling: 20_000,
+        sdlEnabled: false,
+        sdlRate: 0.01,
+      },
+    });
+    // Higher ceiling raises the UIF cap: min(50000 x 1%, 20000 x 1%) = 200
+    expect(custom.uif).toBe(200);
+    // SDL disabled per tenant even though the payroll is SDL liable
+    expect(custom.employerSdl).toBe(0);
+
+    const uifOff = calculateMonthlyPayroll(employee, {
+      statutory: {
+        uifEnabled: false,
+        uifEmployeeRate: 0.01,
+        uifEmployerRate: 0.01,
+        uifCeiling: 17_712,
+        sdlEnabled: true,
+        sdlRate: 0.01,
+      },
+    });
+    expect(uifOff.uif).toBe(0);
+    expect(uifOff.employerUif).toBe(0);
+    expect(uifOff.deductions.find((d) => d.label === "UIF Contribution")).toBeUndefined();
+  });
 
   it("returns zero SDL by default", () => {
     const employee = makeEmployee({ annualGross: 600_000, currency: "ZAR", payFrequency: "monthly" });

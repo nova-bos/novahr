@@ -17,8 +17,8 @@ export async function terminateEmployeeAction(
 ): Promise<{ success: boolean; error?: string }> {
   const session = await requireRole("hr");
   return runAsTenant(session.tenantId, async (tx) => {
-    const employee = await tx.employee.findUniqueOrThrow({
-      where: { id: input.employeeId },
+    const employee = await tx.employee.findFirstOrThrow({
+      where: { id: input.employeeId, tenantId: session.tenantId },
       include: { leaveBalances: true },
     });
 

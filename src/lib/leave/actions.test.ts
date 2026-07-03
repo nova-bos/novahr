@@ -8,9 +8,9 @@ const mockPrisma = vi.hoisted(() => {
     leaveBalance: { update: vi.fn(), upsert: vi.fn() },
   };
   return {
-    employee: { findUniqueOrThrow: vi.fn() },
+    employee: { findFirstOrThrow: vi.fn() },
     user: { findMany: vi.fn().mockResolvedValue([]) },
-    leaveRequest: { ...tx.leaveRequest, findUniqueOrThrow: vi.fn() },
+    leaveRequest: { ...tx.leaveRequest, findFirstOrThrow: vi.fn() },
     activityItem: tx.activityItem,
     notificationItem: tx.notificationItem,
     leaveBalance: tx.leaveBalance,
@@ -104,7 +104,7 @@ function makeNotificationRow(overrides: Record<string, unknown> = {}) {
 
 describe("createLeaveRequestRecord", () => {
   it("uses plural 'days' wording for multi-day requests", async () => {
-    mockPrisma.employee.findUniqueOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
+    mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
     mockPrisma.leaveRequest.create.mockResolvedValue(makeLeaveRequestRow());
     mockPrisma.activityItem.create.mockResolvedValue(makeActivityRow());
     mockPrisma.notificationItem.create.mockResolvedValue(makeNotificationRow());
@@ -134,7 +134,7 @@ describe("createLeaveRequestRecord", () => {
   });
 
   it("uses singular 'day' wording for single-day requests", async () => {
-    mockPrisma.employee.findUniqueOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
+    mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
     mockPrisma.leaveRequest.create.mockResolvedValue(makeLeaveRequestRow({ days: 1 }));
     mockPrisma.activityItem.create.mockResolvedValue(
       makeActivityRow({ message: "requested 1 day of annual leave" })
@@ -175,8 +175,8 @@ describe("createLeaveRequestRecord validation", () => {
 
 describe("decideLeaveRequestRecord", () => {
   it("approves a request, increments the leave balance, and records activity", async () => {
-    mockPrisma.leaveRequest.findUniqueOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
-    mockPrisma.employee.findUniqueOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
+    mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
     mockPrisma.leaveRequest.update.mockResolvedValue(
       makeLeaveRequestRow({ status: "approved", decidedBy: "Lerato Dlamini", decidedOn: new Date("2026-06-16T00:00:00Z") })
     );
@@ -223,8 +223,8 @@ describe("decideLeaveRequestRecord", () => {
   });
 
   it("rejects a request without touching the leave balance", async () => {
-    mockPrisma.leaveRequest.findUniqueOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
-    mockPrisma.employee.findUniqueOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
+    mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
     mockPrisma.leaveRequest.update.mockResolvedValue(
       makeLeaveRequestRow({ status: "rejected", decidedBy: "Lerato Dlamini", decidedOn: new Date("2026-06-16T00:00:00Z") })
     );
@@ -241,8 +241,8 @@ describe("decideLeaveRequestRecord", () => {
   });
 
   it("passes the decision note through to the update", async () => {
-    mockPrisma.leaveRequest.findUniqueOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
-    mockPrisma.employee.findUniqueOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
+    mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
     mockPrisma.leaveRequest.update.mockResolvedValue(
       makeLeaveRequestRow({ status: "rejected", decidedBy: "Lerato Dlamini", decisionNote: "Team is short-staffed that week" })
     );

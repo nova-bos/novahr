@@ -35,7 +35,9 @@ export async function createLeaveRequestRecord(
   const dayWord = days > 1 ? "days" : "day";
 
   const result = await runAsTenant(tenantId, async (tx) => {
-    const employee = await tx.employee.findUniqueOrThrow({ where: { id: input.employeeId } });
+    const employee = await tx.employee.findFirstOrThrow({
+      where: { id: input.employeeId, tenantId },
+    });
     const actor = `${employee.firstName} ${employee.lastName}`;
     const label = leaveTypeLabel(input.type).toLowerCase();
 
@@ -112,12 +114,14 @@ export async function decideLeaveRequestRecord(
   const decidedBy = session.name;
 
   const inner = await runAsTenant(tenantId, async (tx) => {
-    const target = await tx.leaveRequest.findUniqueOrThrow({ where: { id } });
+    const target = await tx.leaveRequest.findFirstOrThrow({ where: { id, tenantId } });
     if (target.status !== "pending") {
       throw new Error("This request has already been decided.");
     }
 
-    const employee = await tx.employee.findUniqueOrThrow({ where: { id: target.employeeId } });
+    const employee = await tx.employee.findFirstOrThrow({
+      where: { id: target.employeeId, tenantId },
+    });
 
     // Managers may only decide requests from their direct reports, never
     // their own. HR can decide any request in the tenant.

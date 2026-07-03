@@ -1,6 +1,7 @@
 "use server";
 
 import { sendContactFormEmail } from "@/lib/email";
+import { checkRateLimit, clientKey } from "@/lib/security/rate-limit";
 
 export interface ContactFormInput {
   name: string;
@@ -17,6 +18,11 @@ export interface ContactFormResult {
 export async function submitContactFormAction(
   data: ContactFormInput
 ): Promise<ContactFormResult> {
+  const rate = checkRateLimit(await clientKey(), { name: "contact-form", limit: 5, windowMs: 60 * 60 * 1000 });
+  if (!rate.allowed) {
+    return { success: false, error: "Too many messages sent. Please try again later or email us directly." };
+  }
+
   // Basic server-side validation
   if (!data.name || data.name.trim().length < 2) {
     return { success: false, error: "Please enter your name." };

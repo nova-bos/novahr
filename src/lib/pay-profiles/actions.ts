@@ -37,7 +37,7 @@ export async function getPayrollProfileAction(
   await requireTenant(tenantId, "hr");
   try {
     const profile = await runAsTenant(tenantId, async (tx) => {
-      return tx.payrollProfile.findUnique({ where: { employeeId } });
+      return tx.payrollProfile.findFirst({ where: { employeeId, tenantId } });
     });
     if (!profile) return null;
     return {
@@ -66,6 +66,12 @@ export async function upsertPayrollProfileAction(
   await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
+      // The employee must belong to this tenant before touching their profile.
+      const employee = await tx.employee.findFirst({
+        where: { id: employeeId, tenantId },
+        select: { id: true },
+      });
+      if (!employee) throw new Error("Employee not found.");
       return tx.payrollProfile.upsert({
         where: { employeeId },
         update: {

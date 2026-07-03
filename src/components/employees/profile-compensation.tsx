@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, Banknote, CheckCircle2, Landmark, Loader2, ShieldAlert } from "lucide-react";
+import { ArrowRight, Banknote, CheckCircle2, Landmark, Loader2, Pencil, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,20 @@ import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { usePayslipsByEmployee } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
 import { getSalaryHistoryAction, validateEmployeeBankAccountAction, type SalaryHistoryEntry } from "@/lib/employees/actions";
+import { EditBankDetailsDialog } from "./edit-bank-details-dialog";
+import { useAuth } from "@/lib/auth/auth-provider";
 
 export function ProfileCompensation({ employee }: { employee: Employee }) {
   const breakdown = calculateMonthlyPayroll(employee);
   const payslips = usePayslipsByEmployee(employee.id);
+  const { user } = useAuth();
   const [salaryHistory, setSalaryHistory] = React.useState<SalaryHistoryEntry[]>([]);
   const [validated, setValidated] = React.useState(employee.bankDetails.validated);
   const [validatedAt, setValidatedAt] = React.useState(employee.bankDetails.validatedAt);
   const [validating, startValidating] = React.useTransition();
+  const [bankDetails, setBankDetails] = React.useState(employee.bankDetails);
+  const [editBankOpen, setEditBankOpen] = React.useState(false);
+  const canEditBank = user?.role === "hr";
 
   React.useEffect(() => {
     getSalaryHistoryAction(employee.id)
@@ -176,29 +182,42 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
         <CardHeader>
           <CardTitle>Banking details</CardTitle>
           <CardAction>
-            {validated ? (
-              <div className="flex items-center gap-1.5 text-xs text-success font-medium">
-                <CheckCircle2 className="size-3.5" />
-                Verified{validatedAt ? ` ${formatDate(validatedAt)}` : ""}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
-                  <ShieldAlert className="size-3.5" />
-                  Not verified
+            <div className="flex items-center gap-2">
+              {validated ? (
+                <div className="flex items-center gap-1.5 text-xs text-success font-medium">
+                  <CheckCircle2 className="size-3.5" />
+                  Verified{validatedAt ? ` ${formatDate(validatedAt)}` : ""}
                 </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+                    <ShieldAlert className="size-3.5" />
+                    Not verified
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleValidate}
+                    disabled={validating}
+                    className="h-7 px-2.5 text-xs"
+                  >
+                    {validating ? <Loader2 className="size-3 animate-spin mr-1" /> : null}
+                    {validating ? "Verifying..." : "Verify account"}
+                  </Button>
+                </>
+              )}
+              {canEditBank ? (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={handleValidate}
-                  disabled={validating}
+                  onClick={() => setEditBankOpen(true)}
                   className="h-7 px-2.5 text-xs"
                 >
-                  {validating ? <Loader2 className="size-3 animate-spin mr-1" /> : null}
-                  {validating ? "Verifying..." : "Verify account"}
+                  <Pencil className="size-3 mr-1" />
+                  Edit
                 </Button>
-              </div>
-            )}
+              ) : null}
+            </div>
           </CardAction>
         </CardHeader>
         <CardContent>
@@ -209,7 +228,7 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Bank</p>
-                <p className="text-sm font-medium">{employee.bankDetails.bank}</p>
+                <p className="text-sm font-medium">{bankDetails.bank}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -219,7 +238,7 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
               <div>
                 <p className="text-xs text-muted-foreground">Account number</p>
                 <p className="text-sm font-medium">
-                  {maskAccountNumber(employee.bankDetails.accountNumber)}
+                  {maskAccountNumber(bankDetails.accountNumber)}
                 </p>
               </div>
             </div>
@@ -230,13 +249,26 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
               <div>
                 <p className="text-xs text-muted-foreground">Account type</p>
                 <p className="text-sm font-medium">
-                  {employee.bankDetails.accountType} · Branch {employee.bankDetails.branchCode}
+                  {bankDetails.accountType} · Branch {bankDetails.branchCode}
                 </p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {canEditBank ? (
+        <EditBankDetailsDialog
+          employee={employee}
+          open={editBankOpen}
+          onOpenChange={setEditBankOpen}
+          onSaved={(details) => {
+            setBankDetails((prev) => ({ ...prev, ...details }));
+            setValidated(false);
+            setValidatedAt(null);
+          }}
+        />
+      ) : null}
 
       {payslips.length > 0 ? (
         <Card>

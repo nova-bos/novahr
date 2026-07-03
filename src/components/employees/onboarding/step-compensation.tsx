@@ -167,17 +167,10 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
               />
               <FieldError message={errors.accountNumber} />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="branchCode">Branch code</Label>
-              <Input
-                id="branchCode"
-                value={form.branchCode}
-                onChange={(e) => setForm((f) => ({ ...f, branchCode: e.target.value }))}
-                placeholder="e.g. 250655"
-              />
-              <p className="text-xs text-muted-foreground">Auto-filled when you select a bank above.</p>
-              <FieldError message={errors.branchCode} />
-            </div>
+            {/* The branch code is set silently from the selected bank's
+                universal branch code. It is intentionally not editable here:
+                a mistyped code sends the salary to the wrong branch. */}
+            <FieldError message={errors.branchCode} />
           </div>
         </CardContent>
       </Card>

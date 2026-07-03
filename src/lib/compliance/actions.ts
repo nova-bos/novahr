@@ -139,7 +139,7 @@ export async function generateComplianceFromRunAction(
 ): Promise<{ paye: ComplianceRecordRow; uif: ComplianceRecordRow; sdl: ComplianceRecordRow }> {
   await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
-    const run = await tx.payrollRun.findUniqueOrThrow({ where: { id: payrollRunId } });
+    const run = await tx.payrollRun.findFirstOrThrow({ where: { id: payrollRunId, tenantId } });
     const period = run.period;
     const dueDate = getComplianceDueDate(period);
     const sdlAmount = calculateSdl(run.totalGross);
@@ -216,13 +216,17 @@ export async function markComplianceSubmittedAction(
 ): Promise<ComplianceRecordRow> {
   await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
-    const record = await tx.complianceRecord.update({
-      where: { id: recordId },
+    const updated = await tx.complianceRecord.updateMany({
+      where: { id: recordId, tenantId },
       data: {
         status: ComplianceStatus.submitted,
         reference,
         submittedOn: new Date(),
       },
+    });
+    if (updated.count === 0) throw new Error("Compliance record not found.");
+    const record = await tx.complianceRecord.findFirstOrThrow({
+      where: { id: recordId, tenantId },
     });
     return mapRecord(record);
   });

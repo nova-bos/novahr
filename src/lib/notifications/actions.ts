@@ -6,7 +6,10 @@ import { requireUser } from "@/lib/auth/require";
 export async function markNotificationReadRecord(id: string): Promise<void> {
   const session = await requireUser();
   await runAsTenant(session.tenantId, async (tx) => {
-    await tx.notificationItem.update({ where: { id }, data: { read: true } });
+    await tx.notificationItem.updateMany({
+      where: { id, tenantId: session.tenantId },
+      data: { read: true },
+    });
   });
 }
 

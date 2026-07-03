@@ -74,7 +74,16 @@ export async function requireTenant(tenantId: string, ...roles: UserRole[]): Pro
  */
 export async function requireEmployeeScope(employeeId: string): Promise<SessionUser> {
   const user = await requireUser();
-  if (user.role === "hr" || user.role === "exco") return user;
+  if (user.role === "hr" || user.role === "exco") {
+    // HR and exco act across their own tenant only; verify the target
+    // employee actually belongs to it before granting scope.
+    const inTenant = await prisma.employee.findFirst({
+      where: { id: employeeId, tenantId: user.tenantId },
+      select: { id: true },
+    });
+    if (inTenant) return user;
+    throw new Error("Not authorized for this employee");
+  }
   if (user.employeeId === employeeId) return user;
 
   if (user.role === "manager") {

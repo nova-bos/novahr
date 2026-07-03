@@ -11,7 +11,7 @@ const mockPrisma = vi.hoisted(() => {
     notificationItem: { create: vi.fn() },
   };
   return {
-    payrollRun: { ...tx.payrollRun, findUniqueOrThrow: vi.fn(), findUnique: vi.fn() },
+    payrollRun: { ...tx.payrollRun, findFirstOrThrow: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn() },
     payslip: { ...tx.payslip, findMany: vi.fn() },
     payrollItem: tx.payrollItem,
     payrollSettings: tx.payrollSettings,
@@ -75,6 +75,7 @@ function makePayrollRunRow(overrides: Record<string, unknown> = {}) {
 
 describe("startPayrollRunRecord", () => {
   it("marks the run as processing and returns its current payslip ids", async () => {
+    mockPrisma.payrollRun.findFirst.mockResolvedValue({ id: "novatech-run-2026-06" });
     mockPrisma.payrollRun.update.mockResolvedValue(makePayrollRunRow({ status: "processing" }));
     mockPrisma.payslip.findMany.mockResolvedValue([
       { id: "novatech-run-2026-06-emp-1" },
@@ -109,7 +110,7 @@ describe("completePayrollRunRecord", () => {
       salaryAnnualGross: 500_000,
     });
 
-    mockPrisma.payrollRun.findUniqueOrThrow.mockResolvedValue(run);
+    mockPrisma.payrollRun.findFirstOrThrow.mockResolvedValue(run);
     mockPrisma.tenant.findUniqueOrThrow.mockResolvedValue(tenant);
     mockPrisma.employee.findMany.mockResolvedValue([eligibleEmployee, terminatedEmployee]);
 

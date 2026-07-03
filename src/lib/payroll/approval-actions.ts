@@ -13,7 +13,9 @@ export async function approvePayrollRunAction(
 ): Promise<{ payrollRun: PayrollRun }> {
   const session = await requireRole("hr", "exco");
   return runAsTenant(session.tenantId, async (tx) => {
-    const run = await tx.payrollRun.findUniqueOrThrow({ where: { id: runId } });
+    const run = await tx.payrollRun.findFirstOrThrow({
+      where: { id: runId, tenantId: session.tenantId },
+    });
     if (run.status !== "awaiting_approval") {
       throw new Error("Run is not awaiting approval.");
     }
@@ -61,6 +63,11 @@ export async function rejectPayrollApprovalAction(
 ): Promise<{ payrollRun: PayrollRun }> {
   const session = await requireRole("hr", "exco");
   return runAsTenant(session.tenantId, async (tx) => {
+    const owned = await tx.payrollRun.findFirst({
+      where: { id: runId, tenantId: session.tenantId },
+      select: { id: true },
+    });
+    if (!owned) throw new Error("Payroll run not found.");
     const updated = await tx.payrollRun.update({
       where: { id: runId },
       data: { status: "processing", approvalNote: note },

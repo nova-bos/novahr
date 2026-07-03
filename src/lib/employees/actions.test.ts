@@ -8,6 +8,7 @@ const mockPrisma = vi.hoisted(() => {
       create: vi.fn(),
       update: vi.fn(),
       findUnique: vi.fn().mockResolvedValue(null),
+      findFirst: vi.fn(),
       findUniqueOrThrow: vi.fn(),
       count: vi.fn().mockResolvedValue(0),
     },
@@ -144,6 +145,7 @@ describe("createEmployeeRecord", () => {
 describe("updateEmployeeRecord", () => {
   it("flattens nested salary, bankDetails, emergencyContact, and startDate updates", async () => {
     const updatedRow = makeEmployeeRow({ jobTitle: "Senior Engineer" });
+    mockPrisma.employee.findFirst.mockResolvedValue(makeEmployeeRow());
     mockPrisma.employee.update.mockResolvedValue(updatedRow);
 
     const result = await updateEmployeeRecord("emp-1", {
@@ -167,6 +169,8 @@ describe("updateEmployeeRecord", () => {
         bankAccountNumber: "111",
         bankBranchCode: "470010",
         bankAccountType: "Savings",
+        bankAccountValidated: false,
+        bankValidatedAt: null,
         emergencyContactName: "Jane Doe",
         emergencyContactRelationship: "Sister",
         emergencyContactPhone: "+27 82 000 0000",
@@ -178,6 +182,7 @@ describe("updateEmployeeRecord", () => {
 
   it("only includes the given top-level fields when no nested updates are provided", async () => {
     const updatedRow = makeEmployeeRow({ jobTitle: "Team Lead" });
+    mockPrisma.employee.findFirst.mockResolvedValue(makeEmployeeRow());
     mockPrisma.employee.update.mockResolvedValue(updatedRow);
 
     await updateEmployeeRecord("emp-1", { jobTitle: "Team Lead" });

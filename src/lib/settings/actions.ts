@@ -5,6 +5,7 @@ import { requireRole, requireTenant } from "@/lib/auth/require";
 import { encryptServiceKey, decryptServiceKey } from "@/lib/crypto/service-keys";
 import { prisma } from "@/lib/prisma";
 import { isValidServiceKey } from "@/lib/services/netcash/auth";
+import { checkRateLimit } from "@/lib/security/rate-limit";
 
 export interface PayrollSettingsResult {
   id: string;
@@ -273,6 +274,14 @@ export async function testNetcashKeyAction(
   rawKey: string
 ): Promise<{ valid: boolean; status: string; message: string }> {
   await requireTenant(tenantId, "hr");
+  const rate = checkRateLimit(tenantId, { name: "netcash-key-test", limit: 10, windowMs: 10 * 60 * 1000 });
+  if (!rate.allowed) {
+    return {
+      valid: false,
+      status: "server_error",
+      message: "Too many key tests in a short time. Wait a few minutes and try again.",
+    };
+  }
   try {
     const settings = await prisma.payrollSettings.findUnique({ where: { tenantId } });
     const environment = (settings?.netcashEnvironment ?? "production") as "production" | "uat";

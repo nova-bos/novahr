@@ -4,7 +4,11 @@ import type { Employee, Payslip, PayslipLineItem } from "@/lib/types";
 Decimal.set({ rounding: Decimal.ROUND_HALF_UP });
 
 // 2026/27 tax year (1 March 2026 to 28 February 2027)
-// Source: National Treasury Budget 2026 Tax Guide
+// Source: National Treasury Budget 2026 Tax Guide; verified line by line against
+// sars.gov.za/tax-rates/income-tax/rates-of-tax-for-individuals on 2026-07-04
+// (brackets, bases, rebates, MATC R376/R376/R254, s11F cap R430,000).
+// The under-65 tax threshold implied by these figures is R99,000, which is
+// asserted in calculator.test.ts as a tripwire against silent edits.
 // prevUpTo stored on each bracket to avoid index-based lookup and off-by-one risk
 const TAX_BRACKETS_2026_27 = [
   { upTo: 245_100,   rate: "0.18", base: "0",       prevUpTo: 0 },
@@ -20,10 +24,26 @@ const PRIMARY_REBATE_ANNUAL   = new Decimal("17820");
 const SECONDARY_REBATE_ANNUAL = new Decimal("9765");  // age 65+
 const TERTIARY_REBATE_ANNUAL  = new Decimal("3249");  // age 75+
 
-const UIF_RATE     = new Decimal("0.01");
-const UIF_BASE_CAP = new Decimal("177.12"); // at monthly frequency; scaled for others
+// Statutory defaults used when a tenant has not customised PayrollSettings.
+// UIF: 1% employee plus 1% employer on remuneration up to R17,712 per month
+// (contribution cap R177.12). SDL: 1% employer levy.
+export const STATUTORY_DEFAULTS = {
+  uifEnabled: true,
+  uifEmployeeRate: 0.01,
+  uifEmployerRate: 0.01,
+  uifCeiling: 17_712,
+  sdlEnabled: true,
+  sdlRate: 0.01,
+} as const;
 
-const SDL_RATE = new Decimal("0.01");
+export interface StatutorySettings {
+  uifEnabled: boolean;
+  uifEmployeeRate: number;
+  uifEmployerRate: number;
+  uifCeiling: number;
+  sdlEnabled: boolean;
+  sdlRate: number;
+}
 
 // Medical Aid Tax Credits s6A -- 2026/27
 const MATC_MAIN  = new Decimal("376");
@@ -88,6 +108,9 @@ export interface PayrollOptions {
   isSDLLiable?: boolean;
   unpaidLeaveDays?: number;
   workingDaysInMonth?: number;
+  // Per-tenant statutory configuration from PayrollSettings. Falls back to
+  // STATUTORY_DEFAULTS so client-side projections stay correct without a fetch.
+  statutory?: StatutorySettings;
 }
 
 export function calculateMonthlyPayroll(
@@ -95,7 +118,12 @@ export function calculateMonthlyPayroll(
   options: PayrollOptions = {}
 ): PayrollBreakdown {
   const { salary } = employee;
-  const { isSDLLiable = false, unpaidLeaveDays = 0, workingDaysInMonth = 21 } = options;
+  const {
+    isSDLLiable = false,
+    unpaidLeaveDays = 0,
+    workingDaysInMonth = 21,
+    statutory = STATUTORY_DEFAULTS,
+  } = options;
 
   const freq = salary.payFrequency in DIVISORS ? (salary.payFrequency as keyof typeof DIVISORS) : "monthly";
   const divisor = DIVISORS[freq];
@@ -145,20 +173,29 @@ export function calculateMonthlyPayroll(
       : new Decimal(0);
   const paye = Decimal.max(annualPAYE.minus(matcAnnual), 0).dividedBy(divisor).toDecimalPlaces(2);
 
-  // UIF: both employee and employer pay 1%; cap scales with pay frequency
-  const uifCap = UIF_BASE_CAP.times(12).dividedBy(divisor).toDecimalPlaces(2);
-  const uif = Decimal.min(adjustedGross.times(UIF_RATE), uifCap).toDecimalPlaces(2);
-  const employerUif = uif;
+  // UIF: employee and employer each contribute at the configured rate on
+  // remuneration up to the monthly ceiling; both scale with pay frequency.
+  const uifEmployeeRate = new Decimal(statutory.uifEmployeeRate);
+  const uifEmployerRate = new Decimal(statutory.uifEmployerRate);
+  const uifCapBase = new Decimal(statutory.uifCeiling).times(12).dividedBy(divisor);
+  const uif = statutory.uifEnabled
+    ? Decimal.min(adjustedGross.times(uifEmployeeRate), uifCapBase.times(uifEmployeeRate)).toDecimalPlaces(2)
+    : new Decimal(0);
+  const employerUif = statutory.uifEnabled
+    ? Decimal.min(adjustedGross.times(uifEmployerRate), uifCapBase.times(uifEmployerRate)).toDecimalPlaces(2)
+    : new Decimal(0);
 
   // SDL: employer cost only, not deducted from employee net pay
-  const employerSdl = isSDLLiable
-    ? adjustedGross.times(SDL_RATE).toDecimalPlaces(2)
+  const employerSdl = isSDLLiable && statutory.sdlEnabled
+    ? adjustedGross.times(statutory.sdlRate).toDecimalPlaces(2)
     : new Decimal(0);
 
   const deductions: PayslipLineItem[] = [
     { label: "PAYE (Income Tax)", amount: paye.toNumber() },
-    { label: "UIF Contribution", amount: uif.toNumber() },
   ];
+  if (statutory.uifEnabled) {
+    deductions.push({ label: "UIF Contribution", amount: uif.toNumber() });
+  }
 
   if (unpaidLeaveDays > 0) {
     deductions.push({ label: "Unpaid Leave", amount: unpaidDeduction.toNumber() });

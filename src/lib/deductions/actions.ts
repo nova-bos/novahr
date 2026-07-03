@@ -78,9 +78,10 @@ export async function updateEarningTypeAction(
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
   try {
-    await runAsTenant(tenantId, async (tx) => {
-      return tx.earningType.update({ where: { id }, data });
+    const updated = await runAsTenant(tenantId, async (tx) => {
+      return tx.earningType.updateMany({ where: { id, tenantId }, data });
     });
+    if (updated.count === 0) return { success: false, error: "Earning type not found." };
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
@@ -94,9 +95,10 @@ export async function toggleEarningTypeAction(
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
   try {
-    await runAsTenant(tenantId, async (tx) => {
-      return tx.earningType.update({ where: { id }, data: { isActive } });
+    const updated = await runAsTenant(tenantId, async (tx) => {
+      return tx.earningType.updateMany({ where: { id, tenantId }, data: { isActive } });
     });
+    if (updated.count === 0) return { success: false, error: "Earning type not found." };
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
@@ -109,9 +111,10 @@ export async function deleteEarningTypeAction(
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
   try {
-    await runAsTenant(tenantId, async (tx) => {
-      return tx.earningType.delete({ where: { id } });
+    const deleted = await runAsTenant(tenantId, async (tx) => {
+      return tx.earningType.deleteMany({ where: { id, tenantId } });
     });
+    if (deleted.count === 0) return { success: false, error: "Earning type not found." };
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
@@ -192,9 +195,10 @@ export async function updateDeductionTypeAction(
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
   try {
-    await runAsTenant(tenantId, async (tx) => {
-      return tx.deductionType.update({ where: { id }, data });
+    const updated = await runAsTenant(tenantId, async (tx) => {
+      return tx.deductionType.updateMany({ where: { id, tenantId }, data });
     });
+    if (updated.count === 0) return { success: false, error: "Deduction type not found." };
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
@@ -208,9 +212,10 @@ export async function toggleDeductionTypeAction(
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
   try {
-    await runAsTenant(tenantId, async (tx) => {
-      return tx.deductionType.update({ where: { id }, data: { isActive } });
+    const updated = await runAsTenant(tenantId, async (tx) => {
+      return tx.deductionType.updateMany({ where: { id, tenantId }, data: { isActive } });
     });
+    if (updated.count === 0) return { success: false, error: "Deduction type not found." };
     return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
@@ -223,16 +228,18 @@ export async function deleteDeductionTypeAction(
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
   try {
-    const existing = await runAsTenant(tenantId, async (tx) => {
-      return tx.deductionType.findUnique({ where: { id }, select: { isStatutory: true } });
+    return await runAsTenant(tenantId, async (tx) => {
+      const existing = await tx.deductionType.findFirst({
+        where: { id, tenantId },
+        select: { isStatutory: true },
+      });
+      if (!existing) return { success: false, error: "Deduction type not found." };
+      if (existing.isStatutory) {
+        return { success: false, error: "Statutory deduction types cannot be deleted." };
+      }
+      await tx.deductionType.deleteMany({ where: { id, tenantId } });
+      return { success: true };
     });
-    if (existing?.isStatutory) {
-      return { success: false, error: "Statutory deduction types cannot be deleted." };
-    }
-    await runAsTenant(tenantId, async (tx) => {
-      return tx.deductionType.delete({ where: { id } });
-    });
-    return { success: true };
   } catch (err) {
     return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
   }

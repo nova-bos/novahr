@@ -36,12 +36,12 @@ beforeEach(() => {
 
 describe("markNotificationReadRecord", () => {
   it("marks the given notification as read", async () => {
-    mockPrisma.notificationItem.update.mockResolvedValue({});
+    mockPrisma.notificationItem.updateMany.mockResolvedValue({ count: 1 });
 
     await markNotificationReadRecord("notif-1");
 
-    expect(mockPrisma.notificationItem.update).toHaveBeenCalledWith({
-      where: { id: "notif-1" },
+    expect(mockPrisma.notificationItem.updateMany).toHaveBeenCalledWith({
+      where: { id: "notif-1", tenantId: "novatech" },
       data: { read: true },
     });
   });
