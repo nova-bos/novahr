@@ -183,6 +183,7 @@ model Tenant {
   earningTypes       EarningType[]
   deductionTypes     DeductionType[]
   employeeDocuments  EmployeeDocument[]
+  employeeDeductions EmployeeDeduction[]
   complianceRecords  ComplianceRecord[]
   bankExports        BankExport[]
   payrollItems       PayrollItem[]
@@ -266,6 +267,7 @@ model Employee {
   salaryHistory  EmployeeSalaryHistory[]
   payrollItems   PayrollItem[]
   documents      EmployeeDocument[]
+  deductions     EmployeeDeduction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -654,6 +656,41 @@ model EmployeeDocument {
   uploadedBy  String?
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
+
+  @@index([tenantId])
+  @@index([employeeId])
+}
+
+enum DeductionKind {
+  loan
+  garnishee
+  other
+}
+
+enum RecoveryStatus {
+  active
+  settled
+  cancelled
+}
+
+model EmployeeDeduction {
+  id             String         @id @default(cuid())
+  tenantId       String
+  tenant         Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId     String
+  employee       Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  kind           DeductionKind  @default(loan)
+  description    String
+  reference      String?
+  originalAmount Float
+  monthlyAmount  Float
+  balance        Float
+  status         RecoveryStatus @default(active)
+  startDate      DateTime       @default(now())
+  settledAt      DateTime?
+  createdBy      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
   @@index([tenantId])
   @@index([employeeId])

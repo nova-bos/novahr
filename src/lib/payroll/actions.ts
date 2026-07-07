@@ -7,6 +7,7 @@ import { formatMonthYear } from "@/lib/format";
 import { sendPayslipEmail } from "@/lib/email";
 import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
 import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator";
+import { applyRecurringDeductions } from "./recurring-deductions";
 import type { ActivityItem, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
   mapActivityItem,
@@ -118,6 +119,44 @@ export async function completePayrollRunRecord(
         buildPayslip(e, run.id, run.period, payDateStr, { isSDLLiable, statutory })
       );
 
+      // Apply recurring post-tax deductions (loans, garnishees) after tax is
+      // computed. Each instalment reduces net pay and the outstanding balance;
+      // balances are persisted below and flagged settled when they reach zero.
+      const activeDeductions = await tx.employeeDeduction.findMany({
+        where: {
+          tenantId: run.tenantId,
+          status: "active",
+          employeeId: { in: eligible.map((e) => e.id) },
+        },
+      });
+      const deductionsByEmployee = new Map<string, typeof activeDeductions>();
+      for (const d of activeDeductions) {
+        const arr = deductionsByEmployee.get(d.employeeId) ?? [];
+        arr.push(d);
+        deductionsByEmployee.set(d.employeeId, arr);
+      }
+      const deductionUpdates: { id: string; newBalance: number; settled: boolean }[] = [];
+      for (const p of newPayslips) {
+        const empDeductions = deductionsByEmployee.get(p.employeeId);
+        if (!empDeductions?.length) continue;
+        const result = applyRecurringDeductions(
+          empDeductions.map((d) => ({
+            id: d.id,
+            kind: d.kind,
+            description: d.description,
+            monthlyAmount: d.monthlyAmount,
+            balance: d.balance,
+          }))
+        );
+        if (result.total <= 0) continue;
+        p.deductions = [...p.deductions, ...result.lines];
+        p.totalDeductions = round2(p.totalDeductions + result.total);
+        p.netPay = round2(p.netPay - result.total);
+        for (const a of result.applied) {
+          deductionUpdates.push({ id: a.id, newBalance: a.newBalance, settled: a.settled });
+        }
+      }
+
       const totalGross = round2(sum(newPayslips, (p) => p.grossPay));
       const totalDeductions = round2(sum(newPayslips, (p) => p.totalDeductions));
       const totalNet = round2(sum(newPayslips, (p) => p.netPay));
@@ -151,6 +190,17 @@ export async function completePayrollRunRecord(
           uif: p.uif,
         })),
       });
+
+      // Persist recovered balances and settle any deduction that reached zero.
+      for (const u of deductionUpdates) {
+        await tx.employeeDeduction.update({
+          where: { id: u.id },
+          data: {
+            balance: u.newBalance,
+            ...(u.settled ? { status: "settled", settledAt: new Date() } : {}),
+          },
+        });
+      }
 
       // Normalize payslip line items into the PayrollItem table for structured querying.
       const STATUTORY_LABELS = new Set(["paye", "uif", "unpaid leave", "sdl"]);

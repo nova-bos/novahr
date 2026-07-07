@@ -7,6 +7,7 @@ import { ProfileHeader } from "./profile-header";
 import { ProfileOverview } from "./profile-overview";
 import { ProfileCompensation } from "./profile-compensation";
 import { ProfileLeave } from "./profile-leave";
+import { ProfileDeductions } from "./profile-deductions";
 import { ProfileDocuments } from "./profile-documents";
 import { ProfileOnboarding } from "./profile-onboarding";
 import { ProfileSidebar } from "./profile-sidebar";
@@ -44,8 +45,9 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
             <TabsContent value="overview" className="mt-4">
               <ProfileOverview employee={employee} />
             </TabsContent>
-            <TabsContent value="compensation" className="mt-4">
+            <TabsContent value="compensation" className="mt-4 flex flex-col gap-6">
               <ProfileCompensation employee={employee} />
+              <ProfileDeductions employee={employee} />
             </TabsContent>
             <TabsContent value="leave" className="mt-4">
               <ProfileLeave employee={employee} />
