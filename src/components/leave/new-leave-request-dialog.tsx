@@ -121,7 +121,7 @@ export function NewLeaveRequestDialog() {
 
     setSubmitting(true);
     try {
-      let documentUrl: string | undefined;
+      let documentPath: string | undefined;
 
       if (document) {
         const supabase = createClient();
@@ -131,8 +131,9 @@ export function NewLeaveRequestDialog() {
           .from(LEAVE_DOC_BUCKET)
           .upload(path, document, { contentType: document.type });
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from(LEAVE_DOC_BUCKET).getPublicUrl(path);
-        documentUrl = urlData.publicUrl;
+        // Store only the object path. The bucket is private, so the document
+        // is read later through a short-lived signed URL, not a public URL.
+        documentPath = path;
       }
 
       await addLeaveRequest({
@@ -141,7 +142,7 @@ export function NewLeaveRequestDialog() {
         startDate,
         endDate,
         reason: reason.trim(),
-        documentUrl,
+        documentPath,
       });
 
       toast.success("Leave request submitted", {

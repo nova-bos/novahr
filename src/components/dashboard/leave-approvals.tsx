@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Paperclip, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Card,
@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/store/app-provider";
 import { useEmployees, useLeaveRequests } from "@/lib/store/hooks";
 import { formatDate, getInitials, leaveTypeLabel } from "@/lib/format";
+import { LeaveDocumentLink } from "@/components/leave/leave-document-link";
 
 export function LeaveApprovals() {
   const leaveRequests = useLeaveRequests();
@@ -78,16 +79,11 @@ export function LeaveApprovals() {
                     </p>
                   </div>
                   <div className="flex shrink-0 gap-1.5">
-                    {request.documentUrl ? (
-                      <a
-                        href={request.documentUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex size-7 items-center justify-center rounded-md border border-input text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                        aria-label="View supporting document"
-                      >
-                        <Paperclip className="size-3.5" />
-                      </a>
+                    {request.documentPath ? (
+                      <LeaveDocumentLink
+                        leaveRequestId={request.id}
+                        className="size-7 justify-center rounded-md border border-input hover:bg-accent hover:text-foreground"
+                      />
                     ) : null}
                     <Button
                       size="icon-sm"

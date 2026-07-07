@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Check, ClipboardList, Paperclip, X } from "lucide-react";
+import { Check, ClipboardList, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,6 +26,7 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import { useCanDecideRequest, useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
 import { formatDate, getInitials, leaveTypeLabel } from "@/lib/format";
 import { LeaveStatusBadge } from "./leave-status-badge";
+import { LeaveDocumentLink } from "./leave-document-link";
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -175,17 +176,8 @@ export function LeaveRequestsTable() {
                       {request.reason}
                     </TableCell>
                     <TableCell>
-                      {request.documentUrl ? (
-                        <a
-                          href={request.documentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center text-muted-foreground transition-colors hover:text-foreground"
-                          aria-label="View supporting document"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <Paperclip className="size-3.5" />
-                        </a>
+                      {request.documentPath ? (
+                        <LeaveDocumentLink leaveRequestId={request.id} />
                       ) : null}
                     </TableCell>
                     <TableCell>

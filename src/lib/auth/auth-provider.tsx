@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getCurrentUserProfile } from "./actions";
+import { getCurrentUserProfile, throttleLogin } from "./actions";
 import type { AppUser } from "./types";
 
 interface AuthContextValue {
@@ -49,6 +49,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = React.useCallback(async (email: string, password: string) => {
+    const throttled = await throttleLogin(email);
+    if (throttled) return throttled;
+
     const { error } = await createClient().auth.signInWithPassword({ email, password });
     if (error) return error.message;
 

@@ -79,13 +79,20 @@ is needed, then creates the tenant `User` row in the invited role.
 
 ## Known gaps and future work
 
-- **Leave document storage**: uploads go to the public `leave-documents` bucket and the
-  stored URL is a public URL. Medical certificates are sensitive; move to a private bucket
-  with signed URLs and a Supabase Storage RLS policy keyed on tenant. Until then, the
-  object path contains an unguessable UUID, which mitigates but does not eliminate exposure.
+- **Leave document storage**: uploads now store only the object path (not a public URL) in
+  `LeaveRequest.documentUrl`, and documents are read through `getLeaveDocumentUrl`
+  (`src/lib/leave/documents.ts`), which authorizes the caller with `requireEmployeeScope`
+  and returns a 60-second signed URL. ACTION REQUIRED (ops): the `leave-documents` bucket
+  must be flipped to PRIVATE in the Supabase dashboard (Storage, bucket settings, turn off
+  "Public bucket"); code cannot change that. A Supabase Storage RLS policy keyed on tenant
+  is still recommended as defense in depth. Note: any pre-existing rows created before this
+  change still hold a full public URL and will not resolve through the signed-URL path until
+  re-uploaded or migrated.
 - **Netcash service key** is stored in plaintext in `PayrollSettings`. Consider encrypting
   at rest with a server-side key.
-- **Rate limiting** on login/signup/invite endpoints relies on Supabase and Vercel defaults;
-  consider Vercel WAF rules before large-scale marketing.
+- **Rate limiting**: login (`throttleLogin`, 10/min) and signup (5/hour) now go through the
+  in-memory `checkRateLimit` limiter, matching invite and contact actions. The limiter is
+  per warm instance, not global; consider Vercel WAF rules or a shared store before
+  large-scale marketing.
 - **Audit logging** exists as `ActivityItem` for HR events but does not yet cover settings
   changes or auth events.

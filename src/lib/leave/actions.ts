@@ -16,7 +16,8 @@ export interface CreateLeaveRequestInput {
   startDate: string;
   endDate: string;
   reason: string;
-  documentUrl?: string;
+  // Storage object path in the private "leave-documents" bucket, not a URL.
+  documentPath?: string;
 }
 
 export async function createLeaveRequestRecord(
@@ -50,7 +51,7 @@ export async function createLeaveRequestRecord(
         endDate: new Date(input.endDate),
         days,
         reason: input.reason,
-        documentUrl: input.documentUrl,
+        documentUrl: input.documentPath,
       },
     });
 

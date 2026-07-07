@@ -111,7 +111,9 @@ export interface LeaveRequest {
   endDate: string;
   days: number;
   reason: string;
-  documentUrl?: string;
+  // Storage object path in the private "leave-documents" bucket, not a URL.
+  // Read through getLeaveDocumentUrl to obtain a short-lived signed URL.
+  documentPath?: string;
   status: LeaveStatus;
   appliedOn: string;
   decisionNote?: string;
