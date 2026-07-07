@@ -97,6 +97,12 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
               </div>
             </div>
 
+            {record.etiCarriedForward > 0 && (
+              <p className="text-xs text-muted-foreground">
+                ETI carried forward to next month: {formatCurrency(record.etiCarriedForward)}
+              </p>
+            )}
+
             <div className="flex flex-wrap items-center gap-3">
               {record.dueDate && (
                 <span className="text-xs text-muted-foreground">Due {formatDate(record.dueDate)}</span>
