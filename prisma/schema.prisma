@@ -255,6 +255,13 @@ model Employee {
   emergencyContactRelationship String
   emergencyContactPhone        String
 
+  // Employment Equity (EEA2/EEA4) demographics
+  equityRace        EquityRace?
+  equityGender      EquityGender?
+  occupationalLevel OccupationalLevel?
+  foreignNational   Boolean            @default(false)
+  hasDisability     Boolean            @default(false)
+
   onboarding Json?
 
   leaveBalances LeaveBalance[]
@@ -694,4 +701,27 @@ model EmployeeDeduction {
 
   @@index([tenantId])
   @@index([employeeId])
+}
+
+enum EquityRace {
+  african
+  coloured
+  indian
+  white
+  other
+}
+
+enum EquityGender {
+  male
+  female
+  other
+}
+
+enum OccupationalLevel {
+  top_management
+  senior_management
+  professional_mid
+  skilled_technical
+  semi_skilled
+  unskilled
 }

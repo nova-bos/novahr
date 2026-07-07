@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PayrollReport } from "@/components/reports/payroll-report";
 import { WorkforceReport } from "@/components/reports/workforce-report";
 import { LeaveReport } from "@/components/reports/leave-report";
+import { EquityReport } from "@/components/reports/equity-report";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 
 export default function ReportsPage() {
@@ -23,6 +24,7 @@ export default function ReportsPage() {
             <TabsTrigger value="payroll">Payroll</TabsTrigger>
             <TabsTrigger value="workforce">Workforce</TabsTrigger>
             <TabsTrigger value="leave">Leave</TabsTrigger>
+            <TabsTrigger value="equity">Equity</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="payroll" className="mt-4">
@@ -33,6 +35,9 @@ export default function ReportsPage() {
         </TabsContent>
         <TabsContent value="leave" className="mt-4">
           <LeaveReport />
+        </TabsContent>
+        <TabsContent value="equity" className="mt-4">
+          <EquityReport />
         </TabsContent>
       </Tabs>
     </div>
