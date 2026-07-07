@@ -464,6 +464,7 @@ model ComplianceRecord {
   totalPaye   Float            @default(0)
   totalUif    Float            @default(0)
   totalSdl    Float            @default(0)
+  totalEti    Float            @default(0)
   totalAmount Float            @default(0)
   dueDate     DateTime?
   submittedOn DateTime?
