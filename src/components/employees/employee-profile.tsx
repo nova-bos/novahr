@@ -7,6 +7,7 @@ import { ProfileHeader } from "./profile-header";
 import { ProfileOverview } from "./profile-overview";
 import { ProfileCompensation } from "./profile-compensation";
 import { ProfileLeave } from "./profile-leave";
+import { ProfileDocuments } from "./profile-documents";
 import { ProfileOnboarding } from "./profile-onboarding";
 import { ProfileSidebar } from "./profile-sidebar";
 import { PayrollProfileSection } from "./payroll-profile-section";
@@ -33,6 +34,7 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="compensation">Compensation</TabsTrigger>
                 <TabsTrigger value="leave">Leave</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
                 {employee.onboarding ? (
                   <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
                 ) : null}
@@ -47,6 +49,9 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
             </TabsContent>
             <TabsContent value="leave" className="mt-4">
               <ProfileLeave employee={employee} />
+            </TabsContent>
+            <TabsContent value="documents" className="mt-4">
+              <ProfileDocuments employee={employee} />
             </TabsContent>
             {employee.onboarding ? (
               <TabsContent value="onboarding" className="mt-4">

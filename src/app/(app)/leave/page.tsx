@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { LeaveStats } from "@/components/leave/leave-stats";
 import { NewLeaveRequestDialog } from "@/components/leave/new-leave-request-dialog";
 import { LeaveRequestsTable } from "@/components/leave/leave-requests-table";
+import { LeaveCalendar } from "@/components/leave/leave-calendar";
 import { LeaveBalancesTable } from "@/components/leave/leave-balances-table";
 import { LeavePolicies } from "@/components/leave/leave-policies";
 import { PublicHolidaysCard } from "@/components/leave/public-holidays-card";
@@ -43,6 +44,7 @@ export default function LeavePage() {
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <TabsList className="inline-flex min-w-max w-full">
             <TabsTrigger value="requests">Requests</TabsTrigger>
+            <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="balances">Balances</TabsTrigger>
             <TabsTrigger value="policies">Policies</TabsTrigger>
             <TabsTrigger value="holidays">Public holidays</TabsTrigger>
@@ -50,6 +52,9 @@ export default function LeavePage() {
         </div>
         <TabsContent value="requests" className="mt-4">
           <LeaveRequestsTable />
+        </TabsContent>
+        <TabsContent value="calendar" className="mt-4">
+          <LeaveCalendar />
         </TabsContent>
         <TabsContent value="balances" className="mt-4">
           <LeaveBalancesTable />
