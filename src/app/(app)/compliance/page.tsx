@@ -13,6 +13,8 @@ import {
 import { ComplianceOverviewCards } from "@/components/compliance/compliance-overview-cards";
 import { ComplianceRecordsTable } from "@/components/compliance/compliance-records-table";
 import { Emp201Panel } from "@/components/compliance/emp201-panel";
+import { Emp501Panel } from "@/components/compliance/emp501-panel";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ComplianceRecordRow } from "@/lib/compliance/actions";
 
 function getCurrentPeriod(): string {
@@ -78,27 +80,36 @@ export default function CompliancePage() {
         {loading ? (
           <div className="text-sm text-muted-foreground">Loading compliance data...</div>
         ) : (
-          <>
-            {user?.tenantId && (
-              <Emp201Panel
-                tenantId={user.tenantId}
+          <Tabs defaultValue="monthly">
+            <TabsList>
+              <TabsTrigger value="monthly">Monthly (EMP201)</TabsTrigger>
+              <TabsTrigger value="year-end">Year-end (IRP5 / EMP501)</TabsTrigger>
+            </TabsList>
+            <TabsContent value="monthly" className="mt-4 flex flex-col gap-6">
+              {user?.tenantId && (
+                <Emp201Panel
+                  tenantId={user.tenantId}
+                  period={period}
+                  record={emp201}
+                  onChanged={handleRecordUpdated}
+                />
+              )}
+              <ComplianceOverviewCards
+                paye={paye}
+                uif={uif}
+                sdl={sdl}
                 period={period}
-                record={emp201}
-                onChanged={handleRecordUpdated}
+                onRecordUpdated={handleRecordUpdated}
               />
-            )}
-            <ComplianceOverviewCards
-              paye={paye}
-              uif={uif}
-              sdl={sdl}
-              period={period}
-              onRecordUpdated={handleRecordUpdated}
-            />
-            <ComplianceRecordsTable
-              records={records}
-              onRecordUpdated={handleRecordUpdated}
-            />
-          </>
+              <ComplianceRecordsTable
+                records={records}
+                onRecordUpdated={handleRecordUpdated}
+              />
+            </TabsContent>
+            <TabsContent value="year-end" className="mt-4">
+              {user?.tenantId && <Emp501Panel tenantId={user.tenantId} />}
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </PlanGate>
