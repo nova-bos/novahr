@@ -1,6 +1,15 @@
 export type EmploymentStatus = "active" | "on_leave" | "probation" | "terminated";
 export type EmploymentType = "full_time" | "part_time" | "contract";
 export type PayFrequency = "monthly" | "biweekly" | "weekly";
+export type EquityRace = "african" | "coloured" | "indian" | "white" | "other";
+export type EquityGender = "male" | "female" | "other";
+export type OccupationalLevel =
+  | "top_management"
+  | "senior_management"
+  | "professional_mid"
+  | "skilled_technical"
+  | "semi_skilled"
+  | "unskilled";
 export type LeaveType =
   | "annual"
   | "sick"
@@ -98,6 +107,11 @@ export interface Employee {
   dateOfBirth?: string;
   address: string;
   emergencyContact: EmergencyContact;
+  equityRace?: EquityRace;
+  equityGender?: EquityGender;
+  occupationalLevel?: OccupationalLevel;
+  foreignNational?: boolean;
+  hasDisability?: boolean;
   leaveBalances: LeaveBalance[];
   onboarding?: Onboarding;
 }

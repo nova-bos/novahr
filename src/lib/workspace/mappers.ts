@@ -122,6 +122,11 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
       relationship: row.emergencyContactRelationship,
       phone: row.emergencyContactPhone,
     },
+    equityRace: row.equityRace ?? undefined,
+    equityGender: row.equityGender ?? undefined,
+    occupationalLevel: row.occupationalLevel ?? undefined,
+    foreignNational: row.foreignNational,
+    hasDisability: row.hasDisability,
     leaveBalances: row.leaveBalances.map((balance) => ({
       type: balance.type,
       total: balance.total,
