@@ -465,6 +465,7 @@ model ComplianceRecord {
   totalUif    Float            @default(0)
   totalSdl    Float            @default(0)
   totalEti    Float            @default(0)
+  etiCarriedForward Float       @default(0)
   totalAmount Float            @default(0)
   dueDate     DateTime?
   submittedOn DateTime?

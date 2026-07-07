@@ -4,7 +4,12 @@ import { ComplianceStatus, ComplianceType } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant } from "@/lib/auth/require";
 import { getComplianceDueDate, calculateSdl } from "./utils";
-import { calculateEti } from "@/lib/payroll/eti";
+import {
+  applyEti,
+  calculateEti,
+  isReconciliationPeriodStart,
+  previousPeriod,
+} from "@/lib/payroll/eti";
 
 export interface ComplianceRecordRow {
   id: string;
@@ -16,6 +21,7 @@ export interface ComplianceRecordRow {
   totalUif: number;
   totalSdl: number;
   totalEti: number;
+  etiCarriedForward: number;
   totalAmount: number;
   dueDate: string | null;
   submittedOn: string | null;
@@ -47,6 +53,7 @@ function mapRecord(r: {
   totalUif: number;
   totalSdl: number;
   totalEti: number;
+  etiCarriedForward: number;
   totalAmount: number;
   dueDate: Date | null;
   submittedOn: Date | null;
@@ -65,6 +72,7 @@ function mapRecord(r: {
     totalUif: r.totalUif,
     totalSdl: r.totalSdl,
     totalEti: r.totalEti,
+    etiCarriedForward: r.etiCarriedForward,
     totalAmount: r.totalAmount,
     dueDate: r.dueDate ? r.dueDate.toISOString() : null,
     submittedOn: r.submittedOn ? r.submittedOn.toISOString() : null,
@@ -274,12 +282,42 @@ export async function generateEmp201FromRunAction(
     const period = run.period;
     const dueDate = getComplianceDueDate(period);
     const totalSdl = calculateSdl(run.totalGross);
-    const totalEti = await computeRunEti(tx, tenantId, payrollRunId, period);
-    const payable = Math.max(
-      Math.round((run.totalPaye - totalEti + run.totalUif + totalSdl) * 100) / 100,
-      0
-    );
+    const etiCalculated = await computeRunEti(tx, tenantId, payrollRunId, period);
 
+    // ETI carry-forward: unused ETI (calculated plus any brought forward from
+    // the prior month of the same reconciliation period) may only reduce PAYE
+    // to zero; the remainder is carried into next month, never dropped.
+    let etiBroughtForward = 0;
+    if (!isReconciliationPeriodStart(period)) {
+      const prev = await tx.complianceRecord.findUnique({
+        where: {
+          tenantId_period_type: {
+            tenantId,
+            period: previousPeriod(period),
+            type: ComplianceType.emp201,
+          },
+        },
+        select: { etiCarriedForward: true },
+      });
+      etiBroughtForward = prev?.etiCarriedForward ?? 0;
+    }
+
+    const { etiUtilised, etiCarriedForward, payablePaye } = applyEti(
+      run.totalPaye,
+      etiCalculated,
+      etiBroughtForward
+    );
+    const payable = Math.round((payablePaye + run.totalUif + totalSdl) * 100) / 100;
+
+    const data = {
+      totalPaye: run.totalPaye,
+      totalUif: run.totalUif,
+      totalSdl,
+      totalEti: etiUtilised,
+      etiCarriedForward,
+      totalAmount: payable,
+      dueDate,
+    };
     const record = await tx.complianceRecord.upsert({
       where: { tenantId_period_type: { tenantId, period, type: ComplianceType.emp201 } },
       create: {
@@ -287,21 +325,9 @@ export async function generateEmp201FromRunAction(
         period,
         type: ComplianceType.emp201,
         status: ComplianceStatus.pending,
-        totalPaye: run.totalPaye,
-        totalUif: run.totalUif,
-        totalSdl,
-        totalEti,
-        totalAmount: payable,
-        dueDate,
+        ...data,
       },
-      update: {
-        totalPaye: run.totalPaye,
-        totalUif: run.totalUif,
-        totalSdl,
-        totalEti,
-        totalAmount: payable,
-        dueDate,
-      },
+      update: data,
     });
 
     return mapRecord(record);

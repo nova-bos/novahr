@@ -209,3 +209,54 @@ export function calculateEti(input: EtiInput, employee: EtiEmployee): EtiResult 
     disqualifications: [],
   };
 }
+
+export interface EtiUtilisation {
+  /** ETI actually used to reduce this month's PAYE. */
+  etiUtilised: number;
+  /** Unused ETI rolled into the next month of the same reconciliation period. */
+  etiCarriedForward: number;
+  /** PAYE remaining after ETI, never negative. */
+  payablePaye: number;
+}
+
+/**
+ * Applies ETI against a month's PAYE, honouring carry-forward. ETI may only
+ * reduce PAYE to zero, never below: any excess (calculated ETI plus ETI brought
+ * forward, minus PAYE) is carried into the next month rather than lost. This is
+ * the fix for silently dropping ETI when it exceeds PAYE.
+ *
+ * Carry-forward accumulates within a SARS reconciliation period only. Callers
+ * must pass etiBroughtForward = 0 at the start of a period (March and September)
+ * because unused ETI is reconciled/refunded at period end, not rolled across.
+ */
+export function applyEti(
+  paye: number,
+  etiCalculated: number,
+  etiBroughtForward = 0
+): EtiUtilisation {
+  const available = new Decimal(etiCalculated).plus(etiBroughtForward);
+  const payeDec = new Decimal(paye);
+  const utilised = Decimal.min(available, payeDec);
+  return {
+    etiUtilised: utilised.toDecimalPlaces(2).toNumber(),
+    etiCarriedForward: available.minus(utilised).toDecimalPlaces(2).toNumber(),
+    payablePaye: payeDec.minus(utilised).toDecimalPlaces(2).toNumber(),
+  };
+}
+
+/**
+ * True when the period ("YYYY-MM") is the first month of a SARS reconciliation
+ * period: March (interim) or September (final). No ETI is brought forward into
+ * these months.
+ */
+export function isReconciliationPeriodStart(period: string): boolean {
+  const month = Number(period.split("-")[1]);
+  return month === 3 || month === 9;
+}
+
+/** Returns the previous month for a period string ("YYYY-MM"). */
+export function previousPeriod(period: string): string {
+  const [year, month] = period.split("-").map(Number);
+  const date = new Date(year, month - 2, 1); // month is 1-based, go back one
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
