@@ -309,6 +309,46 @@ export async function generateEmp201FromRunAction(
 }
 
 /**
+ * Fetches the EMP201 consolidated record for a given period, or null.
+ */
+export async function getEmp201Action(
+  tenantId: string,
+  period: string
+): Promise<ComplianceRecordRow | null> {
+  await requireTenant(tenantId, "hr", "exco");
+  return runAsTenant(tenantId, async (tx) => {
+    const record = await tx.complianceRecord.findUnique({
+      where: { tenantId_period_type: { tenantId, period, type: ComplianceType.emp201 } },
+    });
+    return record ? mapRecord(record) : null;
+  });
+}
+
+/**
+ * Generates (or refreshes) the EMP201 for a period from the most recent
+ * completed payroll run in that period. Throws a friendly error when no
+ * completed run exists yet.
+ */
+export async function generateEmp201ForPeriodAction(
+  tenantId: string,
+  period: string
+): Promise<ComplianceRecordRow> {
+  await requireTenant(tenantId, "hr");
+  const runId = await runAsTenant(tenantId, async (tx) => {
+    const run = await tx.payrollRun.findFirst({
+      where: { tenantId, period, status: "completed" },
+      orderBy: { processedOn: "desc" },
+      select: { id: true },
+    });
+    return run?.id ?? null;
+  });
+  if (!runId) {
+    throw new Error(`No completed payroll run for ${period}. Complete a run before generating the EMP201.`);
+  }
+  return generateEmp201FromRunAction(tenantId, runId);
+}
+
+/**
  * Marks a compliance record as submitted with a reference number and timestamp.
  */
 export async function markComplianceSubmittedAction(

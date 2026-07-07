@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth/require";
 import { mapPayrollRun } from "@/lib/workspace/mappers";
 import { sendPayslipEmail } from "@/lib/email";
 import { mapEmployee } from "@/lib/workspace/mappers";
+import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
 import type { PayrollRun } from "@/lib/types";
 
 export async function approvePayrollRunAction(
@@ -12,7 +13,7 @@ export async function approvePayrollRunAction(
   approvalNote?: string
 ): Promise<{ payrollRun: PayrollRun }> {
   const session = await requireRole("hr", "exco");
-  return runAsTenant(session.tenantId, async (tx) => {
+  const result = await runAsTenant(session.tenantId, async (tx) => {
     const run = await tx.payrollRun.findFirstOrThrow({
       where: { id: runId, tenantId: session.tenantId },
     });
@@ -55,6 +56,16 @@ export async function approvePayrollRunAction(
 
     return { payrollRun: mapPayrollRun(updated, payslips.map((p) => p.id)) };
   });
+
+  // Now that the run is completed, roll it up into the EMP201 (and PAYE/UIF/SDL)
+  // compliance records. Best-effort: skipped if the approver lacks HR scope.
+  try {
+    await generateEmp201FromRunAction(session.tenantId, runId);
+  } catch (err) {
+    console.error("EMP201 generation failed after approval for run", runId, err);
+  }
+
+  return result;
 }
 
 export async function rejectPayrollApprovalAction(
