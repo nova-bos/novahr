@@ -11,12 +11,12 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 
 export default function PayrollPage() {
-  const allowed = useRoleGuard(["hr", "employee"]);
+  const allowed = useRoleGuard(["hr", "employee", "manager"]);
   const { user } = useAuth();
 
   if (!allowed) return null;
 
-  if (user?.role === "employee") {
+  if (user?.role === "employee" || user?.role === "manager") {
     return (
       <div className="flex flex-col gap-6">
         <PageHeader title="My Payslips" description="View and download your past payslips." />

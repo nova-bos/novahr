@@ -49,6 +49,8 @@ export function getNavItems(user: AppUser | null): NavItem[] {
       return [
         { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { title: "My Team", href: "/employees", icon: Users },
+        { title: "My Payslips", href: "/payroll", icon: Wallet },
+        { title: "My Profile", href: `/employees/${user.employeeId}`, icon: UserRound },
         { title: "Leave", href: "/leave", icon: CalendarRange },
       ];
     case "employee":
@@ -63,7 +65,6 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { title: "Reports", href: "/reports", icon: BarChart3 },
         { title: "Compliance", href: "/compliance", icon: ShieldCheck },
-        { title: "Tenants", href: "/tenants", icon: Building2 },
       ];
   }
 }

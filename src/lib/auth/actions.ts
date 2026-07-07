@@ -2,7 +2,24 @@
 
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit, clientKey } from "@/lib/security/rate-limit";
 import type { AppUser } from "./types";
+
+/**
+ * Server-side throttle for password sign-in, called before Supabase Auth is
+ * hit so brute-force guessing is slowed even though sign-in runs client-side.
+ * Keyed by client IP when available, otherwise the submitted email. Returns a
+ * friendly message when the caller is over the limit, or `null` to proceed.
+ */
+export async function throttleLogin(email: string): Promise<string | null> {
+  const ip = await clientKey();
+  const key = ip !== "unknown" ? ip : email.trim().toLowerCase();
+  const rate = checkRateLimit(key, { name: "login", limit: 10, windowMs: 60 * 1000 });
+  if (!rate.allowed) {
+    return "Too many sign-in attempts. Please wait a minute and try again.";
+  }
+  return null;
+}
 
 /**
  * Loads the signed-in user's profile (the `User` row keyed by the Supabase

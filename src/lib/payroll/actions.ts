@@ -5,6 +5,7 @@ import { runAsTenant } from "@/lib/db-context";
 import { requireRole } from "@/lib/auth/require";
 import { formatMonthYear } from "@/lib/format";
 import { sendPayslipEmail } from "@/lib/email";
+import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
 import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator";
 import type { ActivityItem, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
@@ -278,6 +279,14 @@ export async function completePayrollRunRecord(
         netPay: payslip.netPay,
         appUrl,
       });
+    }
+
+    // Roll the run up into the EMP201 (and PAYE/UIF/SDL) compliance records.
+    // Best-effort: a compliance hiccup must not fail payroll completion.
+    try {
+      await generateEmp201FromRunAction(tenantId, runId);
+    } catch (err) {
+      console.error("EMP201 generation failed for run", runId, err);
     }
   }
 

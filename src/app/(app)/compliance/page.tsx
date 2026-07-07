@@ -8,9 +8,11 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import {
   getComplianceRecordsAction,
   getCurrentMonthComplianceAction,
+  getEmp201Action,
 } from "@/lib/compliance/actions";
 import { ComplianceOverviewCards } from "@/components/compliance/compliance-overview-cards";
 import { ComplianceRecordsTable } from "@/components/compliance/compliance-records-table";
+import { Emp201Panel } from "@/components/compliance/emp201-panel";
 import type { ComplianceRecordRow } from "@/lib/compliance/actions";
 
 function getCurrentPeriod(): string {
@@ -25,6 +27,7 @@ export default function CompliancePage() {
   const [paye, setPaye] = useState<ComplianceRecordRow | null>(null);
   const [uif, setUif] = useState<ComplianceRecordRow | null>(null);
   const [sdl, setSdl] = useState<ComplianceRecordRow | null>(null);
+  const [emp201, setEmp201] = useState<ComplianceRecordRow | null>(null);
   const [records, setRecords] = useState<ComplianceRecordRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -36,25 +39,30 @@ export default function CompliancePage() {
     Promise.all([
       getCurrentMonthComplianceAction(user.tenantId),
       getComplianceRecordsAction(user.tenantId),
+      getEmp201Action(user.tenantId, period),
     ])
-      .then(([current, all]) => {
+      .then(([current, all, emp]) => {
         setPaye(current.paye);
         setUif(current.uif);
         setSdl(current.sdl);
         setRecords(all);
+        setEmp201(emp);
       })
       .finally(() => setLoading(false));
-  }, [user?.tenantId]);
+  }, [user?.tenantId, period]);
 
   function handleRecordUpdated(updated: ComplianceRecordRow) {
     // Refresh the relevant overview card
     if (updated.type === "paye_return" && updated.period === period) setPaye(updated);
     if (updated.type === "uif_return" && updated.period === period) setUif(updated);
     if (updated.type === "sdl_return" && updated.period === period) setSdl(updated);
+    if (updated.type === "emp201" && updated.period === period) setEmp201(updated);
 
-    // Update the records table in place
+    // Update the records table in place, inserting the EMP201 if it is new
     setRecords((prev) =>
-      prev.map((r) => (r.id === updated.id ? updated : r))
+      prev.some((r) => r.id === updated.id)
+        ? prev.map((r) => (r.id === updated.id ? updated : r))
+        : [updated, ...prev]
     );
   }
 
@@ -71,6 +79,14 @@ export default function CompliancePage() {
           <div className="text-sm text-muted-foreground">Loading compliance data...</div>
         ) : (
           <>
+            {user?.tenantId && (
+              <Emp201Panel
+                tenantId={user.tenantId}
+                period={period}
+                record={emp201}
+                onChanged={handleRecordUpdated}
+              />
+            )}
             <ComplianceOverviewCards
               paye={paye}
               uif={uif}

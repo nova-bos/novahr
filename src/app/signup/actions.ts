@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit, clientKey } from "@/lib/security/rate-limit";
 import { formatMonthYear } from "@/lib/format";
 
 const signupSchema = z.object({
@@ -31,6 +32,18 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
   const { companyName, yourName, email, password } = parsed.data;
+
+  // Throttle new-company signups to curb spam. Keyed by client IP when
+  // available, otherwise the submitted email.
+  const ip = await clientKey();
+  const rateKey = ip !== "unknown" ? ip : email.toLowerCase();
+  const signupRate = checkRateLimit(rateKey, { name: "signup", limit: 5, windowMs: 60 * 60 * 1000 });
+  if (!signupRate.allowed) {
+    return {
+      status: "error",
+      message: "Too many sign-up attempts. Please wait a few minutes and try again.",
+    };
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -112,6 +125,14 @@ export async function completeGoogleSignup(
   const name = companyName.trim();
   if (name.length < 2) {
     return { status: "error", message: "Company name must be at least 2 characters." };
+  }
+
+  const googleRate = checkRateLimit(await clientKey(), { name: "signup", limit: 5, windowMs: 60 * 60 * 1000 });
+  if (!googleRate.allowed) {
+    return {
+      status: "error",
+      message: "Too many sign-up attempts. Please wait a few minutes and try again.",
+    };
   }
 
   const supabase = await createClient();
