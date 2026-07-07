@@ -9,6 +9,7 @@ const mockPrisma = vi.hoisted(() => {
     payrollRun: { update: vi.fn(), create: vi.fn() },
     activityItem: { create: vi.fn() },
     notificationItem: { create: vi.fn() },
+    employeeDeduction: { findMany: vi.fn().mockResolvedValue([]), update: vi.fn() },
   };
   return {
     payrollRun: { ...tx.payrollRun, findFirstOrThrow: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn() },
@@ -18,6 +19,7 @@ const mockPrisma = vi.hoisted(() => {
     tenant: { findUniqueOrThrow: vi.fn() },
     employee: { findMany: vi.fn() },
     payrollProfile: { findMany: vi.fn().mockResolvedValue([]) },
+    employeeDeduction: tx.employeeDeduction,
     activityItem: tx.activityItem,
     notificationItem: tx.notificationItem,
     $transaction: vi.fn((cb: (t: typeof tx) => unknown) => cb(tx)),
@@ -197,6 +199,46 @@ describe("completePayrollRunRecord", () => {
         status: "scheduled",
         employeeCount: 1,
       }),
+    });
+  });
+
+  it("recovers a loan instalment from net pay and reduces the balance", async () => {
+    setupCommon();
+    mockPrisma.payrollRun.findUnique.mockResolvedValue(null);
+    mockPrisma.payslip.createMany.mockResolvedValue({ count: 1 });
+    mockPrisma.payrollRun.update.mockResolvedValue(makePayrollRunRow({ status: "completed", employeeCount: 1 }));
+    mockPrisma.activityItem.create.mockResolvedValue({
+      id: "activity-1",
+      tenantId: "novatech",
+      type: "payroll_run",
+      message: "processed payroll for June 2026",
+      actor: "Werner Botha",
+      employeeId: null,
+      timestamp: new Date("2026-06-25T08:00:00Z"),
+    });
+    mockPrisma.notificationItem.create.mockResolvedValue({
+      id: "notif-1",
+      tenantId: "novatech",
+      title: "Payslips published",
+      description: "June 2026 payslips have been generated for 1 employees.",
+      timestamp: new Date("2026-06-25T08:00:00Z"),
+      read: false,
+      type: "success",
+    });
+    mockPrisma.payrollRun.create.mockResolvedValue(makePayrollRunRow({ id: "novatech-run-2026-07", period: "2026-07", status: "scheduled" }));
+    mockPrisma.employeeDeduction.findMany.mockResolvedValue([
+      { id: "ded-1", employeeId: "emp-1", kind: "loan", description: "Study loan", monthlyAmount: 1_000, balance: 5_000, status: "active" },
+    ]);
+
+    const result = await completePayrollRunRecord("novatech-run-2026-06");
+
+    // Base net pay for emp-1 is 38,747.30; the R1,000 instalment reduces it.
+    expect(result.payslips[0].netPay).toBe(37_747.30);
+    expect(result.payslips[0].deductions).toContainEqual({ label: "Study loan", amount: 1_000 });
+    // The outstanding balance is reduced and not yet settled.
+    expect(mockPrisma.employeeDeduction.update).toHaveBeenCalledWith({
+      where: { id: "ded-1" },
+      data: { balance: 4_000 },
     });
   });
 
