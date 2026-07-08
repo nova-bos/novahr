@@ -65,7 +65,7 @@ export function ProfilePrivacy({ employee }: { employee: Employee }) {
           <div>
             <p className="text-sm font-medium">Export data</p>
             <p className="text-xs text-muted-foreground">
-              Download a full copy of this employee's records as JSON (POPIA access request).
+              Download a full copy of this employee&apos;s records as JSON (POPIA access request).
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting}>
