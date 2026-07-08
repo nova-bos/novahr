@@ -1,6 +1,5 @@
 "use client";
 
-import { useEmployees } from "@/lib/store/hooks";
 import { ActivityFeed } from "./activity-feed";
 import { DashboardHeader } from "./dashboard-header";
 import { DepartmentBreakdown } from "./department-breakdown";
@@ -12,12 +11,10 @@ import { StatCards } from "./stat-cards";
 import { UpcomingPayrollCard } from "./upcoming-payroll-card";
 
 export function HRDashboard() {
-  const employees = useEmployees();
-
   return (
     <div className="flex flex-col gap-6">
       <DashboardHeader />
-      {employees.length === 0 && <GettingStartedCard />}
+      <GettingStartedCard />
       <StatCards />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <PayrollTrendChart />

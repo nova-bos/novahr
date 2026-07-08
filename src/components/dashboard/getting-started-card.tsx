@@ -1,64 +1,143 @@
-import { ArrowRight, CalendarRange, Users, Wallet } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
 
-const STEPS = [
-  {
-    icon: Users,
-    title: "Add your first employee",
-    description: "Start building your team. Add their personal details, role, and compensation.",
-    href: "/employees/new",
-    cta: "Add employee",
-  },
-  {
-    icon: CalendarRange,
-    title: "Review leave policies",
-    description: "Check the default leave entitlements: annual, sick, and family responsibility leave.",
-    href: "/settings?tab=leave",
-    cta: "View policies",
-  },
-  {
-    icon: Wallet,
-    title: "Run your first payroll",
-    description: "Once you've added employees, run payroll to generate payslips automatically.",
-    href: "/payroll",
-    cta: "Go to payroll",
-  },
-];
+import Link from "next/link";
+import { CheckCircle2, Circle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  useCurrentTenant,
+  useDepartments,
+  useEmployees,
+  usePayrollRuns,
+} from "@/lib/store/hooks";
 
 export function GettingStartedCard() {
+  const tenant = useCurrentTenant();
+  const employees = useEmployees();
+  const departments = useDepartments();
+  const payrollRuns = usePayrollRuns();
+
+  const hasCompletedPayroll = payrollRuns.some((r) => r.status === "completed");
+  const hasAnyPayrollRun = payrollRuns.length > 0;
+
+  const steps = [
+    {
+      id: "company-profile",
+      label: "Company profile",
+      description: "Set your legal name, registration number, and company details.",
+      complete: Boolean(tenant.legalName),
+      href: "/settings",
+      linkLabel: "Go",
+    },
+    {
+      id: "add-departments",
+      label: "Add departments",
+      description: "Create your org structure before adding employees.",
+      complete: departments.length > 0,
+      href: "/settings?tab=departments",
+      linkLabel: "Go",
+    },
+    {
+      id: "payroll-settings",
+      label: "Configure payroll settings",
+      description: "Review SDL, UIF rates, and pay cycle before running payroll.",
+      complete: hasAnyPayrollRun,
+      href: "/settings?tab=payroll",
+      linkLabel: "Go",
+    },
+    {
+      id: "add-employee",
+      label: "Add first employee",
+      description: "Add personal details, job info, and salary for your first team member.",
+      complete: employees.length > 0,
+      href: "/employees/new",
+      linkLabel: "Go",
+    },
+    {
+      id: "run-payroll",
+      label: "Run first payroll",
+      description: "Process your first payroll run to generate payslips automatically.",
+      complete: hasCompletedPayroll,
+      href: "/payroll",
+      linkLabel: "Go",
+    },
+  ] as const;
+
+  const completedCount = steps.filter((s) => s.complete).length;
+  const allComplete = completedCount === steps.length;
+
+  if (allComplete) {
+    return null;
+  }
+
+  const progressPercent = Math.round((completedCount / steps.length) * 100);
+
   return (
-    <Card className="border-dashed bg-muted/20">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Welcome to NovaHR 👋</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Your workspace is ready. Follow these steps to get your company set up.
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle>Getting started</CardTitle>
+            <CardDescription>
+              Complete these steps to get your workspace fully configured.
+            </CardDescription>
+          </div>
+          <Badge variant="secondary" className="shrink-0 tabular-nums">
+            {completedCount} of {steps.length}
+          </Badge>
+        </div>
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-500"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 sm:grid-cols-3">
-          {STEPS.map((step) => (
-            <div
-              key={step.title}
-              className="flex flex-col gap-3 rounded-xl border bg-background p-4"
+        <ul className="divide-y divide-border">
+          {steps.map((step) => (
+            <li
+              key={step.id}
+              className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
             >
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-                <step.icon className="size-4 text-primary" />
+              {step.complete ? (
+                <CheckCircle2 className="size-5 shrink-0 text-primary" />
+              ) : (
+                <Circle className="size-5 shrink-0 text-muted-foreground/40" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p
+                  className={
+                    step.complete
+                      ? "text-sm font-medium text-muted-foreground line-through"
+                      : "text-sm font-medium"
+                  }
+                >
+                  {step.label}
+                </p>
+                {!step.complete && (
+                  <p className="text-xs text-muted-foreground">{step.description}</p>
+                )}
               </div>
-              <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium">{step.title}</p>
-                <p className="text-xs text-muted-foreground">{step.description}</p>
-              </div>
-              <Button asChild size="sm" variant="outline" className="w-full justify-between">
-                <Link href={step.href}>
-                  {step.cta}
-                  <ArrowRight className="size-3.5" />
-                </Link>
+              <Button
+                asChild
+                size="sm"
+                variant={step.complete ? "ghost" : "outline"}
+                className="shrink-0"
+                disabled={step.complete}
+              >
+                <Link href={step.href}>{step.complete ? "Done" : step.linkLabel}</Link>
               </Button>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </CardContent>
     </Card>
   );
