@@ -94,8 +94,8 @@ export default function BillingPage() {
         <CardHeader>
           <CardTitle>How billing works</CardTitle>
           <CardDescription>
-            Subscriptions are activated within one business day. We&apos;ll send an invoice with
-            EFT details; card payments and debit orders are coming soon. Email{" "}
+            Subscriptions are activated within one business day. We will send an invoice with EFT
+            payment details. Email{" "}
             <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
               {CONTACT_EMAIL}
             </a>{" "}
