@@ -30,7 +30,7 @@ export async function getSalaryHistoryAction(employeeId: string): Promise<Salary
     });
     return history.map((h) => ({
       id: h.id,
-      annualGross: h.annualGross,
+      annualGross: h.annualGross.toNumber(),
       payFrequency: h.payFrequency,
       effectiveDate: h.effectiveDate.toISOString().slice(0, 10),
       changedBy: h.changedBy,
@@ -204,7 +204,7 @@ export async function updateEmployeeRecord(
     const existing = await tx.employee.findFirst({ where: { id, tenantId } });
     if (!existing) throw new Error("Employee not found.");
     const salaryChanged =
-      (salary?.annualGross !== undefined && salary.annualGross !== existing?.salaryAnnualGross) ||
+      (salary?.annualGross !== undefined && salary.annualGross !== existing?.salaryAnnualGross.toNumber()) ||
       (salary?.payFrequency !== undefined && salary.payFrequency !== existing?.salaryPayFrequency);
     if (salaryChanged && existing) {
       await tx.employeeSalaryHistory.create({

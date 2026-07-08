@@ -1,4 +1,5 @@
 "use server";
+import { decToNumber } from "@/lib/workspace/mappers";
 
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant } from "@/lib/auth/require";
@@ -117,7 +118,7 @@ export async function generateNetcashNifAction(
         bankAccountNumber: p.employee.bankAccountNumber,
         bankBranchCode: p.employee.bankBranchCode,
         bankAccountType: p.employee.bankAccountType,
-        netPay: p.netPay,
+        netPay: decToNumber(p.netPay),
       })),
     });
 
@@ -190,7 +191,7 @@ export async function submitNetcashBatchAction(
           payrollRunId,
           status: "pending",
           fileFormat: "nif",
-          totalAmount: payslips.reduce((s, p) => s + p.netPay, 0),
+          totalAmount: payslips.reduce((s, p) => s + decToNumber(p.netPay), 0),
           paymentCount: payslips.length,
           bankName: "Netcash",
           approvedBy: session.name,
@@ -223,7 +224,7 @@ export async function submitNetcashBatchAction(
         bankAccountNumber: p.employee.bankAccountNumber,
         bankBranchCode: p.employee.bankBranchCode,
         bankAccountType: p.employee.bankAccountType,
-        netPay: p.netPay,
+        netPay: decToNumber(p.netPay),
       })),
     });
 

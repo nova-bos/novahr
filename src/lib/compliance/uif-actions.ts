@@ -58,10 +58,10 @@ export async function getUifDeclarationAction(
       .map((p) => ({
         idNumber: p.employee!.idNumber,
         name: `${p.employee!.firstName} ${p.employee!.lastName}`,
-        grossRemuneration: round2(p.grossPay),
-        employeeContribution: round2(p.uif),
-        employerContribution: round2(p.uif),
-        totalContribution: round2(p.uif * 2),
+        grossRemuneration: round2(p.grossPay.toNumber()),
+        employeeContribution: round2(p.uif.toNumber()),
+        employerContribution: round2(p.uif.toNumber()),
+        totalContribution: round2(p.uif.toNumber() * 2),
       }))
       .sort((a, b) => a.name.localeCompare(b.name));
 

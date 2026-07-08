@@ -1,8 +1,9 @@
 "use server";
 
-import type { DeductionKind, RecoveryStatus } from "@prisma/client";
+import type { DeductionKind, Prisma, RecoveryStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole, requireEmployeeScope } from "@/lib/auth/require";
+import { decToNumber } from "@/lib/workspace/mappers";
 
 const KINDS: DeductionKind[] = ["loan", "garnishee", "other"];
 
@@ -27,9 +28,9 @@ function mapRow(d: {
   kind: DeductionKind;
   description: string;
   reference: string | null;
-  originalAmount: number;
-  monthlyAmount: number;
-  balance: number;
+  originalAmount: Prisma.Decimal;
+  monthlyAmount: Prisma.Decimal;
+  balance: Prisma.Decimal;
   status: RecoveryStatus;
   startDate: Date;
   settledAt: Date | null;
@@ -41,9 +42,9 @@ function mapRow(d: {
     kind: d.kind,
     description: d.description,
     reference: d.reference,
-    originalAmount: d.originalAmount,
-    monthlyAmount: d.monthlyAmount,
-    balance: d.balance,
+    originalAmount: decToNumber(d.originalAmount),
+    monthlyAmount: decToNumber(d.monthlyAmount),
+    balance: decToNumber(d.balance),
     status: d.status,
     startDate: d.startDate.toISOString(),
     settledAt: d.settledAt ? d.settledAt.toISOString() : null,

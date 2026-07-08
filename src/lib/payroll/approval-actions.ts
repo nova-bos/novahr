@@ -49,7 +49,7 @@ export async function approvePayrollRunAction(
         recipientEmail: emp.email,
         employeeName: `${emp.firstName} ${emp.lastName}`,
         period: ps.period,
-        netPay: ps.netPay,
+        netPay: ps.netPay.toNumber(),
         appUrl,
       });
     }

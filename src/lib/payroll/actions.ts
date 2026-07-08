@@ -10,6 +10,7 @@ import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator"
 import { applyRecurringDeductions } from "./recurring-deductions";
 import type { ActivityItem, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
+  decToNumber,
   mapActivityItem,
   mapEmployee,
   mapNotificationItem,
@@ -109,7 +110,7 @@ export async function completePayrollRunRecord(
             uifEnabled: tenantSettings.uifEnabled,
             uifEmployeeRate: tenantSettings.uifEmployeeRate,
             uifEmployerRate: tenantSettings.uifEmployerRate,
-            uifCeiling: tenantSettings.uifCeiling,
+            uifCeiling: tenantSettings.uifCeiling.toNumber(),
             sdlEnabled: tenantSettings.sdlEnabled,
             sdlRate: tenantSettings.sdlRate,
           }
@@ -144,8 +145,8 @@ export async function completePayrollRunRecord(
             id: d.id,
             kind: d.kind,
             description: d.description,
-            monthlyAmount: d.monthlyAmount,
-            balance: d.balance,
+            monthlyAmount: decToNumber(d.monthlyAmount),
+            balance: decToNumber(d.balance),
           })),
           { grossRemuneration: p.grossPay }
         );

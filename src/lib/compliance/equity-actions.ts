@@ -31,7 +31,7 @@ export async function getEmploymentEquityReportAction(
       level: e.occupationalLevel ?? undefined,
       foreignNational: e.foreignNational,
       hasDisability: e.hasDisability,
-      annualGross: e.salaryAnnualGross,
+      annualGross: e.salaryAnnualGross.toNumber(),
     }))
   );
 }
