@@ -121,8 +121,9 @@ export async function sendLeaveRequestEmail(args: LeaveRequestEmailArgs): Promis
       subject: `Leave request from ${args.employeeName} (${args.days} ${dayWord} of ${label.toLowerCase()})`,
       html: baseLayout(`Leave request: ${esc(args.employeeName)}`, body),
     });
-  } catch {
+  } catch (err) {
     // Email failure must never break the main action
+    console.error("[email] sendLeaveRequestEmail failed", err);
   }
 }
 
@@ -204,8 +205,9 @@ export async function sendLeaveDecisionEmail(args: LeaveDecisionEmailArgs): Prom
       subject: `Your ${label} request has been ${isApproved ? "approved" : "rejected"}`,
       html: baseLayout(`Leave ${isApproved ? "approved" : "rejected"}`, body),
     });
-  } catch {
+  } catch (err) {
     // Email failure must never break the main action
+    console.error("[email] sendLeaveDecisionEmail failed", err);
   }
 }
 
@@ -302,8 +304,9 @@ export async function sendContactFormEmail(args: ContactFormEmailArgs): Promise<
       subject: `New enquiry from ${args.name}${args.company ? ` (${args.company})` : ""}`,
       html: baseLayout("New contact form submission", body),
     });
-  } catch {
+  } catch (err) {
     // Email failure must never break the caller
+    console.error("[email] sendContactFormEmail failed", err);
   }
 }
 
@@ -353,7 +356,8 @@ export async function sendPayslipEmail(args: PayslipEmailArgs): Promise<void> {
       subject: `Your ${periodLabel} payslip is ready`,
       html: baseLayout(`${periodLabel} payslip`, body),
     });
-  } catch {
+  } catch (err) {
     // Email failure must never break the main action
+    console.error("[email] sendPayslipEmail failed", err);
   }
 }

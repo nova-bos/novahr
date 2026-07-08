@@ -326,11 +326,10 @@ export function SupportHub() {
                 href={mailto("NovaHR feature request")}
               />
               <SupportRow
-                icon={MessageCircle}
-                title="Live chat"
-                description="In-app chat support"
-                badge="Coming soon"
-                disabled
+                icon={Mail}
+                title="Contact support"
+                description={SUPPORT_EMAIL}
+                href={mailto("NovaHR support request")}
               />
               <SupportRow
                 icon={ClipboardCopy}
