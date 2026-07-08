@@ -10,6 +10,7 @@ import { ProfileLeave } from "./profile-leave";
 import { ProfileDeductions } from "./profile-deductions";
 import { ProfileDocuments } from "./profile-documents";
 import { ProfileEquity } from "./profile-equity";
+import { ProfilePrivacy } from "./profile-privacy";
 import { ProfileOnboarding } from "./profile-onboarding";
 import { ProfileSidebar } from "./profile-sidebar";
 import { PayrollProfileSection } from "./payroll-profile-section";
@@ -92,6 +93,8 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
           </CardContent>
         </Card>
       ) : null}
+
+      <ProfilePrivacy employee={employee} />
 
       <EditEmployeeDialog employee={employee} open={editOpen} onOpenChange={setEditOpen} />
       <TerminateEmployeeDialog
