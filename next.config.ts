@@ -1,5 +1,6 @@
 import path from "path";
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
@@ -40,4 +41,10 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  silent: !process.env.CI,
+  tunnelRoute: "/monitoring",
+  sourcemaps: { disable: true },
+  // Source map uploads: set SENTRY_ORG + SENTRY_PROJECT in Vercel env vars
+  // then remove sourcemaps.disable to enable readable stack traces.
+});
