@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { formatPeriod } from "@/lib/compliance/utils";
+import { getUifDeclarationAction } from "@/lib/compliance/uif-actions";
 import {
   generateEmp201ForPeriodAction,
   markComplianceSubmittedAction,
@@ -71,6 +72,33 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
       ]
     );
     downloadCSV(csv, `emp201-${record.period}`);
+  }
+
+  async function handleUifExport() {
+    try {
+      const decl = await getUifDeclarationAction(tenantId, period);
+      if (decl.rows.length === 0) {
+        toast.error("No completed payroll run for this period to declare.");
+        return;
+      }
+      const csv = toCSV(
+        ["ID number", "Employee", "Gross remuneration", "Employee UIF", "Employer UIF", "Total UIF"],
+        decl.rows.map((r) => [
+          r.idNumber,
+          r.name,
+          r.grossRemuneration.toFixed(2),
+          r.employeeContribution.toFixed(2),
+          r.employerContribution.toFixed(2),
+          r.totalContribution.toFixed(2),
+        ])
+      );
+      downloadCSV(csv, `uif-declaration-${period}`);
+      toast.success("UIF declaration exported");
+    } catch (err) {
+      toast.error("Could not export the UIF declaration", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    }
   }
 
   async function handleMarkSubmitted() {
@@ -140,6 +168,10 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
               <Button variant="outline" size="sm" onClick={handleExport}>
                 <Download className="size-4" />
                 Export CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleUifExport}>
+                <Download className="size-4" />
+                UIF declaration
               </Button>
               {record.status === "pending" && (
                 <Button size="sm" onClick={handleMarkSubmitted} disabled={submitting}>
