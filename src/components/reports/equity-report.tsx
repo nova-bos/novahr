@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -11,7 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format";
+import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { getCurrentTaxYear } from "@/lib/compliance/utils";
 import { getEmploymentEquityReportAction } from "@/lib/compliance/equity-actions";
 import type { EquityReport as EquityReportData } from "@/lib/compliance/employment-equity";
 
@@ -44,6 +48,34 @@ export function EquityReport() {
   if (loading) return <p className="text-sm text-muted-foreground">Loading...</p>;
   if (!data) return <p className="text-sm text-muted-foreground">No data.</p>;
 
+  const report = data;
+  const fileYear = getCurrentTaxYear().replace("/", "-");
+
+  function handleExportEea2() {
+    const csv = toCSV(
+      ["Occupational level", "Male", "Female", "Foreign", "Disability", "Total", "Avg pay", "Median pay"],
+      report.byLevel.map((r) => [
+        r.label,
+        r.male,
+        r.female,
+        r.foreign,
+        r.disability,
+        r.total,
+        r.avgGross.toFixed(2),
+        r.medianGross.toFixed(2),
+      ])
+    );
+    downloadCSV(csv, `eea2-${fileYear}`);
+  }
+
+  function handleExportEea4() {
+    const csv = toCSV(
+      ["Race group", "Male", "Female", "Total", "Avg pay"],
+      report.byRace.map((r) => [r.label, r.male, r.female, r.total, r.avgGross.toFixed(2)])
+    );
+    downloadCSV(csv, `eea4-${fileYear}`);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -64,6 +96,14 @@ export function EquityReport() {
         <CardHeader>
           <CardTitle className="text-base">EEA2: workforce profile by occupational level</CardTitle>
           <CardDescription>Headcount and remuneration by level.</CardDescription>
+          {data.byLevel.length > 0 && (
+            <CardAction>
+              <Button variant="outline" size="sm" onClick={handleExportEea2}>
+                <Download className="size-4" />
+                Export CSV
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           <Table>
@@ -101,6 +141,14 @@ export function EquityReport() {
         <CardHeader>
           <CardTitle className="text-base">EEA4: profile and average remuneration by race group</CardTitle>
           <CardDescription>Headcount by race and gender, with average remuneration to surface differentials.</CardDescription>
+          {data.byRace.length > 0 && (
+            <CardAction>
+              <Button variant="outline" size="sm" onClick={handleExportEea4}>
+                <Download className="size-4" />
+                Export CSV
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           <Table>

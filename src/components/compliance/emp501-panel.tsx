@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Download } from "lucide-react";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -26,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/format";
+import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { getCurrentTaxYear } from "@/lib/compliance/utils";
 import {
   getEmp501ReconciliationAction,
@@ -80,6 +83,36 @@ export function Emp501Panel({ tenantId }: { tenantId: string }) {
   }, [tenantId, taxYear]);
 
   const balanced = recon && recon.difference.paye === 0 && recon.difference.uif === 0;
+  const fileYear = taxYear.replace("/", "-");
+
+  function handleExportRecon() {
+    if (!recon) return;
+    const csv = toCSV(
+      ["Line", "Declared (EMP201)", "Certified (IRP5/IT3a)", "Difference"],
+      [
+        ["PAYE", recon.declared.paye.toFixed(2), recon.certified.paye.toFixed(2), recon.difference.paye.toFixed(2)],
+        ["UIF", recon.declared.uif.toFixed(2), recon.certified.uif.toFixed(2), recon.difference.uif.toFixed(2)],
+        ["SDL", recon.declared.sdl.toFixed(2), "", ""],
+        ["ETI utilised", recon.declared.eti.toFixed(2), "", ""],
+      ]
+    );
+    downloadCSV(csv, `emp501-reconciliation-${fileYear}`);
+  }
+
+  function handleExportCertificates() {
+    if (certs.length === 0) return;
+    const csv = toCSV(
+      ["Employee", "Type", "Gross remuneration", "PAYE", "UIF"],
+      certs.map((c) => [
+        c.name,
+        c.certificate.type,
+        c.certificate.grossRemuneration.toFixed(2),
+        c.certificate.paye.toFixed(2),
+        c.certificate.uif.toFixed(2),
+      ])
+    );
+    downloadCSV(csv, `irp5-certificates-${fileYear}`);
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -92,18 +125,26 @@ export function Emp501Panel({ tenantId }: { tenantId: string }) {
                 Monthly EMP201 declarations reconciled against the IRP5 and IT3(a) certificates for the tax year.
               </CardDescription>
             </div>
-            <Select value={taxYear} onValueChange={setTaxYear}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {taxYearOptions().map((ty) => (
-                  <SelectItem key={ty} value={ty}>
-                    {ty}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select value={taxYear} onValueChange={setTaxYear}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {taxYearOptions().map((ty) => (
+                    <SelectItem key={ty} value={ty}>
+                      {ty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {recon && (
+                <Button variant="outline" size="sm" onClick={handleExportRecon}>
+                  <Download className="size-4" />
+                  Export CSV
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -151,6 +192,14 @@ export function Emp501Panel({ tenantId }: { tenantId: string }) {
         <CardHeader>
           <CardTitle>Tax certificates</CardTitle>
           <CardDescription>IRP5 and IT3(a) certificates for {taxYear}. Select one to view its source codes.</CardDescription>
+          {certs.length > 0 && (
+            <CardAction>
+              <Button variant="outline" size="sm" onClick={handleExportCertificates}>
+                <Download className="size-4" />
+                Export CSV
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           {loading ? (
