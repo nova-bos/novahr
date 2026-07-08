@@ -72,6 +72,9 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
       ]
     );
     downloadCSV(csv, `emp201-${record.period}`);
+    toast.success("EMP201 exported", {
+      description: `emp201-${record.period}.csv downloaded.`,
+    });
   }
 
   async function handleUifExport() {

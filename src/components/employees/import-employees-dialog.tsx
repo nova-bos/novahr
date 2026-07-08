@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Upload, Download, CheckCircle, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -135,6 +136,9 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
       setPhase("done");
       if (res.imported > 0) {
         onImportComplete();
+        toast.success(
+          `${res.imported} ${res.imported === 1 ? "employee" : "employees"} imported successfully`
+        );
       }
     } catch (err) {
       setResult({
