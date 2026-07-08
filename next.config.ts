@@ -42,9 +42,8 @@ const nextConfig: NextConfig = {
 };
 
 export default withSentryConfig(nextConfig, {
+  org: "nova-hr",
+  project: "javascript-nextjs",
   silent: !process.env.CI,
   tunnelRoute: "/monitoring",
-  sourcemaps: { disable: true },
-  // Source map uploads: set SENTRY_ORG + SENTRY_PROJECT in Vercel env vars
-  // then remove sourcemaps.disable to enable readable stack traces.
 });
