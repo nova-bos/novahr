@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mockPrisma = vi.hoisted(() => ({
   employeeDocument: {
     findMany: vi.fn().mockResolvedValue([]),
-    findUnique: vi.fn(),
+    findFirst: vi.fn(),
   },
 }));
 
@@ -60,28 +60,26 @@ describe("listEmployeeDocuments isolation", () => {
 
 describe("getEmployeeDocumentUrl isolation", () => {
   it("refuses to return a URL for a document belonging to another tenant", async () => {
-    // NOTE: getEmployeeDocumentUrl looks the row up by primary key only
-    // (findUnique where: { id }), so the query itself is NOT tenant-scoped.
-    // Isolation is enforced by a post-fetch guard: doc.tenantId !== user.tenantId.
-    // This test locks in that guard. See summary for the pattern deviation.
-    mockPrisma.employeeDocument.findUnique.mockResolvedValue({
-      employeeId: "emp-x",
-      tenantId: "tenant-b",
-      storagePath: "tenant-b/emp-x/file.pdf",
-    });
+    // The lookup is scoped by tenantId in the query, so a document from another
+    // tenant is simply not found (findFirst returns null for a tenant-a caller).
+    mockPrisma.employeeDocument.findFirst.mockResolvedValue(null);
 
     const result = await getEmployeeDocumentUrl("doc-from-tenant-b");
 
     expect(result.error).toBe("Document not found.");
     expect(result.url).toBeUndefined();
-    // The cross-tenant storage path must never be signed.
+    // The tenantId predicate must be present so the query never spans tenants.
+    expect(mockPrisma.employeeDocument.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: "doc-from-tenant-b", tenantId: "tenant-a" }),
+      })
+    );
     expect(mockCreateSignedUrl).not.toHaveBeenCalled();
   });
 
   it("returns a signed URL for a document in the caller's own tenant", async () => {
-    mockPrisma.employeeDocument.findUnique.mockResolvedValue({
+    mockPrisma.employeeDocument.findFirst.mockResolvedValue({
       employeeId: "emp-1",
-      tenantId: "tenant-a",
       storagePath: "tenant-a/emp-1/file.pdf",
     });
     mockCreateSignedUrl.mockResolvedValue({ data: { signedUrl: "https://signed" }, error: null });

@@ -2,7 +2,7 @@
 
 import type { EmployeeDocumentCategory } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireRole, requireEmployeeScope } from "@/lib/auth/require";
+import { requireRole, requireEmployeeScope, requireUser } from "@/lib/auth/require";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const BUCKET = "employee-documents";
@@ -140,13 +140,15 @@ export async function uploadEmployeeDocument(
 export async function getEmployeeDocumentUrl(
   documentId: string
 ): Promise<{ url?: string; error?: string }> {
-  const doc = await prisma.employeeDocument.findUnique({
-    where: { id: documentId },
-    select: { employeeId: true, tenantId: true, storagePath: true },
+  // Scope the lookup by tenantId in the query itself (defence in depth), not
+  // only via a post-fetch guard, so the row can never be fetched across tenants.
+  const user = await requireUser();
+  const doc = await prisma.employeeDocument.findFirst({
+    where: { id: documentId, tenantId: user.tenantId },
+    select: { employeeId: true, storagePath: true },
   });
   if (!doc) return { error: "Document not found." };
-  const user = await requireEmployeeScope(doc.employeeId);
-  if (doc.tenantId !== user.tenantId) return { error: "Document not found." };
+  await requireEmployeeScope(doc.employeeId);
 
   const supabase = createAdminClient();
   const { data, error } = await supabase.storage
