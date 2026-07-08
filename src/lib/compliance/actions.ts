@@ -219,23 +219,12 @@ export async function generateComplianceFromRunAction(
 }
 
 /**
- * Number of complete months between an employee's start date and the start of
- * the given period, clamped to the 24-month ETI window. This is a pragmatic
- * proxy for "ETI months already claimed" based on tenure. It assumes continuous
- * employment and no ETI claimed by a previous employer. For exact compliance
- * this should be replaced by a persisted per-employee ETI claim ledger.
- */
-function etiMonthsAlreadyClaimed(startDate: Date, period: string): number {
-  const [year, month] = period.split("-").map(Number);
-  const periodIndex = year * 12 + (month - 1);
-  const startIndex = startDate.getFullYear() * 12 + startDate.getMonth();
-  const diff = periodIndex - startIndex;
-  return Math.max(0, Math.min(diff, 24));
-}
-
-/**
- * Sums the ETI claimable across every payslip in a completed payroll run.
- * ETI reduces the PAYE payable to SARS on the EMP201.
+ * Sums the ETI claimable across every payslip in a completed payroll run and
+ * records each qualifying claim in the EtiClaim ledger. The 24-month window is
+ * counted from actual prior claims (periods before this one), not employment
+ * tenure, so breaks in service and prior claims are handled correctly.
+ * Idempotent: regenerating a period upserts that period's claim and removes it
+ * if the employee no longer qualifies.
  */
 async function computeRunEti(
   tx: Parameters<Parameters<typeof runAsTenant>[1]>[0],
@@ -251,15 +240,36 @@ async function computeRunEti(
   let total = 0;
   for (const slip of payslips) {
     if (!slip.employee) continue;
+    // Months already claimed = distinct prior periods in the ledger for this
+    // employee. The current period is excluded so regeneration is stable.
+    const monthsAlreadyClaimed = await tx.etiClaim.count({
+      where: { tenantId, employeeId: slip.employeeId, period: { lt: period } },
+    });
     const result = calculateEti(
-      {
-        period,
-        monthlyRemuneration: slip.grossPay,
-        monthsAlreadyClaimed: etiMonthsAlreadyClaimed(slip.employee.startDate, period),
-      },
+      { period, monthlyRemuneration: slip.grossPay, monthsAlreadyClaimed },
       { idNumber: slip.employee.idNumber, startDate: slip.employee.startDate }
     );
-    total += result.amount;
+
+    if (result.qualifies && result.amount > 0) {
+      await tx.etiClaim.upsert({
+        where: { employeeId_period: { employeeId: slip.employeeId, period } },
+        create: {
+          tenantId,
+          employeeId: slip.employeeId,
+          period,
+          qualifyingMonth: result.qualifyingMonth ?? monthsAlreadyClaimed + 1,
+          amount: result.amount,
+        },
+        update: {
+          qualifyingMonth: result.qualifyingMonth ?? monthsAlreadyClaimed + 1,
+          amount: result.amount,
+        },
+      });
+      total += result.amount;
+    } else {
+      // No longer qualifies: clear any stale claim for this period.
+      await tx.etiClaim.deleteMany({ where: { tenantId, employeeId: slip.employeeId, period } });
+    }
   }
   return Math.round(total * 100) / 100;
 }

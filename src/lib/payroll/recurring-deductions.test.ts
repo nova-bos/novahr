@@ -36,4 +36,35 @@ describe("applyRecurringDeductions", () => {
     expect(r.lines).toHaveLength(0);
     expect(r.applied).toHaveLength(0);
   });
+
+  it("caps garnishees at 25% of gross, leaving the rest in the balance", () => {
+    const r = applyRecurringDeductions(
+      [{ id: "g1", kind: "garnishee", description: "Maintenance order", monthlyAmount: 5_000, balance: 20_000 }],
+      { grossRemuneration: 10_000 } // 25% cap = 2,500
+    );
+    expect(r.applied[0].amount).toBe(2_500);
+    expect(r.applied[0].newBalance).toBe(17_500);
+    expect(r.applied[0].settled).toBe(false);
+  });
+
+  it("does not cap loans, only garnishees", () => {
+    const r = applyRecurringDeductions(
+      [{ id: "l1", kind: "loan", description: "Advance", monthlyAmount: 5_000, balance: 20_000 }],
+      { grossRemuneration: 10_000 }
+    );
+    expect(r.applied[0].amount).toBe(5_000); // loans are uncapped
+  });
+
+  it("shares the 25% garnishee cap across multiple garnishees", () => {
+    const r = applyRecurringDeductions(
+      [
+        { id: "g1", kind: "garnishee", description: "Order A", monthlyAmount: 2_000, balance: 10_000 },
+        { id: "g2", kind: "garnishee", description: "Order B", monthlyAmount: 2_000, balance: 10_000 },
+      ],
+      { grossRemuneration: 10_000 } // 25% cap = 2,500 total
+    );
+    expect(r.total).toBe(2_500);
+    expect(r.applied[0].amount).toBe(2_000);
+    expect(r.applied[1].amount).toBe(500); // only 500 of the cap left
+  });
 });
