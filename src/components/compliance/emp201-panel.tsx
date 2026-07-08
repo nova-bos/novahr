@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { Download } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { formatPeriod } from "@/lib/compliance/utils";
 import {
   generateEmp201ForPeriodAction,
@@ -50,6 +52,25 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
     } finally {
       setGenerating(false);
     }
+  }
+
+  function handleExport() {
+    if (!record) return;
+    const csv = toCSV(
+      ["Period", "PAYE", "ETI credit", "SDL", "UIF", "Total payable", "Status"],
+      [
+        [
+          record.period,
+          record.totalPaye.toFixed(2),
+          record.totalEti.toFixed(2),
+          record.totalSdl.toFixed(2),
+          record.totalUif.toFixed(2),
+          record.totalAmount.toFixed(2),
+          record.status,
+        ],
+      ]
+    );
+    downloadCSV(csv, `emp201-${record.period}`);
   }
 
   async function handleMarkSubmitted() {
@@ -115,6 +136,10 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm" onClick={handleGenerate} disabled={generating}>
                 {generating ? "Refreshing..." : "Refresh from latest run"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport}>
+                <Download className="size-4" />
+                Export CSV
               </Button>
               {record.status === "pending" && (
                 <Button size="sm" onClick={handleMarkSubmitted} disabled={submitting}>
