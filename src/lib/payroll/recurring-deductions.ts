@@ -32,6 +32,18 @@ export interface RecurringDeductionResult {
   total: number;
 }
 
+export interface RecurringDeductionOptions {
+  /**
+   * Gross remuneration for the period. When set, garnishee (emoluments
+   * attachment) recovery is capped so the total garnishees taken this month do
+   * not exceed garnisheeCapFraction of gross, protecting the employee's minimum
+   * take-home. Loans are employer advances and are not capped.
+   */
+  grossRemuneration?: number;
+  /** Fraction of gross that garnishees may not collectively exceed. Default 0.25. */
+  garnisheeCapFraction?: number;
+}
+
 function round2(d: Decimal): number {
   return d.toDecimalPlaces(2).toNumber();
 }
@@ -40,22 +52,38 @@ function round2(d: Decimal): number {
  * Applies one month of recovery to a set of active recoverable deductions.
  * Each instalment is capped at the remaining balance so it can never over-
  * recover, and a deduction is flagged settled once its balance reaches zero.
+ * Garnishees are additionally capped, collectively, at a fraction of gross.
  */
 export function applyRecurringDeductions(
-  deductions: RecoverableDeduction[]
+  deductions: RecoverableDeduction[],
+  options: RecurringDeductionOptions = {}
 ): RecurringDeductionResult {
   const lines: { label: string; amount: number }[] = [];
   const applied: AppliedRecovery[] = [];
   let total = new Decimal(0);
 
+  const capFraction = new Decimal(options.garnisheeCapFraction ?? 0.25);
+  const garnisheeCap =
+    options.grossRemuneration != null
+      ? new Decimal(options.grossRemuneration).times(capFraction)
+      : null;
+  let garnisheeTaken = new Decimal(0);
+
   for (const d of deductions) {
     const balance = new Decimal(d.balance);
     if (balance.lessThanOrEqualTo(0)) continue;
-    const instalment = Decimal.min(new Decimal(d.monthlyAmount), balance);
+    let instalment = Decimal.min(new Decimal(d.monthlyAmount), balance);
+
+    // Cap garnishees collectively at the protected fraction of gross.
+    if (d.kind === "garnishee" && garnisheeCap != null) {
+      const remainingCap = Decimal.max(garnisheeCap.minus(garnisheeTaken), 0);
+      instalment = Decimal.min(instalment, remainingCap);
+    }
     if (instalment.lessThanOrEqualTo(0)) continue;
 
     const amount = round2(instalment);
     const newBalance = round2(balance.minus(instalment));
+    if (d.kind === "garnishee") garnisheeTaken = garnisheeTaken.plus(instalment);
     lines.push({ label: d.description, amount });
     applied.push({ id: d.id, amount, newBalance, settled: newBalance <= 0 });
     total = total.plus(amount);

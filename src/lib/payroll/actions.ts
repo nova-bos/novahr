@@ -146,7 +146,8 @@ export async function completePayrollRunRecord(
             description: d.description,
             monthlyAmount: d.monthlyAmount,
             balance: d.balance,
-          }))
+          })),
+          { grossRemuneration: p.grossPay }
         );
         if (result.total <= 0) continue;
         p.deductions = [...p.deductions, ...result.lines];
