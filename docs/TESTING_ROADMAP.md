@@ -1,8 +1,6 @@
 # NovaHR Testing Roadmap
 
-A complete plan for verifying that NovaHR works as it should, from unit tests through
-manual acceptance to production monitoring. Use this before every release; use the full
-pass before onboarding a new paying customer.
+A complete plan for verifying that NovaHR works as it should, from unit tests through manual acceptance to production monitoring. Use this before every release; use the full pass before onboarding a new paying customer.
 
 Status legend: [x] automated and passing today, [ ] manual or still to automate.
 
@@ -10,40 +8,36 @@ Status legend: [x] automated and passing today, [ ] manual or still to automate.
 
 ## 1. Automated coverage today
 
-`npm test` runs 24 Vitest files / 233 tests. What they cover:
+`npm test` runs 27 Vitest files / 254 tests. What they cover:
 
 | Area | Files | What is verified |
 | --- | --- | --- |
-| Payroll calculator | `src/lib/payroll/calculator.test.ts` | 2026/27 PAYE brackets, rebates, UIF cap, SDL, pension s11F cap, travel allowance inclusion, unpaid leave pro rata |
-| Payroll actions | `src/lib/payroll/actions.test.ts` | run completion, payslip creation, next-run scheduling, terminated-employee exclusion |
-| Leave actions | `src/lib/leave/actions.test.ts` | request creation wording, working-day validation, approval/rejection, balance upsert, decision notes |
-| Working days | `src/lib/leave/business-days.test.ts` | weekends, SA public holidays incl. Sunday observance, range counting |
-| Leave config | `src/lib/config/leave.test.ts` | all 9 types defined, BCEA minimums met, UIF-funded types unpaid |
+| Payroll calculator | `src/lib/payroll/calculator.test.ts` | 2026/27 PAYE brackets, rebates, UIF cap, SDL, pension s11F cap, travel allowance inclusion, unpaid leave pro rata, R99,000 threshold tripwire |
+| Payroll actions | `src/lib/payroll/actions.test.ts` | Run completion, payslip creation, next-run scheduling, terminated-employee exclusion, tenant-scoped where clauses |
+| Leave actions | `src/lib/leave/actions.test.ts` | Request creation wording, working-day validation, approval/rejection, balance upsert, decision notes |
+| Working days | `src/lib/leave/business-days.test.ts` | Weekends, SA public holidays incl. Sunday observance, range counting |
+| Leave config | `src/lib/config/leave.test.ts` | All 9 types defined, BCEA minimums met, UIF-funded types unpaid |
 | Workspace scoping | `src/lib/workspace/actions.test.ts` | HR full access; employee/manager sanitization of salaries, banking, IDs; payslip and leave filtering |
-| Employees | `src/lib/employees/actions.test.ts`, `factory.test.ts` | creation, employee numbers, default balances, onboarding toggling |
-| Tenant/settings | `src/lib/tenant/actions.test.ts` | profile and payroll settings updates |
-| Notifications | `src/lib/notifications/actions.test.ts` | read/all-read |
+| Employees | `src/lib/employees/actions.test.ts`, `factory.test.ts` | Creation, employee numbers, default balances, onboarding toggling |
+| Tenant/settings | `src/lib/tenant/actions.test.ts` | Profile and payroll settings updates |
+| Notifications | `src/lib/notifications/actions.test.ts` | Read/all-read |
 | Mappers/fixtures | `src/lib/workspace/mappers.test.ts` | DB row to app type mapping, DOB from SA ID number |
-| Marketing | `src/lib/marketing/pricing.test.ts` | tier pricing and suggestion logic |
-| Misc | `format`, `schemas/sa`, `store/app-provider`, demo suites | formatting, SA ID validation, reducer behavior |
+| Marketing | `src/lib/marketing/pricing.test.ts` | Tier pricing and suggestion logic |
+| Rate limiting | `src/lib/security/rate-limit.test.ts` | Sliding window, per-IP and per-tenant limits, bounded memory, cleanup |
+| Bank export idempotency | `src/lib/bank-exports/actions.test.ts` | Ledger state machine (pending claim, duplicate refusal, stale release, cancellation, token persistence) |
+| Misc | `format`, `schemas/sa`, `store/app-provider`, demo suites | Formatting, SA ID validation, reducer behaviour |
 
-CI (`.github/workflows/ci.yml`) runs lint, `tsc --noEmit`, and the full suite on every
-push and PR.
+CI (`.github/workflows/ci.yml`) runs lint, `tsc --noEmit`, and the full suite on every push and PR.
 
 ## 2. Automated tests to add next (priority order)
 
-1. [ ] **Authorization unit tests for `require.ts`**: role rejection paths (employee calling
-   HR-only actions throws; manager deciding own leave throws; tenant mismatch throws).
-   Today these paths are enforced but only exercised manually.
-2. [ ] **Invite flow tests**: token hashing, expiry, revocation, duplicate email rejection,
-   accepted-invite user creation (mock Supabase admin client).
-3. [ ] **MATC in payroll runs**: a payroll action test asserting an employee with medical aid
-   and N dependants gets the s6A credit applied to PAYE.
-4. [ ] **Trial gating**: `isTrialExpired`/`daysLeftInTrial` edge cases (already covered) plus
-   a component test that TrialGate locks when expired.
-5. [ ] **Departments actions**: duplicate-name rejection, delete-with-reassignment.
-6. [ ] **E2E smoke suite (Playwright)**: the five golden journeys below, run against a
-   staging deployment on every release. This is the single highest-value addition.
+1. [ ] **Cross-tenant isolation tests (high priority):** For every server action that accepts an id, assert that a session from tenant A cannot read or mutate a row belonging to tenant B. Tenant isolation is currently enforced by application-code predicates without an automated invariant suite.
+2. [ ] **Authorization matrix tests:** Assert that each role is rejected on actions it should not reach (employee calling an HR-only action throws; manager deciding own leave throws; tenant mismatch throws).
+3. [ ] **Invite flow tests:** Token hashing, expiry, revocation, duplicate email rejection, accepted-invite user creation (mock Supabase admin client).
+4. [ ] **MATC in payroll runs:** A payroll action test asserting an employee with medical aid and N dependants gets the s6A credit applied to PAYE.
+5. [ ] **Trial gating:** `isTrialExpired`/`daysLeftInTrial` edge cases plus a component test that TrialGate locks when expired.
+6. [ ] **Departments actions:** Duplicate-name rejection, delete-with-reassignment.
+7. [ ] **E2E smoke suite (Playwright):** The five golden journeys below, run against a staging deployment on every release. This is the single highest-value addition remaining.
 
 ## 3. Golden journeys (manual today, Playwright targets)
 
@@ -83,22 +77,19 @@ Run these end-to-end on staging before any release. Each is a sellable-demo path
 ### Journey E: Security probes (attempt-to-break)
 - [ ] Signed-out fetch of `/dashboard` redirects to login (curl, no cookie)
 - [ ] Employee-role session calling an HR server action gets "Not authorized" (devtools)
-- [ ] Workspace payload for employee role contains no colleague salary/bank/ID data
-  (inspect network response)
+- [ ] Workspace payload for employee role contains no colleague salary/bank/ID data (inspect network response)
 - [ ] Tenant A user passing tenant B's id to a compliance action is rejected
 - [ ] Invite token guessing: random token shows invalid-invite page
 
 ## 4. Per-page manual checklist
 
-For each role (HR, manager, employee, exco) visit every page and confirm: no console
-errors, loading states render, empty states render, mobile layout at 375px works, dark
-mode legible.
+For each role (HR, manager, employee, exco) visit every page and confirm: no console errors, loading states render, empty states render, mobile layout at 375px works, dark mode legible.
 
 - [ ] Landing page, pricing, terms, privacy (logged out)
 - [ ] Login, signup, forgot/reset password, accept-invite
 - [ ] Dashboard (all four role variants)
 - [ ] Employees list, profile (all tabs), new-employee wizard
-- [ ] Leave (requests, balances, policies, public holidays tabs)
+- [ ] Leave (requests, balances, policies, public holidays, calendar tabs)
 - [ ] Payroll list and run detail, payslip dialog and PDF
 - [ ] Reports (workforce, leave, payroll)
 - [ ] Compliance, Deductions (plan-gated: verify lock on `hr` plan)
@@ -106,26 +97,21 @@ mode legible.
 
 ## 5. Data and migration verification
 
-- [ ] `npx prisma migrate deploy` on a copy of production data completes cleanly
-- [ ] Backfill migration created balance rows for all pre-existing employees (9 types each)
-- [ ] Legacy sick balances raised to 30; `used` values preserved
+- [ ] Apply new migrations against a copy of production data; confirm they complete cleanly
 - [ ] Seed script still idempotent on a fresh database (`npx prisma db seed` twice)
-- [ ] RLS spot check in Supabase SQL editor: `set_config('app.tenant_id', '<tenantA>', true)`
-  then `SELECT count(*) FROM "Employee"` returns only tenant A rows
+- [ ] RLS spot check in Supabase SQL editor: `set_config('app.tenant_id', '<tenantA>', true)` then `SELECT count(*) FROM "Employee"` returns only tenant A rows
 
 ## 6. Non-functional checks
 
-- [ ] Lighthouse on landing page and dashboard: performance > 85, accessibility > 95
 - [ ] First load JS stays near current baseline (dashboard ~405 kB); investigate any jump > 10%
-- [ ] Email deliverability: leave request, decision, payslip, invite all arrive (not spam)
-  from the verified Resend domain
+- [ ] Email deliverability: leave request, decision, payslip, invite all arrive (not spam) from the verified Resend domain
 - [ ] Vercel logs clean after a full journey pass (no unhandled errors)
-- [ ] Security headers present in production responses (`curl -I`)
+- [ ] Security headers present in production responses (`curl -I`): HSTS, CSP, X-Frame-Options, X-Content-Type-Options
 
 ## 7. Release gate
 
 A release ships when:
-1. CI green (lint, types, 233+ tests).
+1. CI green (lint, types, 254+ tests).
 2. Journeys A-E pass on staging.
 3. Migration verification (section 5) done for any release containing a migration.
 4. No open severity-1 bug.
@@ -136,7 +122,7 @@ Payroll data is legislation-bound; schedule these checks:
 
 | When | What |
 | --- | --- |
-| Every March (post-Budget) | PAYE brackets, rebates, MATC, s11F cap in `calculator.ts`; update `TAX_BRACKETS_*` and tax-year label |
+| Every March (post-Budget) | PAYE brackets, rebates, MATC, s11F cap in `calculator.ts`; update constants and tax-year label |
 | When gazetted | UIF earnings ceiling (currently R17,712/month) |
 | Every December | Next year's public holidays in `business-days.ts` (watch for once-off holidays) |
 | October 2028 deadline | Parliament's BCEA amendment after Van Wyk; update leave types and descriptions |
