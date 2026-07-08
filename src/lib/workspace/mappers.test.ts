@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 import type {
   ActivityItem as PrismaActivityItem,
@@ -122,7 +123,7 @@ describe("mapEmployee", () => {
     startDate: new Date("2024-01-15T00:00:00Z"),
     location: "Cape Town",
     managerId: null,
-    salaryAnnualGross: 600_000,
+    salaryAnnualGross: new Prisma.Decimal(600_000),
     salaryCurrency: "ZAR",
     salaryPayFrequency: "monthly",
     salaryTravelAllowance: null,
@@ -171,10 +172,10 @@ describe("mapEmployee", () => {
       ...baseRow,
       preferredName: "Aish",
       managerId: "emp-0",
-      salaryTravelAllowance: 3_000,
-      salaryHousingAllowance: 5_000,
+      salaryTravelAllowance: new Prisma.Decimal(3_000),
+      salaryHousingAllowance: new Prisma.Decimal(5_000),
       salaryPensionContributionPct: 0.075,
-      salaryMedicalAid: 2_500,
+      salaryMedicalAid: new Prisma.Decimal(2_500),
       onboarding: { progress: 50, startDate: "2024-01-15", steps: [] },
       leaveBalances: [
         { id: "lb-1", employeeId: "emp-1", type: "annual", total: 18, used: 4 },
@@ -220,7 +221,7 @@ describe("mapDepartment", () => {
       description: "Builds the product",
       headId: null,
       color: "#4C6FFF",
-      budget: 1_000_000,
+      budget: new Prisma.Decimal(1_000_000),
     };
 
     expect(mapDepartment(row)).toEqual({
@@ -242,7 +243,7 @@ describe("mapDepartment", () => {
       description: "Builds the product",
       headId: "emp-1",
       color: "#4C6FFF",
-      budget: 1_000_000,
+      budget: new Prisma.Decimal(1_000_000),
     };
 
     expect(mapDepartment(row).headId).toBe("emp-1");
@@ -305,14 +306,14 @@ describe("mapPayslip", () => {
       employeeId: "emp-1",
       period: "2026-01",
       payDate: new Date("2026-01-25T00:00:00Z"),
-      basicSalary: 50_000,
+      basicSalary: new Prisma.Decimal(50_000),
       earnings: [{ label: "Travel Allowance", amount: 3_000 }],
       deductions: [{ label: "PAYE (Income Tax)", amount: 11_302.67 }],
-      grossPay: 53_000,
-      totalDeductions: 11_302.67,
-      netPay: 41_697.33,
-      paye: 11_302.67,
-      uif: 177.12,
+      grossPay: new Prisma.Decimal(53_000),
+      totalDeductions: new Prisma.Decimal(11_302.67),
+      netPay: new Prisma.Decimal(41_697.33),
+      paye: new Prisma.Decimal(11_302.67),
+      uif: new Prisma.Decimal(177.12),
     };
 
     expect(mapPayslip(row)).toEqual({
@@ -342,11 +343,11 @@ describe("mapPayrollRun", () => {
     label: "June 2026",
     payDate: new Date("2026-06-25T00:00:00Z"),
     status: "scheduled",
-    totalGross: 0,
-    totalDeductions: 0,
-    totalNet: 0,
-    totalPaye: 0,
-    totalUif: 0,
+    totalGross: new Prisma.Decimal(0),
+    totalDeductions: new Prisma.Decimal(0),
+    totalNet: new Prisma.Decimal(0),
+    totalPaye: new Prisma.Decimal(0),
+    totalUif: new Prisma.Decimal(0),
     employeeCount: 12,
     processedOn: null,
     approvedBy: null,

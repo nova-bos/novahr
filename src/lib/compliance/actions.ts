@@ -1,6 +1,6 @@
 "use server";
 
-import { ComplianceStatus, ComplianceType } from "@prisma/client";
+import { ComplianceStatus, ComplianceType, Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant } from "@/lib/auth/require";
 import { getComplianceDueDate, calculateSdl } from "./utils";
@@ -49,12 +49,12 @@ function mapRecord(r: {
   period: string;
   type: ComplianceType;
   status: ComplianceStatus;
-  totalPaye: number;
-  totalUif: number;
-  totalSdl: number;
-  totalEti: number;
-  etiCarriedForward: number;
-  totalAmount: number;
+  totalPaye: Prisma.Decimal;
+  totalUif: Prisma.Decimal;
+  totalSdl: Prisma.Decimal;
+  totalEti: Prisma.Decimal;
+  etiCarriedForward: Prisma.Decimal;
+  totalAmount: Prisma.Decimal;
   dueDate: Date | null;
   submittedOn: Date | null;
   reference: string | null;
@@ -68,12 +68,12 @@ function mapRecord(r: {
     period: r.period,
     type: r.type,
     status: r.status,
-    totalPaye: r.totalPaye,
-    totalUif: r.totalUif,
-    totalSdl: r.totalSdl,
-    totalEti: r.totalEti,
-    etiCarriedForward: r.etiCarriedForward,
-    totalAmount: r.totalAmount,
+    totalPaye: r.totalPaye.toNumber(),
+    totalUif: r.totalUif.toNumber(),
+    totalSdl: r.totalSdl.toNumber(),
+    totalEti: r.totalEti.toNumber(),
+    etiCarriedForward: r.etiCarriedForward.toNumber(),
+    totalAmount: r.totalAmount.toNumber(),
     dueDate: r.dueDate ? r.dueDate.toISOString() : null,
     submittedOn: r.submittedOn ? r.submittedOn.toISOString() : null,
     reference: r.reference,
@@ -154,7 +154,7 @@ export async function generateComplianceFromRunAction(
     const run = await tx.payrollRun.findFirstOrThrow({ where: { id: payrollRunId, tenantId } });
     const period = run.period;
     const dueDate = getComplianceDueDate(period);
-    const sdlAmount = calculateSdl(run.totalGross);
+    const sdlAmount = calculateSdl(run.totalGross.toNumber());
 
     const payeRecord = await tx.complianceRecord.upsert({
       where: { tenantId_period_type: { tenantId, period, type: ComplianceType.paye_return } },
@@ -246,7 +246,7 @@ async function computeRunEti(
       where: { tenantId, employeeId: slip.employeeId, period: { lt: period } },
     });
     const result = calculateEti(
-      { period, monthlyRemuneration: slip.grossPay, monthsAlreadyClaimed },
+      { period, monthlyRemuneration: slip.grossPay.toNumber(), monthsAlreadyClaimed },
       { idNumber: slip.employee.idNumber, startDate: slip.employee.startDate }
     );
 
@@ -291,7 +291,7 @@ export async function generateEmp201FromRunAction(
     const run = await tx.payrollRun.findFirstOrThrow({ where: { id: payrollRunId, tenantId } });
     const period = run.period;
     const dueDate = getComplianceDueDate(period);
-    const totalSdl = calculateSdl(run.totalGross);
+    const totalSdl = calculateSdl(run.totalGross.toNumber());
     const etiCalculated = await computeRunEti(tx, tenantId, payrollRunId, period);
 
     // ETI carry-forward: unused ETI (calculated plus any brought forward from
@@ -309,15 +309,15 @@ export async function generateEmp201FromRunAction(
         },
         select: { etiCarriedForward: true },
       });
-      etiBroughtForward = prev?.etiCarriedForward ?? 0;
+      etiBroughtForward = prev?.etiCarriedForward?.toNumber() ?? 0;
     }
 
     const { etiUtilised, etiCarriedForward, payablePaye } = applyEti(
-      run.totalPaye,
+      run.totalPaye.toNumber(),
       etiCalculated,
       etiBroughtForward
     );
-    const payable = Math.round((payablePaye + run.totalUif + totalSdl) * 100) / 100;
+    const payable = Math.round((payablePaye + run.totalUif.toNumber() + totalSdl) * 100) / 100;
 
     const data = {
       totalPaye: run.totalPaye,
@@ -429,10 +429,10 @@ export async function getComplianceSummaryAction(
 
     return {
       year: targetYear,
-      totalPaye: records.reduce((s, r) => s + r.totalPaye, 0),
-      totalUif: records.reduce((s, r) => s + r.totalUif, 0),
-      totalSdl: records.reduce((s, r) => s + r.totalSdl, 0),
-      totalAmount: records.reduce((s, r) => s + r.totalAmount, 0),
+      totalPaye: records.reduce((s, r) => s + r.totalPaye.toNumber(), 0),
+      totalUif: records.reduce((s, r) => s + r.totalUif.toNumber(), 0),
+      totalSdl: records.reduce((s, r) => s + r.totalSdl.toNumber(), 0),
+      totalAmount: records.reduce((s, r) => s + r.totalAmount.toNumber(), 0),
       pendingCount: records.filter((r) => r.status === ComplianceStatus.pending).length,
       submittedCount: records.filter((r) => r.status === ComplianceStatus.submitted).length,
       acceptedCount: records.filter((r) => r.status === ComplianceStatus.accepted).length,

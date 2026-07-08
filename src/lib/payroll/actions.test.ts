@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { makeEmployeeRow, makeTenantRow } from "../workspace/test-fixtures";
 
@@ -64,11 +65,11 @@ function makePayrollRunRow(overrides: Record<string, unknown> = {}) {
     label: "June 2026 Payroll",
     payDate: new Date("2026-06-25T00:00:00Z"),
     status: "processing",
-    totalGross: 0,
-    totalDeductions: 0,
-    totalNet: 0,
-    totalPaye: 0,
-    totalUif: 0,
+    totalGross: new Prisma.Decimal(0),
+    totalDeductions: new Prisma.Decimal(0),
+    totalNet: new Prisma.Decimal(0),
+    totalPaye: new Prisma.Decimal(0),
+    totalUif: new Prisma.Decimal(0),
     employeeCount: 0,
     processedOn: null,
     ...overrides,
@@ -104,12 +105,12 @@ describe("completePayrollRunRecord", () => {
       id: "emp-1",
       status: "active",
       startDate: new Date("2024-01-15T00:00:00Z"),
-      salaryAnnualGross: 600_000,
+      salaryAnnualGross: new Prisma.Decimal(600_000),
     });
     const terminatedEmployee = makeEmployeeRow({
       id: "emp-2",
       status: "terminated",
-      salaryAnnualGross: 500_000,
+      salaryAnnualGross: new Prisma.Decimal(500_000),
     });
 
     mockPrisma.payrollRun.findFirstOrThrow.mockResolvedValue(run);
@@ -126,11 +127,11 @@ describe("completePayrollRunRecord", () => {
     mockPrisma.payrollRun.update.mockResolvedValue(
       makePayrollRunRow({
         status: "completed",
-        totalGross: 50_000,
-        totalDeductions: 11_252.70,
-        totalNet: 38_747.30,
-        totalPaye: 11_075.58,
-        totalUif: 177.12,
+        totalGross: new Prisma.Decimal(50_000),
+        totalDeductions: new Prisma.Decimal(11_252.70),
+        totalNet: new Prisma.Decimal(38_747.30),
+        totalPaye: new Prisma.Decimal(11_075.58),
+        totalUif: new Prisma.Decimal(177.12),
         employeeCount: 1,
         processedOn: new Date("2026-06-25T08:00:00Z"),
       })

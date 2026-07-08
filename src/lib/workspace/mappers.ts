@@ -33,6 +33,15 @@ export function toTimestamp(date: Date): string {
 }
 
 /**
+ * Converts a money value from the data layer to a plain number. Prisma returns
+ * Decimal for @db.Decimal columns; this also tolerates a plain number (as used
+ * by loosely-typed test mocks), keeping the mapper boundary robust.
+ */
+export function decToNumber(v: Prisma.Decimal | number): number {
+  return typeof v === "number" ? v : v.toNumber();
+}
+
+/**
  * Pins a naive datetime string (no `Z`/offset, as used in `src/demo/activity.ts`,
  * `src/demo/notifications.ts`, and `src/demo/payroll.ts`'s `processedOn`) to UTC, so seed-write and
  * read-back round-trip to the same string regardless of server timezone.
@@ -97,13 +106,13 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
     location: row.location,
     managerId: row.managerId ?? undefined,
     salary: {
-      annualGross: row.salaryAnnualGross,
+      annualGross: decToNumber(row.salaryAnnualGross),
       currency: row.salaryCurrency,
       payFrequency: row.salaryPayFrequency,
-      travelAllowance: row.salaryTravelAllowance ?? undefined,
-      housingAllowance: row.salaryHousingAllowance ?? undefined,
+      travelAllowance: row.salaryTravelAllowance != null ? decToNumber(row.salaryTravelAllowance) : undefined,
+      housingAllowance: row.salaryHousingAllowance != null ? decToNumber(row.salaryHousingAllowance) : undefined,
       pensionContributionPct: row.salaryPensionContributionPct ?? undefined,
-      medicalAid: row.salaryMedicalAid ?? undefined,
+      medicalAid: row.salaryMedicalAid != null ? decToNumber(row.salaryMedicalAid) : undefined,
     },
     bankDetails: {
       bank: row.bankName,
@@ -144,7 +153,7 @@ export function mapDepartment(row: PrismaDepartment): Department {
     description: row.description,
     headId: row.headId ?? undefined,
     color: row.color,
-    budget: row.budget,
+    budget: decToNumber(row.budget),
   };
 }
 
@@ -175,14 +184,14 @@ export function mapPayslip(row: PrismaPayslip): Payslip {
     employeeId: row.employeeId,
     period: row.period,
     payDate: toDateOnly(row.payDate),
-    basicSalary: row.basicSalary,
+    basicSalary: decToNumber(row.basicSalary),
     earnings: row.earnings as unknown as PayslipLineItem[],
     deductions: row.deductions as unknown as PayslipLineItem[],
-    grossPay: row.grossPay,
-    totalDeductions: row.totalDeductions,
-    netPay: row.netPay,
-    paye: row.paye,
-    uif: row.uif,
+    grossPay: decToNumber(row.grossPay),
+    totalDeductions: decToNumber(row.totalDeductions),
+    netPay: decToNumber(row.netPay),
+    paye: decToNumber(row.paye),
+    uif: decToNumber(row.uif),
   };
 }
 
@@ -194,11 +203,11 @@ export function mapPayrollRun(row: PrismaPayrollRun, payslipIds: string[]): Payr
     label: row.label,
     payDate: toDateOnly(row.payDate),
     status: row.status,
-    totalGross: row.totalGross,
-    totalDeductions: row.totalDeductions,
-    totalNet: row.totalNet,
-    totalPaye: row.totalPaye,
-    totalUif: row.totalUif,
+    totalGross: decToNumber(row.totalGross),
+    totalDeductions: decToNumber(row.totalDeductions),
+    totalNet: decToNumber(row.totalNet),
+    totalPaye: decToNumber(row.totalPaye),
+    totalUif: decToNumber(row.totalUif),
     employeeCount: row.employeeCount,
     payslipIds,
     processedOn: row.processedOn ? toTimestamp(row.processedOn) : undefined,

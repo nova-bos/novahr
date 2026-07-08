@@ -233,13 +233,13 @@ model Employee {
   location       String
   managerId      String?
 
-  salaryAnnualGross            Float
+  salaryAnnualGross            Decimal @db.Decimal(15, 2)
   salaryCurrency                String       @default("ZAR")
   salaryPayFrequency             PayFrequency @default(monthly)
-  salaryTravelAllowance           Float?
-  salaryHousingAllowance           Float?
+  salaryTravelAllowance           Decimal? @db.Decimal(15, 2)
+  salaryHousingAllowance           Decimal? @db.Decimal(15, 2)
   salaryPensionContributionPct     Float?
-  salaryMedicalAid                  Float?
+  salaryMedicalAid                  Decimal? @db.Decimal(15, 2)
 
   bankName              String
   bankAccountNumber     String
@@ -325,7 +325,7 @@ model Department {
   description String
   headId      String?
   color       String
-  budget      Float
+  budget      Decimal @db.Decimal(15, 2)
 
   @@index([tenantId])
 }
@@ -338,11 +338,11 @@ model PayrollRun {
   label           String
   payDate         DateTime
   status          PayrollRunStatus @default(scheduled)
-  totalGross      Float            @default(0)
-  totalDeductions Float            @default(0)
-  totalNet        Float            @default(0)
-  totalPaye       Float            @default(0)
-  totalUif        Float            @default(0)
+  totalGross      Decimal @db.Decimal(15, 2)            @default(0)
+  totalDeductions Decimal @db.Decimal(15, 2)            @default(0)
+  totalNet        Decimal @db.Decimal(15, 2)            @default(0)
+  totalPaye       Decimal @db.Decimal(15, 2)            @default(0)
+  totalUif        Decimal @db.Decimal(15, 2)            @default(0)
   employeeCount   Int              @default(0)
   processedOn     DateTime?
 
@@ -365,14 +365,14 @@ model Payslip {
   employee        Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   period          String
   payDate         DateTime
-  basicSalary     Float
+  basicSalary     Decimal @db.Decimal(15, 2)
   earnings        Json
   deductions      Json
-  grossPay        Float
-  totalDeductions Float
-  netPay          Float
-  paye            Float
-  uif             Float
+  grossPay        Decimal @db.Decimal(15, 2)
+  totalDeductions Decimal @db.Decimal(15, 2)
+  netPay          Decimal @db.Decimal(15, 2)
+  paye            Decimal @db.Decimal(15, 2)
+  uif             Decimal @db.Decimal(15, 2)
   payrollItems    PayrollItem[]
 
   @@index([tenantId])
@@ -419,7 +419,7 @@ model PayrollProfile {
   taxNumber            String?
   uifNumber            String?
   taxDirective         String?
-  taxDirectiveAmount   Float?
+  taxDirectiveAmount   Decimal? @db.Decimal(15, 2)
   payFrequency         PayFrequency         @default(monthly)
   effectiveDate        DateTime             @default(now())
   medicalAidScheme     String?
@@ -474,12 +474,12 @@ model ComplianceRecord {
   period      String
   type        ComplianceType
   status      ComplianceStatus @default(pending)
-  totalPaye   Float            @default(0)
-  totalUif    Float            @default(0)
-  totalSdl    Float            @default(0)
-  totalEti    Float            @default(0)
-  etiCarriedForward Float       @default(0)
-  totalAmount Float            @default(0)
+  totalPaye   Decimal @db.Decimal(15, 2)            @default(0)
+  totalUif    Decimal @db.Decimal(15, 2)            @default(0)
+  totalSdl    Decimal @db.Decimal(15, 2)            @default(0)
+  totalEti    Decimal @db.Decimal(15, 2)            @default(0)
+  etiCarriedForward Decimal @db.Decimal(15, 2)       @default(0)
+  totalAmount Decimal @db.Decimal(15, 2)            @default(0)
   dueDate     DateTime?
   submittedOn DateTime?
   reference   String?
@@ -498,7 +498,7 @@ model BankExport {
   payrollRunId String
   payrollRun   PayrollRun       @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
   status       BankExportStatus @default(pending)
-  totalAmount  Float
+  totalAmount  Decimal @db.Decimal(15, 2)
   paymentCount Int
   bankName     String?
   fileFormat   String           @default("csv")
@@ -523,7 +523,7 @@ model PayrollSettings {
   uifEnabled         Boolean  @default(true)
   uifEmployeeRate    Float    @default(0.01)
   uifEmployerRate    Float    @default(0.01)
-  uifCeiling         Float    @default(17712)
+  uifCeiling         Decimal @db.Decimal(15, 2)    @default(17712)
   payslipCompanyName String?
   payslipLogoUrl     String?
   payslipAccentColor String          @default("#6366f1")
@@ -557,8 +557,8 @@ model PayrollItem {
   label       String
   isStatutory Boolean  @default(false)
   isEmployer  Boolean  @default(false)
-  amount      Float
-  ytdAmount   Float    @default(0)
+  amount      Decimal @db.Decimal(15, 2)
+  ytdAmount   Decimal @db.Decimal(15, 2)    @default(0)
   createdAt   DateTime @default(now())
 
   @@index([tenantId])
@@ -592,11 +592,11 @@ model EmployeeSalaryHistory {
   tenant            Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   employeeId        String
   employee          Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  annualGross       Float
+  annualGross       Decimal @db.Decimal(15, 2)
   payFrequency      PayFrequency
-  travelAllowance   Float?
-  housingAllowance  Float?
-  medicalAid        Float?
+  travelAllowance   Decimal? @db.Decimal(15, 2)
+  housingAllowance  Decimal? @db.Decimal(15, 2)
+  medicalAid        Decimal? @db.Decimal(15, 2)
   pensionContribPct Float?
   effectiveDate     DateTime
   changedBy         String
@@ -691,9 +691,9 @@ model EmployeeDeduction {
   kind           DeductionKind  @default(loan)
   description    String
   reference      String?
-  originalAmount Float
-  monthlyAmount  Float
-  balance        Float
+  originalAmount Decimal @db.Decimal(15, 2)
+  monthlyAmount  Decimal @db.Decimal(15, 2)
+  balance        Decimal @db.Decimal(15, 2)
   status         RecoveryStatus @default(active)
   startDate      DateTime       @default(now())
   settledAt      DateTime?
@@ -736,7 +736,7 @@ model EtiClaim {
   employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   period          String
   qualifyingMonth Int
-  amount          Float
+  amount          Decimal @db.Decimal(15, 2)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

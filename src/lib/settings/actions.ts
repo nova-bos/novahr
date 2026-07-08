@@ -6,6 +6,7 @@ import { encryptServiceKey, decryptServiceKey } from "@/lib/crypto/service-keys"
 import { prisma } from "@/lib/prisma";
 import { isValidServiceKey } from "@/lib/services/netcash/auth";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import type { Prisma } from "@prisma/client";
 
 export interface PayrollSettingsResult {
   id: string;
@@ -33,7 +34,7 @@ function toPayrollSettingsResult(s: {
   uifEnabled: boolean;
   uifEmployeeRate: number;
   uifEmployerRate: number;
-  uifCeiling: number;
+  uifCeiling: Prisma.Decimal;
   payslipCompanyName: string | null;
   payslipLogoUrl: string | null;
   netcashSalaryKey: string | null;
@@ -51,7 +52,7 @@ function toPayrollSettingsResult(s: {
     uifEnabled: s.uifEnabled,
     uifEmployeeRate: s.uifEmployeeRate,
     uifEmployerRate: s.uifEmployerRate,
-    uifCeiling: s.uifCeiling,
+    uifCeiling: s.uifCeiling.toNumber(),
     payslipCompanyName: s.payslipCompanyName,
     payslipLogoUrl: s.payslipLogoUrl,
     hasSalaryKey: !!s.netcashSalaryKey,

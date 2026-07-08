@@ -22,7 +22,7 @@ export async function terminateEmployeeAction(
       include: { leaveBalances: true },
     });
 
-    const dailyRate = employee.salaryAnnualGross / 261;
+    const dailyRate = employee.salaryAnnualGross.toNumber() / 261;
     const noticeDaysOwed = 14;
     const noticePay = Math.max(0, (noticeDaysOwed - input.noticeDaysServed) * dailyRate);
     const annualBalance = employee.leaveBalances.find((b) => b.type === "annual");

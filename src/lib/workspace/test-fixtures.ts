@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { Tenant as PrismaTenant } from "@prisma/client";
 import type { Employee } from "../types";
 import type { EmployeeWithBalances } from "./mappers";
@@ -22,7 +23,7 @@ export function makeEmployeeRow(overrides: Partial<EmployeeWithBalances> = {}): 
     startDate: new Date("2024-01-15T00:00:00Z"),
     location: "Cape Town",
     managerId: null,
-    salaryAnnualGross: 600_000,
+    salaryAnnualGross: new Prisma.Decimal(600_000),
     salaryCurrency: "ZAR",
     salaryPayFrequency: "monthly",
     salaryTravelAllowance: null,

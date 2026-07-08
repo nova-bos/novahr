@@ -107,7 +107,7 @@ export async function getTaxYearCertificatesAction(
         byEmployee.set(slip.employeeId, entry);
       }
       // Basic salary (and overtime) map to income code 3601.
-      entry.input.income += slip.basicSalary;
+      entry.input.income += slip.basicSalary.toNumber();
       for (const line of asLines(slip.earnings)) {
         const bucket = bucketForItem("earning", line.label);
         if (bucket) entry.input[bucket] += line.amount;
@@ -173,11 +173,11 @@ export async function getEmp501ReconciliationAction(
     const declared = { paye: 0, uif: 0, sdl: 0, eti: 0 };
     let interimPaye = 0;
     for (const r of emp201s) {
-      declared.paye += r.totalPaye;
-      declared.uif += r.totalUif;
-      declared.sdl += r.totalSdl;
-      declared.eti += r.totalEti;
-      if (interim.has(r.period)) interimPaye += r.totalPaye;
+      declared.paye += r.totalPaye.toNumber();
+      declared.uif += r.totalUif.toNumber();
+      declared.sdl += r.totalSdl.toNumber();
+      declared.eti += r.totalEti.toNumber();
+      if (interim.has(r.period)) interimPaye += r.totalPaye.toNumber();
     }
 
     const certified = { paye: 0, uif: 0 };
