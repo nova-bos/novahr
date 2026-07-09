@@ -38,11 +38,22 @@ Defense in depth, four layers:
      totals zeroed.
    - `employee`: own record full; colleagues sanitized; only own payslips and leave requests.
 
-4. **Postgres row-level security** (`prisma/migrations/*enable_rls*`). Every tenant-scoped
-   table has a FORCE RLS policy keyed on the `app.tenant_id` session variable, set per
-   transaction by `runAsTenant()` (`src/lib/db-context.ts`). Even a bug in an action cannot
-   read another tenant's rows once the transaction is scoped. The Supabase REST API is
-   blocked for the anon/authenticated roles.
+4. **Postgres row-level security** (`prisma/migrations/*baseline*`). Every tenant-scoped
+   table has ENABLE + FORCE RLS with a `tenant_isolation` policy keyed on the
+   `app.tenant_id` session variable, set per transaction by `runAsTenant()`
+   (`src/lib/db-context.ts`).
+
+   Honest scoping of what this layer does: the application connects as the Supabase
+   `postgres` role, which has BYPASSRLS, so RLS does NOT constrain application queries.
+   Tenant isolation for the app itself is enforced at the application layer: the
+   `require*` guards plus the `tenantId` predicate on every tenant-scoped query, backed
+   by the per-module isolation test suites (`src/lib/**/*.isolation.test.ts`). What RLS
+   does enforce is denial of the Supabase REST/GraphQL surface: the `anon` and
+   `authenticated` roles have table grants but no matching policy, so PostgREST access
+   with the public anon key is fully blocked. Every new tenant-scoped table MUST get the
+   same ENABLE + FORCE + `tenant_isolation` policy in its migration, or it is reachable
+   through the REST API (this happened with EmployeeDeduction, EmployeeDocument and
+   EtiClaim; the gap was found and closed on 2026-07-09).
 
 ## Role matrix
 
@@ -79,17 +90,21 @@ is needed, then creates the tenant `User` row in the invited role.
 
 ## Known gaps and future work
 
-- **Leave document storage**: uploads now store only the object path (not a public URL) in
-  `LeaveRequest.documentUrl`, and documents are read through `getLeaveDocumentUrl`
-  (`src/lib/leave/documents.ts`), which authorizes the caller with `requireEmployeeScope`
-  and returns a 60-second signed URL. ACTION REQUIRED (ops): the `leave-documents` bucket
-  must be flipped to PRIVATE in the Supabase dashboard (Storage, bucket settings, turn off
-  "Public bucket"); code cannot change that. A Supabase Storage RLS policy keyed on tenant
-  is still recommended as defense in depth. Note: any pre-existing rows created before this
-  change still hold a full public URL and will not resolve through the signed-URL path until
-  re-uploaded or migrated.
-- **Netcash service key** is stored in plaintext in `PayrollSettings`. Consider encrypting
-  at rest with a server-side key.
+- **Leave document storage** (resolved): the `leave-documents` and `employee-documents`
+  buckets are PRIVATE (verified against `storage.buckets` on 2026-07-09). Uploads store
+  only the object path in `LeaveRequest.documentUrl`; reads go through
+  `getLeaveDocumentUrl` (`src/lib/leave/documents.ts`), which authorizes the caller with
+  `requireEmployeeScope` and returns a 60-second signed URL. Both buckets enforce
+  `allowed_mime_types` and `file_size_limit` server-side (10 MB images/PDF for leave
+  documents, 15 MB images/PDF/Office for the vault), and `uploadEmployeeDocument`
+  validates the mime type before upload. Remaining hardening: a Supabase Storage RLS
+  policy keyed on tenant as defense in depth.
+- **Netcash service keys** (resolved): `netcashSalaryKey` and `netcashAccountServicesKey`
+  are encrypted at rest with AES-256-GCM (`src/lib/crypto/service-keys.ts`) using the
+  server-only `NETCASH_ENCRYPTION_KEY` (64-char hex, documented in `.env.example`).
+  Keys are decrypted only inside the submission and settings contexts; reads back to the
+  browser expose only a masked suffix. There is no key-rotation procedure yet: rotating
+  `NETCASH_ENCRYPTION_KEY` currently means tenants re-enter their Netcash keys.
 - **Rate limiting**: login (`throttleLogin`, 10/min) and signup (5/hour) now go through the
   in-memory `checkRateLimit` limiter, matching invite and contact actions. The limiter is
   per warm instance, not global; consider Vercel WAF rules or a shared store before

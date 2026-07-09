@@ -7,6 +7,7 @@ import { formatMonthYear } from "@/lib/format";
 import { sendPayslipEmail } from "@/lib/email";
 import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
 import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator";
+import { workingDaysBetween } from "@/lib/leave/business-days";
 import { applyRecurringDeductions } from "./recurring-deductions";
 import type { ActivityItem, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
@@ -116,8 +117,41 @@ export async function completePayrollRunRecord(
           }
         : STATUTORY_DEFAULTS;
 
+      // Approved unpaid leave inside this period reduces the pay base. A
+      // request can straddle month boundaries, so only the working days that
+      // fall inside the run's period count against this payslip.
+      const [periodYear, periodMonth] = run.period.split("-").map(Number);
+      const periodStart = new Date(Date.UTC(periodYear, periodMonth - 1, 1));
+      const periodEnd = new Date(Date.UTC(periodYear, periodMonth, 0));
+      const unpaidRequests = await tx.leaveRequest.findMany({
+        where: {
+          tenantId: run.tenantId,
+          type: "unpaid",
+          status: "approved",
+          startDate: { lte: periodEnd },
+          endDate: { gte: periodStart },
+        },
+        select: { employeeId: true, startDate: true, endDate: true },
+      });
+      const unpaidDaysByEmployee = new Map<string, number>();
+      for (const r of unpaidRequests) {
+        const overlapStart = r.startDate > periodStart ? r.startDate : periodStart;
+        const overlapEnd = r.endDate < periodEnd ? r.endDate : periodEnd;
+        const days = workingDaysBetween(toDateOnly(overlapStart), toDateOnly(overlapEnd));
+        if (days > 0) {
+          unpaidDaysByEmployee.set(
+            r.employeeId,
+            (unpaidDaysByEmployee.get(r.employeeId) ?? 0) + days
+          );
+        }
+      }
+
       const newPayslips = eligible.map((e) =>
-        buildPayslip(e, run.id, run.period, payDateStr, { isSDLLiable, statutory })
+        buildPayslip(e, run.id, run.period, payDateStr, {
+          isSDLLiable,
+          statutory,
+          unpaidLeaveDays: unpaidDaysByEmployee.get(e.id) ?? 0,
+        })
       );
 
       // Apply recurring post-tax deductions (loans, garnishees) after tax is

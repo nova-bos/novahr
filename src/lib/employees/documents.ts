@@ -9,6 +9,19 @@ const BUCKET = "employee-documents";
 const SIGNED_URL_TTL_SECONDS = 60;
 const MAX_BYTES = 15 * 1024 * 1024; // 15 MB
 
+// Mirrors the bucket's allowed_mime_types so the user gets a clear error
+// instead of a generic storage rejection.
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+]);
+
 const CATEGORIES: EmployeeDocumentCategory[] = [
   "contract",
   "id_document",
@@ -97,6 +110,9 @@ export async function uploadEmployeeDocument(
   if (!name) return { error: "A document name is required." };
   if (!(file instanceof File) || file.size === 0) return { error: "Please choose a file." };
   if (file.size > MAX_BYTES) return { error: "File is too large (max 15 MB)." };
+  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    return { error: "Unsupported file type. Use PDF, Word, Excel, or an image (JPEG, PNG, WebP)." };
+  }
 
   const category = (CATEGORIES as string[]).includes(categoryRaw)
     ? (categoryRaw as EmployeeDocumentCategory)

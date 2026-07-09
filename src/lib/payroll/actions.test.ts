@@ -20,6 +20,7 @@ const mockPrisma = vi.hoisted(() => {
     tenant: { findUniqueOrThrow: vi.fn() },
     employee: { findMany: vi.fn() },
     payrollProfile: { findMany: vi.fn().mockResolvedValue([]) },
+    leaveRequest: { findMany: vi.fn().mockResolvedValue([]) },
     employeeDeduction: tx.employeeDeduction,
     activityItem: tx.activityItem,
     notificationItem: tx.notificationItem,
@@ -241,6 +242,53 @@ describe("completePayrollRunRecord", () => {
       where: { id: "ded-1" },
       data: { balance: 4_000 },
     });
+  });
+
+  it("deducts approved unpaid leave that falls inside the period", async () => {
+    setupCommon();
+    mockPrisma.payrollRun.findUnique.mockResolvedValue(null);
+    mockPrisma.payslip.createMany.mockResolvedValue({ count: 1 });
+    mockPrisma.payrollRun.update.mockResolvedValue(makePayrollRunRow({ status: "completed", employeeCount: 1 }));
+    mockPrisma.activityItem.create.mockResolvedValue({
+      id: "activity-1",
+      tenantId: "novatech",
+      type: "payroll_run",
+      message: "processed payroll for June 2026",
+      actor: "Werner Botha",
+      employeeId: null,
+      timestamp: new Date("2026-06-25T08:00:00Z"),
+    });
+    mockPrisma.notificationItem.create.mockResolvedValue({
+      id: "notif-1",
+      tenantId: "novatech",
+      title: "Payslips published",
+      description: "June 2026 payslips have been generated for 1 employees.",
+      timestamp: new Date("2026-06-25T08:00:00Z"),
+      read: false,
+      type: "success",
+    });
+    mockPrisma.payrollRun.create.mockResolvedValue(makePayrollRunRow({ id: "novatech-run-2026-07", period: "2026-07", status: "scheduled" }));
+    // Mon 8 to Wed 10 June 2026: 3 working days, all inside the run period.
+    mockPrisma.leaveRequest.findMany.mockResolvedValue([
+      {
+        employeeId: "emp-1",
+        startDate: new Date("2026-06-08T00:00:00Z"),
+        endDate: new Date("2026-06-10T00:00:00Z"),
+      },
+    ]);
+
+    const result = await completePayrollRunRecord("novatech-run-2026-06");
+
+    // Basic salary 50,000 over 21 working days: 3 unpaid days = 7,142.86.
+    expect(result.payslips[0].deductions).toContainEqual({
+      label: "Unpaid Leave",
+      amount: 7_142.86,
+    });
+    expect(mockPrisma.leaveRequest.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ type: "unpaid", status: "approved" }),
+      })
+    );
   });
 
   it("does not create a next run when one already exists", async () => {

@@ -35,6 +35,11 @@ const ROLE_ICONS: Record<UserRole, LucideIcon> = {
   exco: Building2,
 };
 
+// Demo personas (and their credentials) are only offered outside production.
+// NEXT_PUBLIC_APP_ENV is inlined at build time, so production builds render a
+// plain login form. Set to "development" or "staging" to restore the picker.
+const SHOW_DEMO_ACCOUNTS = process.env.NEXT_PUBLIC_APP_ENV !== "production";
+
 const FEATURES: { icon: LucideIcon; label: string }[] = [
   { icon: Wallet, label: "Run South African payroll in minutes" },
   { icon: CalendarRange, label: "Track leave balances and approvals" },
@@ -45,9 +50,9 @@ export default function LoginPage() {
   const router = useRouter();
   const { user, isLoading, login } = useAuth();
 
-  const [selectedId, setSelectedId] = React.useState(demoUsers[0].id);
-  const [email, setEmail] = React.useState(demoUsers[0].email);
-  const [password, setPassword] = React.useState(demoUsers[0].password);
+  const [selectedId, setSelectedId] = React.useState(SHOW_DEMO_ACCOUNTS ? demoUsers[0].id : "");
+  const [email, setEmail] = React.useState(SHOW_DEMO_ACCOUNTS ? demoUsers[0].email : "");
+  const [password, setPassword] = React.useState(SHOW_DEMO_ACCOUNTS ? demoUsers[0].password : "");
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
@@ -112,7 +117,9 @@ export default function LoginPage() {
               Modern HR &amp; payroll,<br />built for growing teams.
             </h2>
             <p className="mt-3 text-sm text-sidebar-foreground/70 leading-relaxed max-w-xs">
-              Sign in as any persona below to preview NovaHR from their seat: employee, manager, HR, or executive.
+              {SHOW_DEMO_ACCOUNTS
+                ? "Sign in as any persona below to preview NovaHR from their seat: employee, manager, HR, or executive."
+                : "Payroll, leave, and people operations for South African teams, all in one place."}
             </p>
           </div>
 
@@ -209,7 +216,11 @@ export default function LoginPage() {
               className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium mt-2"
             >
               {submitting && <Loader2 size={16} className="animate-spin mr-2" />}
-              {submitting ? "Signing in..." : `Sign in as ${demoUsers.find((u) => u.id === selectedId)?.name.split(" ")[0] ?? "Demo"}`}
+              {submitting
+                ? "Signing in..."
+                : SHOW_DEMO_ACCOUNTS
+                  ? `Sign in as ${demoUsers.find((u) => u.id === selectedId)?.name.split(" ")[0] ?? "Demo"}`
+                  : "Sign in"}
             </Button>
           </form>
 
@@ -221,6 +232,7 @@ export default function LoginPage() {
           </p>
 
           {/* Demo personas */}
+          {SHOW_DEMO_ACCOUNTS && (
           <div className="mt-6 rounded-xl border border-border bg-card p-4">
             <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
               Demo accounts
@@ -262,6 +274,7 @@ export default function LoginPage() {
             </div>
             <p className="mt-2 text-center text-[10px] text-muted-foreground/50">Click a row to prefill</p>
           </div>
+          )}
         </div>
       </div>
     </div>

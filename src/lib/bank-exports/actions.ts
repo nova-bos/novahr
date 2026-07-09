@@ -283,6 +283,11 @@ export async function createBankExportRecordAction(
   await requireTenant(tenantId, "hr");
   try {
     const record = await runAsTenant(tenantId, async (tx) => {
+      const run = await tx.payrollRun.findFirst({
+        where: { id: payrollRunId, tenantId },
+        select: { id: true },
+      });
+      if (!run) throw new Error("Payroll run not found.");
       return tx.bankExport.create({
         data: {
           tenantId,

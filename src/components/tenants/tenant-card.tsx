@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useApp } from "@/lib/store/app-provider";
-import { getDepartmentsByTenant, getEmployeesByTenant } from "@/demo";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrencyCompact, formatOrdinal } from "@/lib/format";
 import type { Tenant } from "@/lib/types";
@@ -16,9 +15,9 @@ export function TenantCard({ tenant }: { tenant: Tenant }) {
   const { state, setTenant } = useApp();
   const isActive = state.tenantId === tenant.id;
 
-  const employees = getEmployeesByTenant(tenant.id);
+  const employees = state.employees.filter((e) => e.tenantId === tenant.id);
   const activeEmployees = employees.filter((e) => e.status !== "terminated");
-  const departments = getDepartmentsByTenant(tenant.id);
+  const departments = state.departments.filter((d) => d.tenantId === tenant.id);
   const monthlyGross = activeEmployees.reduce(
     (sum, e) => sum + calculateMonthlyPayroll(e).grossPay,
     0
