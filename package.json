@@ -9,7 +9,10 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "screenshots": "tsx scripts/capture-screenshots.ts"
+    "screenshots": "tsx scripts/capture-screenshots.ts",
+    "screenshots:live": "tsx scripts/capture-live-screenshots.ts",
+    "pdf:text": "tsx scripts/generate-pdfs.ts",
+    "pdf:guides": "tsx scripts/generate-guide-pdfs.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -46,12 +49,14 @@
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
+    "@types/marked": "^5.0.2",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^15.5.19",
+    "marked": "^18.0.6",
     "playwright": "^1.61.1",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
