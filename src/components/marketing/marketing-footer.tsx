@@ -1,6 +1,16 @@
 import Link from "next/link";
 import { Logo } from "@/components/layout/logo";
 
+const LEGAL_LINKS = [
+  { href: "/terms", label: "Terms" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/cookies", label: "Cookies" },
+  { href: "/security", label: "Security" },
+  { href: "/compliance", label: "Compliance" },
+  { href: "/legal", label: "Legal" },
+  { href: "/legal/paia-manual", label: "PAIA Manual" },
+];
+
 export function MarketingFooter() {
   return (
     <footer className="border-t py-8">
@@ -35,6 +45,18 @@ export function MarketingFooter() {
           </Link>
         </nav>
       </div>
+
+      <nav className="mx-auto mt-6 flex max-w-6xl flex-wrap items-center justify-center gap-x-4 gap-y-2 px-4 text-xs text-muted-foreground/80 sm:justify-start">
+        {LEGAL_LINKS.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className="hover:text-foreground transition-colors"
+          >
+            {link.label}
+          </Link>
+        ))}
+      </nav>
     </footer>
   );
 }

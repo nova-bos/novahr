@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, Loader2, Users, ShieldCheck, CalendarRange } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/layout/logo";
@@ -29,6 +30,7 @@ export default function SignupPage() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
+  const [agreed, setAgreed] = React.useState(false);
   const [error, setError] = React.useState("");
   const [checkEmail, setCheckEmail] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
@@ -41,6 +43,9 @@ export default function SignupPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (!agreed) {
+      return;
+    }
     setError("");
     setSubmitting(true);
 
@@ -197,15 +202,38 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <Button type="submit" disabled={submitting} className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium mt-2">
+            <div className="flex items-start gap-2.5 pt-1">
+              <Checkbox
+                id="agreeTerms"
+                checked={agreed}
+                onCheckedChange={(checked) => setAgreed(checked === true)}
+                className="mt-0.5"
+                aria-required="true"
+              />
+              <Label htmlFor="agreeTerms" className="text-xs font-normal leading-relaxed text-muted-foreground cursor-pointer">
+                <span>
+                  I agree to the{" "}
+                  <Link href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:opacity-80 font-medium transition-opacity">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:opacity-80 font-medium transition-opacity">
+                    Privacy Policy
+                  </Link>
+                  , and accept the{" "}
+                  <Link href="/legal/dpa" target="_blank" rel="noopener noreferrer" className="text-primary hover:opacity-80 font-medium transition-opacity">
+                    Data Processing Agreement
+                  </Link>{" "}
+                  on behalf of my company.
+                </span>
+              </Label>
+            </div>
+
+            <Button type="submit" disabled={submitting || !agreed} className="w-full h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-medium mt-2">
               {submitting && <Loader2 size={16} className="animate-spin mr-2" />}
               {submitting ? "Creating your company..." : "Create your company"}
             </Button>
           </form>
-
-          <p className="mt-4 text-center text-xs text-muted-foreground">
-            By signing up, you agree to our Terms of Service and Privacy Policy.
-          </p>
 
           <p className="mt-5 text-center text-sm text-muted-foreground">
             Already have an account?{" "}
