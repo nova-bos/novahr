@@ -25,10 +25,15 @@ export const saIdNumber = z
   }, "SA ID contains an invalid date of birth")
   .refine(luhnCheck, "SA ID number is invalid");
 
-// Accepts 0XXXXXXXXX (10 digits) or +27XXXXXXXXX (12 chars).
+// Accepts 0XXXXXXXXX (10 digits) or +27XXXXXXXXX (12 chars). Spaces and
+// hyphens are ignored: the error message and placeholders show the number as
+// "071 234 5678", so typing it that way must validate.
 export const saPhone = z
   .string()
-  .regex(/^(\+27|0)\d{9}$/, "Enter a valid South African phone number, e.g. 071 234 5678");
+  .refine(
+    (v) => /^(\+27|0)\d{9}$/.test(v.replace(/[\s-]/g, "")),
+    "Enter a valid South African phone number, e.g. 071 234 5678"
+  );
 
 export const bankAccountNumber = z
   .string()

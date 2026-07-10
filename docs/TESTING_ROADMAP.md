@@ -37,11 +37,11 @@ CI (`.github/workflows/ci.yml`) runs lint, `tsc --noEmit`, and the full suite on
 4. [ ] **MATC in payroll runs:** A payroll action test asserting an employee with medical aid and N dependants gets the s6A credit applied to PAYE.
 5. [ ] **Trial gating:** `isTrialExpired`/`daysLeftInTrial` edge cases plus a component test that TrialGate locks when expired.
 6. [ ] **Departments actions:** Duplicate-name rejection, delete-with-reassignment.
-7. [ ] **E2E smoke suite (Playwright):** The five golden journeys below, run against a staging deployment on every release. This is the single highest-value addition remaining.
+7. [x] **E2E smoke suite (Playwright):** DONE (2026-07-10). `e2e/golden-journeys.spec.ts` automates the five journeys below as one serial chain. Run with `npm run test:e2e` against a local dev server. The suite signs up a disposable tenant through the real UI, runs every journey inside it, and global teardown cascade-deletes the tenant and its auth users, so it is safe against the shared Supabase database. Caveats: the email-confirmation signup path is provisioned via the admin API because Supabase's built-in mailer allows only a few emails per hour (revisit once custom SMTP is configured); each run sends one confirmation email to a `mtshwenewesley+e2e-*@gmail.com` address (filter on `+e2e-` to archive). Playwright artifacts are written to /tmp/novahr-e2e, NEVER into the repo: in-repo writes trigger the Next dev watcher and Fast-Refresh-reload the pages mid-test.
 
-## 3. Golden journeys (manual today, Playwright targets)
+## 3. Golden journeys (automated in e2e/golden-journeys.spec.ts)
 
-Run these end-to-end on staging before any release. Each is a sellable-demo path.
+Automated coverage of each checklist item is noted inline; unchecked items remain manual. Run these on staging before any release. Each is a sellable-demo path.
 
 ### Journey A: New customer signup
 - [ ] Sign up at `/signup` with a fresh email; land on empty dashboard with Getting Started card

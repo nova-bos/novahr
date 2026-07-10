@@ -19,6 +19,32 @@ all pure unit tests (no real database, no Supabase, no browser):
 Use `npx vitest` (no `run`) for watch mode while developing, or
 `npx vitest run path/to/file.test.ts` to run a single file.
 
+## E2E golden journeys (Playwright)
+
+```bash
+npm run test:e2e
+```
+
+Runs `e2e/golden-journeys.spec.ts`: the five golden journeys from
+`docs/TESTING_ROADMAP.md` as one serial chain (signup and company setup,
+departments and first employee, manager invite and acceptance, leave lifecycle
+including unpaid leave, payroll run with bank export, security probes).
+
+Operational notes:
+
+- Expects a dev server on localhost:3000 (Playwright starts one if absent).
+- The suite talks to the SAME Supabase project as production. It creates one
+  disposable tenant (`E2E Test Co <runId>`) through the real UI and global
+  teardown cascade-deletes the tenant and its `mtshwenewesley+e2e-*@gmail.com`
+  auth users, including leftovers from crashed runs.
+- Each run sends one Supabase confirmation email to the +e2e- address; add a
+  Gmail filter on `+e2e-` to archive them.
+- Artifacts (traces, screenshots, report) go to `/tmp/novahr-e2e`, deliberately
+  outside the repo: files written into the project tree trigger the Next.js
+  dev watcher, which Fast-Refresh-reloads the pages mid-test.
+- Repeated runs within an hour can trip the in-memory signup/login rate
+  limiters; restarting the dev server resets them.
+
 ## `vitest.config.ts`
 
 ```ts

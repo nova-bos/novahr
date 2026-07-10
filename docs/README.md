@@ -1,5 +1,12 @@
 # NovaHR: Developer Documentation
 
+> **Business, legal, and go-to-market documentation** lives in subfolders: `legal/`,
+> `compliance/`, `payroll-compliance/`, `customer/`, `customer-success/`, `sales/`,
+> `marketing/`, `brand/`, `internal/`. Start with
+> [`legal/README.md`](./legal/README.md) (document map and in-app acceptance plan) and
+> [`BUSINESS_DOCUMENT_REGISTER.md`](./BUSINESS_DOCUMENT_REGISTER.md) (master register
+> with the 2026-07-10 status update).
+
 This is the developer documentation for the NovaHR build: Phases 1 through 4:
 moving the app from an in-memory demo onto a real Supabase Postgres database and Supabase
 Auth (Phases 1-2), adding payslip PDF export (Phase 3), and building the public-facing

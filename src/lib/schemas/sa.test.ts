@@ -43,8 +43,12 @@ describe("saPhone", () => {
     expect(saPhone.safeParse("+27712345678").success).toBe(true);
   });
 
-  it("rejects a number with spaces", () => {
-    expect(saPhone.safeParse("071 234 5678").success).toBe(false);
+  it("accepts the spaced format shown in the UI example", () => {
+    expect(saPhone.safeParse("071 234 5678").success).toBe(true);
+  });
+
+  it("rejects spaced input whose digits are invalid", () => {
+    expect(saPhone.safeParse("171 234 5678").success).toBe(false);
   });
 
   it("rejects a number that is too short", () => {

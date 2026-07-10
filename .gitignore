@@ -50,3 +50,7 @@ docs/BUSINESS_DOCUMENT_REGISTER.md
 # Business documents (not part of codebase)
 *.xlsx
 NOVAHR_FINANCIAL_ANALYSIS.md
+
+# Playwright E2E
+/e2e/.artifacts
+/e2e/.report
