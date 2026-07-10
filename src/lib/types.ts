@@ -208,6 +208,7 @@ export interface Tenant {
   primaryContact: string;
   plan: TenantPlan;
   trialEndsAt?: string;
+  payrollDisclaimerAcceptedAt?: string | null;
 }
 
 // Payroll compliance types

@@ -165,6 +165,7 @@ model Tenant {
   primaryContact     String
   plan               TenantPlan   @default(trial)
   trialEndsAt        DateTime?
+  payrollDisclaimerAcceptedAt DateTime?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 

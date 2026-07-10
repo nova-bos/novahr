@@ -77,6 +77,7 @@ describe("mapTenant", () => {
       primaryContact: "hr@novatech.example",
       plan: "hr_payroll",
       trialEndsAt: null,
+      payrollDisclaimerAcceptedAt: null,
       createdAt: new Date("2026-01-01T00:00:00Z"),
       updatedAt: new Date("2026-01-01T00:00:00Z"),
     };
@@ -100,6 +101,7 @@ describe("mapTenant", () => {
       primaryContact: "hr@novatech.example",
       plan: "hr_payroll",
       trialEndsAt: undefined,
+      payrollDisclaimerAcceptedAt: null,
     });
   });
 });

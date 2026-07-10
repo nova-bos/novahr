@@ -20,17 +20,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useApp } from "@/lib/store/app-provider";
-import { useEmployees, usePayrollRuns } from "@/lib/store/hooks";
+import { useCurrentTenant, useEmployees, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatDateLong, formatMonthYear } from "@/lib/format";
 import { PayrollStatusBadge } from "./payroll-status-badge";
+import { acceptPayrollDisclaimer } from "@/lib/payroll/disclaimer-actions";
 
 export function CurrentRunCard() {
   const { startPayrollRun, completePayrollRun } = useApp();
+  const tenant = useCurrentTenant();
   const runs = usePayrollRuns();
   const employees = useEmployees();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [disclaimerOpen, setDisclaimerOpen] = React.useState(false);
+  const [disclaimerChecked, setDisclaimerChecked] = React.useState(false);
+  const [isAccepting, startAcceptTransition] = React.useTransition();
   const [isStarting, startStartTransition] = React.useTransition();
   const [isFinalizing, startFinalizeTransition] = React.useTransition();
 
@@ -80,6 +86,26 @@ export function CurrentRunCard() {
     });
   }
 
+  function handleDisclaimerContinue() {
+    startAcceptTransition(async () => {
+      try {
+        await acceptPayrollDisclaimer();
+        setDisclaimerOpen(false);
+        setDisclaimerChecked(false);
+        handleStart();
+      } catch {
+        toast.error("Could not record your acknowledgement", {
+          description: "Please try again.",
+        });
+      }
+    });
+  }
+
+  function handleDisclaimerCancel() {
+    setDisclaimerOpen(false);
+    setDisclaimerChecked(false);
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -118,18 +144,125 @@ export function CurrentRunCard() {
       </CardContent>
       <CardFooter className="flex justify-end gap-2 border-t-0 bg-transparent pt-0">
         {run.status === "scheduled" ? (
-          <Button onClick={handleStart} disabled={isStarting}>
-            {isStarting ? <Loader2 className="animate-spin" /> : <Play />}
-            {isStarting ? "Starting..." : "Start payroll run"}
-          </Button>
+          tenant.payrollDisclaimerAcceptedAt != null ? (
+            <Button onClick={handleStart} disabled={isStarting}>
+              {isStarting ? <Loader2 className="animate-spin" /> : <Play />}
+              {isStarting ? "Starting..." : "Start payroll run"}
+            </Button>
+          ) : (
+            <Button onClick={() => setDisclaimerOpen(true)} disabled={isStarting}>
+              <Play />
+              Start payroll run
+            </Button>
+          )
         ) : (
           <Button onClick={() => setConfirmOpen(true)}>
             <CheckCircle2 />
-            Finalize & publish payslips
+            Finalize &amp; publish payslips
           </Button>
         )}
       </CardFooter>
 
+      {/* Payroll compliance disclaimer gate (first run only) */}
+      <Dialog open={disclaimerOpen} onOpenChange={(open) => { if (!open) handleDisclaimerCancel(); }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Payroll compliance acknowledgement</DialogTitle>
+            <DialogDescription>
+              Please read and accept the following before processing your first payroll run.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[60vh] overflow-y-auto rounded-lg border p-4 text-sm space-y-3">
+            <p>
+              NovaHR is <strong>software</strong> that helps you administer HR and payroll: it stores
+              records, computes statutory amounts using published SARS and BCEA parameters, generates
+              payslips, and produces reports. Nothing in the Service, its outputs, documentation, or
+              support communications constitutes tax, legal, accounting, or financial advice.
+            </p>
+
+            <div>
+              <p className="font-semibold mb-2">Division of responsibility</p>
+              <ul className="space-y-1.5">
+                <li>
+                  <span className="font-medium">Tax tables and statutory rates:</span> NovaHR
+                  maintains published SARS parameters. You must verify the configuration fits your
+                  circumstances.
+                </li>
+                <li>
+                  <span className="font-medium">Calculations:</span> NovaHR computes PAYE, UIF, SDL,
+                  and leave from the data you enter. You must enter correct data: salaries,
+                  allowances, dates of birth, dependants, pension rates, and working patterns.
+                </li>
+                <li>
+                  <span className="font-medium">Payslips:</span> NovaHR generates BCEA-compliant
+                  payslips from your data. You must review before publishing and deliver any required
+                  printed copies.
+                </li>
+                <li>
+                  <span className="font-medium">SARS submissions:</span> NovaHR provides the figures
+                  and reports. You must file and pay EMP201 by the 7th, submit EMP501
+                  reconciliations, and issue IRP5s.
+                </li>
+                <li>
+                  <span className="font-medium">UIF declarations:</span> NovaHR provides contribution
+                  amounts. You must register with UIF and submit UI-19/uFiling declarations.
+                </li>
+                <li>
+                  <span className="font-medium">Employment law:</span> NovaHR provides BCEA-minimum
+                  defaults. You must configure policies per your contracts, sector rules, and
+                  bargaining councils.
+                </li>
+                <li>
+                  <span className="font-medium">Record retention:</span> NovaHR retains data per the
+                  Data Retention Policy while you subscribe. You must export and retain statutory
+                  records (SARS 5 years, BCEA 3 years), especially before cancellation.
+                </li>
+                <li>
+                  <span className="font-medium">Data protection:</span> NovaHR fulfils operator
+                  duties under the DPA. You, as employer, fulfil Responsible Party duties under
+                  POPIA toward your employees.
+                </li>
+              </ul>
+            </div>
+
+            <div className="rounded-lg border-l-4 border-primary bg-muted p-4">
+              <p className="italic">
+                "I understand that NovaHR is a software tool, that my company remains responsible for
+                the accuracy of its payroll data and all statutory submissions, and that NovaHR does
+                not provide tax, legal, or accounting advice."
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 pt-1">
+            <Checkbox
+              id="disclaimer-accept"
+              checked={disclaimerChecked}
+              onCheckedChange={(checked) => setDisclaimerChecked(checked === true)}
+            />
+            <label htmlFor="disclaimer-accept" className="text-sm leading-snug cursor-pointer">
+              I have read and accept the payroll compliance terms above, on behalf of{" "}
+              <span className="font-medium">{tenant.name}</span>.
+            </label>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleDisclaimerCancel} disabled={isAccepting}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDisclaimerContinue}
+              disabled={!disclaimerChecked || isAccepting}
+            >
+              {isAccepting ? <Loader2 className="animate-spin" /> : null}
+              {isAccepting ? "Recording..." : "Continue to payroll run"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Finalize confirmation dialog */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>

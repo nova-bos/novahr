@@ -70,6 +70,7 @@ export function mapTenant(row: PrismaTenant): Tenant {
     primaryContact: row.primaryContact,
     plan: (row.plan ?? "trial") as Tenant["plan"],
     trialEndsAt: row.trialEndsAt?.toISOString(),
+    payrollDisclaimerAcceptedAt: row.payrollDisclaimerAcceptedAt?.toISOString() ?? null,
   };
 }
 

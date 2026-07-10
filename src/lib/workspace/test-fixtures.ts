@@ -80,6 +80,7 @@ export function makeTenantRow(overrides: Partial<PrismaTenant> = {}): PrismaTena
     primaryContact: "Lerato Dlamini",
     plan: "hr_payroll",
     trialEndsAt: null,
+    payrollDisclaimerAcceptedAt: null,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     updatedAt: new Date("2026-01-01T00:00:00Z"),
     ...overrides,
