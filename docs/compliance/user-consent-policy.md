@@ -1,7 +1,7 @@
 # NovaHR User Consent Policy
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 **Audience:** Internal (product and engineering) and customer-facing summary
 
 This policy defines when NovaHR relies on consent, how consent is captured, recorded, and withdrawn, and where other lawful bases apply instead.

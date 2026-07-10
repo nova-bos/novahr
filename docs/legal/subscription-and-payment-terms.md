@@ -1,7 +1,7 @@
 # NovaHR Subscription and Payment Terms
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 These terms detail the commercial mechanics of NovaHR subscriptions. They are incorporated into the Terms of Service and read together with the Refund and Cancellation Policy and the current Pricing Schedule.
 

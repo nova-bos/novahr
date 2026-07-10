@@ -12,7 +12,7 @@ Logo, one product screenshot, presenter name. *No agenda slide.*
 The 25th for a typical SME: spreadsheet formulas nobody trusts, bureau invoice per payslip, WhatsApp leave requests, EMP201 due on the 7th. One relatable illustration, three bullets max.
 
 ## Slide 3: The Cost of That Reality
-Three numbers: R[●]/m bureau fees at 15 staff; [●] admin hours/month; 10% automatic SARS penalty for one late EMP201. Source each.
+Three numbers: [insert plan price]/m bureau fees at 15 staff; [X hours from discovery call] admin hours/month; 10% automatic SARS penalty for one late EMP201. Source each.
 
 ## Slide 4: NovaHR in One Picture
 Single dashboard screenshot `[shot: dashboard]` with five callouts: Employees, Payroll, Leave, Attendance, Reports.

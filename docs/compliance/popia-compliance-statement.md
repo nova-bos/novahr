@@ -1,7 +1,7 @@
 # NovaHR POPIA Compliance Statement
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 **Review cycle:** Annual, and on any material change to processing
 
 > Public-facing statement for the website Compliance page and customer due diligence packs. The internal evidence behind each claim lives in the POPIA compliance programme (ROPA, policies, training records).
@@ -44,7 +44,7 @@ Requests may be submitted using the forms referenced in our PAIA Manual to hello
 
 ## 7. Governance
 
-- **Information Officer:** [Name ●], registered with the Information Regulator on [date ●].
+- **Information Officer:** Tony Mthombeni, hello@novahr.co.za, registered with the Information Regulator on [date ●].
 - **Policy suite:** Privacy Policy, Data Processing Agreement, Data Retention Policy, Data Deletion Policy, Data Breach Response Policy, Access Control Policy, Encryption Policy, Password Policy, Backup Policy, Audit Log Policy.
 - **Training:** All personnel with data access complete POPIA awareness training on joining and annually.
 

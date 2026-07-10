@@ -7,7 +7,7 @@
 ## Price
 
 **"R999 a month is a lot for a small business."**
-> "Compared to what, though? Your bureau is R[●] per payslip, so R[●] a month, and you still track leave on paper. Add the [●] hours of your own time and NovaHR is usually the cheaper option before we count the HR side. Let us put your real numbers in the ROI sheet, and if you are genuinely cheaper today, I will tell you to stay."
+> "Compared to what, though? Your bureau is [their current cost] per payslip, so [their current cost] a month, and you still track leave on paper. Add the [X hours from discovery call] hours of your own time and NovaHR is usually the cheaper option before we count the HR side. Let us put your real numbers in the ROI sheet, and if you are genuinely cheaper today, I will tell you to stay."
 
 **"Competitor X is cheaper per month."**
 > "Per employee, often, and check what happens at your headcount and what is excluded: leave, attendance, and self-service are add-ons or absent. Flat R999 for up to 30 employees, everything included, is the honest comparison. Here is the matrix, dated and sourced."

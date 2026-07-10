@@ -32,7 +32,7 @@ Score each customer Green / Amber / Red on four dimensions; the worst dimension 
 
 ## 2. Data Sources
 
-- Application data: last run date, publication status, login timestamps, active user counts (admin queries; automate a monthly health report [●]);
+- Application data: last run date, publication status, login timestamps, active user counts (admin queries; automate a monthly health report, contact hello@novahr.co.za to configure);
 - Support inbox: open tickets, escalations;
 - Accounting: invoice status.
 

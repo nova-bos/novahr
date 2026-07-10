@@ -1,7 +1,7 @@
 # NovaHR Access Control Policy
 
 **Version:** 1.0
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 **Owner:** Engineering / Information Officer
 **Review cycle:** Annual, with quarterly access reviews
 

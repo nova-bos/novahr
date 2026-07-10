@@ -31,7 +31,7 @@
 
 > Hi [First name],
 >
-> One number: businesses switching to NovaHR from a bureau save around R[●] a month at [N] employees, and get leave requests off WhatsApp and paper in the same move.
+> One number: businesses switching to NovaHR from a bureau save around [annual saving from ROI worksheet] a month at [their employee count] employees, and get leave requests off WhatsApp and paper in the same move.
 >
 > The 2026 tax year tables are already in the engine, verified against SARS. Setup is about two weeks with a parallel run so you switch with zero risk.
 >
@@ -62,7 +62,7 @@
 
 > Great speaking today, [First name]. As promised:
 >
-> - Your estimated saving: R[●]/month vs [current setup] (worksheet attached);
+> - Your estimated saving: [annual saving from ROI worksheet]/month vs [current setup] (worksheet attached);
 > - The [feature] you asked about: [answer/screenshot];
 > - Proposal attached, valid 30 days.
 >

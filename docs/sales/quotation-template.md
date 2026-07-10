@@ -9,7 +9,7 @@
 | | |
 |---|---|
 | Quotation number | Q-[YYYY]-[###] |
-| Date | [●] |
+| Date | [insert date] |
 | Valid until | [+30 days] |
 | From | [NOVA BUSINESS OS (PTY) LTD], Reg no [●], [address], hello@novahr.co.za |
 | VAT number | [● / "Not a registered VAT vendor"] |
@@ -20,13 +20,13 @@
 
 | # | Description | Qty | Unit price | Amount |
 |---|---|---|---|---|
-| 1 | NovaHR [Starter/Growth/Scale] subscription, monthly, up to [10/30/unlimited] employees. Includes payroll (PAYE, UIF, SDL), payslips, leave, attendance, reports, support, and SARS annual updates | 1 | R[●]/month | R[●] |
+| 1 | NovaHR [Starter/Growth/Scale] subscription, monthly, up to [10/30/unlimited] employees. Includes payroll (PAYE, UIF, SDL), payslips, leave, attendance, reports, support, and SARS annual updates | 1 | [insert plan price]/month | [insert plan price] |
 | 2 | Onboarding and setup | 1 | Included | R0.00 |
-| | | | **Subtotal** | R[●] |
-| | | | **VAT (15%)** [if registered] | R[●] |
-| | | | **Total per month** | **R[●]** |
+| | | | **Subtotal** | [insert plan price] |
+| | | | **VAT (15%)** [if registered] | [insert plan price] |
+| | | | **Total per month** | **[insert plan price]** |
 
-[Annual option: 12 months at R[●] = R[●] per year.]
+[Annual option: 12 months at [insert plan price] = [insert plan price] per year.]
 
 ## Terms
 

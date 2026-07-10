@@ -1,7 +1,7 @@
 # NovaHR Terms of Service
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 **Last Updated:** 2026-07-10
 
 > **DRAFT NOTICE:** This document is a working draft prepared for attorney review. It must be reviewed by a qualified South African attorney before publication or reliance.
@@ -148,7 +148,7 @@ Support is provided in accordance with the Support Policy. Availability commitme
 
 ## 15. General
 
-15.1 **Governing law:** These Terms are governed by the laws of the Republic of South Africa. The parties consent to the jurisdiction of the High Court of South Africa, [Western Cape Division / Gauteng Division: ●].
+15.1 **Governing law:** These Terms are governed by the laws of the Republic of South Africa. The parties consent to the jurisdiction of the High Court of South Africa, Gauteng Division, Pretoria.
 
 15.2 **Dispute resolution:** The parties will first attempt to resolve disputes by good-faith negotiation between senior representatives within 30 days, failing which either party may refer the dispute to arbitration under the rules of the Arbitration Foundation of Southern Africa (AFSA), or to court for urgent relief.
 

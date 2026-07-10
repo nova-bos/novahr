@@ -4,7 +4,7 @@
 
 **Private body:** [NOVA BUSINESS OS (PTY) LTD], registration number [●], trading as NovaHR
 **Version:** 1.0 (Draft, pending legal review)
-**Date compiled:** [●]
+**Date compiled:** 10 July 2026
 **Review:** Annually or on material change
 
 > **DRAFT NOTICE:** For attorney review. Once finalised: publish on the website, keep a copy at the registered office, and align with the Information Regulator's current template and fee regulations (the Regulator took over PAIA functions from the SAHRC in 2021).
@@ -16,7 +16,7 @@
 | | |
 |---|---|
 | Head of private body | [Director name ●] |
-| Information Officer | [Name ●] |
+| Information Officer | Tony Mthombeni |
 | Postal address | [●] |
 | Physical address | [●] |
 | Telephone | [●] |
@@ -88,4 +88,4 @@ This manual is available on our website, at our registered office during busines
 
 Signed: ______________________
 [Director name ●], Head of Private Body
-Date: [●]
+Date: 10 July 2026

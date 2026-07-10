@@ -49,7 +49,7 @@ On request or when evaluation ends, the Recipient will return or destroy all Con
 
 ## 7. General
 
-Governed by South African law; jurisdiction of the High Court, [●] Division; entire agreement; written amendments only; electronic signature valid under ECTA.
+Governed by South African law; jurisdiction of the High Court, Gauteng Division, Pretoria; entire agreement; written amendments only; electronic signature valid under ECTA.
 
 ---
 

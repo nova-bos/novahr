@@ -1,7 +1,7 @@
 # NovaHR Pricing Sheet
 
 **Version:** 1.0
-**Valid from:** [●] (pricing is versioned; customers keep contracted pricing for their committed term)
+**Valid from:** 10 July 2026 (pricing is versioned; customers keep contracted pricing for their committed term)
 **All prices in ZAR, excluding VAT.**
 
 ---

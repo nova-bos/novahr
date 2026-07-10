@@ -1,7 +1,7 @@
 # NovaHR Data Breach Response Policy
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 **Owner:** Information Officer
 **Review cycle:** Annual, plus after every incident
 

@@ -1,7 +1,7 @@
 # NovaHR Data Processing Agreement (DPA)
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 > **DRAFT NOTICE:** For attorney review before first use. Required by POPIA sections 20 and 21 before NovaHR may process personal information on behalf of any customer. Every customer must accept this DPA (in-app acceptance for self-serve, countersigned for enterprise).
 

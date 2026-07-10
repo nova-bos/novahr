@@ -8,7 +8,7 @@
 
 **Proposal for [Company Name]**
 HR and Payroll on NovaHR
-Prepared for: [Name, title] | Prepared by: [Name], NovaHR | Date: [●] | Valid until: [+30 days]
+Prepared for: [Name, title] | Prepared by: [Name], NovaHR | Date: [insert date] | Valid until: [insert date, typically 30 days from issue]
 
 ## 1. What We Heard
 
@@ -53,13 +53,13 @@ Two weeks from acceptance to first live payroll:
 
 | Item | Amount (excl. VAT) |
 |---|---|
-| NovaHR [Plan] plan ([limit] employees) | R[●] per month |
+| NovaHR [Plan] plan ([limit] employees) | [insert plan price] per month |
 | Onboarding and setup | Included |
 | Support and SARS updates | Included |
-| **Total monthly** | **R[●]** |
-| [Annual option: R[●]/year] | |
+| **Total monthly** | **[insert plan price]** |
+| [Annual option: [insert plan price]/year] | |
 
-No per-payslip fees. No setup fees. 14-day money-back guarantee. Based on your numbers, this replaces approximately R[●]/month of current cost (bureau fees + admin time), a saving of R[●]/year (see attached ROI worksheet).
+No per-payslip fees. No setup fees. 14-day money-back guarantee. Based on your numbers, this replaces approximately [their current cost]/month of current cost (bureau fees + admin time), a saving of [annual saving from ROI worksheet]/year (see attached ROI worksheet).
 
 ## 6. Why NovaHR
 

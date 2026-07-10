@@ -58,7 +58,7 @@ The Parties agree that breach may cause irreparable harm for which damages are i
 
 ## 9. General
 
-9.1 Governed by the laws of the Republic of South Africa; the Parties consent to the jurisdiction of the High Court of South Africa, [●] Division.
+9.1 Governed by the laws of the Republic of South Africa; the Parties consent to the jurisdiction of the High Court of South Africa, Gauteng Division, Pretoria.
 
 9.2 This Agreement is the entire agreement regarding confidentiality for the Purpose; amendments must be written and signed; it may be signed electronically under ECTA; neither Party may assign without consent.
 

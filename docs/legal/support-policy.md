@@ -1,7 +1,7 @@
 # NovaHR Support Policy
 
 **Version:** 1.0
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 This Support Policy describes how NovaHR provides customer support. It is incorporated into the Terms of Service and Master Subscription Agreement. Response time commitments and service credits are set out in the Service Level Agreement.
 

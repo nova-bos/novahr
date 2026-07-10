@@ -1,7 +1,7 @@
 # NovaHR Acceptable Use Policy (AUP)
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 This Acceptable Use Policy governs use of the NovaHR platform and is incorporated into the Terms of Service and Master Subscription Agreement. Capitalised terms have the meanings given there.
 

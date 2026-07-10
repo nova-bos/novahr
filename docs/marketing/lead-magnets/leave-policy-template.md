@@ -6,7 +6,7 @@
 
 # [COMPANY NAME] Leave Policy
 
-**Effective date:** [●] | **Applies to:** all employees | **Owner:** [HR / owner]
+**Effective date:** [insert effective date] | **Applies to:** All employees | **Owner:** [HR Manager / Business Owner]
 
 ## 1. General
 
@@ -52,7 +52,7 @@ Granted at the company's discretion once paid entitlements are exhausted. Deduct
 
 ## 7. Study Leave [optional]
 
-[●] days per year for approved courses/exams, with proof of registration. [Conditions.]
+[enter number] days per year for approved courses or exams, with proof of registration. The Company reserves the right to require repayment if the employee leaves within 12 months of completing the course.
 
 ## 8. Religious and Other Leave [optional]
 

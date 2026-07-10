@@ -3,7 +3,7 @@
 **[NOVA BUSINESS OS (PTY) LTD]**
 **Registration number:** [●]
 **Resolution of the Board of Directors / Sole Director**
-**Date:** [●]
+**Date:** 10 July 2026
 
 ---
 

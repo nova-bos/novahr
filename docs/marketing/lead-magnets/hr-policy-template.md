@@ -6,7 +6,7 @@
 
 # [COMPANY NAME] Employee Handbook
 
-**Effective:** [●] | **Version:** 1.0 | **Owner:** [●]
+**Effective:** [insert effective date] | **Version:** 1.0 | **Owner:** [Your Company Name]
 
 *This handbook summarises company policies. It does not replace employment contracts. Where law grants more than this handbook, the law applies.*
 
@@ -16,7 +16,7 @@ Ordinary hours: [08:00-17:00, Monday-Friday, 1 hour unpaid lunch] (max 45/week p
 
 ## 2. Remuneration and Payslips
 
-Pay day: [25th]. Payslips are issued via [self-service/email] each pay day showing gross, deductions, and net (BCEA s 33). Queries to [●] within 5 days of pay day. Salary reviews: [annually in ●, not guaranteed].
+Pay day: [25th]. Payslips are issued via [self-service/email] each pay day showing gross, deductions, and net (BCEA s 33). Queries to [insert pay day, e.g. 25th] of each month within 5 days of pay day. Salary reviews: [annually in insert month, not guaranteed].
 
 ## 3. Overtime
 
@@ -28,7 +28,7 @@ Per the standalone Leave Policy: annual [15 days], sick [30/36-month cycle], fam
 
 ## 5. Code of Conduct
 
-We expect honesty, respect, punctuality, and care with company property and money. Zero tolerance: theft, fraud, violence, harassment, intoxication at work, and discrimination (Employment Equity Act). Dress: [●]. Conflicts of interest must be declared.
+We expect honesty, respect, punctuality, and care with company property and money. Zero tolerance: theft, fraud, violence, harassment, intoxication at work, and discrimination (Employment Equity Act). Dress: [Your Company Name dress code]. Conflicts of interest must be declared.
 
 ## 6. Disciplinary Procedure (summary)
 
@@ -48,7 +48,7 @@ We collect and process employee information for employment, payroll, and legal p
 
 ## 10. Health and Safety
 
-Comply with the Occupational Health and Safety Act and site rules: report hazards and incidents to [●] immediately. First aid: [location/officer]. Emergency assembly: [●].
+Comply with the Occupational Health and Safety Act and site rules: report hazards and incidents to [Your Company Name health and safety officer] immediately. First aid: [location/officer]. Emergency assembly: [Your Company Name assembly point].
 
 ## 11. Termination
 

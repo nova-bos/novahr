@@ -1,7 +1,7 @@
 # NovaHR Service Level Agreement (SLA)
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 This Service Level Agreement forms part of the Terms of Service / Master Subscription Agreement. It applies to paid subscriptions only; trial accounts carry no SLA.
 

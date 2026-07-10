@@ -1,7 +1,7 @@
 # NovaHR Compliance Disclaimer and Customer Responsibilities
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 > Incorporated by reference into the Terms of Service and Master Subscription Agreement. Shown to customers during payroll onboarding. This wording should be reviewed by an attorney together with the liability clauses of the Terms.
 

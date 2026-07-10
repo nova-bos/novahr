@@ -54,7 +54,7 @@ Never demo settings screens, edge features, or anything they did not mention.
 > "Here is what I suggest: start the free trial today, I will send the setup guide, and we book 30 minutes next week to load your first employees together. If the parallel run against your current payroll does not tie out, you have lost nothing. Want me to set that up?"
 
 **Price question:**
-> "For [N] employees you are on the [plan] at R[●] a month, flat, no per-payslip fees, no setup fee. You told me the bureau is costing about R[●] plus your time, so you would be saving roughly R[●] a month. And there is a 14-day money-back guarantee."
+> "For [their employee count] employees you are on the [plan] at [insert plan price] a month, flat, no per-payslip fees, no setup fee. You told me the bureau is costing about [their current cost] plus your time, so you would be saving roughly [insert plan price] a month. And there is a 14-day money-back guarantee."
 
 **Stall ("send me info"):**
 > "Happy to. So I send the right thing: is it the pricing you want to double-check, how the payroll works, or do you need to bring [other decision maker] in? ... Great, I will send the one-pager plus a proposal with your numbers, and pencil a 15-minute call for [day] to answer questions. If it is a no by then, just tell me, that is a fine answer."

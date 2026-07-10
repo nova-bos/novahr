@@ -1,7 +1,7 @@
 # NovaHR Master Subscription Agreement (MSA)
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 > **DRAFT NOTICE:** For attorney review before first use. This is the negotiated, signature version of the Customer Agreement used for mid-market and enterprise clients. Self-serve SME customers accept the Terms of Service in-app instead; the two documents are kept aligned.
 
@@ -103,7 +103,7 @@ NovaHR will maintain commercially reasonable insurance appropriate to its size, 
 
 ## 12. General
 
-12.1 **Governing law and jurisdiction:** South Africa; the Parties consent to the jurisdiction of the High Court, [●] Division.
+12.1 **Governing law and jurisdiction:** South Africa; the Parties consent to the jurisdiction of the High Court, Gauteng Division, Pretoria.
 
 12.2 **Dispute resolution:** Senior-representative negotiation (30 days), then mediation, then AFSA arbitration in [Cape Town/Johannesburg: ●]. Urgent relief may be sought in court.
 
@@ -137,8 +137,8 @@ NovaHR will maintain commercially reasonable insurance appropriate to its size, 
 | Plan | Starter (R499 pm, up to 10 employees) / Growth (R999 pm, up to 30) / Scale (R2,499 pm, unlimited) |
 | Billing frequency | Monthly / Annual |
 | Initial Term | 12 months |
-| Start date | [●] |
-| Fees | R[●] per month, excl. VAT |
+| Start date | [insert date] |
+| Fees | [insert plan price] per month, excl. VAT |
 | Billing contact | [name, email] |
-| Notice email addresses | [●] |
-| Special terms | [●] |
+| Notice email addresses | [insert notice email address] |
+| Special terms | [insert special terms, if any] |

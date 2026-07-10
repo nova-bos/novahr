@@ -19,7 +19,7 @@
 
 - **LinkedIn (primary):** owners, accountants, HR managers live here. Posts + monthly article + comments on accounting/HR conversations;
 - **Facebook business groups:** SA small business groups allow helpful content; never bare links;
-- **WhatsApp Channel [●]:** deadline reminders (EMP201 on the 5th of each month performs reliably);
+- **WhatsApp Channel [to be set]:** deadline reminders (EMP201 on the 5th of each month performs reliably);
 - **Blog (novahr.co.za/blog):** the long-form home; every article answers one search query ("how to calculate UIF 2026", "BCEA leave days South Africa"). SEO is the compounding channel;
 - **Email list:** monthly newsletter: one deadline reminder, one tip, one product note. Built from lead magnets.
 

@@ -1,7 +1,7 @@
 # NovaHR Backup Policy
 
 **Version:** 1.0
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 **Owner:** Engineering
 **Review cycle:** Annual, with quarterly restore tests
 

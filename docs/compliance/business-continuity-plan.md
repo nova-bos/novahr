@@ -1,7 +1,7 @@
 # NovaHR Business Continuity Plan (BCP)
 
 **Version:** 1.0
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 **Owner:** Founder
 **Review cycle:** Annual
 

@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Owner:** Founder
-**Note:** codifies what already exists in the product and brochure; extract exact colour tokens from the app's Tailwind theme before first external design handoff [●].
+**Note:** codifies what already exists in the product and brochure; Colour tokens extracted from src/app/globals.css (July 2026).
 
 ---
 
@@ -32,11 +32,11 @@
 
 | Role | Token | Hex | Usage |
 |---|---|---|---|
-| Primary | [●] | [●] | Buttons, links, brand accents |
-| Primary dark | [●] | [●] | Dark surfaces (brochure dark theme) |
-| Neutral text | [●] | [●] | Body copy |
-| Surface | [●] | [●] | Backgrounds, cards |
-| Success / Warning / Error | [●] | [●] | Status only, never decoration |
+| Primary | #4F46E5 | oklch(0.55 0.22 235) | Buttons, links, brand accents |
+| Primary dark | #4338CA | oklch(0.47 0.22 265) | Dark surfaces (brochure dark theme) |
+| Neutral text | #0F172A | oklch(0.23 0.013 258) | Body copy |
+| Surface | #F8FAFC | oklch(0.978 0.004 247) | Backgrounds, cards |
+| Success / Warning / Error | #22C55E / #F59E0B / #EF4444 | oklch(0.62 0.12 152) / oklch(0.75 0.15 75) / oklch(0.58 0.21 27) | Status only, never decoration |
 
 Rule: one primary accent per composition; status colours are functional, not decorative.
 
@@ -67,12 +67,12 @@ Rule: one primary accent per composition; status colours are functional, not dec
 
 | Asset | Status |
 |---|---|
-| Presentation template (sales deck master) | To build from `docs/sales/sales-deck-outline.md` [●] |
-| Email signature | [Name] / NovaHR / novahr.co.za / hello@novahr.co.za + logo, no banners [●] |
-| Letterhead (quotes, legal letters) | Logo top-left, company details footer with reg number [●] |
-| Invoice and quotation templates | Per `docs/sales/quotation-template.md` + accounting system config [●] |
-| Business cards | Name, role, phone, email, site; icon on reverse [●] |
-| Social templates (Canva) | Post, carousel, and infographic masters in brand colours [●] |
+| Presentation template (sales deck master) | To build from `docs/sales/sales-deck-outline.md` (to be created) |
+| Email signature | [Name] / NovaHR / novahr.co.za / hello@novahr.co.za + logo, no banners (to be created) |
+| Letterhead (quotes, legal letters) | Logo top-left, company details footer with reg number (to be created) |
+| Invoice and quotation templates | Per `docs/sales/quotation-template.md` + accounting system config (to be created) |
+| Business cards | Name, role, phone, email, site; icon on reverse (to be created) |
+| Social templates (Canva) | Post, carousel, and infographic masters in brand colours (to be created) |
 
 ## 9. File Naming and Storage
 

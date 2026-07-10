@@ -31,7 +31,6 @@ No. HR core + payroll + leave + attendance. Do not promise the rest; note reques
 
 **Q: Discounts?**
 List price is the price. Founder may approve: annual prepay incentive [●%], NPO [●%], partner/accountant programme [●]. Never discount to close a wobbling deal; fix the objection instead.
-
 **Q: Contract lock-in?**
 Monthly plans: none, cancel at month-end. Annual: 12 months, with the 14-day guarantee up front. MSA customers: negotiated initial term.
 
@@ -43,7 +42,7 @@ Answer from the POPIA Compliance Statement, DPA, and security policies in `docs/
 
 ## Competitive
 
-**Q: "SimplePay is R[●] per employee and well known."**
+**Q: "SimplePay is [their per-employee price] per employee and well known."**
 Concede brand, win on flat pricing at their headcount + HR-in-one + support. Matrix: `competitor-and-feature-comparison.md`. Verify competitor pricing before quoting it.
 
 **Q: "Our bureau does everything."**
@@ -61,4 +60,4 @@ Different product: outsourced labour vs software + control. ROI sheet with their
 
 ## Escalate to Founder
 
-Deals over R[●]/month, MSA redlines, security questionnaires with unfamiliar items, partner/reseller requests, media/analyst contact, anything smelling of government procurement (B-BBEE affidavit needed first: `docs/business/` [●]).
+Deals over [insert plan price]/month, MSA redlines, security questionnaires with unfamiliar items, partner/reseller requests, media/analyst contact, anything smelling of government procurement (B-BBEE affidavit needed first: `docs/business/` [●]).

@@ -1,7 +1,7 @@
 # NovaHR Privacy Policy
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 **Last Updated:** 2026-07-10
 
 > **DRAFT NOTICE:** For attorney review before publication. Must be linked from the website footer, sign-up page, and login page.
@@ -15,7 +15,7 @@
 NovaHR provides a cloud-based HR and payroll platform for South African businesses.
 
 - **Responsible Party:** [NOVA BUSINESS OS (PTY) LTD], [registered address ●]
-- **Information Officer:** [Name ●], hello@novahr.co.za
+- **Information Officer:** Tony Mthombeni, hello@novahr.co.za
 - **Website:** [novahr.co.za ●]
 
 ## 2. Two Roles: Read This First

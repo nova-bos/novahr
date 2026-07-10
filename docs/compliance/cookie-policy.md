@@ -1,7 +1,7 @@
 # NovaHR Cookie Policy
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 This Cookie Policy explains how NovaHR uses cookies and similar technologies on our website and application. It supplements our Privacy Policy.
 
@@ -23,8 +23,6 @@ Cookies are small text files placed on your device by a website. They allow the 
 The Service cannot function without these. They are not used for tracking or advertising.
 
 ### 2.2 Analytics cookies (consent required)
-
-[● If analytics such as Vercel Analytics or Plausible are enabled, list them here. Vercel Web Analytics is cookieless; if only cookieless analytics are used, state:]
 
 We currently use cookieless, aggregated analytics that do not store cookies on your device and do not identify you. If we introduce cookie-based analytics, we will update this policy and request consent via a banner first.
 

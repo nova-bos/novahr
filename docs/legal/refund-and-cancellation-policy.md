@@ -1,7 +1,7 @@
 # NovaHR Refund and Cancellation Policy
 
 **Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** [●]
+**Effective Date:** 10 July 2026
 
 This policy governs cancellation of NovaHR subscriptions and refunds. It is incorporated into the Terms of Service. Where the Consumer Protection Act 68 of 2008 ("CPA") applies to a customer, nothing in this policy limits rights that cannot be waived under the CPA.
 
