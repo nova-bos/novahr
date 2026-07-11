@@ -228,9 +228,9 @@ export function CurrentRunCard() {
 
             <div className="rounded-lg border-l-4 border-primary bg-muted p-4">
               <p className="italic">
-                "I understand that NovaHR is a software tool, that my company remains responsible for
+                &ldquo;I understand that NovaHR is a software tool, that my company remains responsible for
                 the accuracy of its payroll data and all statutory submissions, and that NovaHR does
-                not provide tax, legal, or accounting advice."
+                not provide tax, legal, or accounting advice.&rdquo;
               </p>
             </div>
           </div>

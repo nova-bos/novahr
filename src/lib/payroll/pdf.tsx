@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/alt-text -- react-pdf's Image renders into a PDF, not the DOM; alt does not exist on it */
 import { Document, Page, StyleSheet, Text, View, Image } from "@react-pdf/renderer";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/format";
 import type { Employee, Payslip } from "@/lib/types";

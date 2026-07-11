@@ -77,7 +77,7 @@ const documents: { title: string; href: string; description: string }[] = [
   },
   {
     title: "Compliance",
-    href: "/compliance",
+    href: "/legal/compliance",
     description: "Our POPIA and statutory compliance posture at a glance.",
   },
 ];

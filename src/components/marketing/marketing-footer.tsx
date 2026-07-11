@@ -6,7 +6,7 @@ const LEGAL_LINKS = [
   { href: "/privacy", label: "Privacy" },
   { href: "/cookies", label: "Cookies" },
   { href: "/security", label: "Security" },
-  { href: "/compliance", label: "Compliance" },
+  { href: "/legal/compliance", label: "Compliance" },
   { href: "/legal", label: "Legal" },
   { href: "/legal/paia-manual", label: "PAIA Manual" },
 ];

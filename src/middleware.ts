@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * (marketing page, auth pages, terms/privacy, invite acceptance) is public.
  */
 const PROTECTED_PREFIXES = [
+  "/account",
   "/dashboard",
   "/employees",
   "/payroll",

@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useCurrentTenant } from "@/lib/store/hooks";
-import { LEAVE_MINIMUMS } from "@/lib/config/leave";
 import {
   getLeavePolicyAction,
   updateLeavePolicyAction,

@@ -68,9 +68,15 @@ async function signIn(page: import("playwright").Page): Promise<void> {
   log("Login successful via: email-password");
 }
 
+declare global {
+  interface Window {
+    _highlight?: (selector: string, label: string) => boolean;
+  }
+}
+
 async function injectHighlightHelper(page: import("playwright").Page): Promise<void> {
   await page.evaluate(() => {
-    (window as any)._highlight = (selector: string, label: string) => {
+    window._highlight = (selector: string, label: string) => {
       const el = document.querySelector(selector);
       if (!el) return false;
       const rect = el.getBoundingClientRect();
@@ -97,8 +103,8 @@ async function tryHighlight(
     try {
       const found = await page.evaluate(
         ({ sel, lbl }) => {
-          return typeof (window as any)._highlight === "function"
-            ? (window as any)._highlight(sel, lbl)
+          return typeof window._highlight === "function"
+            ? window._highlight(sel, lbl)
             : false;
         },
         { sel: selector, lbl: label }
@@ -461,7 +467,6 @@ async function run() {
     await injectHighlightHelper(page);
     // Annotate up to 4 required fields with numbers 1-4
     const count = await page.evaluate(() => {
-      const highlight = (window as any)._highlight;
       const fields = Array.from(
         document.querySelectorAll("input[required], select[required], textarea[required]")
       ).slice(0, 4);

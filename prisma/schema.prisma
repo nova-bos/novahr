@@ -492,6 +492,9 @@ model ComplianceRecord {
   @@index([tenantId])
 }
 
+/// CAUTION: a raw-SQL partial unique index (BankExport_active_nif_per_run_key,
+/// one active nif export per payroll run) exists in 20260709120000_baseline_v1
+/// but cannot be expressed here. Do not let `migrate dev` drop it.
 model BankExport {
   id           String           @id @default(cuid())
   tenantId     String

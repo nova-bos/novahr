@@ -303,7 +303,7 @@ test("journey C: leave lifecycle with weekend exclusion and unpaid leave", async
   // for the CV-3 wiring).
   const today = new Date();
   const inMonth = (d: Date) => d.getUTCMonth() === today.getUTCMonth();
-  let unpaidStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 2));
+  const unpaidStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 2));
   while (workingDaysBetween(isoDate(unpaidStart), isoDate(unpaidStart)) === 0 && inMonth(unpaidStart)) {
     unpaidStart.setUTCDate(unpaidStart.getUTCDate() + 1);
   }
