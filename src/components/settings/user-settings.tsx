@@ -237,7 +237,7 @@ export function UserSettings() {
             <DialogHeader>
               <DialogTitle>Invite a user</DialogTitle>
               <DialogDescription>
-                They&apos;ll receive an email link to set their password. Links expire after 7
+                They&apos;ll receive a secure link to set their password. Links expire after 7
                 days.
               </DialogDescription>
             </DialogHeader>

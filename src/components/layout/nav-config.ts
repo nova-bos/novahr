@@ -4,7 +4,6 @@ import {
   Wallet,
   CalendarRange,
   BarChart3,
-  Building2,
   Settings,
   UserRound,
   ShieldCheck,
@@ -41,7 +40,6 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "Leave", href: "/leave", icon: CalendarRange },
         { title: "Deductions", href: "/deductions", icon: BanknoteArrowDown },
         { title: "Reports", href: "/reports", icon: BarChart3 },
-        { title: "Tenants", href: "/tenants", icon: Building2 },
         { title: "Billing", href: "/billing", icon: CreditCard },
         { title: "Settings", href: "/settings", icon: Settings },
       ];
@@ -50,13 +48,17 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { title: "My Team", href: "/employees", icon: Users },
         { title: "My Payslips", href: "/payroll", icon: Wallet },
-        { title: "My Profile", href: `/employees/${user.employeeId}`, icon: UserRound },
+        ...(user.employeeId
+          ? [{ title: "My Profile", href: `/employees/${user.employeeId}`, icon: UserRound }]
+          : []),
         { title: "Leave", href: "/leave", icon: CalendarRange },
       ];
     case "employee":
       return [
         { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        { title: "My Profile", href: `/employees/${user.employeeId}`, icon: UserRound },
+        ...(user.employeeId
+          ? [{ title: "My Profile", href: `/employees/${user.employeeId}`, icon: UserRound }]
+          : []),
         { title: "My Payslips", href: "/payroll", icon: Wallet },
         { title: "Leave", href: "/leave", icon: CalendarRange },
       ];
