@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Settings } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { getNavItems, type NavItem } from "./nav-config";
 import { TenantSwitcher } from "./tenant-switcher";
@@ -31,6 +33,15 @@ export function Topbar() {
         <NotificationsMenu />
         {canSwitchTenant && <TenantSwitcher />}
         <CommandMenu />
+        {user?.role === "hr" && (
+          <Link
+            href="/settings"
+            aria-label="Settings"
+            className="flex md:hidden items-center justify-center size-8 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+          >
+            <Settings className="size-4" />
+          </Link>
+        )}
       </div>
     </header>
   );

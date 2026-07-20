@@ -34,20 +34,24 @@ export function GettingStartedCard() {
   const departments = useDepartments();
   const payrollRuns = usePayrollRuns();
 
-  const [dismissed, setDismissed] = React.useState(() => {
-    if (typeof window === "undefined") return false;
-    if (_dismissedSet.has(tenantId)) return true;
+  // Default to hidden (true) so SSR and first client render agree.
+  // The effect corrects this after hydration using localStorage.
+  const [dismissed, setDismissed] = React.useState(true);
+
+  React.useEffect(() => {
+    if (_dismissedSet.has(tenantId)) return;
     const stored = localStorage.getItem(`novahr:gs-dismissed:${tenantId}`) === "1";
-    if (stored) _dismissedSet.add(tenantId);
-    return stored;
-  });
+    if (stored) {
+      _dismissedSet.add(tenantId);
+      return;
+    }
+    setDismissed(false);
+  }, [tenantId]);
 
   function dismiss() {
     _dismissedSet.add(tenantId);
     setDismissed(true);
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`novahr:gs-dismissed:${tenantId}`, "1");
-    }
+    localStorage.setItem(`novahr:gs-dismissed:${tenantId}`, "1");
   }
 
   // Start from cache so returning users never see a null/unchecked flash.
@@ -78,6 +82,7 @@ export function GettingStartedCard() {
   const hasCompletedPayroll = payrollRuns.some((r) => r.status === "completed");
 
   if (dismissed) return null;
+  if (payrollConfigured === null) return null;
 
   const steps = [
     {
