@@ -174,6 +174,8 @@ export function EmployeeDirectory() {
                         </span>
                         <span className="truncate text-xs text-muted-foreground">
                           {employee.jobTitle}
+                          <span className="mx-1 opacity-40">·</span>
+                          <span className="font-mono">{employee.employeeNumber}</span>
                         </span>
                       </div>
                     </div>
