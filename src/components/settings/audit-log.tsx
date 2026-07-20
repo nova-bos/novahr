@@ -25,15 +25,15 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  hire: "bg-green-100 text-green-700",
-  onboarding: "bg-blue-100 text-blue-700",
-  leave_request: "bg-yellow-100 text-yellow-700",
-  leave_approved: "bg-green-100 text-green-700",
-  leave_rejected: "bg-red-100 text-red-700",
-  payroll_run: "bg-purple-100 text-purple-700",
-  promotion: "bg-indigo-100 text-indigo-700",
-  document: "bg-gray-100 text-gray-700",
-  termination: "bg-red-100 text-red-700",
+  hire: "bg-success/10 text-success",
+  onboarding: "bg-primary/10 text-primary",
+  leave_request: "bg-warning/10 text-warning",
+  leave_approved: "bg-success/10 text-success",
+  leave_rejected: "bg-destructive/10 text-destructive",
+  payroll_run: "bg-info/10 text-info",
+  promotion: "bg-primary/10 text-primary",
+  document: "bg-muted text-muted-foreground",
+  termination: "bg-destructive/10 text-destructive",
 };
 
 export function AuditLog() {
@@ -102,7 +102,7 @@ export function AuditLog() {
                       <td className="py-2.5 px-4 whitespace-nowrap">
                         <Badge
                           variant="secondary"
-                          className={TYPE_COLORS[item.type] ?? "bg-gray-100 text-gray-700"}
+                          className={TYPE_COLORS[item.type] ?? "bg-muted text-muted-foreground"}
                         >
                           {TYPE_LABELS[item.type] ?? item.type}
                         </Badge>

@@ -4,14 +4,37 @@ import * as React from "react";
 import Image from "next/image";
 import { Camera, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
 import { useApp } from "@/lib/store/app-provider";
+import { uploadEmployeePhotoAction } from "@/lib/employees/actions";
 import { cn } from "@/lib/utils";
 import type { Employee } from "@/lib/types";
 
-const BUCKET = "employee-photos";
-const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPT = "image/jpeg,image/png,image/webp";
+const MAX_DIMENSION = 1024;
+
+function compressImage(file: File): Promise<File> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { naturalWidth: w, naturalHeight: h } = img;
+      const scale = Math.min(1, MAX_DIMENSION / Math.max(w, h));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => resolve(blob ? new File([blob], file.name, { type: "image/jpeg" }) : file),
+        "image/jpeg",
+        0.85
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
+}
 
 interface AvatarUploadProps {
   employee: Employee;
@@ -36,24 +59,17 @@ export function AvatarUpload({ employee, size = 64 }: AvatarUploadProps) {
 
     setUploading(true);
     try {
-      const supabase = createClient();
-      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const path = `${employee.tenantId}/${employee.id}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from(BUCKET)
-        .upload(path, file, { upsert: true, contentType: file.type });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(path);
-      // Bust any CDN cache with a timestamp query param
-      const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-
-      await updateEmployeePhoto(employee.id, photoUrl);
+      const compressed = await compressImage(file);
+      const fd = new FormData();
+      fd.append("file", compressed);
+      const result = await uploadEmployeePhotoAction(employee.id, fd);
+      if (result.error) {
+        toast.error("Upload failed", { description: result.error });
+        return;
+      }
+      await updateEmployeePhoto(employee.id, result.photoUrl!);
       toast.success("Photo updated");
-    } catch (err) {
-      console.error("[AvatarUpload]", err);
+    } catch {
       toast.error("Upload failed", { description: "Please try again." });
     } finally {
       setUploading(false);

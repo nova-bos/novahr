@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { FormAlert } from "@/components/ui/form-alert";
+import { PasswordChecklist, isPasswordValid } from "@/components/auth/password-checklist";
+import { authMessageTone } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
 import {
   acceptInviteAction,
@@ -59,8 +62,13 @@ export default function AcceptInvitePage() {
     event.preventDefault();
     setError("");
 
+    if (!isPasswordValid(password)) {
+      setError("Please choose a password that meets all the requirements shown.");
+      return;
+    }
+
     if (password !== confirmPassword) {
-      setError("Passwords don't match.");
+      setError("Passwords do not match.");
       return;
     }
 
@@ -160,7 +168,7 @@ export default function AcceptInvitePage() {
               {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
-          <p className="text-xs text-muted-foreground">At least 8 characters.</p>
+          <PasswordChecklist password={password} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="confirmPassword">Confirm password</Label>
@@ -173,11 +181,19 @@ export default function AcceptInvitePage() {
             minLength={8}
             required
           />
+          {confirmPassword.length > 0 && password !== confirmPassword && (
+            <p className="text-xs text-amber-700 dark:text-amber-400">Passwords do not match yet.</p>
+          )}
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <FormAlert tone={authMessageTone(error)}>{error}</FormAlert>}
 
-        <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={submitting || !isPasswordValid(password) || password !== confirmPassword}
+        >
           {submitting ? "Creating your account..." : "Accept and join"}
         </Button>
       </form>

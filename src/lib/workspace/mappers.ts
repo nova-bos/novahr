@@ -50,7 +50,7 @@ export function parseTimestamp(value: string): Date {
   return new Date(/[Zz]|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value}Z`);
 }
 
-export function mapTenant(row: PrismaTenant): Tenant {
+export function mapTenant(row: PrismaTenant, logoUrl?: string | null): Tenant {
   return {
     id: row.id,
     name: row.name,
@@ -71,6 +71,7 @@ export function mapTenant(row: PrismaTenant): Tenant {
     plan: (row.plan ?? "trial") as Tenant["plan"],
     trialEndsAt: row.trialEndsAt?.toISOString(),
     payrollDisclaimerAcceptedAt: row.payrollDisclaimerAcceptedAt?.toISOString() ?? null,
+    logoUrl: logoUrl ?? undefined,
   };
 }
 
@@ -114,6 +115,7 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
       housingAllowance: row.salaryHousingAllowance != null ? decToNumber(row.salaryHousingAllowance) : undefined,
       pensionContributionPct: row.salaryPensionContributionPct ?? undefined,
       medicalAid: row.salaryMedicalAid != null ? decToNumber(row.salaryMedicalAid) : undefined,
+      retirementAnnuity: row.salaryRetirementAnnuity != null ? decToNumber(row.salaryRetirementAnnuity) : undefined,
     },
     bankDetails: {
       bank: row.bankName,

@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/lib/store/app-provider";
 import { useDepartments, useEmployees } from "@/lib/store/hooks";
@@ -188,7 +188,7 @@ export function DepartmentSettings() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="dept-description">Description (optional)</Label>
+              <Label htmlFor="dept-description">Description <OptionalTag /></Label>
               <Textarea
                 id="dept-description"
                 rows={2}

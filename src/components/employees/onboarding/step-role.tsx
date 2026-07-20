@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -53,15 +53,16 @@ export function StepRole({ form, setForm, errors }: StepProps) {
               <FieldError message={errors.jobTitle} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="department">Department</Label>
+              <Label htmlFor="department">Department <OptionalTag /></Label>
               <Select
-                value={form.department}
-                onValueChange={(value) => setForm((f) => ({ ...f, department: value }))}
+                value={form.department || "none"}
+                onValueChange={(value) => setForm((f) => ({ ...f, department: value === "none" ? "" : value }))}
               >
                 <SelectTrigger id="department" className="w-full">
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">No department</SelectItem>
                   {departments.map((dept) => (
                     <SelectItem key={dept.id} value={dept.name}>
                       {dept.name}
@@ -122,7 +123,7 @@ export function StepRole({ form, setForm, errors }: StepProps) {
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="managerId">Reports to (optional)</Label>
+              <Label htmlFor="managerId">Reports to <OptionalTag /></Label>
               <Select
                 value={form.managerId || "none"}
                 onValueChange={(value) =>
@@ -143,7 +144,7 @@ export function StepRole({ form, setForm, errors }: StepProps) {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="buddy">Onboarding buddy (optional)</Label>
+              <Label htmlFor="buddy">Onboarding buddy <OptionalTag /></Label>
               <Input
                 id="buddy"
                 value={form.buddy}

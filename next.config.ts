@@ -5,6 +5,11 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
   serverExternalPackages: ["@react-pdf/renderer"],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "6mb",
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -17,7 +22,9 @@ const nextConfig: NextConfig = {
   async headers() {
     // unsafe-eval is required only by the dev-mode bundler; production keeps
     // wasm-unsafe-eval for the client-side PDF renderer (yoga wasm) and drops
-    // arbitrary eval entirely.
+    // arbitrary eval entirely. worker-src allows blob: because @react-pdf/renderer
+    // spawns its layout worker from a blob URL; without it the browser falls back
+    // to script-src and blocks the worker.
     const scriptSrc =
       process.env.NODE_ENV === "development"
         ? "'self' 'unsafe-inline' 'unsafe-eval'"
@@ -33,7 +40,7 @@ const nextConfig: NextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           {
             key: "Content-Security-Policy",
-            value: `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'self'; object-src 'none'; base-uri 'self';`,
+            value: `default-src 'self'; script-src ${scriptSrc}; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'self'; object-src 'none'; base-uri 'self';`,
           },
         ],
       },

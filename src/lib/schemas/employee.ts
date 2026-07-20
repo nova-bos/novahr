@@ -26,7 +26,7 @@ export const personalStepSchema = z.object({
 
 export const roleStepSchema = z.object({
   jobTitle: z.string().min(1, "Job title is required"),
-  department: z.string().min(1, "Department is required"),
+  department: z.string(),
   employmentType: z.enum(["full_time", "part_time", "contract"]),
   startDate: z.string().min(1, "Start date is required"),
   location: z.string().min(1, "Work location is required"),
@@ -52,6 +52,10 @@ export const compensationStepSchema = z.object({
     "Enter a valid amount"
   ),
   medicalAid: z.string().refine(
+    (v) => v === "" || (!isNaN(Number(v)) && Number(v) >= 0),
+    "Enter a valid amount"
+  ),
+  retirementAnnuity: z.string().refine(
     (v) => v === "" || (!isNaN(Number(v)) && Number(v) >= 0),
     "Enter a valid amount"
   ),

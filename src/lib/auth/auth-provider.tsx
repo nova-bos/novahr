@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { createClient } from "@/lib/supabase/client";
+import { friendlyAuthError } from "@/lib/errors";
 import { getCurrentUserProfile, throttleLogin } from "./actions";
 import type { AppUser } from "./types";
 
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (throttled) return throttled;
 
     const { error } = await createClient().auth.signInWithPassword({ email, password });
-    if (error) return error.message;
+    if (error) return friendlyAuthError(error);
 
     const profile = await getCurrentUserProfile();
     setUser(profile);

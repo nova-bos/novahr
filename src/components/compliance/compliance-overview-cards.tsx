@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/auth-provider";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { formatPeriod } from "@/lib/compliance/utils";
 import { markComplianceSubmittedAction } from "@/lib/compliance/actions";
@@ -17,6 +18,8 @@ interface OverviewCardProps {
 }
 
 function OverviewCard({ title, record, period, onSubmitted }: OverviewCardProps) {
+  const { user } = useAuth();
+  const isHR = user?.role === "hr";
   const [loading, setLoading] = useState(false);
 
   async function handleMarkSubmitted() {
@@ -54,7 +57,7 @@ function OverviewCard({ title, record, period, onSubmitted }: OverviewCardProps)
             {record.reference && (
               <p className="text-xs text-muted-foreground">Ref: {record.reference}</p>
             )}
-            {record.status === "pending" && (
+            {isHR && record.status === "pending" && (
               <Button
                 variant="outline"
                 size="sm"

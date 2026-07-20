@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -290,7 +290,7 @@ export function NewLeaveRequestDialog() {
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="reason">Reason</Label>
+              <Label htmlFor="reason">Reason <OptionalTag /></Label>
               <Textarea
                 id="reason"
                 rows={3}

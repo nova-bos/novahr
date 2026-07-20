@@ -66,26 +66,30 @@ export async function completePayrollRunRecord(
         }),
         tx.payrollProfile.findMany({
           where: { tenantId: run.tenantId },
-          select: { employeeId: true, medicalAidDependants: true },
+          select: { employeeId: true, medicalAidDependants: true, medicalAidScheme: true },
         }),
       ]);
 
-      // Medical aid dependants live on the payroll profile; feed them into the
-      // calculator so the s6A medical aid tax credit is applied to PAYE.
-      const dependantsByEmployee = new Map(
-        payrollProfiles.map((p) => [p.employeeId, p.medicalAidDependants])
-      );
-      const employees = employeeRows.map(mapEmployee).map((e) =>
-        e.salary.medicalAid != null
-          ? {
-              ...e,
-              salary: {
-                ...e.salary,
-                medicalAidDependants: dependantsByEmployee.get(e.id) ?? 0,
-              },
-            }
-          : e
-      );
+      // Medical scheme membership and dependants live on the payroll profile.
+      // Feed them into the calculator so the s6A medical aid tax credit applies,
+      // whether the contribution runs through payroll or is paid privately (a
+      // scheme name on the profile is treated as proof of membership).
+      const profileByEmployee = new Map(payrollProfiles.map((p) => [p.employeeId, p]));
+      const employees = employeeRows.map(mapEmployee).map((e) => {
+        const profile = profileByEmployee.get(e.id);
+        const isMember =
+          (profile?.medicalAidScheme != null && profile.medicalAidScheme.trim() !== "") ||
+          e.salary.medicalAid != null;
+        if (!isMember) return e;
+        return {
+          ...e,
+          salary: {
+            ...e.salary,
+            medicalAidDependants: profile?.medicalAidDependants ?? 0,
+            isMedicalAidMember: true,
+          },
+        };
+      });
 
       const payDateStr = toDateOnly(run.payDate);
       const eligible = employees.filter((e) => e.status !== "terminated" && e.startDate <= payDateStr);

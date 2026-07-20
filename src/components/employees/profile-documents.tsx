@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -162,7 +162,7 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="doc-expiry">Expiry date (optional)</Label>
+                <Label htmlFor="doc-expiry">Expiry date <OptionalTag /></Label>
                 <Input
                   id="doc-expiry"
                   type="date"

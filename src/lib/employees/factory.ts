@@ -40,7 +40,9 @@ export interface NewEmployeeInput {
   annualGross: number;
   travelAllowance?: number;
   housingAllowance?: number;
+  pensionContributionPct?: number;
   medicalAid?: number;
+  retirementAnnuity?: number;
 }
 
 function defaultLeaveBalances(): LeaveBalance[] {
@@ -87,8 +89,9 @@ export function createEmployee(input: NewEmployeeInput, existingCount: number, c
       payFrequency: "monthly",
       travelAllowance: input.travelAllowance,
       housingAllowance: input.housingAllowance,
-      pensionContributionPct: 0.075,
+      pensionContributionPct: input.pensionContributionPct,
       medicalAid: input.medicalAid,
+      retirementAnnuity: input.retirementAnnuity,
     },
     bankDetails: {
       bank: "Pending setup",

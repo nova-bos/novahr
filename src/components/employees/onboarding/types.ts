@@ -5,6 +5,7 @@ import {
   validateRoleStep,
   validateCompensationStep,
 } from "@/lib/schemas/employee";
+import { SA_BANKS } from "@/lib/services/netcash/helpers";
 
 export interface NewEmployeeForm {
   firstName: string;
@@ -32,6 +33,9 @@ export interface NewEmployeeForm {
   housingAllowance: string;
   pensionContributionPct: string;
   medicalAid: string;
+  retirementAnnuity: string;
+
+  isMedicalAidMember: boolean;
 
   bank: string;
   accountNumber: string;
@@ -40,6 +44,7 @@ export interface NewEmployeeForm {
 }
 
 export function emptyForm(defaults: { location: string; bank: string }): NewEmployeeForm {
+  const defaultBankEntry = SA_BANKS.find((b) => b.name === defaults.bank);
   return {
     firstName: "",
     lastName: "",
@@ -64,12 +69,14 @@ export function emptyForm(defaults: { location: string; bank: string }): NewEmpl
     annualGross: "",
     travelAllowance: "",
     housingAllowance: "",
-    pensionContributionPct: "7.5",
+    pensionContributionPct: "",
     medicalAid: "",
+    retirementAnnuity: "",
+    isMedicalAidMember: false,
 
     bank: defaults.bank,
     accountNumber: "",
-    branchCode: "",
+    branchCode: defaultBankEntry?.universalBranchCode ?? "",
     accountType: "Cheque",
   };
 }
@@ -107,9 +114,7 @@ export function isStepValid(step: StepId, form: NewEmployeeForm): boolean {
           form.idNumber.trim()
       );
     case "role":
-      return Boolean(
-        form.jobTitle.trim() && form.department.trim() && form.location.trim() && form.startDate
-      );
+      return Boolean(form.jobTitle.trim() && form.location.trim() && form.startDate);
     case "compensation":
       return Boolean(
         form.annualGross.trim() &&

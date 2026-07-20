@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth/auth-provider";
 import { Download } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,8 @@ function LineRow({ label, amount, muted, credit }: { label: string; amount: numb
 }
 
 export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201PanelProps) {
+  const { user } = useAuth();
+  const isHR = user?.role === "hr";
   const [generating, setGenerating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -165,9 +168,11 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={handleGenerate} disabled={generating}>
-                {generating ? "Refreshing..." : "Refresh from latest run"}
-              </Button>
+              {isHR && (
+                <Button variant="outline" size="sm" onClick={handleGenerate} disabled={generating}>
+                  {generating ? "Refreshing..." : "Refresh from latest run"}
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={handleExport}>
                 <Download className="size-4" />
                 Export CSV
@@ -176,7 +181,7 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
                 <Download className="size-4" />
                 UIF declaration
               </Button>
-              {record.status === "pending" && (
+              {isHR && record.status === "pending" && (
                 <Button size="sm" onClick={handleMarkSubmitted} disabled={submitting}>
                   {submitting ? "Saving..." : "Mark submitted"}
                 </Button>
@@ -186,11 +191,15 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
         ) : (
           <div className="flex flex-col items-start gap-3">
             <p className="text-sm text-muted-foreground">
-              No EMP201 for {formatPeriod(period)} yet. Generate it from this period&apos;s completed payroll run.
+              {isHR
+                ? `No EMP201 for ${formatPeriod(period)} yet. Generate it from this period's completed payroll run.`
+                : `No EMP201 available for ${formatPeriod(period)} yet.`}
             </p>
-            <Button size="sm" onClick={handleGenerate} disabled={generating}>
-              {generating ? "Generating..." : "Generate EMP201"}
-            </Button>
+            {isHR && (
+              <Button size="sm" onClick={handleGenerate} disabled={generating}>
+                {generating ? "Generating..." : "Generate EMP201"}
+              </Button>
+            )}
           </div>
         )}
       </CardContent>

@@ -63,7 +63,7 @@ describe("createEmployee", () => {
     expect(employee.status).toBe("active");
   });
 
-  it("builds the salary block with a default pension contribution", () => {
+  it("builds the salary block from the input, with no pension by default", () => {
     const employee = createEmployee(
       makeInput({ annualGross: 450_000, travelAllowance: 2_000, housingAllowance: 1_500, medicalAid: 1_800 }),
       0
@@ -74,8 +74,9 @@ describe("createEmployee", () => {
       payFrequency: "monthly",
       travelAllowance: 2_000,
       housingAllowance: 1_500,
-      pensionContributionPct: 0.075,
+      pensionContributionPct: undefined,
       medicalAid: 1_800,
+      retirementAnnuity: undefined,
     });
   });
 

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Loader2, Send } from "lucide-react";
+import { Download, FileText, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,25 +13,33 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatCurrency, formatDateLong, formatMonthYear } from "@/lib/format";
-import { usePayrollRuns, useTenantId } from "@/lib/store/hooks";
+import { usePayrollRuns, useTenantId, usePayslipsByRun, useEmployees, useCurrentTenant } from "@/lib/store/hooks";
 import { usePlan } from "@/lib/plan/use-plan";
-import { submitNetcashBatchAction } from "@/lib/bank-exports/actions";
+import {
+  submitNetcashBatchAction,
+  generateBankExportCsvAction,
+  generateNetcashNifAction,
+} from "@/lib/bank-exports/actions";
+import { getPayslipSettingsAction } from "@/lib/settings/actions";
 
-// The primary action on the payroll dashboard: pay the most recent
-// completed run through Netcash.
 export function SubmitNetcashCta() {
   const tenantId = useTenantId();
+  const tenant = useCurrentTenant();
   const runs = usePayrollRuns();
+  const employees = useEmployees();
   const { can } = usePlan();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [isSubmitting, startSubmitTransition] = React.useTransition();
+  const [isExporting, startExportTransition] = React.useTransition();
+  const [isNifExporting, startNifExportTransition] = React.useTransition();
+  const [bulkDownloading, setBulkDownloading] = React.useState(false);
   const [submittedRunId, setSubmittedRunId] = React.useState<string | null>(null);
-
-  if (!can("bankExports")) return null;
 
   const run = runs
     .filter((r) => r.status === "completed")
     .sort((a, b) => (a.payDate < b.payDate ? 1 : -1))[0];
+
+  const payslips = usePayslipsByRun(run?.id ?? "");
 
   if (!run || submittedRunId === run.id) return null;
 
@@ -51,33 +59,162 @@ export function SubmitNetcashCta() {
     });
   }
 
+  function handleBankExport() {
+    if (!run) return;
+    startExportTransition(async () => {
+      const result = await generateBankExportCsvAction(tenantId, run.id);
+      if (result.error) {
+        toast.error("Export failed", { description: result.error });
+        return;
+      }
+      const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Bank CSV downloaded", { description: result.filename });
+    });
+  }
+
+  function handleNifExport() {
+    if (!run) return;
+    startNifExportTransition(async () => {
+      const result = await generateNetcashNifAction(tenantId, run.id);
+      if (result.error) {
+        toast.error("NIF export failed", { description: result.error });
+        return;
+      }
+      const blob = new Blob([result.nif], { type: "text/plain;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = result.filename;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Netcash NIF downloaded", { description: result.filename });
+    });
+  }
+
+  async function handleBulkDownload() {
+    if (!run || payslips.length === 0) return;
+    setBulkDownloading(true);
+    try {
+      const [{ pdf }, { PayslipDocument }, JSZip] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/lib/payroll/pdf"),
+        import("jszip").then((m) => m.default),
+      ]);
+      const zip = new JSZip();
+      const settings = await getPayslipSettingsAction(tenantId);
+      for (const ps of payslips) {
+        const emp = employees.find((e) => e.id === ps.employeeId);
+        if (!emp) continue;
+        const blob = await pdf(
+          <PayslipDocument
+            employee={emp}
+            payslip={ps}
+            companyName={settings.companyName ?? tenant.name}
+            logoUrl={settings.logoUrl ?? undefined}
+            accentColor={settings.accentColor}
+            template={settings.template}
+            footerNote={settings.footerNote ?? undefined}
+            showBanking={settings.showBanking}
+            showYtd={settings.showYtd}
+            companyAddress={`${tenant.address}, ${tenant.city}`}
+          />
+        ).toBlob();
+        const ab = await blob.arrayBuffer();
+        zip.file(`payslip-${emp.lastName.toLowerCase()}-${ps.period}.pdf`, ab);
+      }
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `NovaHR_Payslips_${run.period}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Payslips downloaded");
+    } catch {
+      toast.error("Download failed", { description: "Please try again." });
+    } finally {
+      setBulkDownloading(false);
+    }
+  }
+
   return (
-    <section
-      aria-label="Submit payroll to Netcash"
-      className="rounded-xl border border-primary/20 bg-primary/[0.04] p-4 sm:p-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
-    >
-      <div className="min-w-0">
-        <h2 className="text-base font-semibold tracking-tight">
-          {formatMonthYear(run.period)} payroll is ready to pay
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {run.employeeCount} employees · {formatCurrency(run.totalNet)} net · pay date{" "}
-          {formatDateLong(run.payDate)}
-        </p>
+    <section aria-label="Pay this payroll run" className="rounded-xl border border-primary/20 bg-primary/[0.04] p-4 sm:p-5 flex flex-col gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-base font-semibold tracking-tight">
+            {formatMonthYear(run.period)} payroll is ready to pay
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {run.employeeCount} employees · {formatCurrency(run.totalNet)} net · pay date{" "}
+            {formatDateLong(run.payDate)}
+          </p>
+        </div>
+        {can("bankExports") ? (
+          <Button
+            size="lg"
+            onClick={() => setConfirmOpen(true)}
+            disabled={isSubmitting}
+            className="shrink-0"
+          >
+            {isSubmitting ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Send className="size-4" />
+            )}
+            {isSubmitting ? "Submitting…" : "Submit payroll to Netcash"}
+          </Button>
+        ) : null}
       </div>
-      <Button
-        size="lg"
-        onClick={() => setConfirmOpen(true)}
-        disabled={isSubmitting}
-        className="shrink-0"
-      >
-        {isSubmitting ? (
-          <Loader2 data-icon="inline-start" className="size-4 animate-spin" />
-        ) : (
-          <Send data-icon="inline-start" className="size-4" />
-        )}
-        {isSubmitting ? "Submitting..." : "Submit payroll to Netcash"}
-      </Button>
+
+      <div className="flex flex-wrap items-center gap-1 border-t border-primary/10 pt-3">
+        <span className="text-xs text-muted-foreground mr-1">Other options:</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 text-xs text-muted-foreground hover:text-foreground"
+          onClick={handleBulkDownload}
+          disabled={bulkDownloading || payslips.length === 0}
+        >
+          <Download className="size-3" />
+          {bulkDownloading ? "Generating…" : "Download payslips"}
+        </Button>
+        {can("bankExports") ? (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+              onClick={handleBankExport}
+              disabled={isExporting}
+            >
+              <FileText className="size-3" />
+              {isExporting ? "Exporting…" : "Export bank CSV"}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-muted-foreground hover:text-foreground"
+              onClick={handleNifExport}
+              disabled={isNifExporting}
+            >
+              <Download className="size-3" />
+              {isNifExporting ? "Generating…" : "Download Netcash NIF"}
+            </Button>
+          </>
+        ) : null}
+      </div>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
@@ -106,11 +243,11 @@ export function SubmitNetcashCta() {
             </Button>
             <Button onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
-                <Loader2 data-icon="inline-start" className="size-4 animate-spin" />
+                <Loader2 className="size-4 animate-spin" />
               ) : (
-                <Send data-icon="inline-start" className="size-4" />
+                <Send className="size-4" />
               )}
-              {isSubmitting ? "Submitting..." : "Confirm & submit"}
+              {isSubmitting ? "Submitting…" : "Confirm and submit"}
             </Button>
           </DialogFooter>
         </DialogContent>

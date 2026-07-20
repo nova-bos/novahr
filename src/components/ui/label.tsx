@@ -21,4 +21,10 @@ function Label({
   )
 }
 
-export { Label }
+function OptionalTag() {
+  return (
+    <span className="text-xs font-normal text-muted-foreground/70 leading-none">optional</span>
+  );
+}
+
+export { Label, OptionalTag }

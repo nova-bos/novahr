@@ -156,9 +156,18 @@ export function calculateMonthlyPayroll(
     ? adjustedBasic.times(salary.pensionContributionPct).toDecimalPlaces(2)
     : new Decimal(0);
 
-  const pensionS11fDeduction = salary.pensionContributionPct
+  // Personal retirement annuity processed through payroll. Combined with any
+  // pension/provident contribution under the single s11F cap (27.5% of the
+  // greater of remuneration or taxable income, up to the annual rand cap).
+  const retirementAnnuityMonthly = salary.retirementAnnuity
+    ? new Decimal(salary.retirementAnnuity).toDecimalPlaces(2)
+    : new Decimal(0);
+
+  const totalRetirementMonthly = pensionMonthly.plus(retirementAnnuityMonthly);
+
+  const pensionS11fDeduction = totalRetirementMonthly.greaterThan(0)
     ? Decimal.min(
-        pensionMonthly.times(divisor),
+        totalRetirementMonthly.times(divisor),
         Decimal.min(annualRemuneration.times(PENSION_MAX_PCT), PENSION_MAX_RAND)
       )
     : new Decimal(0);
@@ -167,8 +176,11 @@ export function calculateMonthlyPayroll(
 
   // PAYE after bracket tax, rebates, and Medical Aid Tax Credit
   const annualPAYE = annualPaye(annualTaxable, employee.dateOfBirth);
+  // The medical tax credit applies to any medical scheme member, whether the
+  // contribution runs through payroll or is paid privately.
+  const isMedicalMember = salary.isMedicalAidMember === true || salary.medicalAid != null;
   const matcAnnual =
-    salary.medicalAid != null && salary.medicalAidDependants != null
+    isMedicalMember && salary.medicalAidDependants != null
       ? monthlyMatc(salary.medicalAidDependants).times(12)
       : new Decimal(0);
   const paye = Decimal.max(annualPAYE.minus(matcAnnual), 0).dividedBy(divisor).toDecimalPlaces(2);
@@ -203,6 +215,10 @@ export function calculateMonthlyPayroll(
 
   if (salary.pensionContributionPct) {
     deductions.push({ label: "Pension Fund", amount: pensionMonthly.toNumber() });
+  }
+
+  if (salary.retirementAnnuity) {
+    deductions.push({ label: "Retirement Annuity", amount: retirementAnnuityMonthly.toNumber() });
   }
 
   if (salary.medicalAid) {

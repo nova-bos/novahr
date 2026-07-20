@@ -17,7 +17,7 @@ import type { Employee, LeaveRequest, LeaveType } from "@/lib/types";
 // Colour per leave type. No shared helper exists yet, so the calendar owns this
 // palette. Values are plain hex so they can be applied through inline styles.
 const LEAVE_TYPE_COLOR: Record<LeaveType, string> = {
-  annual: "#2563eb",
+  annual: "#00A8E8",
   sick: "#dc2626",
   family: "#16a34a",
   unpaid: "#64748b",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { PlanGate } from "@/components/layout/plan-gate";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
@@ -22,21 +22,36 @@ function getCurrentPeriod(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
+interface ComplianceCache {
+  tenantId: string;
+  period: string;
+  paye: ComplianceRecordRow | null;
+  uif: ComplianceRecordRow | null;
+  sdl: ComplianceRecordRow | null;
+  emp201: ComplianceRecordRow | null;
+  records: ComplianceRecordRow[];
+}
+
+let _cache: ComplianceCache | null = null;
+
 export default function CompliancePage() {
   const allowed = useRoleGuard(["hr", "exco"]);
   const { user } = useAuth();
 
-  const [paye, setPaye] = useState<ComplianceRecordRow | null>(null);
-  const [uif, setUif] = useState<ComplianceRecordRow | null>(null);
-  const [sdl, setSdl] = useState<ComplianceRecordRow | null>(null);
-  const [emp201, setEmp201] = useState<ComplianceRecordRow | null>(null);
-  const [records, setRecords] = useState<ComplianceRecordRow[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const period = getCurrentPeriod();
+  const cached = _cache?.tenantId === user?.tenantId && _cache?.period === period ? _cache : null;
+
+  const [paye, setPaye] = useState<ComplianceRecordRow | null>(cached?.paye ?? null);
+  const [uif, setUif] = useState<ComplianceRecordRow | null>(cached?.uif ?? null);
+  const [sdl, setSdl] = useState<ComplianceRecordRow | null>(cached?.sdl ?? null);
+  const [emp201, setEmp201] = useState<ComplianceRecordRow | null>(cached?.emp201 ?? null);
+  const [records, setRecords] = useState<ComplianceRecordRow[]>(cached?.records ?? []);
+  const [loading, setLoading] = useState(!cached);
+  const fetchedRef = useRef(!!cached);
 
   useEffect(() => {
-    if (!user?.tenantId) return;
+    if (!user?.tenantId || fetchedRef.current) return;
+    fetchedRef.current = true;
     setLoading(true);
     Promise.all([
       getCurrentMonthComplianceAction(user.tenantId),
@@ -44,28 +59,38 @@ export default function CompliancePage() {
       getEmp201Action(user.tenantId, period),
     ])
       .then(([current, all, emp]) => {
-        setPaye(current.paye);
-        setUif(current.uif);
-        setSdl(current.sdl);
-        setRecords(all);
-        setEmp201(emp);
+        const next = {
+          tenantId: user.tenantId,
+          period,
+          paye: current.paye,
+          uif: current.uif,
+          sdl: current.sdl,
+          emp201: emp,
+          records: all,
+        };
+        _cache = next;
+        setPaye(next.paye);
+        setUif(next.uif);
+        setSdl(next.sdl);
+        setRecords(next.records);
+        setEmp201(next.emp201);
       })
       .finally(() => setLoading(false));
   }, [user?.tenantId, period]);
 
   function handleRecordUpdated(updated: ComplianceRecordRow) {
-    // Refresh the relevant overview card
     if (updated.type === "paye_return" && updated.period === period) setPaye(updated);
     if (updated.type === "uif_return" && updated.period === period) setUif(updated);
     if (updated.type === "sdl_return" && updated.period === period) setSdl(updated);
     if (updated.type === "emp201" && updated.period === period) setEmp201(updated);
 
-    // Update the records table in place, inserting the EMP201 if it is new
-    setRecords((prev) =>
-      prev.some((r) => r.id === updated.id)
+    setRecords((prev) => {
+      const next = prev.some((r) => r.id === updated.id)
         ? prev.map((r) => (r.id === updated.id ? updated : r))
-        : [updated, ...prev]
-    );
+        : [updated, ...prev];
+      if (_cache) _cache = { ..._cache, records: next };
+      return next;
+    });
   }
 
   if (!allowed) return null;

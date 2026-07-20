@@ -1,6 +1,10 @@
+"use client";
+
+import * as React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,6 +15,8 @@ import {
 import { formatCurrency } from "@/lib/format";
 import type { FieldErrors } from "@/lib/schemas/employee";
 import { SA_BANKS } from "@/lib/services/netcash/helpers";
+import { useTenantId } from "@/lib/store/hooks";
+import { getPayrollSettingsAction } from "@/lib/settings/actions";
 import type { NewEmployeeForm } from "./types";
 
 interface StepProps {
@@ -27,6 +33,24 @@ function FieldError({ message }: { message?: string }) {
 export function StepCompensation({ form, setForm, errors }: StepProps) {
   const annualGross = Number(form.annualGross) || 0;
   const monthlyBasic = annualGross / 12;
+
+  // Pension and medical aid fields only appear if the company offers them.
+  const tenantId = useTenantId();
+  const [offersPension, setOffersPension] = React.useState(false);
+  const [offersMedicalAid, setOffersMedicalAid] = React.useState(false);
+  React.useEffect(() => {
+    let active = true;
+    getPayrollSettingsAction(tenantId)
+      .then((s) => {
+        if (!active) return;
+        setOffersPension(s.offersPension);
+        setOffersMedicalAid(s.offersMedicalAid);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [tenantId]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,22 +78,7 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
               <FieldError message={errors.annualGross} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="pensionContributionPct">Pension contribution (%)</Label>
-              <Input
-                id="pensionContributionPct"
-                type="number"
-                min={0}
-                max={100}
-                step={0.5}
-                value={form.pensionContributionPct}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, pensionContributionPct: e.target.value }))
-                }
-              />
-              <FieldError message={errors.pensionContributionPct} />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="travelAllowance">Travel allowance (R / month, optional)</Label>
+              <Label htmlFor="travelAllowance">Travel allowance (R / month) <OptionalTag /></Label>
               <Input
                 id="travelAllowance"
                 type="number"
@@ -81,7 +90,7 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
               <FieldError message={errors.travelAllowance} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="housingAllowance">Housing allowance (R / month, optional)</Label>
+              <Label htmlFor="housingAllowance">Housing allowance (R / month) <OptionalTag /></Label>
               <Input
                 id="housingAllowance"
                 type="number"
@@ -93,18 +102,75 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
               <FieldError message={errors.housingAllowance} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="medicalAid">Medical aid (R / month, optional)</Label>
+              <Label htmlFor="retirementAnnuity">Retirement annuity (R / month) <OptionalTag /></Label>
               <Input
-                id="medicalAid"
+                id="retirementAnnuity"
                 type="number"
                 min={0}
-                value={form.medicalAid}
-                onChange={(e) => setForm((f) => ({ ...f, medicalAid: e.target.value }))}
+                value={form.retirementAnnuity}
+                onChange={(e) => setForm((f) => ({ ...f, retirementAnnuity: e.target.value }))}
                 placeholder="0"
               />
-              <FieldError message={errors.medicalAid} />
+              <p className="text-xs text-muted-foreground">
+                Personal RA processed through payroll. Reduces taxable income.
+              </p>
+              <FieldError message={errors.retirementAnnuity} />
+            </div>
+            {offersPension ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="pensionContributionPct">Pension / provident contribution (%) <OptionalTag /></Label>
+                <Input
+                  id="pensionContributionPct"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  value={form.pensionContributionPct}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, pensionContributionPct: e.target.value }))
+                  }
+                  placeholder="0"
+                />
+                <FieldError message={errors.pensionContributionPct} />
+              </div>
+            ) : null}
+            {offersMedicalAid ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="medicalAid">Medical aid (R / month) <OptionalTag /></Label>
+                <Input
+                  id="medicalAid"
+                  type="number"
+                  min={0}
+                  value={form.medicalAid}
+                  onChange={(e) => setForm((f) => ({ ...f, medicalAid: e.target.value }))}
+                  placeholder="0"
+                />
+                <FieldError message={errors.medicalAid} />
+              </div>
+            ) : null}
+          </div>
+          <div className="mt-4 flex items-start gap-2">
+            <Checkbox
+              id="isMedicalAidMember"
+              checked={form.isMedicalAidMember}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, isMedicalAidMember: v === true }))}
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5">
+              <Label htmlFor="isMedicalAidMember" className="text-sm font-normal cursor-pointer">
+                Employee is a medical aid member
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Tick if they belong to any medical scheme, even if they pay privately. Enables the SARS medical tax credit on assessment.
+              </p>
             </div>
           </div>
+          {!offersPension && !offersMedicalAid ? (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Your company has no pension or medical aid contribution enabled. You can turn these on
+              under Settings, Payroll, Benefits offered.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 

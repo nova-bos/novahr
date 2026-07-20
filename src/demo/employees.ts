@@ -112,7 +112,7 @@ function buildEmployee(seed: EmployeeSeed): Employee {
       payFrequency: "monthly",
       travelAllowance: seed.travelAllowance,
       housingAllowance: seed.housingAllowance,
-      pensionContributionPct: seed.pensionContributionPct ?? 0.075,
+      pensionContributionPct: seed.pensionContributionPct,
       medicalAid: seed.medicalAid,
     },
     bankDetails: {

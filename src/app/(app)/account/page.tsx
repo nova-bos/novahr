@@ -10,6 +10,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { updateUserProfileAction, sendPasswordResetAction } from "@/lib/auth/profile-actions";
+import { CloseAccountCard } from "@/components/settings/close-account-card";
 
 const AVATAR_COLORS = [
   "#4C6FFF",
@@ -154,6 +155,8 @@ export default function AccountPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <CloseAccountCard />
     </div>
   );
 }

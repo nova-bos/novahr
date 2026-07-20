@@ -40,10 +40,13 @@ export interface TenantWorkspace {
  */
 export async function getAllTenants(): Promise<Tenant[]> {
   const session = await requireUser();
-  const row = await runAsTenant(session.tenantId, (tx) =>
-    tx.tenant.findUnique({ where: { id: session.tenantId } })
+  const [row, settings] = await runAsTenant(session.tenantId, (tx) =>
+    Promise.all([
+      tx.tenant.findUnique({ where: { id: session.tenantId } }),
+      tx.payrollSettings.findUnique({ where: { tenantId: session.tenantId }, select: { payslipLogoUrl: true } }),
+    ])
   );
-  return row ? [mapTenant(row)] : [];
+  return row ? [mapTenant(row, settings?.payslipLogoUrl)] : [];
 }
 
 /**
@@ -85,9 +88,10 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
   const tenantId = session.tenantId;
 
   return runAsTenant(tenantId, async (tx) => {
-    const [tenant, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows] =
+    const [tenant, payrollSettings, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows] =
       await Promise.all([
         tx.tenant.findUnique({ where: { id: tenantId } }),
+        tx.payrollSettings.findUnique({ where: { tenantId }, select: { payslipLogoUrl: true } }),
         tx.employee.findMany({ where: { tenantId }, include: { leaveBalances: true } }),
         tx.department.findMany({ where: { tenantId } }),
         tx.leaveRequest.findMany({ where: { tenantId } }),
@@ -140,7 +144,7 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
     }
 
     return {
-      currentTenant: mapTenant(tenant),
+      currentTenant: mapTenant(tenant, payrollSettings?.payslipLogoUrl),
       employees,
       departments: departmentRows.map(mapDepartment),
       leaveRequests,

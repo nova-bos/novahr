@@ -1,11 +1,13 @@
 "use client";
 
+import * as React from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanySettings } from "@/components/settings/company-settings";
 import { EmployeeNumberSettings } from "@/components/settings/employee-number-settings";
 import { PayrollSettings } from "@/components/settings/payroll-settings";
 import { PayrollTaxSettings } from "@/components/settings/payroll-tax-settings";
+import { BenefitsSettings } from "@/components/settings/benefits-settings";
 import { NetcashSettings } from "@/components/settings/netcash-settings";
 import { PayslipStudio } from "@/components/settings/payslip-studio";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
@@ -24,6 +26,29 @@ export default function SettingsPage() {
   const tenant = useCurrentTenant();
   const { can } = usePlan();
 
+  const validTabs = React.useMemo(
+    () => [
+      "company",
+      "users",
+      "departments",
+      ...(can("payrollSettings") ? ["payroll"] : []),
+      "leave",
+      "notifications",
+      "appearance",
+      "audit",
+    ],
+    [can],
+  );
+
+  // Open the tab named in the ?tab= query parameter (used by the dashboard
+  // getting-started links and the welcome modal). Read on mount from the URL to
+  // avoid a hydration mismatch; the user can switch tabs freely afterwards.
+  const [tab, setTab] = React.useState("company");
+  React.useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get("tab");
+    if (requested && validTabs.includes(requested)) setTab(requested);
+  }, [validTabs]);
+
   if (!allowed) return null;
 
   return (
@@ -32,7 +57,7 @@ export default function SettingsPage() {
         title="Settings"
         description="Manage your company profile, payroll configuration and leave policies."
       />
-      <Tabs defaultValue="company" key={tenant.id}>
+      <Tabs value={tab} onValueChange={setTab} key={tenant.id}>
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <TabsList className="inline-flex min-w-max w-full">
             <TabsTrigger value="company">Company</TabsTrigger>
@@ -85,6 +110,12 @@ export default function SettingsPage() {
                 description="Statutory tax rates and contribution ceilings."
               >
                 <PayrollTaxSettings />
+              </SettingsSection>
+              <SettingsSection
+                title="Benefits offered"
+                description="Whether your company offers a pension or medical aid contribution."
+              >
+                <BenefitsSettings />
               </SettingsSection>
               <SettingsSection
                 title="Netcash integration"

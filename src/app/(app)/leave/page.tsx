@@ -10,6 +10,7 @@ import { LeavePolicies } from "@/components/leave/leave-policies";
 import { PublicHolidaysCard } from "@/components/leave/public-holidays-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { useRoleGuard } from "@/lib/auth/use-role-guard";
 
 const COPY: Record<string, { title: string; description: string }> = {
   hr: {
@@ -31,7 +32,9 @@ const COPY: Record<string, { title: string; description: string }> = {
 };
 
 export default function LeavePage() {
+  const allowed = useRoleGuard(["hr", "manager", "employee"]);
   const { user } = useAuth();
+  if (!allowed) return null;
   const copy = COPY[user?.role ?? "hr"];
 
   return (

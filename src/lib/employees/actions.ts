@@ -11,6 +11,7 @@ import type { LeaveType } from "@/lib/types";
 import { getNetcashServiceKeys } from "@/lib/settings/actions";
 import { validateBankAccount } from "@/lib/services/netcash/bankValidation";
 import { mapAccountType } from "@/lib/services/netcash/helpers";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface SalaryHistoryEntry {
   id: string;
@@ -92,6 +93,7 @@ export async function createEmployeeRecord(
         salaryHousingAllowance: employee.salary.housingAllowance,
         salaryPensionContributionPct: employee.salary.pensionContributionPct,
         salaryMedicalAid: employee.salary.medicalAid,
+        salaryRetirementAnnuity: employee.salary.retirementAnnuity,
         bankName: employee.bankDetails.bank,
         bankAccountNumber: employee.bankDetails.accountNumber,
         bankBranchCode: employee.bankDetails.branchCode,
@@ -170,6 +172,8 @@ export async function updateEmployeeRecord(
     if (salary.pensionContributionPct !== undefined)
       data.salaryPensionContributionPct = salary.pensionContributionPct;
     if (salary.medicalAid !== undefined) data.salaryMedicalAid = salary.medicalAid;
+    if (salary.retirementAnnuity !== undefined)
+      data.salaryRetirementAnnuity = salary.retirementAnnuity;
   }
 
   const bankFieldsChanged =
@@ -217,6 +221,7 @@ export async function updateEmployeeRecord(
           housingAllowance: existing.salaryHousingAllowance,
           medicalAid: existing.salaryMedicalAid,
           pensionContribPct: existing.salaryPensionContributionPct,
+          retirementAnnuity: existing.salaryRetirementAnnuity,
           effectiveDate: new Date(),
           changedBy: session.id,
           changeReason: "Salary update",
@@ -261,6 +266,41 @@ export async function updateEmployeePhotoRecord(
     });
     return mapEmployee(updated);
   });
+}
+
+const PHOTO_BUCKET = "employee-photos";
+const PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+const PHOTO_ALLOWED = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+export async function uploadEmployeePhotoAction(
+  employeeId: string,
+  formData: FormData
+): Promise<{ photoUrl?: string; error?: string }> {
+  const session = await requireEmployeeScope(employeeId);
+
+  const file = formData.get("file");
+  if (!(file instanceof File)) return { error: "No file provided." };
+  if (!PHOTO_ALLOWED.has(file.type)) return { error: "Only JPEG, PNG and WebP images are supported." };
+  if (file.size > PHOTO_MAX_BYTES) return { error: "Photo must be under 5 MB." };
+
+  const ext = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+  const path = `${session.tenantId}/${employeeId}.${ext}`;
+
+  const supabase = createAdminClient();
+  const { error: uploadError } = await supabase.storage
+    .from(PHOTO_BUCKET)
+    .upload(path, await file.arrayBuffer(), { upsert: true, contentType: file.type });
+
+  if (uploadError) return { error: uploadError.message };
+
+  const { data: urlData } = supabase.storage.from(PHOTO_BUCKET).getPublicUrl(path);
+  const photoUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+  await runAsTenant(session.tenantId, async (tx) => {
+    await tx.employee.update({ where: { id: employeeId }, data: { photoUrl } });
+  });
+
+  return { photoUrl };
 }
 
 export async function toggleOnboardingStepRecord(

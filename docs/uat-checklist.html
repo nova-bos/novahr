@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NovaHR UAT Checklist</title>
+<style>
+  :root {
+    --blue: #00A8E8; --blue-light: #e0f5fd; --blue-dark: #007db0;
+    --green: #16a34a; --green-light: #dcfce7;
+    --red: #dc2626; --red-light: #fee2e2;
+    --amber: #d97706; --amber-light: #fef3c7;
+    --purple: #7c3aed; --purple-light: #ede9fe;
+    --teal: #0d9488; --teal-light: #ccfbf1;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-400: #9ca3af; --gray-500: #6b7280; --gray-700: #374151; --gray-900: #111827;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--gray-50); color: var(--gray-900); font-size: 14px; line-height: 1.5; }
+
+  /* Top bar */
+  .topbar { background: var(--gray-900); color: #fff; padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+  .topbar-brand { font-weight: 700; font-size: 15px; }
+  .topbar-brand span { color: var(--blue); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .tp-stat { font-size: 12px; color: var(--gray-400); }
+  .tp-stat strong { color: #fff; }
+  #gpbar { width: 110px; height: 5px; background: #374151; border-radius: 99px; overflow: hidden; }
+  #gpfill { height: 100%; background: var(--blue); border-radius: 99px; transition: width .3s; width: 0%; }
+  .btn-reset { background: transparent; border: 1px solid #4b5563; color: var(--gray-400); border-radius: 5px; padding: 3px 10px; font-size: 11px; cursor: pointer; }
+  .btn-reset:hover { border-color: var(--red); color: var(--red); }
+
+  /* Layout */
+  .layout { display: flex; min-height: calc(100vh - 52px); }
+
+  /* Sidebar */
+  .sidebar { width: 224px; min-width: 224px; background: var(--gray-900); padding: 12px 0 40px; position: sticky; top: 52px; height: calc(100vh - 52px); overflow-y: auto; }
+  .sb-item { display: flex; align-items: center; gap: 7px; padding: 6px 14px; cursor: pointer; color: var(--gray-400); font-size: 11px; transition: background .12s; border-left: 2px solid transparent; }
+  .sb-item:hover { background: #1f2937; color: #e5e7eb; }
+  .sb-dot { width: 20px; height: 18px; border-radius: 5px; background: #374151; color: var(--gray-400); font-size: 8px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .sb-item.done .sb-dot { background: var(--green); color: #fff; }
+  .sb-item.partial .sb-dot { background: var(--blue); color: #fff; }
+  .sb-item.has-fail .sb-dot { background: var(--red); color: #fff; }
+  .sb-name { flex: 1; line-height: 1.25; }
+  .sb-cnt { font-size: 9px; color: var(--gray-500); white-space: nowrap; }
+  .sb-scenario { font-size: 9px; font-weight: 700; letter-spacing: .06em; padding: 12px 14px 4px; text-transform: uppercase; }
+  .sb-scenario.pre { color: var(--amber); }
+  .sb-scenario.a { color: var(--blue); }
+  .sb-scenario.b { color: var(--purple); }
+  .sb-scenario.c { color: var(--teal); }
+  .sb-scenario.shared { color: var(--gray-400); }
+  .sb-scenario .sb-sc-cnt { float: right; color: var(--gray-500); font-weight: 600; }
+
+  /* Main */
+  .main { flex: 1; padding: 18px 26px; max-width: 1240px; }
+
+  /* Intro / reference cards */
+  .intro { background: #fff; border: 1px solid var(--gray-200); border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
+  .intro h1 { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+  .intro h1 span { color: var(--blue); }
+  .intro p { font-size: 12.5px; color: var(--gray-500); margin-bottom: 4px; }
+  .collapsible-hdr { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; font-size: 12px; font-weight: 700; color: var(--gray-700); margin-top: 12px; padding: 6px 0; }
+  .collapsible-hdr .chev { color: var(--gray-400); font-size: 13px; }
+  .collapsible-body { display: none; padding-top: 4px; }
+  .collapsible-body.open { display: block; }
+  .ref-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+  .ref-table th { text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--gray-400); padding: 4px 8px; border-bottom: 1px solid var(--gray-200); }
+  .ref-table td { font-size: 11.5px; padding: 4px 8px; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+  .ref-table code { background: var(--gray-100); padding: 1px 5px; border-radius: 4px; font-size: 10.5px; }
+  .sched-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .sched-day { background: var(--gray-50); border: 1px solid var(--gray-100); border-radius: 7px; padding: 8px 10px; font-size: 11.5px; }
+  .sched-day b { color: var(--blue-dark); }
+
+  /* Summary */
+  .summary-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 14px; }
+  .sc { background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 10px 12px; }
+  .sc-lbl { font-size: 9.5px; color: var(--gray-500); font-weight: 500; margin-bottom: 2px; text-transform: uppercase; letter-spacing: .03em; }
+  .sc-val { font-size: 22px; font-weight: 700; }
+  .sc-total .sc-val { color: var(--gray-900); }
+  .sc-pass .sc-val { color: var(--green); }
+  .sc-fail .sc-val { color: var(--red); }
+  .sc-skip .sc-val { color: var(--amber); }
+  .sc-untested .sc-val { color: var(--gray-400); }
+  .sc-pct .sc-val { color: var(--blue); }
+
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #fff; border: 1px solid var(--gray-200); border-radius: 9px; padding: 8px 10px; margin-bottom: 20px; position: sticky; top: 52px; z-index: 40; }
+  .filter-group { display: flex; gap: 3px; background: var(--gray-100); border-radius: 7px; padding: 2px; }
+  .filter-btn { border: none; background: transparent; padding: 4px 10px; font-size: 11px; font-weight: 600; color: var(--gray-500); border-radius: 5px; cursor: pointer; }
+  .filter-btn.active { background: #fff; color: var(--gray-900); box-shadow: 0 1px 2px rgba(0,0,0,.1); }
+  .search-box { flex: 1; min-width: 160px; border: 1px solid var(--gray-200); border-radius: 7px; padding: 5px 10px; font-size: 12px; font-family: inherit; }
+  .search-box:focus { outline: none; border-color: var(--blue); }
+  .tool-btn { border: 1px solid var(--gray-200); background: #fff; border-radius: 7px; padding: 5px 11px; font-size: 11px; font-weight: 600; color: var(--gray-700); cursor: pointer; white-space: nowrap; }
+  .tool-btn:hover { border-color: var(--blue); color: var(--blue-dark); }
+  .tool-btn.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .tool-btn.primary:hover { background: var(--blue-dark); color: #fff; }
+
+  /* Scenario divider */
+  .scenario-divider { display: flex; align-items: center; gap: 12px; margin: 26px 0 16px; scroll-margin-top: 118px; }
+  .scenario-tag { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 99px; white-space: nowrap; }
+  .scenario-tag.pre { background: var(--amber-light); color: var(--amber); }
+  .scenario-tag.a { background: var(--blue-light); color: var(--blue-dark); }
+  .scenario-tag.b { background: var(--purple-light); color: var(--purple); }
+  .scenario-tag.c { background: var(--teal-light); color: var(--teal); }
+  .scenario-tag.shared { background: var(--gray-100); color: var(--gray-700); }
+  .scenario-divider-line { flex: 1; height: 1px; background: var(--gray-200); }
+  .scenario-desc { font-size: 11.5px; color: var(--gray-500); max-width: 52%; text-align: right; }
+
+  /* Phase */
+  .phase-section { margin-bottom: 26px; scroll-margin-top: 118px; }
+  .phase-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; cursor: pointer; user-select: none; }
+  .phase-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+  .phase-badge.a { background: var(--blue-light); color: var(--blue-dark); }
+  .phase-badge.b { background: var(--purple-light); color: var(--purple); }
+  .phase-badge.c { background: var(--teal-light); color: var(--teal); }
+  .phase-badge.shared { background: var(--gray-100); color: var(--gray-700); }
+  .phase-badge.pre { background: var(--amber-light); color: var(--amber); }
+  .phase-title { font-size: 14px; font-weight: 700; color: var(--gray-900); }
+  .phase-bar-wrap { flex: 1; height: 3px; background: var(--gray-200); border-radius: 99px; overflow: hidden; min-width: 40px; }
+  .phase-bar { height: 100%; border-radius: 99px; transition: width .3s; }
+  .phase-bar.all-pass { background: var(--green); }
+  .phase-bar.has-fail { background: var(--red); }
+  .phase-bar.partial { background: var(--blue); }
+  .phase-stat { font-size: 11px; color: var(--gray-500); white-space: nowrap; }
+  .phase-toggle { color: var(--gray-400); font-size: 16px; }
+  .phase-context { font-size: 11.5px; color: var(--gray-500); margin-bottom: 8px; padding: 7px 11px; background: var(--gray-50); border-radius: 6px; border: 1px solid var(--gray-100); }
+  .phase-context strong { color: var(--gray-700); }
+  .phase-context em { color: var(--blue-dark); font-style: normal; font-weight: 600; }
+
+  /* Table */
+  .uat-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid var(--gray-200); }
+  .uat-table thead tr { background: var(--gray-50); }
+  .uat-table th { padding: 7px 10px; font-size: 10px; font-weight: 600; color: var(--gray-500); text-align: left; border-bottom: 1px solid var(--gray-200); white-space: nowrap; }
+  .uat-table th.th-status { text-align: center; }
+  .uat-table tbody tr { border-bottom: 1px solid var(--gray-100); transition: background .1s; }
+  .uat-table tbody tr:last-child { border-bottom: none; }
+  .uat-table tbody tr:hover { background: var(--gray-50); }
+  .uat-table tbody tr.row-pass { background: #f0fdf4 !important; }
+  .uat-table tbody tr.row-fail { background: #fff5f5 !important; }
+  .uat-table tbody tr.row-skip { background: #fffbeb !important; }
+  .uat-table tbody tr.flash { animation: flash 1.2s ease; }
+  @keyframes flash { 0%,100% { background: #fff; } 30% { background: #fff3c4; } }
+  .uat-table td { padding: 8px 10px; vertical-align: top; }
+  .td-num { width: 46px; font-size: 11px; font-weight: 600; color: var(--gray-400); white-space: nowrap; }
+  .td-who { width: 84px; }
+  .td-step { width: 33%; font-size: 12px; }
+  .td-exp { font-size: 11px; color: var(--gray-500); }
+  .td-status { width: 132px; text-align: center; }
+  .td-notes { width: 18%; }
+
+  /* Role pill */
+  .role-pill { display: inline-block; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 99px; white-space: nowrap; }
+  .role-pill.exco { background: #fef3c7; color: #92400e; }
+  .role-pill.hr { background: var(--blue-light); color: var(--blue-dark); }
+  .role-pill.manager { background: var(--green-light); color: #14532d; }
+  .role-pill.employee { background: var(--gray-100); color: var(--gray-700); }
+  .role-pill.any { background: #f3e8ff; color: #5b21b6; }
+
+  /* Status buttons + flag */
+  .sbx { display: flex; gap: 3px; justify-content: center; align-items: center; }
+  .sbtn { border: 1.5px solid var(--gray-200); background: transparent; border-radius: 5px; padding: 2px 7px; font-size: 10px; font-weight: 700; cursor: pointer; color: var(--gray-400); transition: all .12s; }
+  .sbtn:hover { border-color: var(--gray-400); color: var(--gray-700); }
+  .sbtn.pass.active { background: var(--green); border-color: var(--green); color: #fff; }
+  .sbtn.fail.active { background: var(--red); border-color: var(--red); color: #fff; }
+  .sbtn.skip.active { background: var(--amber); border-color: var(--amber); color: #fff; }
+  .flag-btn { border: none; background: transparent; cursor: pointer; font-size: 12px; color: var(--gray-300); padding: 2px 3px; margin-left: 2px; }
+  .flag-btn:hover { color: var(--red); }
+
+  /* Notes */
+  .notes-ta { width: 100%; border: 1px solid var(--gray-200); border-radius: 5px; padding: 4px 7px; font-size: 11px; font-family: inherit; color: var(--gray-700); background: transparent; resize: none; min-height: 32px; transition: border .12s; }
+  .notes-ta:focus { outline: none; border-color: var(--blue); background: #fff; }
+
+  .phase-body.collapsed { display: none; }
+
+  /* Bug log */
+  .bug-section { margin-bottom: 26px; scroll-margin-top: 118px; }
+  .bug-section h2 { font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .bug-badge { background: var(--red-light); color: var(--red); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+  .bug-list { display: flex; flex-direction: column; gap: 6px; }
+  .bug-hdr-row { display: grid; grid-template-columns: 78px 1fr 90px 90px 28px; gap: 6px; padding: 0 12px; }
+  .bug-hdr-row span { font-size: 9px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: .05em; }
+  .bug-item { background: #fff; border: 1px solid var(--gray-200); border-radius: 7px; padding: 9px 12px; display: grid; grid-template-columns: 78px 1fr 90px 90px 28px; gap: 6px; align-items: center; }
+  .bug-item.sev-critical { border-left: 3px solid var(--red); }
+  .bug-item.sev-high { border-left: 3px solid var(--amber); }
+  .bug-item.sev-low { border-left: 3px solid var(--blue); }
+  .bfld { border: 1px solid var(--gray-200); border-radius: 4px; padding: 3px 6px; font-size: 11px; font-family: inherit; color: var(--gray-700); background: transparent; width: 100%; }
+  .bfld:focus { outline: none; border-color: var(--blue); }
+  .btn-add-bug { background: var(--blue-light); border: 1.5px dashed var(--blue); color: var(--blue-dark); border-radius: 7px; padding: 9px; width: 100%; font-size: 12px; font-weight: 600; cursor: pointer; margin-top: 6px; }
+  .btn-add-bug:hover { background: #c0e9f8; }
+  .btn-del { background: transparent; border: none; color: var(--gray-400); cursor: pointer; font-size: 14px; padding: 3px; border-radius: 3px; }
+  .btn-del:hover { color: var(--red); background: var(--red-light); }
+
+  /* Sign-off */
+  .signoff-section { scroll-margin-top: 118px; background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 18px 22px; margin-bottom: 40px; }
+  .signoff-section h2 { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+  .so-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .so-field label { font-size: 10px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 3px; }
+  .so-field input, .so-field textarea { width: 100%; border: 1px solid var(--gray-200); border-radius: 5px; padding: 6px 9px; font-size: 12px; font-family: inherit; background: transparent; }
+  .so-field input:focus, .so-field textarea:focus { outline: none; border-color: var(--blue); }
+  .so-outcome { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--gray-200); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .outcome-pill { border: 2px solid var(--gray-200); border-radius: 7px; padding: 6px 14px; font-weight: 700; font-size: 12px; cursor: pointer; transition: all .12s; color: var(--gray-400); }
+  .outcome-pill.pass.active { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .outcome-pill.fail.active { border-color: var(--red); background: var(--red-light); color: var(--red); }
+
+  /* Floating bug button */
+  .fab-bug { position: fixed; bottom: 24px; right: 24px; z-index: 200; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .fab-btn { background: var(--red); color: #fff; border: none; border-radius: 99px; padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 16px rgba(220,38,38,.4); display: flex; align-items: center; gap: 7px; transition: transform .15s, box-shadow .15s; white-space: nowrap; }
+  .fab-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(220,38,38,.5); }
+  .fab-badge { background: var(--gray-900); color: #fff; border-radius: 99px; padding: 2px 7px; font-size: 10px; font-weight: 700; }
+  .bug-drawer { position: fixed; bottom: 76px; right: 24px; z-index: 201; background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,.18); padding: 16px; width: 340px; display: none; flex-direction: column; gap: 10px; }
+  .bug-drawer.open { display: flex; }
+  .bug-drawer h3 { font-size: 13px; font-weight: 700; color: var(--gray-900); }
+  .bd-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bd-field label { font-size: 10px; font-weight: 600; color: var(--gray-500); display: block; margin-bottom: 3px; }
+  .bd-field input, .bd-field select, .bd-field textarea { width: 100%; border: 1px solid var(--gray-200); border-radius: 5px; padding: 5px 8px; font-size: 12px; font-family: inherit; background: transparent; }
+  .bd-field input:focus, .bd-field select:focus, .bd-field textarea:focus { outline: none; border-color: var(--red); }
+  .bd-actions { display: flex; gap: 8px; }
+  .bd-save { flex: 1; background: var(--red); color: #fff; border: none; border-radius: 6px; padding: 7px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .bd-save:hover { background: #b91c1c; }
+  .bd-cancel { background: var(--gray-100); color: var(--gray-700); border: none; border-radius: 6px; padding: 7px 12px; font-size: 12px; cursor: pointer; }
+
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { padding: 12px; }
+    .summary-grid { grid-template-columns: repeat(3, 1fr); }
+    .sched-grid, .so-grid { grid-template-columns: 1fr; }
+    .toolbar { position: static; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">Nova<span>HR</span> &nbsp;UAT</div>
+  <div class="topbar-right">
+    <span class="tp-stat"><strong id="tp-done">0</strong> / <strong id="tp-total">0</strong></span>
+    <div id="gpbar"><div id="gpfill"></div></div>
+    <button class="btn-reset" onclick="confirmReset()">Reset</button>
+  </div>
+</div>
+
+<div class="layout">
+<nav class="sidebar" id="sidebar"><div id="sb-items"></div></nav>
+
+<main class="main">
+
+  <!-- Intro + reference -->
+  <div class="intro">
+    <h1>Nova<span>HR</span> User Acceptance Testing</h1>
+    <p>Launch-readiness test plan spanning two weeks. Four company scenarios plus deep-dive phases covering payroll maths, NetCash payments, POPIA data rights, employment equity, role security and more. Every result and note is saved automatically in this browser.</p>
+    <p style="color:var(--red);font-weight:600;">Test emails all deliver to your inbox via Gmail + aliases. Rotate the Resend API key after UAT.</p>
+
+    <div class="collapsible-hdr" onclick="toggleCol(this)"><span class="chev">▸</span> Test personas &amp; email aliases</div>
+    <div class="collapsible-body">
+      <table class="ref-table">
+        <thead><tr><th>Scenario</th><th>Name</th><th>Role</th><th>Email alias</th><th>Notes</th></tr></thead>
+        <tbody id="persona-rows"></tbody>
+      </table>
+    </div>
+
+    <div class="collapsible-hdr" onclick="toggleCol(this)"><span class="chev">▸</span> Suggested two-week schedule</div>
+    <div class="collapsible-body">
+      <div class="sched-grid">
+        <div class="sched-day"><b>Day 1-2</b> Pre-launch checks + Scenario A setup &amp; onboarding (Nimbus Digital)</div>
+        <div class="sched-day"><b>Day 3</b> Scenario A invites, roles, leave, payroll with ETI</div>
+        <div class="sched-day"><b>Day 4-5</b> Scenario B (Cornerstone) full run: HR handoff, age rebate, medical credits, bonus</div>
+        <div class="sched-day"><b>Day 6</b> Scenario C (Thabo's Autobody) HR-only plan gating</div>
+        <div class="sched-day"><b>Day 7</b> RBAC access matrix + Employee self-service</div>
+        <div class="sched-day"><b>Day 8</b> Payroll calculation edge cases deep-dive</div>
+        <div class="sched-day"><b>Day 9</b> NetCash payment integration</div>
+        <div class="sched-day"><b>Day 10</b> POPIA data rights + Documents + Employment Equity</div>
+        <div class="sched-day"><b>Day 11</b> Deductions, Reports, Compliance, Settings deep-dive</div>
+        <div class="sched-day"><b>Day 12</b> Billing/plans + Auth flows + Notifications</div>
+        <div class="sched-day"><b>Day 13</b> Bulk import stress test + Mobile + Accessibility</div>
+        <div class="sched-day"><b>Day 14</b> Security &amp; edge cases + multi-tenant isolation + sign-off</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary-grid">
+    <div class="sc sc-total"><div class="sc-lbl">Total</div><div class="sc-val" id="sc-total">0</div></div>
+    <div class="sc sc-pass"><div class="sc-lbl">Passed</div><div class="sc-val" id="sc-pass">0</div></div>
+    <div class="sc sc-fail"><div class="sc-lbl">Failed</div><div class="sc-val" id="sc-fail">0</div></div>
+    <div class="sc sc-skip"><div class="sc-lbl">Skipped</div><div class="sc-val" id="sc-skip">0</div></div>
+    <div class="sc sc-untested"><div class="sc-lbl">Untested</div><div class="sc-val" id="sc-untested">0</div></div>
+    <div class="sc sc-pct"><div class="sc-lbl">Complete</div><div class="sc-val" id="sc-pct">0%</div></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="filter-group">
+      <button class="filter-btn active" data-f="all" onclick="setFilter('all')">All</button>
+      <button class="filter-btn" data-f="untested" onclick="setFilter('untested')">Untested</button>
+      <button class="filter-btn" data-f="pass" onclick="setFilter('pass')">Passed</button>
+      <button class="filter-btn" data-f="fail" onclick="setFilter('fail')">Failed</button>
+      <button class="filter-btn" data-f="skip" onclick="setFilter('skip')">Skipped</button>
+    </div>
+    <input class="search-box" id="search" placeholder="Search tests…" oninput="applyView()" />
+    <button class="tool-btn" onclick="expandAll(true)">Expand all</button>
+    <button class="tool-btn" onclick="expandAll(false)">Collapse all</button>
+    <button class="tool-btn primary" onclick="jumpNextUntested()">Next untested</button>
+    <button class="tool-btn" onclick="exportReport()">Export report</button>
+    <button class="tool-btn" onclick="backupState()">Backup</button>
+    <button class="tool-btn" onclick="document.getElementById('restore-file').click()">Restore</button>
+    <input type="file" id="restore-file" accept="application/json" style="display:none" onchange="restoreState(event)" />
+  </div>
+
+  <div id="phases-root"></div>
+
+  <!-- Bug Log -->
+  <div class="bug-section" id="section-bugs">
+    <h2>Bug Log <span class="bug-badge" id="bug-badge">0 open</span></h2>
+    <div class="bug-hdr-row"><span>Ref</span><span>Description</span><span>Severity</span><span>Status</span><span></span></div>
+    <div class="bug-list" id="bug-list"></div>
+    <button class="btn-add-bug" onclick="addBug()">+ Add bug</button>
+  </div>
+
+  <!-- Sign-off -->
+  <div class="signoff-section" id="section-signoff">
+    <h2>UAT Sign-Off</h2>
+    <div class="so-grid">
+      <div class="so-field"><label>Tester</label><input id="so-tester" placeholder="Your name" oninput="saveSignoff()" /></div>
+      <div class="so-field"><label>Period</label><input id="so-period" placeholder="e.g. 18 Jul - 1 Aug 2026" oninput="saveSignoff()" /></div>
+      <div class="so-field"><label>Environment</label><input id="so-env" value="novahr-five.vercel.app" oninput="saveSignoff()" /></div>
+      <div class="so-field"><label>Notes</label><textarea id="so-notes" rows="2" placeholder="Overall observations…" oninput="saveSignoff()"></textarea></div>
+    </div>
+    <div class="so-outcome">
+      <span style="font-size:12px;font-weight:600;color:var(--gray-500)">Outcome:</span>
+      <div class="outcome-pill pass" id="so-pass" onclick="setOutcome('pass')">PASS - Ready to onboard clients</div>
+      <div class="outcome-pill fail" id="so-fail" onclick="setOutcome('fail')">FAIL - Fix bugs first</div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- Floating Bug Button -->
+<div class="fab-bug">
+  <div class="bug-drawer" id="bug-drawer">
+    <h3>Log a Bug</h3>
+    <div class="bd-row">
+      <div class="bd-field"><label>Ref (step)</label><input id="bd-step" placeholder="e.g. A5.3" /></div>
+      <div class="bd-field"><label>Severity</label>
+        <select id="bd-sev"><option value="critical">Critical</option><option value="high" selected>High</option><option value="low">Low</option></select>
+      </div>
+    </div>
+    <div class="bd-field"><label>Description</label><textarea id="bd-desc" rows="3" placeholder="What went wrong?"></textarea></div>
+    <div class="bd-actions"><button class="bd-save" onclick="quickSaveBug()">Save bug</button><button class="bd-cancel" onclick="toggleDrawer()">Cancel</button></div>
+  </div>
+  <button class="fab-btn" onclick="toggleDrawer()">+ Bug &nbsp;<span class="fab-badge" id="fab-count">0</span></button>
+</div>
+
+<script>
+// ============================================================
+// PERSONAS (reference)
+// ============================================================
+const PERSONAS = [
+  ["A · Nimbus","Thandi Mthembu","exco","+nimbus.ceo@gmail.com","Founder. Signup account holder + HR admin."],
+  ["A · Nimbus","Dev Pillay","manager","+nimbus.cto@gmail.com","CTO. Manages Ayanda + Nokuthula."],
+  ["A · Nimbus","Ayanda Zulu","employee","+nimbus.dev@gmail.com","Full-stack dev. R480k."],
+  ["A · Nimbus","Nokuthula Sithole","employee","+nimbus.design@gmail.com","UX designer. R360k."],
+  ["A · Nimbus","Sipho Ndlovu","manager","+nimbus.sales@gmail.com","Sales mgr. Manages Zanele."],
+  ["A · Nimbus","Zanele Mokoena","employee","+nimbus.bdr@gmail.com","BDR, age 24, R72k (ETI eligible)."],
+  ["A · Nimbus","Kagiso Molefe","employee","+nimbus.junior@gmail.com","Junior dev, age 22, R60k (ETI eligible)."],
+  ["B · Cornerstone","Marcus van der Berg","exco","+corner.md@gmail.com","MD. Signup holder, hands admin to HR."],
+  ["B · Cornerstone","Lungelo Dlamini","hr","+corner.hr@gmail.com","HR Manager. Runs all admin."],
+  ["B · Cornerstone","Priya Govender","manager","+corner.finance@gmail.com","Finance mgr. Manages 2 juniors."],
+  ["B · Cornerstone","Naledi Khumalo","employee","+corner.snr1@gmail.com","Senior consultant. R600k, medical aid + 2 dependents."],
+  ["B · Cornerstone","Reza Karimi","employee","+corner.snr2@gmail.com","Senior consultant. R620k."],
+  ["B · Cornerstone","Bongi Shabalala","employee","+corner.jnr1@gmail.com","Junior consultant. R280k."],
+  ["B · Cornerstone","Keamo Moatlhodi","employee","+corner.jnr2@gmail.com","Junior. R260k. Gets terminated mid-test."],
+  ["B · Cornerstone","Albertina Nkosi","employee","+corner.senior@gmail.com","Senior advisor, age 66 (age rebate), medical aid + 1 dependent. R720k."],
+  ["C · Autobody","Thabo Nkosi","exco","+auto.owner@gmail.com","Owner. Signup holder + HR admin. HR-ONLY plan."],
+  ["C · Autobody","Lerato Modise","manager","+auto.mgr@gmail.com","Workshop manager."],
+  ["C · Autobody","Pieter Botha","employee","+auto.panel@gmail.com","Panel beater."],
+  ["C · Autobody","Sifiso Dube","employee","+auto.mech@gmail.com","Mechanic."],
+  ["C · Autobody","Grace Adams","employee","+auto.admin@gmail.com","Receptionist / admin."],
+];
+
+function R(role){const l={exco:'Exco',hr:'HR Admin',manager:'Manager',employee:'Employee',any:'Any'};return `<span class="role-pill ${role}">${l[role]||role}</span>`;}
+
+// ============================================================
+// PHASE DATA
+// ============================================================
+const PHASES = [
+
+// ─────────────── PRE-LAUNCH ───────────────
+{id:'p0', scenario:'pre', badgeClass:'pre', badgeText:'Pre-Launch', title:'Pre-Launch Readiness Gates',
+ context:'Run once before any real client touches the system. These are go / no-go gates, not feature tests.',
+ items:[
+  {id:'0.1', who:'any', step:'Open novahr-five.vercel.app in Chrome and Firefox. Confirm valid SSL padlock.', exp:'HTTPS, no certificate warnings in either browser.'},
+  {id:'0.2', who:'any', step:'Visit every legal page: /privacy, /terms, /cookies, /security, /legal/dpa, /legal/paia-manual, /legal/payroll-disclaimer, /legal/sla, /legal/refund-policy, /legal/subscription-terms, /legal/acceptable-use, /legal/vulnerability-disclosure.', exp:'All load with real content. No 404s.'},
+  {id:'0.3', who:'any', step:'Open DevTools Console on landing page and dashboard. Reload.', exp:'No red JavaScript errors.'},
+  {id:'0.4', who:'any', step:'Submit the landing page contact form with valid data.', exp:'Success message. Email received at your support inbox within 2 min. Button is centered (earlier fix).'},
+  {id:'0.5', who:'any', step:'Attempt 8 rapid failed logins with a wrong password (tests rate limiting).', exp:'Rate limit kicks in with a clear message. No raw 500 error. Does not permanently brick the account.'},
+  {id:'0.6', who:'any', step:'On signup, submit a weak/short password.', exp:'Clear validation error. Account not created.'},
+  {id:'0.7', who:'any', step:'DevTools Network tab: complete a login. Confirm password only travels in POST body.', exp:'No credentials in URL query strings or GET requests.'},
+  {id:'0.8', who:'any', step:'Confirm environment variables are set in Vercel: RESEND_API_KEY, EMAIL_FROM, SUPPORT_EMAIL, NETCASH_ENCRYPTION_KEY.', exp:'Emails send; NetCash key fields can be saved without server error.'},
+  {id:'0.9', who:'any', step:'Send one of each email type and confirm none land in spam: invite, leave request, leave decision, payslip, contact.', exp:'All 5 email types deliver to inbox, not spam.'},
+  {id:'0.10',who:'any', step:'Check favicon, page titles and OG meta on landing page (view source).', exp:'Branded favicon, sensible <title>, OG tags present for link sharing.'},
+ ]},
+
+// ═══════════════ SCENARIO A ═══════════════
+{id:'pA0', scenario:'a', badgeClass:'a', badgeText:'Scenario A', title:'Nimbus Digital - Company Setup',
+ context:'<strong>Scenario A: Nimbus Digital</strong> - 7-person tech startup on the <em>HR + Payroll</em> plan. No HR department. Founder Thandi does all HR herself. Tests whether a non-HR professional can independently stand up the product. Includes two under-29 employees to exercise ETI.',
+ items:[
+  {id:'A1.1', who:'exco', step:'Sign up. Company = Nimbus Digital, admin email = +nimbus.ceo, strong password. Select HR + Payroll plan (or trial).', exp:'Account created. Redirected to setup wizard.'},
+  {id:'A1.2', who:'exco', step:'Verify the admin email via the link in your inbox.', exp:'Email verified. Login allowed.'},
+  {id:'A1.3', who:'exco', step:'Complete onboarding wizard: Industry Technology, headcount 7, Monthly pay cycle, pay date 25th.', exp:'Wizard finishes. Dashboard shows Nimbus Digital. Welcome modal may appear.'},
+  {id:'A1.4', who:'exco', step:'Upload a company logo PNG under 2 MB.', exp:'Logo appears in header, no distortion.'},
+  {id:'A1.5', who:'exco', step:'Settings > Leave Policy: Annual 15, Sick 30, Family 3. Enable carryover, max 5 days.', exp:'Saved. No errors.'},
+  {id:'A1.6', who:'exco', step:'Settings > Departments: create Engineering, Design, Sales.', exp:'3 departments appear in dropdowns.'},
+  {id:'A1.7', who:'exco', step:'Settings > Payroll tax: confirm UIF ceiling R17,712, UIF 1%/1%, SDL 1% enabled.', exp:'Defaults correct for SA. Editable.'},
+  {id:'A1.7b', who:'exco', step:'Settings > Payroll > Benefits offered: confirm both toggles OFF and LEAVE them off. Nimbus runs payroll only, no company pension or medical aid.', exp:'Both off by default. Nimbus employees will have no pension/medical fields.'},
+  {id:'A1.8', who:'exco', step:'Settings > Employee numbers: set a prefix/format (e.g. NIM-0001).', exp:'Format saved. Next employee gets NIM-0001.'},
+  {id:'A1.9', who:'exco', step:'Settings > Notifications: enable all email notifications.', exp:'Saved.'},
+  {id:'A1.10',who:'exco', step:'Dashboard: confirm empty-state cards render sensibly with 0 employees.', exp:'No broken widgets, no NaN, graceful empty states.'},
+ ]},
+
+{id:'pA1', scenario:'a', badgeClass:'a', badgeText:'Scenario A', title:'Nimbus Digital - Onboard 6 Employees',
+ context:'Thandi adds all staff via the onboarding wizard. Watch the auto employee-number sequence. Zanele (24) and Kagiso (22) are ETI-eligible with monthly pay under R7,500.',
+ items:[
+  {id:'A2.1', who:'exco', step:'Add Thandi Mthembu herself: CEO, no dept, start 2022-03-01, Full-time, role exco, R900k. Set race/gender for equity.', exp:'Created. Employee number NIM-0001. Role exco.'},
+  {id:'A2.2', who:'exco', step:'Add Dev Pillay: CTO, Engineering, 2022-06-01, Full-time, role manager, R840k.', exp:'Created. Role manager.'},
+  {id:'A2.3', who:'exco', step:'Add Ayanda Zulu: Full Stack Developer, Engineering, 2023-01-15, role employee, R480k. Reports to Dev.', exp:'Created. Reports to Dev Pillay.'},
+  {id:'A2.4', who:'exco', step:'Add Nokuthula Sithole: UX Designer, Design, 2023-04-01, employee, R360k. Reports to Dev.', exp:'Created.'},
+  {id:'A2.5', who:'exco', step:'Add Sipho Ndlovu: Sales Manager, Sales, 2022-09-01, role manager, R420k. Reports to Thandi.', exp:'Created. Role manager.'},
+  {id:'A2.6', who:'exco', step:'Add Zanele Mokoena: BDR, Sales, 2024-02-01, employee, R72,000/yr. DoB makes her 24. Reports to Sipho.', exp:'Created. Age ~24 derived from ID.'},
+  {id:'A2.7', who:'exco', step:'Add Kagiso Molefe: Junior Developer, Engineering, 2024-06-01, employee, R60,000/yr. Age 22. Reports to Dev.', exp:'Created.'},
+  {id:'A2.8', who:'exco', step:'Confirm no pension or medical aid field appears while adding Nimbus employees (benefits off). Add a Retirement annuity of R1,000/month for Ayanda instead.', exp:'No pension/medical fields. RA field available and saved.'},
+  {id:'A2.9', who:'exco', step:'Add a garnishee or staff loan deduction for Nokuthula via the Deductions module (separate from benefits).', exp:'Deduction saved. Shows on payslip preview.'},
+  {id:'A2.10',who:'exco', step:'Upload an avatar photo for Ayanda.', exp:'Avatar displays on profile and directory.'},
+  {id:'A2.11',who:'exco', step:'Open Ayanda\'s profile. Visit every tab: Overview, Compensation, Deductions, Leave, Documents, Equity, Onboarding, Privacy.', exp:'All tabs load without error.'},
+  {id:'A2.12',who:'exco', step:'Dashboard headcount now shows 7. Directory lists all 7.', exp:'Headcount = 7.'},
+  {id:'A2.13',who:'exco', step:'Filter directory by Department = Engineering.', exp:'Shows Dev, Ayanda, Kagiso.'},
+ ]},
+
+{id:'pA2', scenario:'a', badgeClass:'a', badgeText:'Scenario A', title:'Nimbus Digital - Invites & Role Boundaries',
+ items:[
+  {id:'A3.1', who:'exco', step:'Send invite to Dev Pillay (+nimbus.cto).', exp:'Invite email received. Contains company name and accept link.'},
+  {id:'A3.2', who:'manager', step:'Accept Dev\'s invite via /accept-invite link. Set password. Log in.', exp:'Manager dashboard. Sees Ayanda, Nokuthula, Kagiso as reports. Does NOT see Sales team payroll.'},
+  {id:'A3.3', who:'exco', step:'Send invite to Ayanda (+nimbus.dev). Accept and log in as Ayanda.', exp:'Employee dashboard. Own profile + leave only. No payroll, no other employees.'},
+  {id:'A3.4', who:'exco', step:'Send invite to Sipho (+nimbus.sales). Accept and log in as Sipho.', exp:'Manager view. Sees Zanele only, not Dev\'s team.'},
+  {id:'A3.5', who:'employee', step:'As Ayanda: try to open /billing directly by URL.', exp:'Redirected away. Not accessible.'},
+  {id:'A3.6', who:'manager', step:'As Dev: try /billing and /employees/new by URL.', exp:'Both redirect. Managers cannot bill or create employees.'},
+  {id:'A3.7', who:'employee', step:'As Ayanda: try /payroll, /compliance, /deductions, /reports, /tenants by URL.', exp:'All redirect. Employee cannot reach any admin module.'},
+  {id:'A3.8', who:'manager', step:'As Sipho: try to open Ayanda\'s profile (not his report) by guessing the URL.', exp:'Access denied or limited view without salary.'},
+  {id:'A3.9', who:'exco', step:'As Thandi: reissue an invite that was already sent (resend).', exp:'New invite email sent. Old link invalidated or still valid - note behaviour.'},
+  {id:'A3.10',who:'exco', step:'Cancel a pending invite for Kagiso, then send a fresh one.', exp:'Old token no longer works. New one does.'},
+ ]},
+
+{id:'pA3', scenario:'a', badgeClass:'a', badgeText:'Scenario A', title:'Nimbus Digital - Leave Management',
+ items:[
+  {id:'A4.1', who:'employee', step:'As Ayanda: submit Annual Leave for 5 working days next week.', exp:'Status Pending. Balance shows pending deduction.'},
+  {id:'A4.2', who:'manager', step:'As Dev: receive leave-request email; approve in app.', exp:'Email received. Status becomes Approved.'},
+  {id:'A4.3', who:'employee', step:'As Ayanda: receive approval email; balance now 10 of 15.', exp:'Email correct. Balance decremented by 5.'},
+  {id:'A4.4', who:'employee', step:'As Nokuthula: submit 2 days Sick Leave.', exp:'Pending.'},
+  {id:'A4.5', who:'exco', step:'As Thandi: reject Nokuthula\'s sick leave with reason (no certificate).', exp:'Rejected. Reason stored + emailed.'},
+  {id:'A4.6', who:'employee', step:'As Zanele: submit Unpaid Leave for 3 days.', exp:'Type shows Unpaid. Pending.'},
+  {id:'A4.7', who:'employee', step:'As Kagiso: submit Annual Leave exceeding available balance.', exp:'Blocked or warned that balance is insufficient.'},
+  {id:'A4.8', who:'employee', step:'As Ayanda: cancel a still-pending future leave request.', exp:'Cancelled. Pending balance restored.'},
+  {id:'A4.9', who:'exco', step:'As Thandi: open Leave Calendar. Confirm Ayanda\'s approved block shows in correct colour.', exp:'Correct dates and colour coding.'},
+  {id:'A4.10',who:'exco', step:'Leave Summary report shows all requests with correct statuses.', exp:'Counts per status correct.'},
+ ]},
+
+{id:'pA4', scenario:'a', badgeClass:'a', badgeText:'Scenario A', title:'Nimbus Digital - Payroll Run (with ETI)',
+ context:'Tax year 2026/27. First bracket 18% to R245,100. UIF 1% capped at R177.12. SDL 1% employer. <em>ETI applies to Zanele and Kagiso</em> (both 18-29, pay under R7,500).',
+ items:[
+  {id:'A5.1', who:'exco', step:'Payroll > start new run for current month. All 7 employees appear.', exp:'Run created with 7 employees.'},
+  {id:'A5.2', who:'exco', step:'Kagiso: gross R5,000/mo. ETI first-band fixed = R1,500 (R2,500-R5,500 band). Confirm ETI credit shows.', exp:'ETI ~R1,500 reflected as employer credit, not deducted from employee net.'},
+  {id:'A5.3', who:'exco', step:'Zanele: gross R6,000/mo. ETI taper band = R1,500 - (6000-5500)*0.75 = R1,125.', exp:'ETI ~R1,125 for Zanele.'},
+  {id:'A5.4', who:'exco', step:'Ayanda: gross R40,000, Provident Fund 7.5% = R3,000 (pre-tax). PAYE computed on R37,000 taxable.', exp:'PF R3,000 pre-tax. PAYE reduced accordingly.'},
+  {id:'A5.5', who:'exco', step:'Nokuthula: gross R30,000, Medical Aid R1,800 deduction. Confirm medical aid tax credit R376 (main member) applied to PAYE.', exp:'MATC R376 reduces PAYE.'},
+  {id:'A5.6', who:'exco', step:'Every employee: UIF = 1% of gross capped at R177.12. High earners hit the cap.', exp:'Dev (R70k/mo) UIF = R177.12. Kagiso UIF = R50 (1% of R5,000).'},
+  {id:'A5.7', who:'exco', step:'Confirm SDL 1% employer levy is calculated on total payroll (employer cost, not employee deduction).', exp:'SDL line present in run totals.'},
+  {id:'A5.8', who:'exco', step:'Zanele took 3 days unpaid leave. Confirm a pro-rata deduction appears on her payslip.', exp:'Unpaid-leave deduction visible.'},
+  {id:'A5.9', who:'exco', step:'Finalise the run (through approval workflow if present: awaiting approval -> approved -> completed).', exp:'Status Completed. Run locked.'},
+  {id:'A5.10',who:'exco', step:'All 7 employees receive payslip notification emails.', exp:'7 emails delivered.'},
+  {id:'A5.11',who:'employee', step:'As Ayanda: open payslip. Verify gross R40,000, PF R3,000, PAYE, UIF R177.12, net.', exp:'Figures match run.'},
+  {id:'A5.12',who:'exco', step:'Download Dev\'s payslip PDF. Company logo, reg number, all lines present.', exp:'PDF correct and branded.'},
+  {id:'A5.13',who:'exco', step:'Generate EMP201. Total PAYE + UIF + SDL shown. ETI reduces the PAYE payable.', exp:'EMP201 totals reconcile. ETI offset visible.'},
+  {id:'A5.14',who:'exco', step:'Export the bank/EFT file for salary payments.', exp:'File downloads with 7 payment rows and correct amounts.'},
+ ]},
+
+// ═══════════════ SCENARIO B ═══════════════
+{id:'pB0', scenario:'b', badgeClass:'b', badgeText:'Scenario B', title:'Cornerstone Advisory - Setup & HR Handoff',
+ context:'<strong>Scenario B: Cornerstone Advisory</strong> - 8-person consulting firm on <em>HR + Payroll</em>. Has a dedicated HR Manager. The MD (Marcus) signs up but hands all admin to Lungelo (HR). Tests that the HR role can fully operate the product and that Exco has appropriate visibility without doing daily admin. Includes a 66-year-old (age rebate) and medical aid with dependents.',
+ items:[
+  {id:'B1.1', who:'exco', step:'Sign up as Marcus. Company = Cornerstone Advisory, email +corner.md. Plan HR + Payroll.', exp:'Account created.'},
+  {id:'B1.2', who:'exco', step:'Verify email; complete wizard: Consulting, 8 staff, Monthly, pay date 28th.', exp:'Dashboard shows Cornerstone Advisory.'},
+  {id:'B1.3', who:'exco', step:'Settings > Leave Policy: Annual 20, Sick 36, Study 10 (more generous than minimum).', exp:'Saved.'},
+  {id:'B1.4', who:'exco', step:'Settings > Departments: Consulting, Finance, HR & Admin.', exp:'3 departments.'},
+  {id:'B1.4b', who:'exco', step:'Settings > Payroll > Benefits offered: turn ON both Company pension and Medical aid. Cornerstone offers both.', exp:'Both toggles on. Pension and medical aid fields will appear during onboarding.'},
+  {id:'B1.5', who:'exco', step:'Create Lungelo Dlamini: HR Manager, HR & Admin, role hr, R480k.', exp:'Created with role hr.'},
+  {id:'B1.6', who:'exco', step:'Send invite to Lungelo (+corner.hr). Log out.', exp:'Invite email received.'},
+  {id:'B1.7', who:'hr', step:'Accept Lungelo\'s invite. Log in.', exp:'Full HR admin dashboard. Employee list, payroll, billing all accessible.'},
+ ]},
+
+{id:'pB1', scenario:'b', badgeClass:'b', badgeText:'Scenario B', title:'Cornerstone - HR Onboards 7 Staff',
+ context:'From here Lungelo (HR) does everything. Albertina is 66 (secondary age rebate). Naledi has medical aid + 2 dependents (3 MATC credits). Albertina has medical aid + 1 dependent.',
+ items:[
+  {id:'B2.1', who:'hr', step:'Add Marcus van der Berg: MD, Consulting, role exco, 2020-01-01, R1,200,000.', exp:'Created, role exco.'},
+  {id:'B2.2', who:'hr', step:'Add Priya Govender: Finance Manager, Finance, role manager, R540k. Reports to Marcus.', exp:'Created, role manager.'},
+  {id:'B2.3', who:'hr', step:'Add Naledi Khumalo: Senior Consultant, employee, R600k. Medical aid + 2 dependents. Reports to Marcus.', exp:'Created. Medical dependents = 2.'},
+  {id:'B2.4', who:'hr', step:'Add Reza Karimi: Senior Consultant, employee, R620k. Reports to Marcus.', exp:'Created.'},
+  {id:'B2.5', who:'hr', step:'Add Bongi Shabalala: Junior Consultant, employee, R280k. Reports to Priya.', exp:'Created.'},
+  {id:'B2.6', who:'hr', step:'Add Keamo Moatlhodi: Junior Consultant, employee, R260k. Reports to Priya.', exp:'Created.'},
+  {id:'B2.7', who:'hr', step:'Add Albertina Nkosi: Senior Advisor, employee, R720k. DoB makes her 66. Medical aid + 1 dependent.', exp:'Created. Age 66 derived.'},
+  {id:'B2.8', who:'hr', step:'Add Provident Fund 7.5% for Marcus, Priya, Naledi, Reza, Albertina.', exp:'5 PF deductions saved.'},
+  {id:'B2.9', who:'hr', step:'Dashboard headcount = 8 (7 + Lungelo).', exp:'Headcount 8.'},
+  {id:'B2.10',who:'hr', step:'Send invites to all 7. Confirm 7 invite emails received at the aliases.', exp:'7 invites delivered.'},
+  {id:'B2.11',who:'exco', step:'Accept Marcus\'s invite (+corner.md). Log in.', exp:'Exco dashboard. Sees all 8 + org-wide KPIs.'},
+  {id:'B2.12',who:'manager', step:'Accept Priya\'s invite. Log in.', exp:'Manager view. Sees Bongi + Keamo only. Not Naledi/Reza/Albertina.'},
+  {id:'B2.13',who:'employee', step:'Accept Naledi\'s invite. Log in.', exp:'Employee dashboard only.'},
+ ]},
+
+{id:'pB2', scenario:'b', badgeClass:'b', badgeText:'Scenario B', title:'Cornerstone - HR/Exco/Manager Boundaries & Termination',
+ items:[
+  {id:'B3.1', who:'hr', step:'As Lungelo: edit Marcus\'s compensation, add a bonus allowance.', exp:'HR can edit any salary.'},
+  {id:'B3.2', who:'exco', step:'As Marcus: open Settings > Leave Policy. Attempt to change it.', exp:'Note whether exco has write access or read-only. Record actual behaviour.'},
+  {id:'B3.3', who:'exco', step:'As Marcus: navigate to Payroll. Attempt to start a run.', exp:'Note whether exco can initiate payroll. Record behaviour.'},
+  {id:'B3.4', who:'manager', step:'As Priya: attempt /employees/new and /billing.', exp:'Both redirect.'},
+  {id:'B3.5', who:'manager', step:'As Priya: open Bongi\'s profile. Check whether Salary tab is visible to the direct manager.', exp:'Record whether managers see reports\' salaries.'},
+  {id:'B3.6', who:'employee', step:'As Bongi: try to open Keamo\'s profile by URL.', exp:'Denied or limited (no salary).'},
+  {id:'B3.7', who:'hr', step:'As Lungelo: open Audit Log. Confirm invites, salary edits, logins are recorded with actor + timestamp.', exp:'All actions logged.'},
+  {id:'B3.8', who:'hr', step:'As Lungelo: terminate Keamo (Terminated, end date today, reason resignation).', exp:'Status Terminated. Removed from active headcount.'},
+  {id:'B3.9', who:'hr', step:'Headcount now 7. Terminated filter shows Keamo.', exp:'Headcount 7; Keamo under terminated.'},
+  {id:'B3.10',who:'hr', step:'Confirm terminated employees cannot log in.', exp:'Keamo login blocked.'},
+ ]},
+
+{id:'pB3', scenario:'b', badgeClass:'b', badgeText:'Scenario B', title:'Cornerstone - Payroll (Age Rebate, Medical Credits, Bonus)',
+ context:'Exercises the harder payroll paths: 66-year-old secondary rebate, medical aid tax credits with dependents, a 13th-cheque bonus month, and the top 45% bracket.',
+ items:[
+  {id:'B4.1', who:'hr', step:'Start payroll for the 7 active employees (Keamo excluded).', exp:'7 in run.'},
+  {id:'B4.2', who:'hr', step:'Albertina (66): confirm PAYE applies BOTH primary and secondary rebates (lower tax than a under-65 on same salary).', exp:'Secondary rebate applied. Visibly lower PAYE.'},
+  {id:'B4.3', who:'hr', step:'Naledi: medical aid + 2 dependents. MATC = R376 + R376 + R254 = R1,006/month credit against PAYE.', exp:'Medical credit R1,006 reduces PAYE.'},
+  {id:'B4.4', who:'hr', step:'Albertina: medical aid + 1 dependent. MATC = R376 + R376 = R752.', exp:'Medical credit R752.'},
+  {id:'B4.5', who:'hr', step:'Marcus: gross R100,000/mo. PF 7.5% = R7,500 pre-tax. Falls in 45% top bracket.', exp:'Top bracket applied. Net far below gross. Figures sane.'},
+  {id:'B4.6', who:'hr', step:'Add a once-off 13th cheque / annual bonus for Naledi this run (e.g. R50,000).', exp:'Bonus taxed correctly (annualised for PAYE). Appears as separate line.'},
+  {id:'B4.7', who:'hr', step:'Reza started 2022 - full month, no pro-rata this run.', exp:'Full salary, no pro-rata flag.'},
+  {id:'B4.8', who:'hr', step:'Add a recoverable staff loan for Bongi (e.g. R6,000 over 6 months, R1,000/month, post-tax).', exp:'R1,000 recovered from net. Balance reduces to R5,000. PAYE unaffected.'},
+  {id:'B4.9', who:'hr', step:'Finalise run. Download EMP201. Total PAYE equals sum of individual PAYE (no rounding drift).', exp:'EMP201 reconciles to the cent.'},
+  {id:'B4.10',who:'hr', step:'Run payroll again for the NEXT month. Bongi\'s loan balance now R4,000. Bonus does not repeat.', exp:'Loan recovers again; one-off bonus not carried over.'},
+  {id:'B4.11',who:'employee', step:'As Naledi: view both payslips. Bonus month vs normal month differ correctly.', exp:'Two distinct payslips, correct figures.'},
+ ]},
+
+// ═══════════════ SCENARIO C ═══════════════
+{id:'pC0', scenario:'c', badgeClass:'c', badgeText:'Scenario C', title:'Thabo\'s Autobody - HR-Only Plan Setup',
+ context:'<strong>Scenario C: Thabo\'s Autobody</strong> - 5-person workshop on the <em>HR-only</em> plan (no payroll). This exists to prove plan gating: payroll, compliance, bank exports, deductions, payroll settings and payroll reports must be hidden or blocked, while core HR (employees, leave, documents) still works fully.',
+ items:[
+  {id:'C1.1', who:'exco', step:'Sign up. Company = Thabo\'s Autobody, email +auto.owner. Choose the HR-only plan.', exp:'Account created on HR plan.'},
+  {id:'C1.2', who:'exco', step:'Complete wizard. Verify email.', exp:'Dashboard loads. No payroll widgets shown.'},
+  {id:'C1.3', who:'exco', step:'Inspect the main navigation.', exp:'Payroll, Compliance, Deductions and payroll-only Reports are hidden or clearly locked.'},
+  {id:'C1.4', who:'exco', step:'Try to reach /payroll, /compliance, /deductions by direct URL.', exp:'Blocked, redirected, or an upgrade prompt. No payroll functionality exposed.'},
+  {id:'C1.5', who:'exco', step:'Open Settings. Confirm payroll tax settings and NetCash are hidden or locked behind upgrade.', exp:'Payroll settings not available on HR plan.'},
+ ]},
+
+{id:'pC1', scenario:'c', badgeClass:'c', badgeText:'Scenario C', title:'Thabo\'s Autobody - Core HR Still Works',
+ items:[
+  {id:'C2.1', who:'exco', step:'Add Thabo Nkosi (Owner, exco), Lerato Modise (Workshop Manager, manager), Pieter Botha, Sifiso Dube, Grace Adams (all employee).', exp:'5 employees created. No payroll/salary fields required to complete.'},
+  {id:'C2.2', who:'exco', step:'Confirm you can still record employment details, departments and leave policy without a payroll plan.', exp:'HR fields all functional.'},
+  {id:'C2.3', who:'exco', step:'Send invites to Lerato and Grace. Accept and log in as each.', exp:'Roles work identically to payroll plan (minus payroll).'},
+  {id:'C2.4', who:'employee', step:'As Grace: submit annual leave. As Lerato (manager): approve it.', exp:'Leave workflow works fully on HR plan.'},
+  {id:'C2.5', who:'exco', step:'Upload an employment contract document to Pieter\'s profile.', exp:'Documents module works on HR plan.'},
+  {id:'C2.6', who:'exco', step:'Open Billing. Confirm an upgrade path to HR + Payroll is offered.', exp:'Upgrade CTA visible. Pricing correct.'},
+  {id:'C2.7', who:'employee', step:'As Sifiso: confirm the employee dashboard shows no payslip section (no payroll on this plan).', exp:'No payslip UI, or a graceful "not available on your plan" note.'},
+ ]},
+
+// ═══════════════ SHARED DEEP-DIVE ═══════════════
+{id:'pS_rbac', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Role-Based Access Control Matrix',
+ context:'Systematic access check. Use Cornerstone (has all four roles). For each module, log in as each role and record access. Anything an employee or manager can reach that exposes other people\'s pay is a <em>critical</em> bug.',
+ items:[
+  {id:'RB.1', who:'employee', step:'Employee: can reach Dashboard, own Profile, Leave. Cannot reach Employees list, Payroll, Reports, Compliance, Deductions, Settings, Billing, Tenants.', exp:'Only self-service surfaces reachable.'},
+  {id:'RB.2', who:'manager', step:'Manager: Dashboard, team in Employees, team Leave approvals. Cannot reach Billing, Settings admin, employee creation, other teams.', exp:'Scoped to direct reports only.'},
+  {id:'RB.3', who:'hr', step:'HR: full access to Employees, Payroll, Compliance, Deductions, Reports, Settings, Billing.', exp:'Everything operational.'},
+  {id:'RB.4', who:'exco', step:'Exco: org-wide dashboards and reports. Record exactly which write actions exco can perform (payroll, settings, employee edits).', exp:'Document the exco capability boundary precisely.'},
+  {id:'RB.5', who:'employee', step:'Employee: attempt an API/server action out of scope by manipulating an ID in a request (e.g. approve someone else\'s leave).', exp:'Server rejects. Not just hidden in UI - actually enforced server-side.'},
+  {id:'RB.6', who:'manager', step:'Manager: attempt to approve leave for an employee who is NOT their report.', exp:'Rejected server-side.'},
+  {id:'RB.7', who:'any', step:'Log out. Attempt to hit /dashboard, /employees, /payroll while unauthenticated.', exp:'All redirect to login.'},
+  {id:'RB.8', who:'employee', step:'Employee of Nimbus attempts to view a Cornerstone employee (cross-tenant) by URL/ID.', exp:'Absolutely no cross-tenant data. 403 / not found.'},
+ ]},
+
+{id:'pS_self', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Employee Self-Service',
+ items:[
+  {id:'SS.1', who:'employee', step:'Edit own personal details (phone, address, emergency contact).', exp:'Saved. No access to salary/employment fields.'},
+  {id:'SS.2', who:'employee', step:'Attempt to edit own salary or job title.', exp:'Read-only or hidden.'},
+  {id:'SS.3', who:'employee', step:'View own leave balances for each leave type.', exp:'Correct remaining days.'},
+  {id:'SS.4', who:'employee', step:'View and download own payslip history.', exp:'Own payslips only. Download works.'},
+  {id:'SS.5', who:'employee', step:'Upload a document to own profile (if permitted) or confirm it is HR-only.', exp:'Behaviour consistent and documented.'},
+  {id:'SS.6', who:'employee', step:'Change own password from account settings.', exp:'Password change works. Old password no longer valid.'},
+  {id:'SS.7', who:'employee', step:'Toggle own notification preferences.', exp:'Preferences persist.'},
+ ]},
+
+{id:'pS_paye', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Payroll Calculation Edge Cases',
+ context:'Deep verification of the calculator against SARS 2026/27. Cross-check a few by hand or against an external PAYE calculator. Brackets: 18% to R245,100; then 26%, 31%, 36%, 39%, 41%, 45%.',
+ items:[
+  {id:'PC.1', who:'hr', step:'Employee earning exactly at the R99,000 annual tax threshold (R8,250/mo).', exp:'PAYE is R0 or near-zero (rebate wipes it out).'},
+  {id:'PC.2', who:'hr', step:'Employee just over threshold (R10,000/mo).', exp:'Small positive PAYE. Marginal 18%.'},
+  {id:'PC.3', who:'hr', step:'Bracket-boundary check at R245,100 and R383,100 annual - no discontinuity/jump.', exp:'PAYE continuous across boundaries.'},
+  {id:'PC.4', who:'hr', step:'Top earner over R1,878,600 annual hits 45% bracket.', exp:'45% marginal applied on top slice.'},
+  {id:'PC.5', who:'hr', step:'Pension/Provident deduction capped at 27.5% and R430,000/yr (s11F).', exp:'Cap enforced for a very high contribution.'},
+  {id:'PC.6', who:'hr', step:'Medical aid: main + 2 dependents = R376+R376+R254 credits. Add a 3rd dependent = +R254.', exp:'Each additional dependent adds R254.'},
+  {id:'PC.7', who:'hr', step:'ETI: employee turns 30 - ETI must stop the following qualifying period.', exp:'ETI no longer claimed once over 29.'},
+  {id:'PC.8', who:'hr', step:'ETI: employee earning over R7,500/mo.', exp:'No ETI (above ceiling).'},
+  {id:'PC.9', who:'hr', step:'Mid-month new hire: start date on the 15th. Confirm pro-rata salary.', exp:'Roughly half a month paid, pro-rated.'},
+  {id:'PC.10',who:'hr', step:'Mid-month termination: end date on the 10th. Confirm pro-rata.', exp:'Pro-rated to leaving date.'},
+  {id:'PC.11',who:'hr', step:'UIF ceiling: anyone over R17,712/mo pays exactly R177.12 employee UIF.', exp:'Capped correctly.'},
+  {id:'PC.12',who:'hr', step:'Garnishee/emoluments order: deducted from net, PAYE unaffected, balance reduces monthly.', exp:'Correct post-tax recovery.'},
+  {id:'PC.13',who:'hr', step:'Rounding: sum of all payslip nets equals the bank export total exactly.', exp:'No cent drift between payslips, EMP201 and EFT file.'},
+  {id:'PC.14',who:'hr', step:'Re-run the same period twice - confirm it cannot double-pay or duplicate.', exp:'Locked/guarded against duplicate run.'},
+ ]},
+
+{id:'pS_benefits', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Benefits: Pension, Medical Aid & Retirement Annuity',
+ context:'The new benefits model. Default is <em>no company pension and no medical aid</em> (SME that just wants payroll). Company toggles live at Settings, Payroll, Benefits offered. Retirement annuity is always available per employee. Use Nimbus (benefits off) and Cornerstone (benefits on) to cover both.',
+ items:[
+  {id:'BEN.1', who:'hr', step:'Fresh company: Settings > Payroll > Benefits offered. Confirm both toggles are OFF by default.', exp:'Company pension and medical aid both off out of the box.'},
+  {id:'BEN.2', who:'hr', step:'With both off, add an employee. Confirm the pension and medical aid fields do NOT appear in the compensation step.', exp:'Only salary, allowances and retirement annuity shown. A hint points to Benefits offered.'},
+  {id:'BEN.3', who:'hr', step:'Confirm the pension field no longer defaults to 7.5%. New hires have no pension unless added.', exp:'No pension deduction by default.'},
+  {id:'BEN.4', who:'hr', step:'Enter a retirement annuity amount for an employee (benefits still off).', exp:'RA field is available regardless of company toggles. Saved.'},
+  {id:'BEN.5', who:'hr', step:'Run payroll. Confirm the RA shows as a payslip deduction and reduces taxable income (s11F).', exp:'Retirement Annuity line present; PAYE lower than without it.'},
+  {id:'BEN.6', who:'hr', step:'Give an employee both a pension % and an RA. Confirm they share the single s11F cap (not double-counted).', exp:'Combined retirement deduction capped at 27.5% / annual rand cap.'},
+  {id:'BEN.7', who:'hr', step:'Turn ON Company pension in Benefits offered. Add/edit an employee.', exp:'Pension / provident contribution (%) field now appears.'},
+  {id:'BEN.8', who:'hr', step:'Turn ON Medical aid in Benefits offered. Add/edit an employee.', exp:'Medical aid (R/month) field now appears.'},
+  {id:'BEN.9', who:'hr', step:'Turn a benefit back OFF. Confirm the matching field disappears from onboarding and edit.', exp:'Field hidden again; existing employee values retained in the database.'},
+  {id:'BEN.10',who:'hr', step:'Set a medical scheme name + dependants on an employee payroll profile but NO payroll medical contribution.', exp:'MATC (medical tax credit) still applies to PAYE for the private scheme member.'},
+  {id:'BEN.11',who:'hr', step:'Employee with a payroll medical contribution: confirm MATC still applies as before (no regression).', exp:'Same credit as previously.'},
+  {id:'BEN.12',who:'hr', step:'Bulk CSV import: confirm the template has a retirementAnnuity column and it imports.', exp:'RA column present and captured on import.'},
+  {id:'BEN.13',who:'hr', step:'Change an employee salary. Confirm the salary-history snapshot records the retirement annuity too.', exp:'History row includes RA.'},
+  {id:'BEN.14',who:'employee', step:'As an employee: confirm you cannot toggle company benefits (HR only).', exp:'Benefits settings are HR-only.'},
+ ]},
+
+{id:'pS_netcash', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'NetCash Payment Integration',
+ context:'NetCash is the EFT payment gateway. Service keys are AES-256-GCM encrypted at rest (needs NETCASH_ENCRYPTION_KEY). Use NetCash <em>sandbox</em> keys if you have them; otherwise test the validation and error paths without live money.',
+ items:[
+  {id:'NC.1', who:'hr', step:'Settings > NetCash: confirm the panel is present on the HR+Payroll plan and hidden on HR-only.', exp:'Plan-gated correctly.'},
+  {id:'NC.2', who:'hr', step:'Save a NetCash Salary service key and Account Services key.', exp:'Saved. Displayed masked, never in plaintext after save.'},
+  {id:'NC.3', who:'hr', step:'Click Test key with an invalid key.', exp:'Clear failure message. No crash.'},
+  {id:'NC.4', who:'hr', step:'Click Test key with a valid sandbox key (if available).', exp:'Success. Environment shown (sandbox).'},
+  {id:'NC.5', who:'hr', step:'Payroll NetCash panel: refresh account summary (balance, line limit, batch limit).', exp:'Values load, or a clean error if no key.'},
+  {id:'NC.6', who:'hr', step:'Edit an employee bank account with an invalid branch/account number.', exp:'Bank validation rejects it before submission.'},
+  {id:'NC.7', who:'hr', step:'Attempt to submit a payroll batch to NetCash that exceeds the batch limit.', exp:'Blocked with a limit message, not a silent failure.'},
+  {id:'NC.8', who:'hr', step:'Submit a valid sandbox salary batch (if sandbox available).', exp:'Batch accepted. Reference returned. Status trackable.'},
+  {id:'NC.9', who:'hr', step:'Remove the NetCash key. Confirm encrypted value is cleared and panel returns to unconfigured.', exp:'Key removed cleanly.'},
+  {id:'NC.10',who:'hr', step:'DevTools: inspect network responses on the NetCash settings page.', exp:'Decrypted keys never sent to the client. Only masked/hasKey booleans.'},
+ ]},
+
+{id:'pS_popia', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'POPIA Data Rights & Privacy',
+ context:'South African POPIA compliance. Data export = subject access request. Erasure = right to be forgotten. Both are HR-only and legally significant. Test on a Cornerstone employee.',
+ items:[
+  {id:'PO.1', who:'hr', step:'Employee profile > Privacy tab: export employee data as JSON.', exp:'JSON downloads with the employee\'s personal data. Readable.'},
+  {id:'PO.2', who:'employee', step:'As an employee: confirm you CANNOT export/erase other people\'s data.', exp:'Privacy actions are HR-only.'},
+  {id:'PO.3', who:'hr', step:'Erase personal data for a terminated employee.', exp:'PII scrubbed/anonymised. Record retained per statutory payroll retention where required.'},
+  {id:'PO.4', who:'hr', step:'Confirm erase is blocked for an ACTIVE employee.', exp:'Cannot erase active staff (only terminated).'},
+  {id:'PO.5', who:'hr', step:'After erasure, confirm the employee no longer appears in searches/directory but historical payroll totals remain intact for SARS.', exp:'PII gone; financial history preserved.'},
+  {id:'PO.6', who:'any', step:'Landing page cookie consent banner: accept/reject works and persists.', exp:'Consent stored. Reject respected.'},
+ ]},
+
+{id:'pS_docs', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Documents & Avatars',
+ items:[
+  {id:'DC.1', who:'hr', step:'Upload a PDF contract to an employee, category Contract.', exp:'Appears in Documents tab with category + date.'},
+  {id:'DC.2', who:'hr', step:'Upload an ID document, category ID.', exp:'Stored and downloadable.'},
+  {id:'DC.3', who:'hr', step:'Download an uploaded document.', exp:'Correct file downloads intact.'},
+  {id:'DC.4', who:'hr', step:'Delete a document.', exp:'Removed. Confirmation shown.'},
+  {id:'DC.5', who:'hr', step:'Attempt to upload a disallowed type (.exe) or oversized file.', exp:'Rejected with clear error.'},
+  {id:'DC.6', who:'hr', step:'Upload and change an employee avatar; then remove it.', exp:'Avatar updates then reverts to initials.'},
+  {id:'DC.7', who:'employee', step:'As an employee: confirm you cannot see another employee\'s documents.', exp:'No cross-employee document access.'},
+ ]},
+
+{id:'pS_eea', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Employment Equity (EEA)',
+ context:'Employment Equity Act reporting: race, gender, occupational level per employee. Use Cornerstone which has varied demographics.',
+ items:[
+  {id:'EE.1', who:'hr', step:'On several employees set Equity: race, gender, occupational level (top mgmt, senior, skilled, etc.).', exp:'Saved on the Equity tab.'},
+  {id:'EE.2', who:'hr', step:'Reports > Equity report. Confirm the workforce breakdown by race/gender/level.', exp:'Counts match the data entered.'},
+  {id:'EE.3', who:'hr', step:'Workforce report renders occupational-level distribution.', exp:'Correct distribution, no missing buckets.'},
+  {id:'EE.4', who:'hr', step:'Employee with unspecified equity fields.', exp:'Handled gracefully (shown as unspecified, not error).'},
+  {id:'EE.5', who:'hr', step:'Export the equity/EEA report.', exp:'Export downloads; suitable for EEA2 submission reference.'},
+ ]},
+
+{id:'pS_deduct', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Deductions & Earning Types',
+ items:[
+  {id:'DE.1', who:'hr', step:'/deductions: view all deduction/earning types across the tenant.', exp:'List renders.'},
+  {id:'DE.2', who:'hr', step:'Create a fixed deduction (Union fee R150) and apply to 2 employees.', exp:'Appears on their payslips.'},
+  {id:'DE.3', who:'hr', step:'Create a percentage deduction and confirm it recalculates when salary changes.', exp:'Amount tracks salary.'},
+  {id:'DE.4', who:'hr', step:'Create a custom earning/allowance (e.g. travel R3,000) and confirm tax treatment.', exp:'Allowance taxed per its configured treatment.'},
+  {id:'DE.5', who:'hr', step:'Delete a deduction type in use.', exp:'Handled safely (blocked or removed from employees with warning).'},
+  {id:'DE.6', who:'employee', step:'As an employee: /deductions is not accessible.', exp:'Redirected.'},
+ ]},
+
+{id:'pS_reports', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Reports & Analytics',
+ items:[
+  {id:'RP.1', who:'hr', step:'Headcount report + chart. Count matches active employees.', exp:'Correct. Export works.'},
+  {id:'RP.2', who:'hr', step:'Payroll report / composition chart for a completed run.', exp:'Totals reconcile to the run.'},
+  {id:'RP.3', who:'hr', step:'Employment mix chart (full-time/part-time/contract).', exp:'Correct proportions.'},
+  {id:'RP.4', who:'hr', step:'Leave report + usage chart. Filter by type and by employee.', exp:'Filters work.'},
+  {id:'RP.5', who:'hr', step:'Workforce report renders across departments and levels.', exp:'No missing data.'},
+  {id:'RP.6', who:'hr', step:'Export at least one report to CSV and one to PDF.', exp:'Files open without corruption.'},
+  {id:'RP.7', who:'employee', step:'As an employee: /reports blocked.', exp:'Redirected.'},
+ ]},
+
+{id:'pS_compliance', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Compliance Tracking',
+ items:[
+  {id:'CO.1', who:'hr', step:'Compliance dashboard lists EMP201, EEA and other items.', exp:'Items render with statuses.'},
+  {id:'CO.2', who:'hr', step:'Mark EMP201 Submitted.', exp:'Blue Submitted badge (brand blue).'},
+  {id:'CO.3', who:'hr', step:'Set a due date to yesterday.', exp:'Red Overdue badge appears.'},
+  {id:'CO.4', who:'hr', step:'Mark an item Accepted; another Rejected.', exp:'Green / red badges correct.'},
+  {id:'CO.5', who:'hr', step:'Add a note; filter by status.', exp:'Note saved; filter works.'},
+  {id:'CO.6', who:'employee', step:'As an employee: /compliance blocked.', exp:'Redirected.'},
+ ]},
+
+{id:'pS_billing', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Billing, Plans & Trial',
+ items:[
+  {id:'BL.1', who:'hr', step:'/billing shows current plan and employee count vs limit.', exp:'Accurate.'},
+  {id:'BL.2', who:'hr', step:'Trial company: days-remaining is shown; banner appears near expiry.', exp:'Countdown correct.'},
+  {id:'BL.3', who:'hr', step:'Simulate/confirm behaviour on trial expiry (if a trial tenant can be aged).', exp:'Expired trial gates the app with an upgrade prompt, not a crash.'},
+  {id:'BL.4', who:'hr', step:'Billing pricing tiers match the marketing/landing pricing exactly.', exp:'No discrepancy.'},
+  {id:'BL.5', who:'hr', step:'Attempt to exceed the plan employee limit.', exp:'Blocked with upgrade prompt, or documented allowance.'},
+  {id:'BL.6', who:'manager', step:'Manager and Employee cannot reach /billing.', exp:'Redirected.'},
+ ]},
+
+{id:'pS_lifecycle', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Account Lifecycle & Billing',
+ context:'The full lifecycle: sign-up details, trial expiry, self-service deletion, and the non-payment / suspension story. Some items are <em>known gaps</em> (suspension and dunning are not built yet) and should stay FAIL until implemented. See docs/UAT_FINDINGS_AND_DECISIONS.md.',
+ items:[
+  {id:'LC.1', who:'exco', step:'Sign up a new company. Confirm the Your job title field is asked and is NOT pre-filled with "HR Administrator".', exp:'Job title is blank or the value you type. Not defaulted to HR Administrator.'},
+  {id:'LC.2', who:'exco', step:'Leave job title blank on sign-up. Check the header/profile after login.', exp:'Title is blank, not "HR Administrator". Editable later in Settings > Account.'},
+  {id:'LC.3', who:'exco', step:'Sign up with Continue with Google. Confirm the /signup/complete step asks company name AND the Terms/Privacy/DPA agreement.', exp:'Consent captured on the Google path too. Cannot finish without agreeing.'},
+  {id:'LC.4', who:'hr', step:'Settings > Account: confirm a Danger zone card with Close account is visible to HR only.', exp:'Visible to HR admin; hidden for manager/employee.'},
+  {id:'LC.5', who:'manager', step:'As a manager: open Settings > Account. Confirm no Close account option.', exp:'Danger zone not shown to non-HR.'},
+  {id:'LC.6', who:'hr', step:'Click Close account. Confirm it requires typing the exact company name before the button enables.', exp:'Button disabled until the typed name matches.'},
+  {id:'LC.7', who:'hr', step:'On a THROWAWAY test company, complete Close account.', exp:'Tenant, employees, payroll and users deleted. Logged out and returned to login. The email can be reused for a fresh sign-up.'},
+  {id:'LC.8', who:'hr', step:'After deletion, try to sign up again with the same email.', exp:'Works. No "already exists" block (auth identity was removed).'},
+  {id:'LC.9', who:'hr', step:'Trial expiry: confirm the countdown appears in the final week and a lock screen once expired, with billing still reachable.', exp:'TrialGate behaves; data retained.'},
+  {id:'LC.10',who:'hr', step:'KNOWN GAP: attempt to find a Suspend/pause account or suspended state. Confirm none exists yet.', exp:'Not implemented. Mark FAIL. Tracked as a build item (needs Tenant.status).'},
+  {id:'LC.11',who:'hr', step:'KNOWN GAP: confirm there is no automated non-payment handling (no dunning, no auto-suspend at 14/90 days).', exp:'Not implemented. Non-payment currently does nothing. Mark FAIL. Needs payment provider + scheduled job.'},
+  {id:'LC.12',who:'hr', step:'Cross-check: the Terms/Refund/Subscription legal pages describe suspension and an Export Window. Confirm the software does not yet deliver these.', exp:'Documented policy vs implementation gap noted. Track before charging customers.'},
+ ]},
+
+{id:'pS_settings', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Settings Deep-Dive',
+ items:[
+  {id:'ST.1', who:'hr', step:'Company settings: change name, registration number, tax number, address.', exp:'Saved; reflected on payslips.'},
+  {id:'ST.2', who:'hr', step:'Payroll tax settings: toggle SDL off, change UIF ceiling, save, re-run a payslip preview.', exp:'Calculations respect the changes.'},
+  {id:'ST.3', who:'hr', step:'Employee-number settings: change format and confirm next new hire uses it.', exp:'New sequence honoured.'},
+  {id:'ST.4', who:'hr', step:'Payslip Studio: brand accent #00A8E8, add footer + reg number, save.', exp:'Preview and generated PDF reflect it.'},
+  {id:'ST.5', who:'hr', step:'Appearance: toggle dark mode.', exp:'Dark mode applies across app; brand blue stays consistent.'},
+  {id:'ST.6', who:'hr', step:'Notification settings: disable payslip emails, run payroll, confirm none sent.', exp:'Preference respected.'},
+  {id:'ST.7', who:'hr', step:'Audit log: filter by action type and paginate.', exp:'Filter + pagination work.'},
+  {id:'ST.8', who:'hr', step:'User settings: update own name/title.', exp:'Saved; reflected in header.'},
+ ]},
+
+{id:'pS_notif', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Notifications & Email Content',
+ items:[
+  {id:'NT.1', who:'any', step:'Inspect the invite email: correct company, working link, no broken images, sender name correct.', exp:'Professional, on-brand, links work.'},
+  {id:'NT.2', who:'any', step:'Leave request email to approver: employee name, type, dates all correct.', exp:'Accurate content.'},
+  {id:'NT.3', who:'any', step:'Leave decision email: approved and rejected variants, reason included on reject.', exp:'Both variants correct.'},
+  {id:'NT.4', who:'any', step:'Payslip email: correct period, secure link, no salary figures leaked in the email body.', exp:'No sensitive data in plaintext email.'},
+  {id:'NT.5', who:'any', step:'All emails render on mobile mail clients (Gmail app).', exp:'Responsive, legible.'},
+  {id:'NT.6', who:'any', step:'Unsubscribe/preference respected where applicable.', exp:'Honoured.'},
+ ]},
+
+{id:'pS_auth', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Authentication Flows',
+ items:[
+  {id:'AU.1', who:'any', step:'Forgot password: request reset for an employee. Receive email.', exp:'Reset email arrives with working link.'},
+  {id:'AU.2', who:'any', step:'Reset password via link; log in with new password.', exp:'New password works; old one rejected.'},
+  {id:'AU.3', who:'any', step:'Use an expired or already-used reset link.', exp:'Clear "link expired" message, not a crash.'},
+  {id:'AU.4', who:'any', step:'Accept-invite with an expired/invalid token.', exp:'Friendly "invitation no longer valid" screen.'},
+  {id:'AU.5', who:'any', step:'signup/complete step reached and finished cleanly.', exp:'No dead-end; lands on dashboard.'},
+  {id:'AU.6', who:'any', step:'Log out from every role; confirm session fully cleared.', exp:'Back button does not restore an authed page.'},
+  {id:'AU.7', who:'any', step:'Two concurrent sessions (two browsers) as HR: change data in one, refresh other.', exp:'Consistent; no corruption.'},
+  {id:'AU.8', who:'any', step:'Email verification link reuse after already verified.', exp:'Handled gracefully.'},
+ ]},
+
+{id:'pS_import', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Bulk Onboarding via CSV (Hardened Importer)',
+ context:'The importer now captures <strong>all 32 onboarding fields</strong> (same as the manual wizard) and validates them. Columns are matched by <em>header name</em> so order does not matter, quoted values may contain commas, and money fields tolerate thousands separators. Test correctness first (functional), then volume (stress). HR-only feature.',
+ items:[
+  {id:'IM.1', who:'hr', step:'Employees > Import: download the CSV template.', exp:'Template downloads with all 32 columns (firstName ... hasDisability) and one valid example row.'},
+  {id:'IM.2', who:'hr', step:'Import the template as-is (the single example row) without editing it.', exp:'1 employee imported, 0 errors. The example SA ID passes the checksum out of the box.'},
+  {id:'IM.3', who:'hr', step:'Open the imported example employee. Check every tab is populated: ID number, phone, bank, allowances, pension %, emergency contact, equity fields.', exp:'All fields captured, not just name and salary. Record is as complete as a manual one.'},
+  {id:'IM.4', who:'hr', step:'Reorder the columns in the CSV (e.g. put email first) and re-import a row.', exp:'Still imports correctly. Columns matched by header name, not position.'},
+  {id:'IM.5', who:'hr', step:'Include an address with a comma wrapped in quotes, e.g. "1 Main Road, Sandton".', exp:'Address imports intact; the row is not shifted or corrupted.'},
+  {id:'IM.6', who:'hr', step:'Enter a salary with a thousands separator or currency symbol, e.g. "R 480,000".', exp:'Parses to 480000. No validation error.'},
+  {id:'IM.7', who:'hr', step:'Add a row with an invalid SA ID number (fails the checksum).', exp:'That row is flagged: "SA ID number is invalid". Valid rows still import.'},
+  {id:'IM.8', who:'hr', step:'Add a row with an invalid phone, a bad branch code (not 6 digits) and a too-short account number.', exp:'Each field flagged with its own specific message.'},
+  {id:'IM.9', who:'hr', step:'Add a row missing a required field (e.g. no annual gross).', exp:'Row rejected with "Annual gross salary is required".'},
+  {id:'IM.10',who:'hr', step:'Include a managerEmail referencing another employee in the SAME file, listed AFTER this row.', exp:'Manager still links (two-pass). Reporting line correct on the profile.'},
+  {id:'IM.11',who:'hr', step:'Include a managerEmail that does not exist in the company.', exp:'Employee still imported, but a note says the manager was not found. Not a hard failure.'},
+  {id:'IM.12',who:'hr', step:'Set equity fields (race, gender, occupational level) and foreignNational/hasDisability = yes.', exp:'Values saved; appear on the Equity tab and in the EEA report.'},
+  {id:'IM.13',who:'hr', step:'Confirm a bulk-imported employee is payroll-ready: has an ID number (for ETI/age rebate) and full bank details (for NetCash).', exp:'No blank ID or bank fields. Employee can be included in a payroll run and paid.'},
+  {id:'IM.14',who:'employee', step:'As an employee: confirm the Import option is not available to you.', exp:'HR-only. Not visible or blocked.'},
+  {id:'IM.15',who:'hr', step:'STRESS: prepare and import 100 rows (varied departments, salaries R12k-R80k, valid SA IDs).', exp:'Validation shows 100 valid / 0 errors. All 100 imported.'},
+  {id:'IM.16',who:'hr', step:'Directory pagination + search across 100+ records.', exp:'Fast, no freeze or blank pages. Search finds a specific imported employee.'},
+  {id:'IM.17',who:'hr', step:'Run payroll for 100+ employees.', exp:'Completes without timeout (300s function limit) or error.'},
+  {id:'IM.18',who:'hr', step:'Generate reports and the bank/EFT export for the large run.', exp:'All succeed; row counts match the active headcount.'},
+  {id:'IM.19',who:'hr', step:'Bulk archive/terminate 10 imported employees.', exp:'Headcount updates correctly.'},
+  {id:'IM.20',who:'hr', step:'Measure dashboard load time with 100+ employees.', exp:'Loads in a reasonable time; note any slowness.'},
+ ]},
+
+{id:'pS_mobile', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Mobile Responsiveness (390px)',
+ items:[
+  {id:'MO.1', who:'any', step:'DevTools 390x844. Landing page: hero, pricing, features, contact.', exp:'No horizontal scroll.'},
+  {id:'MO.2', who:'any', step:'Sign up on mobile.', exp:'Fields + submit accessible.'},
+  {id:'MO.3', who:'hr', step:'Dashboard KPI cards stack.', exp:'Readable without zoom.'},
+  {id:'MO.4', who:'hr', step:'Employees directory on mobile.', exp:'Card/table view legible.'},
+  {id:'MO.5', who:'employee', step:'Submit leave on mobile.', exp:'Form usable.'},
+  {id:'MO.6', who:'hr', step:'Leave calendar on mobile.', exp:'Navigable.'},
+  {id:'MO.7', who:'any', step:'Hamburger nav opens/closes.', exp:'All items reachable.'},
+  {id:'MO.8', who:'employee', step:'View payslip on mobile.', exp:'Legible, no overflow.'},
+  {id:'MO.9', who:'hr', step:'Payroll run table on mobile.', exp:'Scrolls gracefully, no layout break.'},
+  {id:'MO.10',who:'hr', step:'Onboarding wizard on mobile.', exp:'All steps completable.'},
+ ]},
+
+{id:'pS_a11y', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Accessibility & UX Polish',
+ items:[
+  {id:'AX.1', who:'any', step:'Tab through the login and a key form using keyboard only.', exp:'Logical focus order; visible focus rings.'},
+  {id:'AX.2', who:'any', step:'Check colour contrast of brand blue text/buttons.', exp:'Meets readable contrast.'},
+  {id:'AX.3', who:'any', step:'All form inputs have associated labels.', exp:'Labels present (screen-reader friendly).'},
+  {id:'AX.4', who:'any', step:'Images/logos have alt text.', exp:'Alt text present.'},
+  {id:'AX.5', who:'any', step:'Loading and error states render on slow network (throttle to Slow 3G).', exp:'Skeletons/spinners, no infinite blank.'},
+  {id:'AX.6', who:'any', step:'Toasts/confirmations appear for key actions (save, delete, invite).', exp:'Consistent feedback.'},
+ ]},
+
+{id:'pS_sec', scenario:'shared', badgeClass:'shared', badgeText:'Shared', title:'Security & Multi-Tenant Isolation',
+ context:'The highest-stakes phase before launch. Any cross-tenant leak or server-side authorization gap is a launch blocker.',
+ items:[
+  {id:'SE.1', who:'any', step:'Create two tenants (Nimbus, Cornerstone). As Nimbus HR, try to fetch a Cornerstone employee/payslip by ID in the URL or a request.', exp:'Hard isolation. Nothing leaks across tenants.'},
+  {id:'SE.2', who:'employee', step:'Manipulate an employee ID in a self-service request to read/write someone else\'s record.', exp:'Server rejects. Authorization enforced server-side, not just UI.'},
+  {id:'SE.3', who:'any', step:'Submit a form field with an HTML/script payload (e.g. name = <script>).', exp:'Stored/escaped safely. No XSS execution.'},
+  {id:'SE.4', who:'any', step:'Leave request with end date before start date; negative salary; 200-char names.', exp:'All validated and rejected cleanly.'},
+  {id:'SE.5', who:'hr', step:'Upload .exe as logo; 15 MB image; malformed CSV.', exp:'All rejected with clear errors.'},
+  {id:'SE.6', who:'hr', step:'Duplicate SA ID number across two employees.', exp:'Rejected.'},
+  {id:'SE.7', who:'hr', step:'Leave policy below BCEA minimum (annual 5 days).', exp:'Warned/blocked - minimum 15 per BCEA.'},
+  {id:'SE.8', who:'any', step:'Confirm no secrets in client bundle (search page source for RESEND, NETCASH, keys).', exp:'No API keys exposed to the browser.'},
+  {id:'SE.9', who:'hr', step:'Run payroll on an empty company (all terminated).', exp:'Graceful empty state, no crash.'},
+  {id:'SE.10',who:'any', step:'Directly hit a server action with a forged/omitted auth token.', exp:'401/redirect, never executes.'},
+  {id:'SE.11',who:'hr', step:'Audit log after: invite, salary change, payroll run, leave approval, termination, data erasure.', exp:'All six appear with actor + timestamp.'},
+  {id:'SE.12',who:'any', step:'Session timeout / stale session behaviour after long idle.', exp:'Re-auth required; no silent data exposure.'},
+ ]},
+
+];
+
+// ============================================================
+// STATE
+// ============================================================
+const KEY = "novahr_uat_v4";
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}");}catch{return{};}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(state));}
+let state = load();
+state.items = state.items||{};
+state.notes = state.notes||{};
+state.bugs  = state.bugs||[];
+state.so    = state.so||{};
+state.col   = state.col||{};
+state.filter = state.filter||'all';
+
+const SCEN = [
+  {key:'pre',   cls:'pre',   label:'Pre-Launch',            tag:null},
+  {key:'a',     cls:'a',     label:'Scenario A - Nimbus',   tag:{cls:'a',title:'Scenario A: Nimbus Digital',desc:'7-person tech startup, HR + Payroll plan, no HR department. Founder is HR admin. Includes ETI-eligible young staff.'}},
+  {key:'b',     cls:'b',     label:'Scenario B - Cornerstone',tag:{cls:'b',title:'Scenario B: Cornerstone Advisory',desc:'8-person consulting firm with a dedicated HR Manager. Role separation. Age rebate, medical credits, 13th cheque.'}},
+  {key:'c',     cls:'c',     label:'Scenario C - Autobody',  tag:{cls:'c',title:'Scenario C: Thabo\'s Autobody',desc:'5-person workshop on the HR-only plan. Proves payroll features are correctly gated off.'}},
+  {key:'shared',cls:'shared',label:'Shared Deep-Dive',      tag:{cls:'shared',title:'Shared Deep-Dive Phases',desc:'Cross-cutting depth: payroll maths, NetCash, POPIA, equity, security. Run against whichever tenant fits.'}},
+];
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderPersonas(){
+  document.getElementById('persona-rows').innerHTML = PERSONAS.map(p=>
+    `<tr><td>${p[0]}</td><td>${p[1]}</td><td>${R(p[2])}</td><td><code>mtshwenewesley${p[3]}</code></td><td>${p[4]}</td></tr>`
+  ).join('');
+}
+
+function renderSidebar(){
+  let html='';
+  SCEN.forEach(s=>{
+    const ps=PHASES.filter(p=>p.scenario===s.key);
+    html+=`<div class="sb-scenario ${s.cls}">${s.label}<span class="sb-sc-cnt" id="sccnt-${s.key}"></span></div>`;
+    ps.forEach(p=>{
+      const code=p.items[0].id.split('.')[0];
+      html+=`<div class="sb-item" id="si-${p.id}" onclick="jumpTo('${p.id}')"><div class="sb-dot">${code}</div><span class="sb-name">${p.title}</span><span class="sb-cnt" id="sicnt-${p.id}">0/${p.items.length}</span></div>`;
+    });
+  });
+  html+=`<div class="sb-scenario shared">Wrap-up</div>
+    <div class="sb-item" onclick="jumpTo('section-bugs')"><div class="sb-dot">B</div><span class="sb-name">Bug Log</span></div>
+    <div class="sb-item" onclick="jumpTo('section-signoff')"><div class="sb-dot">S</div><span class="sb-name">Sign-Off</span></div>`;
+  document.getElementById('sb-items').innerHTML=html;
+}
+
+function jumpTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});}
+
+function renderPhases(){
+  let html='';
+  SCEN.forEach(s=>{
+    if(s.tag){html+=`<div class="scenario-divider" id="div-${s.key}"><span class="scenario-tag ${s.tag.cls}">${s.tag.title}</span><div class="scenario-divider-line"></div><span class="scenario-desc">${s.tag.desc}</span></div>`;}
+    PHASES.filter(p=>p.scenario===s.key).forEach(p=>{
+      const collapsed=!!state.col[p.id];
+      html+=`<div class="phase-section" id="${p.id}" data-scenario="${p.scenario}">
+        <div class="phase-hdr" onclick="togglePhase('${p.id}')">
+          <span class="phase-badge ${p.badgeClass}">${p.badgeText}</span>
+          <span class="phase-title">${p.title}</span>
+          <div class="phase-bar-wrap"><div class="phase-bar" id="pb-${p.id}"></div></div>
+          <span class="phase-stat" id="ps-${p.id}">0/${p.items.length}</span>
+          <span class="phase-toggle" id="pt-${p.id}">${collapsed?'▸':'▾'}</span>
+        </div>
+        ${p.context?`<div class="phase-context">${p.context}</div>`:''}
+        <div class="phase-body${collapsed?' collapsed':''}" id="pbody-${p.id}">
+          <table class="uat-table"><thead><tr><th>#</th><th>Who</th><th>Test Step</th><th>Expected Result</th><th class="th-status">Status</th><th>Notes</th></tr></thead>
+          <tbody>${p.items.map(rowHTML).join('')}</tbody></table>
+        </div></div>`;
+    });
+  });
+  document.getElementById('phases-root').innerHTML=html;
+}
+
+// Escape text before injecting it via innerHTML. Test steps legitimately
+// contain things like "<title>" and "<script>" (the security tests), which
+// would otherwise be parsed as real tags and break the table.
+function esc(s){return String(s??"").replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+function rowHTML(item){
+  const st=state.items[item.id]||"";
+  const nt=state.notes[item.id]||"";
+  const text=(item.id+' '+item.who+' '+item.step+' '+item.exp).toLowerCase();
+  return `<tr id="row-${item.id}" class="${st?'row-'+st:''}" data-status="${st}" data-text="${esc(text)}">
+    <td class="td-num">${item.id}</td>
+    <td class="td-who">${R(item.who)}</td>
+    <td class="td-step">${esc(item.step)}</td>
+    <td class="td-exp">${esc(item.exp)}</td>
+    <td class="td-status"><div class="sbx">
+      <button class="sbtn pass${st==='pass'?' active':''}" onclick="setStatus('${item.id}','pass')">P</button>
+      <button class="sbtn fail${st==='fail'?' active':''}" onclick="setStatus('${item.id}','fail')">F</button>
+      <button class="sbtn skip${st==='skip'?' active':''}" onclick="setStatus('${item.id}','skip')">S</button>
+      <button class="flag-btn" title="Log bug for this step" onclick="openBugFor('${item.id}')">&#9873;</button>
+    </div></td>
+    <td class="td-notes"><textarea class="notes-ta" rows="1" placeholder="Notes…" onfocus="this.rows=3" onblur="this.rows=1" oninput="setNotes('${item.id}',this.value)">${esc(nt)}</textarea></td>
+  </tr>`;
+}
+
+// ============================================================
+// INTERACTIONS
+// ============================================================
+function togglePhase(id){state.col[id]=!state.col[id];persist();document.getElementById('pbody-'+id).classList.toggle('collapsed',!!state.col[id]);document.getElementById('pt-'+id).textContent=state.col[id]?'▸':'▾';}
+function expandAll(open){PHASES.forEach(p=>{state.col[p.id]=!open;const b=document.getElementById('pbody-'+p.id);const t=document.getElementById('pt-'+p.id);if(b)b.classList.toggle('collapsed',!open);if(t)t.textContent=open?'▾':'▸';});persist();}
+
+function setStatus(id,val){
+  state.items[id]=state.items[id]===val?'':val;persist();
+  const row=document.getElementById('row-'+id);
+  row.className=state.items[id]?'row-'+state.items[id]:'';
+  row.setAttribute('data-status',state.items[id]||'');
+  row.querySelectorAll('.sbtn').forEach(b=>{const k=b.classList.contains('pass')?'pass':b.classList.contains('fail')?'fail':b.classList.contains('skip')?'skip':'';if(k)b.classList.toggle('active',k===state.items[id]);});
+  updateStats();applyView();
+}
+function setNotes(id,val){state.notes[id]=val;persist();}
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats(){
+  let total=0,pass=0,fail=0,skip=0;
+  const scTot={};SCEN.forEach(s=>scTot[s.key]={done:0,total:0});
+  PHASES.forEach(p=>{
+    let pDone=0,pFail=0;
+    p.items.forEach(i=>{total++;scTot[p.scenario].total++;const s=state.items[i.id]||'';if(s==='pass'){pass++;pDone++;scTot[p.scenario].done++;}else if(s==='fail'){fail++;pDone++;pFail++;scTot[p.scenario].done++;}else if(s==='skip'){skip++;pDone++;scTot[p.scenario].done++;}});
+    const bar=document.getElementById('pb-'+p.id),stat=document.getElementById('ps-'+p.id),si=document.getElementById('si-'+p.id),sicnt=document.getElementById('sicnt-'+p.id);
+    const pct=p.items.length?(pDone/p.items.length)*100:0;
+    if(bar){bar.style.width=pct+'%';bar.className='phase-bar';if(pDone===p.items.length&&p.items.length)bar.classList.add(pFail?'has-fail':'all-pass');else if(pDone)bar.classList.add(pFail?'has-fail':'partial');}
+    if(stat)stat.textContent=pDone+'/'+p.items.length;
+    if(si){si.classList.remove('done','partial','has-fail');if(pDone===p.items.length&&p.items.length)si.classList.add(pFail?'has-fail':'done');else if(pDone)si.classList.add(pFail?'has-fail':'partial');}
+    if(sicnt)sicnt.textContent=pDone+'/'+p.items.length;
+  });
+  SCEN.forEach(s=>{const el=document.getElementById('sccnt-'+s.key);if(el)el.textContent=scTot[s.key].done+'/'+scTot[s.key].total;});
+  const untested=total-pass-fail-skip;
+  document.getElementById('sc-total').textContent=total;
+  document.getElementById('sc-pass').textContent=pass;
+  document.getElementById('sc-fail').textContent=fail;
+  document.getElementById('sc-skip').textContent=skip;
+  document.getElementById('sc-untested').textContent=untested;
+  const done=pass+fail+skip,pct=total?Math.round(done/total*100):0;
+  document.getElementById('sc-pct').textContent=pct+'%';
+  document.getElementById('tp-done').textContent=done;
+  document.getElementById('tp-total').textContent=total;
+  document.getElementById('gpfill').style.width=pct+'%';
+}
+
+// ============================================================
+// FILTER + SEARCH VIEW
+// ============================================================
+function setFilter(f){state.filter=f;persist();document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));applyView();}
+function applyView(){
+  const q=(document.getElementById('search').value||'').trim().toLowerCase();
+  const f=state.filter;
+  PHASES.forEach(p=>{
+    let visible=0;
+    p.items.forEach(i=>{
+      const row=document.getElementById('row-'+i.id);if(!row)return;
+      const st=row.getAttribute('data-status')||'';
+      let ok=true;
+      if(f==='untested')ok=(st==='');else if(f!=='all')ok=(st===f);
+      if(ok&&q)ok=row.getAttribute('data-text').includes(q);
+      row.style.display=ok?'':'none';
+      if(ok)visible++;
+    });
+    const sec=document.getElementById(p.id);
+    if(sec)sec.style.display=visible?'':'none';
+  });
+}
+
+function jumpNextUntested(){
+  for(const p of PHASES){for(const i of p.items){if(!state.items[i.id]){if(state.col[p.id]){togglePhase(p.id);}const row=document.getElementById('row-'+i.id);row.style.display='';document.getElementById(p.id).style.display='';row.scrollIntoView({behavior:'smooth',block:'center'});row.classList.add('flash');setTimeout(()=>row.classList.remove('flash'),1200);return;}}}
+  alert('All tests have a status. Nothing left untested.');
+}
+
+// ============================================================
+// BUGS
+// ============================================================
+function renderBugs(){
+  document.getElementById('bug-list').innerHTML=state.bugs.map((b,i)=>`
+    <div class="bug-item sev-${b.sev||'high'}" id="bi-${i}">
+      <input class="bfld" placeholder="Ref" value="${esc(b.step||'')}" oninput="ubug(${i},'step',this.value)" />
+      <input class="bfld" placeholder="Describe the bug…" value="${esc(b.desc||'')}" oninput="ubug(${i},'desc',this.value)" />
+      <select class="bfld" onchange="ubug(${i},'sev',this.value)"><option value="low" ${b.sev==='low'?'selected':''}>Low</option><option value="high" ${b.sev==='high'?'selected':''}>High</option><option value="critical" ${b.sev==='critical'?'selected':''}>Critical</option></select>
+      <select class="bfld" onchange="ubug(${i},'status',this.value)"><option value="open" ${b.status==='open'?'selected':''}>Open</option><option value="fixed" ${b.status==='fixed'?'selected':''}>Fixed</option><option value="wontfix" ${b.status==='wontfix'?'selected':''}>Won't Fix</option></select>
+      <button class="btn-del" onclick="dbug(${i})" title="Delete">&times;</button>
+    </div>`).join('');
+  updateBugBadge();
+}
+function addBug(){state.bugs.push({step:'',desc:'',sev:'high',status:'open'});persist();renderBugs();}
+function ubug(i,k,v){if(state.bugs[i])state.bugs[i][k]=v;if(k==='sev'){const el=document.getElementById('bi-'+i);if(el)el.className='bug-item sev-'+v;}persist();updateBugBadge();}
+function dbug(i){state.bugs.splice(i,1);persist();renderBugs();}
+function updateBugBadge(){const o=state.bugs.filter(b=>b.status==='open').length;document.getElementById('bug-badge').textContent=o+' open';document.getElementById('fab-count').textContent=o;}
+
+function toggleDrawer(){const d=document.getElementById('bug-drawer');d.classList.toggle('open');if(d.classList.contains('open'))setTimeout(()=>document.getElementById('bd-desc').focus(),60);}
+function openBugFor(id){const d=document.getElementById('bug-drawer');document.getElementById('bd-step').value=id;document.getElementById('bd-desc').value='';document.getElementById('bd-sev').value='high';if(!d.classList.contains('open'))d.classList.add('open');setTimeout(()=>document.getElementById('bd-desc').focus(),60);}
+function quickSaveBug(){const step=document.getElementById('bd-step').value.trim();const desc=document.getElementById('bd-desc').value.trim();const sev=document.getElementById('bd-sev').value;if(!desc){document.getElementById('bd-desc').focus();return;}state.bugs.push({step,desc,sev,status:'open'});persist();document.getElementById('bd-step').value='';document.getElementById('bd-desc').value='';document.getElementById('bd-sev').value='high';renderBugs();document.getElementById('bug-drawer').classList.remove('open');}
+
+// ============================================================
+// SIGN-OFF
+// ============================================================
+function loadSignoff(){const s=state.so;document.getElementById('so-tester').value=s.tester||'';document.getElementById('so-period').value=s.period||'';document.getElementById('so-env').value=s.env||'novahr-five.vercel.app';document.getElementById('so-notes').value=s.notes||'';if(s.outcome)setOutcome(s.outcome,true);}
+function saveSignoff(){state.so.tester=document.getElementById('so-tester').value;state.so.period=document.getElementById('so-period').value;state.so.env=document.getElementById('so-env').value;state.so.notes=document.getElementById('so-notes').value;persist();}
+function setOutcome(v,silent){state.so.outcome=v;if(!silent)persist();document.getElementById('so-pass').classList.toggle('active',v==='pass');document.getElementById('so-fail').classList.toggle('active',v==='fail');}
+
+// ============================================================
+// COLLAPSIBLES (intro)
+// ============================================================
+function toggleCol(hdr){const body=hdr.nextElementSibling;const open=body.classList.toggle('open');hdr.querySelector('.chev').textContent=open?'▾':'▸';}
+
+// ============================================================
+// EXPORT / BACKUP / RESTORE
+// ============================================================
+function exportReport(){
+  let out='NovaHR UAT Report\n'+'='.repeat(60)+'\n';
+  out+='Tester: '+(state.so.tester||'-')+'\nPeriod: '+(state.so.period||'-')+'\nEnvironment: '+(state.so.env||'-')+'\n';
+  let total=0,pass=0,fail=0,skip=0;PHASES.forEach(p=>p.items.forEach(i=>{total++;const s=state.items[i.id];if(s==='pass')pass++;else if(s==='fail')fail++;else if(s==='skip')skip++;}));
+  out+='Result: '+pass+' pass / '+fail+' fail / '+skip+' skip / '+(total-pass-fail-skip)+' untested (of '+total+')\n';
+  out+='Outcome: '+((state.so.outcome||'not set').toUpperCase())+'\n\n';
+  PHASES.forEach(p=>{
+    out+='\n'+p.badgeText+' - '+p.title+'\n'+'-'.repeat(50)+'\n';
+    p.items.forEach(i=>{const s=(state.items[i.id]||'----').toUpperCase().padEnd(5);const n=state.notes[i.id]?'  // '+state.notes[i.id]:'';out+='['+s+'] '+i.id+' '+i.step+n+'\n';});
+  });
+  const openBugs=state.bugs.filter(b=>b.desc);
+  if(openBugs.length){out+='\n\nBUG LOG\n'+'-'.repeat(50)+'\n';openBugs.forEach(b=>{out+='['+(b.sev||'').toUpperCase()+'/'+(b.status||'').toUpperCase()+'] '+(b.step||'')+': '+b.desc+'\n';});}
+  download('novahr-uat-report.txt',out,'text/plain');
+}
+function backupState(){download('novahr-uat-backup.json',JSON.stringify(state,null,2),'application/json');}
+function restoreState(ev){const file=ev.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);if(!data.items){alert('Not a valid backup file.');return;}if(confirm('Replace current progress with this backup?')){state=data;state.items=state.items||{};state.notes=state.notes||{};state.bugs=state.bugs||[];state.so=state.so||{};state.col=state.col||{};state.filter=state.filter||'all';persist();location.reload();}}catch{alert('Could not read that file.');}};reader.readAsText(file);}
+function download(name,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);}
+
+// ============================================================
+// RESET
+// ============================================================
+function confirmReset(){if(confirm('Reset ALL progress, notes and bugs? Consider Backup first. This cannot be undone.')){state={items:{},notes:{},bugs:[],so:{},col:{},filter:'all'};persist();location.reload();}}
+
+// ============================================================
+// INIT
+// ============================================================
+renderPersonas();
+renderSidebar();
+renderPhases();
+renderBugs();
+loadSignoff();
+updateStats();
+setFilter(state.filter);
+</script>
+</body>
+</html>

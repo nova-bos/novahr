@@ -226,6 +226,24 @@ describe("calculateMonthlyPayroll", () => {
     expect(breakdown.paye).toBe(10_323.58);
   });
 
+  it("applies the Medical Aid Tax Credit for a private scheme member with no payroll contribution", () => {
+    // Same MATC (main + 1 dependant = 752/month) as a payroll-deducted member,
+    // driven by isMedicalAidMember rather than a contribution amount.
+    const employee = makeEmployee({
+      annualGross: 600_000,
+      currency: "ZAR",
+      payFrequency: "monthly",
+      isMedicalAidMember: true,
+      medicalAidDependants: 1,
+    });
+
+    const breakdown = calculateMonthlyPayroll(employee);
+
+    expect(breakdown.paye).toBe(10_323.58);
+    // No Medical Aid deduction line because nothing is deducted through payroll.
+    expect(breakdown.deductions.find((d) => d.label === "Medical Aid")).toBeUndefined();
+  });
+
   it("applies extra MATC per additional dependant beyond the first", () => {
     // MATC: 376 + 376 + 254 * 2 = 1,260/month -> 15,120/year
     // annualPAYE = 132,907 - 15,120 = 117,787 -> monthly 9,815.58

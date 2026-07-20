@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, UserPlus } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useApp } from "@/lib/store/app-provider";
@@ -29,6 +29,7 @@ export function OnboardingWizard() {
     emptyForm({ location: tenant.city, bank: tenant.bankName })
   );
   const [stepErrors, setStepErrors] = React.useState<FieldErrors>({});
+  const [creating, setCreating] = React.useState(false);
 
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
@@ -51,6 +52,8 @@ export function OnboardingWizard() {
   }
 
   async function handleCreate() {
+    if (creating) return;
+    setCreating(true);
     const draft = buildEmployeeFromForm(form, tenant, employees.length + 1);
     try {
       const employee = await addEmployee(draft);
@@ -59,6 +62,7 @@ export function OnboardingWizard() {
       });
       router.push(`/employees/${employee.id}`);
     } catch {
+      setCreating(false);
       toast.error("Couldn't add employee", {
         description: "Please try again.",
       });
@@ -94,9 +98,9 @@ export function OnboardingWizard() {
           Back
         </Button>
         {isLastStep ? (
-          <Button type="button" onClick={handleCreate}>
-            <UserPlus />
-            Create employee
+          <Button type="button" onClick={handleCreate} disabled={creating}>
+            {creating ? <Loader2 className="animate-spin" /> : <UserPlus />}
+            {creating ? "Creating employee…" : "Create employee"}
           </Button>
         ) : (
           <Button type="button" onClick={goNext} disabled={!canAdvance}>

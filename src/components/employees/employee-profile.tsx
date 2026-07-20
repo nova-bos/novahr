@@ -23,11 +23,16 @@ import { useAuth } from "@/lib/auth/auth-provider";
 export function EmployeeProfile({ employee }: { employee: Employee }) {
   const [editOpen, setEditOpen] = React.useState(false);
   const [terminateOpen, setTerminateOpen] = React.useState(false);
+  const [optimisticStatus, setOptimisticStatus] = React.useState<Employee["status"] | null>(null);
   const { user } = useAuth();
+
+  const displayEmployee = optimisticStatus
+    ? { ...employee, status: optimisticStatus }
+    : employee;
 
   return (
     <div className="flex flex-col gap-6">
-      <ProfileHeader employee={employee} onEdit={() => setEditOpen(true)} />
+      <ProfileHeader employee={displayEmployee} onEdit={() => setEditOpen(true)} />
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
@@ -60,7 +65,7 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
             </TabsContent>
             {employee.onboarding ? (
               <TabsContent value="onboarding" className="mt-4">
-                <ProfileOnboarding employee={employee} />
+                <ProfileOnboarding employee={employee} onGraduate={() => setOptimisticStatus("active")} />
               </TabsContent>
             ) : null}
           </Tabs>

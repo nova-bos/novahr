@@ -156,6 +156,12 @@ export function StepReview({ form }: { form: NewEmployeeForm }) {
                 value={formatCurrency(previewEmployee.salary.medicalAid)}
               />
             ) : null}
+            {previewEmployee.salary.retirementAnnuity ? (
+              <ReviewRow
+                label="Retirement annuity"
+                value={formatCurrency(previewEmployee.salary.retirementAnnuity)}
+              />
+            ) : null}
             <Separator />
             <ReviewRow label="Bank" value={previewEmployee.bankDetails.bank} />
             <ReviewRow

@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  Banknote,
   Building2,
   CalendarRange,
   Eye,
@@ -22,6 +23,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { FormAlert } from "@/components/ui/form-alert";
+import { authMessageTone } from "@/lib/errors";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { demoUsers } from "@/lib/auth/demo-users";
 import { ROLE_LABELS, type UserRole } from "@/lib/auth/types";
@@ -41,9 +44,11 @@ const ROLE_ICONS: Record<UserRole, LucideIcon> = {
 const SHOW_DEMO_ACCOUNTS = process.env.NEXT_PUBLIC_APP_ENV !== "production";
 
 const FEATURES: { icon: LucideIcon; label: string }[] = [
-  { icon: Wallet, label: "Run South African payroll in minutes" },
-  { icon: CalendarRange, label: "Track leave balances and approvals" },
-  { icon: Users, label: "A tailored view for every role in your org" },
+  { icon: Wallet, label: "Run payroll with automatic PAYE, UIF and SDL" },
+  { icon: Banknote, label: "Pay salaries straight to the bank with NetCash" },
+  { icon: CalendarRange, label: "Track leave balances, requests and approvals" },
+  { icon: ShieldCheck, label: "Stay compliant with EMP201, employment equity and POPIA" },
+  { icon: Users, label: "A tailored view for every role in your organisation" },
 ];
 
 export default function LoginPage() {
@@ -114,12 +119,12 @@ export default function LoginPage() {
         <div className="relative space-y-8">
           <div>
             <h2 className="text-2xl font-bold text-sidebar-foreground leading-snug">
-              Modern HR &amp; payroll,<br />built for growing teams.
+              HR and payroll,<br />built for South African teams.
             </h2>
-            <p className="mt-3 text-sm text-sidebar-foreground/70 leading-relaxed max-w-xs">
+            <p className="mt-3 text-sm text-sidebar-foreground/70 leading-relaxed max-w-sm">
               {SHOW_DEMO_ACCOUNTS
                 ? "Sign in as any persona below to preview NovaHR from their seat: employee, manager, HR, or executive."
-                : "Payroll, leave, and people operations for South African teams, all in one place."}
+                : "From onboarding and leave to payslips, bank payments and compliance, NovaHR runs your people operations in one place."}
             </p>
           </div>
 
@@ -158,9 +163,9 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            <FormAlert tone={authMessageTone(error)} className="mb-4">
               {error}
-            </div>
+            </FormAlert>
           )}
 
           <GoogleSignInButton label="Continue with Google" />
@@ -227,7 +232,7 @@ export default function LoginPage() {
           <p className="mt-5 text-center text-sm text-muted-foreground">
             New to NovaHR?{" "}
             <Link href="/signup" className="text-primary hover:opacity-80 font-medium transition-opacity">
-              Create your company
+              Sign your company up
             </Link>
           </p>
 

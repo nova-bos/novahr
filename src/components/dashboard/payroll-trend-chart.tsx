@@ -15,7 +15,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { usePayrollRuns } from "@/lib/store/hooks";
-import { formatCurrencyCompact, formatMonthShort } from "@/lib/format";
+import { formatAxisCurrency, formatCurrencyCompact, formatMonthShort } from "@/lib/format";
 
 const chartConfig: ChartConfig = {
   totalGross: {
@@ -68,8 +68,8 @@ export function PayrollTrendChart() {
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              width={56}
-              tickFormatter={(value) => formatCurrencyCompact(Number(value))}
+              width={60}
+              tickFormatter={(value) => formatAxisCurrency(Number(value))}
             />
             <ChartTooltip
               content={

@@ -23,53 +23,25 @@ import {
 } from "@/components/ui/table";
 import {
   importEmployeesFromCsvAction,
-  type CsvRow,
   type ImportRowError,
 } from "@/lib/employees/import-actions";
+import { buildTemplateCsv, parseCsv, type CsvRow } from "@/lib/employees/import-columns";
 
-const CSV_HEADERS = [
-  "firstName",
-  "lastName",
-  "email",
-  "jobTitle",
-  "department",
-  "startDate",
-  "salaryAnnualGross",
-] as const;
-
-const TEMPLATE_CSV =
-  "firstName,lastName,email,jobTitle,department,startDate,salaryAnnualGross\n" +
-  "Jane,Doe,jane.doe@company.co.za,Software Engineer,Engineering,2024-01-15,480000\n";
+// Compact set of columns shown in the preview table (the CSV itself carries far
+// more). Kept short so the preview stays readable.
+const PREVIEW_COLUMNS: { key: string; label: string }[] = [
+  { key: "firstName", label: "First name" },
+  { key: "lastName", label: "Last name" },
+  { key: "email", label: "Email" },
+  { key: "jobTitle", label: "Job title" },
+  { key: "idNumber", label: "SA ID" },
+  { key: "annualGross", label: "Salary" },
+];
 
 const PREVIEW_LIMIT = 5;
 
-function parseCsv(text: string): CsvRow[] {
-  const lines = text
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-
-  if (lines.length < 2) return [];
-
-  // Skip the header row
-  const dataLines = lines.slice(1);
-
-  return dataLines.map((line) => {
-    const fields = line.split(",");
-    return {
-      firstName: fields[0] ?? "",
-      lastName: fields[1] ?? "",
-      email: fields[2] ?? "",
-      jobTitle: fields[3] ?? "",
-      department: fields[4] ?? "",
-      startDate: fields[5] ?? "",
-      salaryAnnualGross: fields[6] ?? "",
-    };
-  });
-}
-
 function downloadTemplate() {
-  const blob = new Blob([TEMPLATE_CSV], { type: "text/csv" });
+  const blob = new Blob([buildTemplateCsv()], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -164,9 +136,11 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
         <DialogHeader>
           <DialogTitle>Import employees from CSV</DialogTitle>
           <DialogDescription>
-            Upload a CSV file to add multiple employees at once. Each row must
-            include a first name, last name, email, job title, start date, and
-            annual gross salary.
+            Upload a CSV to add multiple employees at once, with the same details
+            as manual onboarding. Download the template for the full set of
+            columns. Required: first name, last name, email, phone, SA ID number,
+            job title, start date, annual gross salary, bank, account number and
+            branch code.
           </DialogDescription>
         </DialogHeader>
 
@@ -192,8 +166,8 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
               <div className="space-y-1">
                 <p className="text-sm font-medium">Select your CSV file</p>
                 <p className="text-xs text-muted-foreground">
-                  Column order: firstName, lastName, email, jobTitle, department,
-                  startDate, salaryAnnualGross
+                  Columns are matched by their header name, so the order does not
+                  matter. Values with commas can be wrapped in quotes.
                 </p>
               </div>
               <Button
@@ -237,9 +211,9 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {CSV_HEADERS.map((h) => (
-                      <TableHead key={h} className="text-xs">
-                        {h}
+                    {PREVIEW_COLUMNS.map((col) => (
+                      <TableHead key={col.key} className="text-xs">
+                        {col.label}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -247,13 +221,11 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
                 <TableBody>
                   {previewRows.map((row, idx) => (
                     <TableRow key={idx}>
-                      <TableCell className="text-xs">{row.firstName}</TableCell>
-                      <TableCell className="text-xs">{row.lastName}</TableCell>
-                      <TableCell className="text-xs">{row.email}</TableCell>
-                      <TableCell className="text-xs">{row.jobTitle}</TableCell>
-                      <TableCell className="text-xs">{row.department}</TableCell>
-                      <TableCell className="text-xs">{row.startDate}</TableCell>
-                      <TableCell className="text-xs">{row.salaryAnnualGross}</TableCell>
+                      {PREVIEW_COLUMNS.map((col) => (
+                        <TableCell key={col.key} className="text-xs">
+                          {row[col.key]}
+                        </TableCell>
+                      ))}
                     </TableRow>
                   ))}
                 </TableBody>

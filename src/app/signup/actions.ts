@@ -4,11 +4,15 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit, clientKey } from "@/lib/security/rate-limit";
+import { friendlyAuthError } from "@/lib/errors";
+import { getAppUrl } from "@/lib/app-url";
+import { generateTenantId } from "@/lib/tenant/tenant-id";
 import { formatMonthYear } from "@/lib/format";
 
 const signupSchema = z.object({
   companyName: z.string().min(2, "Company name is required"),
   yourName: z.string().min(2, "Your name is required"),
+  jobTitle: z.string().max(120).optional(),
   email: z.email("Enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
@@ -21,7 +25,7 @@ export type CreateCompanyResult =
   | { status: "error"; message: string };
 
 /**
- * "Create your company" flow: signs up a Supabase Auth user, then creates a
+ * "Sign your company up" flow: signs up a Supabase Auth user, then creates a
  * `Tenant` row for the new company and a `User` row for the signer-upper as
  * its first `hr` (admin) user. Tenant fields that aren't collected at signup
  * get sensible placeholders, editable later from Settings.
@@ -31,7 +35,7 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
   if (!parsed.success) {
     return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid input" };
   }
-  const { companyName, yourName, email, password } = parsed.data;
+  const { companyName, yourName, jobTitle, email, password } = parsed.data;
 
   // Throttle new-company signups to curb spam. Keyed by client IP when
   // available, otherwise the submitted email.
@@ -46,9 +50,14 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const appUrl = await getAppUrl();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: `${appUrl}/auth/callback` },
+  });
   if (error) {
-    return { status: "error", message: error.message };
+    return { status: "error", message: friendlyAuthError(error) };
   }
   if (!data.user) {
     return { status: "error", message: "Couldn't create your account. Please try again." };
@@ -68,6 +77,7 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
   await prisma.$transaction(async (tx) => {
     const tenant = await tx.tenant.create({
       data: {
+        id: generateTenantId(companyName),
         name: companyName,
         legalName: companyName,
         initials: deriveInitials(companyName),
@@ -91,7 +101,7 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
         tenantId: tenant.id,
         email,
         name: yourName,
-        title: "HR Administrator",
+        title: jobTitle?.trim() || "",
         role: "hr",
         avatarColor: "#4C6FFF",
         initials: deriveInitials(yourName),
@@ -120,11 +130,18 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
 }
 
 export async function completeGoogleSignup(
-  companyName: string
+  companyName: string,
+  agreedToTerms: boolean
 ): Promise<CreateCompanyResult> {
   const name = companyName.trim();
   if (name.length < 2) {
     return { status: "error", message: "Company name must be at least 2 characters." };
+  }
+  if (!agreedToTerms) {
+    return {
+      status: "error",
+      message: "Please accept the Terms of Service, Privacy Policy and Data Processing Agreement to continue.",
+    };
   }
 
   const googleRate = checkRateLimit(await clientKey(), { name: "signup", limit: 5, windowMs: 60 * 60 * 1000 });
@@ -151,6 +168,7 @@ export async function completeGoogleSignup(
   await prisma.$transaction(async (tx) => {
     const tenant = await tx.tenant.create({
       data: {
+        id: generateTenantId(name),
         name,
         legalName: name,
         initials: deriveInitials(name),
@@ -174,7 +192,7 @@ export async function completeGoogleSignup(
         tenantId: tenant.id,
         email: user.email!,
         name: yourName,
-        title: "HR Administrator",
+        title: "",
         role: "hr",
         avatarColor: "#4C6FFF",
         initials: deriveInitials(yourName),

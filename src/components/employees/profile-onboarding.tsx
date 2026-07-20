@@ -1,3 +1,4 @@
+import * as React from "react";
 import { toast } from "sonner";
 import { Calendar, CheckCircle2, Circle, UserCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,13 +8,21 @@ import { formatDate } from "@/lib/format";
 import { useApp } from "@/lib/store/app-provider";
 import type { Employee } from "@/lib/types";
 
-export function ProfileOnboarding({ employee }: { employee: Employee }) {
+export function ProfileOnboarding({ employee, onGraduate }: { employee: Employee; onGraduate?: () => void }) {
   const { toggleOnboardingStep } = useApp();
   const onboarding = employee.onboarding;
+  const [pending, setPending] = React.useState<Set<string>>(new Set());
+  const [optimisticComplete, setOptimisticComplete] = React.useState<Map<string, boolean>>(new Map());
 
   if (!onboarding) return null;
 
-  const completedSteps = onboarding.steps.filter((step) => step.complete).length;
+  function isComplete(stepId: string, serverValue: boolean) {
+    if (optimisticComplete.has(stepId)) return optimisticComplete.get(stepId)!;
+    return serverValue;
+  }
+
+  const completedSteps = onboarding.steps.filter((step) => isComplete(step.id, step.complete)).length;
+  const progress = Math.round((completedSteps / onboarding.steps.length) * 100);
 
   return (
     <div className="flex flex-col gap-6">
@@ -26,9 +35,9 @@ export function ProfileOnboarding({ employee }: { employee: Employee }) {
             <span className="text-muted-foreground">
               {completedSteps} of {onboarding.steps.length} steps complete
             </span>
-            <span className="font-semibold">{onboarding.progress}%</span>
+            <span className="font-semibold">{progress}%</span>
           </div>
-          <Progress value={onboarding.progress} className="mt-3" />
+          <Progress value={progress} className="mt-3" />
 
           <div className="mt-5 grid gap-5 sm:grid-cols-2">
             <div className="flex items-start gap-3">
@@ -61,34 +70,68 @@ export function ProfileOnboarding({ employee }: { employee: Employee }) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-1">
-            {onboarding.steps.map((step) => (
-              <button
-                key={step.id}
-                type="button"
-                onClick={() => {
-                  toggleOnboardingStep(employee.id, step.id).catch(() => {
-                    toast.error("Couldn't update onboarding step", {
-                      description: "Please try again.",
-                    });
-                  });
-                }}
-                className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted/60"
-              >
-                {step.complete ? (
-                  <CheckCircle2 className="size-5 shrink-0 text-success" />
-                ) : (
-                  <Circle className="size-5 shrink-0 text-muted-foreground" />
-                )}
-                <span
-                  className={cn(
-                    "text-sm",
-                    step.complete && "text-muted-foreground line-through"
-                  )}
+            {onboarding.steps.map((step) => {
+              const complete = isComplete(step.id, step.complete);
+              const isPending = pending.has(step.id);
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  disabled={isPending}
+                  onClick={() => {
+                    if (isPending) return;
+                    const next = !complete;
+                    setPending((p) => new Set(p).add(step.id));
+                    const nextMap = new Map(optimisticComplete).set(step.id, next);
+                    setOptimisticComplete(nextMap);
+                    const allDone = onboarding.steps.every((s) =>
+                      s.id === step.id ? next : (nextMap.get(s.id) ?? s.complete)
+                    );
+                    if (allDone && employee.status !== "active") onGraduate?.();
+                    toggleOnboardingStep(employee.id, step.id)
+                      .then(() => {
+                        setOptimisticComplete((m) => {
+                          const n = new Map(m);
+                          n.delete(step.id);
+                          return n;
+                        });
+                      })
+                      .catch(() => {
+                        setOptimisticComplete((m) => {
+                          const n = new Map(m);
+                          n.delete(step.id);
+                          return n;
+                        });
+                        toast.error("Couldn't update onboarding step", {
+                          description: "Please try again.",
+                        });
+                      })
+                      .finally(() => {
+                        setPending((p) => {
+                          const n = new Set(p);
+                          n.delete(step.id);
+                          return n;
+                        });
+                      });
+                  }}
+                  className="flex items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted/60 disabled:opacity-60"
                 >
-                  {step.label}
-                </span>
-              </button>
-            ))}
+                  {complete ? (
+                    <CheckCircle2 className="size-5 shrink-0 text-success" />
+                  ) : (
+                    <Circle className="size-5 shrink-0 text-muted-foreground" />
+                  )}
+                  <span
+                    className={cn(
+                      "text-sm",
+                      complete && "text-muted-foreground line-through"
+                    )}
+                  >
+                    {step.label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </CardContent>
       </Card>

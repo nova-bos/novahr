@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,6 +19,7 @@ import { payFrequencyOptions } from "@/lib/config/leave";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant, usePayrollConfig } from "@/lib/store/hooks";
 import type { PayFrequency } from "@/lib/types";
+import { SA_BANKS } from "@/lib/services/netcash/helpers";
 import { SettingRow } from "./setting-row";
 import {
   getPayrollSettingsAction,
@@ -33,9 +34,6 @@ export function PayrollSettings() {
   const [payFrequency, setPayFrequency] = React.useState<PayFrequency>(tenant.payFrequency);
   const [payDay, setPayDay] = React.useState(tenant.payDay.toString());
   const [bankName, setBankName] = React.useState(tenant.bankName);
-  const [defaultPensionPct, setDefaultPensionPct] = React.useState(
-    config.defaultPensionPct.toString()
-  );
   const [payeReference, setPayeReference] = React.useState(config.payeReferenceNumber);
   const [uifReference, setUifReference] = React.useState(config.uifReferenceNumber);
   const [sdlReference, setSdlReference] = React.useState(config.sdlReferenceNumber);
@@ -218,24 +216,25 @@ export function PayrollSettings() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="bankName">Banking partner</Label>
-            <Input id="bankName" value={bankName} onChange={(e) => setBankName(e.target.value)} disabled={saving} />
+            <Select
+              value={bankName || "none"}
+              onValueChange={(v) => setBankName(v === "none" ? "" : v)}
+              disabled={saving}
+            >
+              <SelectTrigger id="bankName" className="w-full">
+                <SelectValue placeholder="Select bank" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Not set</SelectItem>
+                {SA_BANKS.map((b) => (
+                  <SelectItem key={b.name} value={b.name}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="currency">Currency</Label>
             <Input id="currency" value={tenant.currency} disabled />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="defaultPensionPct">Default pension contribution (%)</Label>
-            <Input
-              id="defaultPensionPct"
-              type="number"
-              step={0.5}
-              min={0}
-              max={100}
-              value={defaultPensionPct}
-              onChange={(e) => setDefaultPensionPct(e.target.value)}
-              disabled={saving}
-            />
           </div>
         </CardContent>
         <CardFooter className="justify-end">
@@ -250,7 +249,7 @@ export function PayrollSettings() {
         <CardContent>
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label htmlFor="payeReference">PAYE reference number</Label>
+              <Label htmlFor="payeReference">PAYE reference number <OptionalTag /></Label>
               <Input
                 id="payeReference"
                 value={payeReference}
@@ -264,7 +263,7 @@ export function PayrollSettings() {
               {refErrors.payeReference ? <p className="text-xs text-destructive">{refErrors.payeReference}</p> : null}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="uifReference">UIF reference number</Label>
+              <Label htmlFor="uifReference">UIF reference number <OptionalTag /></Label>
               <Input
                 id="uifReference"
                 value={uifReference}
@@ -278,7 +277,7 @@ export function PayrollSettings() {
               {refErrors.uifReference ? <p className="text-xs text-destructive">{refErrors.uifReference}</p> : null}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="sdlReference">SDL reference number</Label>
+              <Label htmlFor="sdlReference">SDL reference number <OptionalTag /></Label>
               <Input
                 id="sdlReference"
                 value={sdlReference}

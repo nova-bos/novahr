@@ -26,7 +26,7 @@ import {
   updateDepartmentRecord,
 } from "../departments/actions";
 import { completePayrollRunRecord, startPayrollRunRecord } from "../payroll/actions";
-import { markAllNotificationsReadRecord, markNotificationReadRecord } from "../notifications/actions";
+import { markAllNotificationsReadRecord, markNotificationReadRecord, markNotificationUnreadRecord } from "../notifications/actions";
 import { getTenantWorkspace, type TenantWorkspace } from "../workspace/actions";
 import {
   updateTenantProfile as updateTenantProfileAction,
@@ -74,6 +74,7 @@ export type Action =
       notification: NotificationItem;
     }
   | { type: "NOTIFICATION_READ"; id: string }
+  | { type: "NOTIFICATION_UNREAD"; id: string }
   | { type: "ALL_NOTIFICATIONS_READ"; tenantId: string }
   | { type: "TENANT_UPDATED"; tenant: Tenant }
   | { type: "DEPARTMENT_ADDED"; department: Department }
@@ -200,6 +201,14 @@ export function reducer(state: AppState, action: Action): AppState {
         ),
       };
 
+    case "NOTIFICATION_UNREAD":
+      return {
+        ...state,
+        notifications: state.notifications.map((n) =>
+          n.id === action.id ? { ...n, read: false } : n
+        ),
+      };
+
     case "ALL_NOTIFICATIONS_READ":
       return {
         ...state,
@@ -246,9 +255,11 @@ interface AppContextValue {
   startPayrollRun: (runId: string) => Promise<void>;
   completePayrollRun: (runId: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
+  markNotificationUnread: (id: string) => Promise<void>;
   markAllNotificationsRead: () => Promise<void>;
   updateTenantProfile: (data: Parameters<typeof updateTenantProfileAction>[0]) => Promise<void>;
   updateTenantPayrollSettings: (data: Parameters<typeof updateTenantPayrollSettingsAction>[0]) => Promise<void>;
+  patchTenantLogo: (logoUrl: string | null) => void;
   addDepartment: (data: { name: string; description?: string; headId?: string }) => Promise<void>;
   updateDepartment: (
     id: string,
@@ -340,9 +351,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           notification: result.notification,
         });
       },
-      markNotificationRead: async (id) => {
-        await markNotificationReadRecord(id);
+      markNotificationRead: (id) => {
         dispatch({ type: "NOTIFICATION_READ", id });
+        return markNotificationReadRecord(id);
+      },
+      markNotificationUnread: (id) => {
+        dispatch({ type: "NOTIFICATION_UNREAD", id });
+        return markNotificationUnreadRecord(id);
       },
       markAllNotificationsRead: async () => {
         await markAllNotificationsReadRecord();
@@ -355,6 +370,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateTenantPayrollSettings: async (data) => {
         const updated = await updateTenantPayrollSettingsAction(data);
         dispatch({ type: "TENANT_UPDATED", tenant: updated });
+      },
+      patchTenantLogo: (logoUrl) => {
+        if (state.currentTenant) {
+          dispatch({ type: "TENANT_UPDATED", tenant: { ...state.currentTenant, logoUrl: logoUrl ?? undefined } });
+        }
       },
       addDepartment: async (data) => {
         const department = await createDepartmentRecord(data);

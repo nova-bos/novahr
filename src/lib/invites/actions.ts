@@ -8,6 +8,7 @@ import { runAsTenant } from "@/lib/db-context";
 import { checkRateLimit, clientKey } from "@/lib/security/rate-limit";
 import { requireRole } from "@/lib/auth/require";
 import { sendInviteEmail } from "@/lib/email";
+import { getAppUrl } from "@/lib/app-url";
 import type { UserRole } from "@prisma/client";
 
 const INVITE_TTL_DAYS = 7;
@@ -42,6 +43,7 @@ export interface TenantUserRow {
   role: UserRole;
   initials: string;
   avatarColor: string;
+  employeeId?: string;
 }
 
 function mapInvite(row: {
@@ -132,7 +134,7 @@ export async function createInviteAction(input: {
     select: { name: true },
   });
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const appUrl = await getAppUrl();
   const inviteUrl = `${appUrl}/accept-invite/${token}`;
 
   const emailSent = await sendInviteEmail({
@@ -184,6 +186,7 @@ export async function listTenantUsersAction(): Promise<TenantUserRow[]> {
     role: u.role,
     initials: u.initials,
     avatarColor: u.avatarColor,
+    employeeId: u.employeeId ?? undefined,
   }));
 }
 

@@ -45,7 +45,7 @@ export function EmployeeDirectory() {
   const [showTerminated, setShowTerminated] = React.useState(false);
 
   const departments = React.useMemo(
-    () => Array.from(new Set(employees.map((e) => e.department))).sort(),
+    () => Array.from(new Set(employees.map((e) => e.department).filter(Boolean))).sort(),
     [employees]
   );
 

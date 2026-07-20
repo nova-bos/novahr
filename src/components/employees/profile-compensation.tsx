@@ -13,19 +13,23 @@ import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { usePayslipsByEmployee } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
 import { getSalaryHistoryAction, validateEmployeeBankAccountAction, type SalaryHistoryEntry } from "@/lib/employees/actions";
+import { getPayrollSettingsAction } from "@/lib/settings/actions";
 import { EditBankDetailsDialog } from "./edit-bank-details-dialog";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { useTenantId } from "@/lib/store/hooks";
 
 export function ProfileCompensation({ employee }: { employee: Employee }) {
   const breakdown = calculateMonthlyPayroll(employee);
   const payslips = usePayslipsByEmployee(employee.id);
   const { user } = useAuth();
+  const tenantId = useTenantId();
   const [salaryHistory, setSalaryHistory] = React.useState<SalaryHistoryEntry[]>([]);
   const [validated, setValidated] = React.useState(employee.bankDetails.validated);
   const [validatedAt, setValidatedAt] = React.useState(employee.bankDetails.validatedAt);
   const [validating, startValidating] = React.useTransition();
   const [bankDetails, setBankDetails] = React.useState(employee.bankDetails);
   const [editBankOpen, setEditBankOpen] = React.useState(false);
+  const [hasNetcash, setHasNetcash] = React.useState(false);
   const canEditBank = user?.role === "hr";
 
   React.useEffect(() => {
@@ -33,6 +37,12 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
       .then(setSalaryHistory)
       .catch(() => {});
   }, [employee.id]);
+
+  React.useEffect(() => {
+    getPayrollSettingsAction(tenantId)
+      .then((s) => setHasNetcash(s.hasAccountServicesKey))
+      .catch(() => {});
+  }, [tenantId]);
 
   function handleValidate() {
     startValidating(async () => {
@@ -174,6 +184,19 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
                 </div>
               </div>
             ) : null}
+            {employee.salary.retirementAnnuity ? (
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <Banknote className="size-4" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Retirement annuity</p>
+                  <p className="text-sm font-medium">
+                    {formatCurrency(employee.salary.retirementAnnuity)} / month
+                  </p>
+                </div>
+              </div>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -194,16 +217,24 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
                     <ShieldAlert className="size-3.5" />
                     Not verified
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleValidate}
-                    disabled={validating}
-                    className="h-7 px-2.5 text-xs"
-                  >
-                    {validating ? <Loader2 className="size-3 animate-spin mr-1" /> : null}
-                    {validating ? "Verifying..." : "Verify account"}
-                  </Button>
+                  {hasNetcash ? (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleValidate}
+                      disabled={validating}
+                      className="h-7 px-2.5 text-xs"
+                    >
+                      {validating ? <Loader2 className="size-3 animate-spin mr-1" /> : null}
+                      {validating ? "Verifying..." : "Verify account"}
+                    </Button>
+                  ) : (
+                    <Link href="/settings?tab=netcash">
+                      <Button size="sm" variant="outline" className="h-7 px-2.5 text-xs">
+                        Set up NetCash to verify
+                      </Button>
+                    </Link>
+                  )}
                 </>
               )}
               {canEditBank ? (

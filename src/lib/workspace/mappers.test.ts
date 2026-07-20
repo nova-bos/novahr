@@ -132,6 +132,7 @@ describe("mapEmployee", () => {
     salaryHousingAllowance: null,
     salaryPensionContributionPct: null,
     salaryMedicalAid: null,
+    salaryRetirementAnnuity: null,
     bankName: "Standard Bank",
     bankAccountNumber: "1234567890",
     bankBranchCode: "051001",

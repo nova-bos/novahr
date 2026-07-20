@@ -13,6 +13,16 @@ export async function markNotificationReadRecord(id: string): Promise<void> {
   });
 }
 
+export async function markNotificationUnreadRecord(id: string): Promise<void> {
+  const session = await requireUser();
+  await runAsTenant(session.tenantId, async (tx) => {
+    await tx.notificationItem.updateMany({
+      where: { id, tenantId: session.tenantId },
+      data: { read: false },
+    });
+  });
+}
+
 export async function markAllNotificationsReadRecord(): Promise<void> {
   const session = await requireUser();
   await runAsTenant(session.tenantId, async (tx) => {

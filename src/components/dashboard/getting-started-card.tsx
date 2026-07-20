@@ -1,7 +1,8 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
-import { CheckCircle2, Circle } from "lucide-react";
+import { CheckCircle2, Circle, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,30 +17,83 @@ import {
   useDepartments,
   useEmployees,
   usePayrollRuns,
+  useTenantId,
 } from "@/lib/store/hooks";
+import { getPayrollSettingsAction } from "@/lib/settings/actions";
+
+// Module-level caches survive SPA navigation (component unmounts/remounts).
+// _payrollCache: tenantId -> whether payrollConfiguredAt is set.
+// _dismissedSet: tenantIds that have been dismissed this session.
+const _payrollCache = new Map<string, boolean>();
+const _dismissedSet = new Set<string>();
 
 export function GettingStartedCard() {
   const tenant = useCurrentTenant();
+  const tenantId = useTenantId();
   const employees = useEmployees();
   const departments = useDepartments();
   const payrollRuns = usePayrollRuns();
 
+  const [dismissed, setDismissed] = React.useState(() => {
+    if (typeof window === "undefined") return false;
+    if (_dismissedSet.has(tenantId)) return true;
+    const stored = localStorage.getItem(`novahr:gs-dismissed:${tenantId}`) === "1";
+    if (stored) _dismissedSet.add(tenantId);
+    return stored;
+  });
+
+  function dismiss() {
+    _dismissedSet.add(tenantId);
+    setDismissed(true);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`novahr:gs-dismissed:${tenantId}`, "1");
+    }
+  }
+
+  // Start from cache so returning users never see a null/unchecked flash.
+  // Only fetch when the cache is empty or shows false (might have changed).
+  const [payrollConfigured, setPayrollConfigured] = React.useState<boolean | null>(
+    () => (_payrollCache.has(tenantId) ? (_payrollCache.get(tenantId) ?? null) : null)
+  );
+  React.useEffect(() => {
+    if (_payrollCache.get(tenantId) === true) return;
+    let active = true;
+    getPayrollSettingsAction(tenantId)
+      .then((s) => {
+        if (!active) return;
+        const val = Boolean(s.payrollConfiguredAt);
+        _payrollCache.set(tenantId, val);
+        setPayrollConfigured(val);
+      })
+      .catch(() => {
+        if (!active) return;
+        _payrollCache.set(tenantId, false);
+        setPayrollConfigured(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [tenantId]);
+
   const hasCompletedPayroll = payrollRuns.some((r) => r.status === "completed");
-  const hasAnyPayrollRun = payrollRuns.length > 0;
+
+  if (dismissed) return null;
 
   const steps = [
     {
       id: "company-profile",
       label: "Company profile",
       description: "Set your legal name, registration number, and company details.",
-      complete: Boolean(tenant.legalName),
+      // legalName is copied from the company name at sign-up, so it is a poor
+      // signal. The registration number is blank until the user fills it in.
+      complete: Boolean(tenant.registrationNumber?.trim()),
       href: "/settings",
       linkLabel: "Go",
     },
     {
       id: "add-departments",
       label: "Add departments",
-      description: "Create your org structure before adding employees.",
+      description: "Set up your organisation structure before adding employees.",
       complete: departments.length > 0,
       href: "/settings?tab=departments",
       linkLabel: "Go",
@@ -48,7 +102,7 @@ export function GettingStartedCard() {
       id: "payroll-settings",
       label: "Configure payroll settings",
       description: "Review SDL, UIF rates, and pay cycle before running payroll.",
-      complete: hasAnyPayrollRun,
+      complete: payrollConfigured === true,
       href: "/settings?tab=payroll",
       linkLabel: "Go",
     },
@@ -89,9 +143,20 @@ export function GettingStartedCard() {
               Complete these steps to get your workspace fully configured.
             </CardDescription>
           </div>
-          <Badge variant="secondary" className="shrink-0 tabular-nums">
-            {completedCount} of {steps.length}
-          </Badge>
+          <div className="flex items-center gap-2 shrink-0">
+            <Badge variant="secondary" className="tabular-nums">
+              {completedCount} of {steps.length}
+            </Badge>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="size-6 text-muted-foreground hover:text-foreground"
+              onClick={dismiss}
+              aria-label="Dismiss getting started guide"
+            >
+              <X className="size-3.5" />
+            </Button>
+          </div>
         </div>
         <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
           <div

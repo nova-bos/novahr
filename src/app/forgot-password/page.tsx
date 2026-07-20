@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { FormAlert } from "@/components/ui/form-alert";
 import { createClient } from "@/lib/supabase/client";
+import { friendlyAuthError, authMessageTone } from "@/lib/errors";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = React.useState("");
@@ -26,7 +28,7 @@ export default function ForgotPasswordPage() {
     });
 
     if (resetError) {
-      setError(resetError.message);
+      setError(friendlyAuthError(resetError));
       setSubmitting(false);
       return;
     }
@@ -81,7 +83,7 @@ export default function ForgotPasswordPage() {
           />
         </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <FormAlert tone={authMessageTone(error)}>{error}</FormAlert>}
 
         <Button type="submit" size="lg" className="w-full" disabled={submitting}>
           {submitting ? "Sending..." : "Send reset link"}

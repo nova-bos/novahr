@@ -4,7 +4,7 @@ import * as React from "react";
 import { Mail, Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { submitContactFormAction } from "@/lib/marketing/contact-action";
 
@@ -123,7 +123,7 @@ export function ContactSection() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="contact-company">Company (optional)</Label>
+              <Label htmlFor="contact-company">Company <OptionalTag /></Label>
               <Input
                 id="contact-company"
                 value={company}
@@ -147,7 +147,7 @@ export function ContactSection() {
             {result?.error ? (
               <p className="text-sm text-destructive">{result.error}</p>
             ) : null}
-            <Button type="submit" disabled={submitting} className="self-end">
+            <Button type="submit" disabled={submitting} className="self-center">
               {submitting ? "Sending..." : "Send message"}
             </Button>
           </form>

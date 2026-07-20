@@ -6,7 +6,60 @@ import { encryptServiceKey, decryptServiceKey } from "@/lib/crypto/service-keys"
 import { prisma } from "@/lib/prisma";
 import { isValidServiceKey } from "@/lib/services/netcash/auth";
 import { checkRateLimit } from "@/lib/security/rate-limit";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Prisma } from "@prisma/client";
+
+const ALLOWED_LOGO_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp", "image/svg+xml"];
+const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+
+export async function uploadPayslipLogoAction(
+  formData: FormData
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  const session = await requireRole("hr");
+  const file = formData.get("file");
+  if (!(file instanceof File)) return { success: false, error: "No file provided." };
+  if (file.size > MAX_LOGO_BYTES) return { success: false, error: "Logo must be under 2 MB." };
+  if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+    return { success: false, error: "Unsupported file type. Use PNG, JPEG, GIF, WebP, or SVG." };
+  }
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
+  const path = `${session.tenantId}/logo.${ext}`;
+  const bytes = await file.arrayBuffer();
+  const supabase = createAdminClient();
+  const { error } = await supabase.storage.from("payslip-assets").upload(path, bytes, {
+    upsert: true,
+    contentType: file.type,
+  });
+  if (error) return { success: false, error: error.message };
+  const { data } = supabase.storage.from("payslip-assets").getPublicUrl(path);
+  await runAsTenant(session.tenantId, (tx) =>
+    tx.payrollSettings.upsert({
+      where: { tenantId: session.tenantId },
+      update: { payslipLogoUrl: data.publicUrl },
+      create: { tenantId: session.tenantId, payslipLogoUrl: data.publicUrl },
+    })
+  );
+  return { success: true, url: data.publicUrl };
+}
+
+export async function deletePayslipLogoAction(): Promise<{ success: boolean; error?: string }> {
+  const session = await requireRole("hr");
+  const supabase = createAdminClient();
+  const extensions = ["png", "jpg", "jpeg", "gif", "webp", "svg"];
+  await Promise.allSettled(
+    extensions.map((ext) =>
+      supabase.storage.from("payslip-assets").remove([`${session.tenantId}/logo.${ext}`])
+    )
+  );
+  await runAsTenant(session.tenantId, (tx) =>
+    tx.payrollSettings.upsert({
+      where: { tenantId: session.tenantId },
+      update: { payslipLogoUrl: null },
+      create: { tenantId: session.tenantId },
+    })
+  );
+  return { success: true };
+}
 
 export interface PayrollSettingsResult {
   id: string;
@@ -25,6 +78,9 @@ export interface PayrollSettingsResult {
   payeReferenceNumber: string | null;
   uifReferenceNumber: string | null;
   sdlReferenceNumber: string | null;
+  offersPension: boolean;
+  offersMedicalAid: boolean;
+  payrollConfiguredAt: string | null;
 }
 
 function toPayrollSettingsResult(s: {
@@ -44,6 +100,9 @@ function toPayrollSettingsResult(s: {
   payeReferenceNumber: string | null;
   uifReferenceNumber: string | null;
   sdlReferenceNumber: string | null;
+  offersPension: boolean;
+  offersMedicalAid: boolean;
+  payrollConfiguredAt: Date | null;
 }): PayrollSettingsResult {
   return {
     id: s.id,
@@ -62,6 +121,9 @@ function toPayrollSettingsResult(s: {
     payeReferenceNumber: s.payeReferenceNumber,
     uifReferenceNumber: s.uifReferenceNumber,
     sdlReferenceNumber: s.sdlReferenceNumber,
+    offersPension: s.offersPension,
+    offersMedicalAid: s.offersMedicalAid,
+    payrollConfiguredAt: s.payrollConfiguredAt?.toISOString() ?? null,
   };
 }
 
@@ -125,6 +187,28 @@ export async function updateTaxSettingsAction(
   }
 }
 
+export async function updateBenefitSettingsAction(
+  tenantId: string,
+  data: {
+    offersPension: boolean;
+    offersMedicalAid: boolean;
+  }
+): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
+  try {
+    await runAsTenant(tenantId, async (tx) => {
+      return tx.payrollSettings.upsert({
+        where: { tenantId },
+        update: data,
+        create: { tenantId, ...data },
+      });
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
 export async function updateStatutoryReferencesAction(
   tenantId: string,
   data: {
@@ -136,10 +220,11 @@ export async function updateStatutoryReferencesAction(
   await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
+      const existing = await tx.payrollSettings.findUnique({ where: { tenantId }, select: { payrollConfiguredAt: true } });
       return tx.payrollSettings.upsert({
         where: { tenantId },
-        update: data,
-        create: { tenantId, ...data },
+        update: { ...data, payrollConfiguredAt: existing?.payrollConfiguredAt ?? new Date() },
+        create: { tenantId, ...data, payrollConfiguredAt: new Date() },
       });
     });
     return { success: true };

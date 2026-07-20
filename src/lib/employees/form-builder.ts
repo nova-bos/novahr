@@ -37,6 +37,8 @@ export function buildEmployeeFromForm(
         ? Number(form.pensionContributionPct) / 100
         : undefined,
       medicalAid: form.medicalAid ? Number(form.medicalAid) : undefined,
+      retirementAnnuity: form.retirementAnnuity ? Number(form.retirementAnnuity) : undefined,
+      isMedicalAidMember: form.isMedicalAidMember || undefined,
     },
     bankDetails: {
       bank: form.bank,

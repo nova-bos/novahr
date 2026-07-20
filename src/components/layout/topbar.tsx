@@ -7,7 +7,6 @@ import { TenantSwitcher } from "./tenant-switcher";
 import { NotificationsMenu } from "./notifications-menu";
 import { SupportHub } from "./support-hub";
 import { CommandMenu } from "./command-menu";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 function pageTitle(pathname: string, navItems: NavItem[]): string {
   const match = navItems.find(
@@ -30,7 +29,6 @@ export function Topbar() {
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <SupportHub />
         <NotificationsMenu />
-        <ThemeToggle />
         {canSwitchTenant && <TenantSwitcher />}
         <CommandMenu />
       </div>

@@ -34,10 +34,12 @@ export default function EmployeesPage() {
   React.useEffect(() => {
     if (user?.role === "employee" && user.employeeId) {
       router.replace(`/employees/${user.employeeId}`);
+    } else if (user?.role === "exco") {
+      router.replace("/dashboard");
     }
   }, [user, router]);
 
-  if (!user || user.role === "employee") return null;
+  if (!user || user.role === "employee" || user.role === "exco") return null;
 
   const copy = TITLES[user.role] ?? TITLES.hr;
 

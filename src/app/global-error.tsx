@@ -19,12 +19,12 @@ export default function GlobalError({
       <body>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", fontFamily: "sans-serif", gap: "1rem" }}>
           <h2 style={{ fontSize: "1.25rem", fontWeight: 600 }}>Something went wrong</h2>
-          <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>
+          <p style={{ color: "var(--color-muted-foreground, #6b7280)", fontSize: "0.875rem" }}>
             This error has been reported. Please try again.
           </p>
           <button
             onClick={reset}
-            style={{ padding: "0.5rem 1rem", background: "#6366f1", color: "#fff", border: "none", borderRadius: "0.375rem", cursor: "pointer" }}
+            style={{ padding: "0.5rem 1rem", background: "var(--color-primary, #6366f1)", color: "#fff", border: "none", borderRadius: "0.375rem", cursor: "pointer" }}
           >
             Try again
           </button>

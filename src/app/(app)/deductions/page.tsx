@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -201,7 +201,7 @@ function EarningTypeDialog({ open, onOpenChange, initial, onSaved, tenantId }: E
             <Label htmlFor="et-taxable" className="cursor-pointer">Taxable earning</Label>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="et-desc">Description (optional)</Label>
+            <Label htmlFor="et-desc">Description <OptionalTag /></Label>
             <Textarea
               id="et-desc"
               rows={2}
@@ -307,7 +307,7 @@ function DeductionTypeDialog({ open, onOpenChange, initial, onSaved, tenantId }:
             <Label htmlFor="dt-employer" className="cursor-pointer">Employer-side deduction</Label>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="dt-desc">Description (optional)</Label>
+            <Label htmlFor="dt-desc">Description <OptionalTag /></Label>
             <Textarea
               id="dt-desc"
               rows={2}
@@ -368,13 +368,13 @@ export default function DeductionsPage() {
   }
 
   function handleToggleEarning(id: string, isActive: boolean) {
+    setEarningTypes((prev) => prev.map((e) => (e.id === id ? { ...e, isActive } : e)));
     startTransition(async () => {
       const result = await toggleEarningTypeAction(tenantId, id, isActive);
       if (!result.success) {
         toast.error("Could not update", { description: result.error });
-        return;
+        setEarningTypes((prev) => prev.map((e) => (e.id === id ? { ...e, isActive: !isActive } : e)));
       }
-      setEarningTypes((prev) => prev.map((e) => (e.id === id ? { ...e, isActive } : e)));
     });
   }
 
@@ -391,13 +391,13 @@ export default function DeductionsPage() {
   }
 
   function handleToggleDeduction(id: string, isActive: boolean) {
+    setDeductionTypes((prev) => prev.map((d) => (d.id === id ? { ...d, isActive } : d)));
     startTransition(async () => {
       const result = await toggleDeductionTypeAction(tenantId, id, isActive);
       if (!result.success) {
         toast.error("Could not update", { description: result.error });
-        return;
+        setDeductionTypes((prev) => prev.map((d) => (d.id === id ? { ...d, isActive: !isActive } : d)));
       }
-      setDeductionTypes((prev) => prev.map((d) => (d.id === id ? { ...d, isActive } : d)));
     });
   }
 

@@ -5,7 +5,7 @@ import type { PayrollRunStatus } from "@/lib/types";
 const STATUS_CONFIG: Record<PayrollRunStatus, { label: string; className: string }> = {
   scheduled: { label: "Scheduled", className: "bg-muted text-muted-foreground" },
   processing: { label: "Processing", className: "bg-warning/10 text-warning" },
-  awaiting_approval: { label: "Awaiting approval", className: "bg-amber-100 text-amber-700" },
+  awaiting_approval: { label: "Awaiting approval", className: "bg-warning/10 text-warning" },
   completed: { label: "Completed", className: "bg-success/10 text-success" },
 };
 

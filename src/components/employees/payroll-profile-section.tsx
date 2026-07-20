@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePlan } from "@/lib/plan/use-plan";
 import { useTenantId } from "@/lib/store/hooks";
@@ -167,7 +167,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
           <div className="grid gap-4 py-2">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="pp-taxNumber">Tax number</Label>
+                <Label htmlFor="pp-taxNumber">Tax number <OptionalTag /></Label>
                 <Input
                   id="pp-taxNumber"
                   value={formTaxNumber}
@@ -177,7 +177,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="pp-uifNumber">UIF number</Label>
+                <Label htmlFor="pp-uifNumber">UIF number <OptionalTag /></Label>
                 <Input
                   id="pp-uifNumber"
                   value={formUifNumber}
@@ -190,7 +190,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="pp-medicalAidScheme">Medical aid scheme</Label>
+                <Label htmlFor="pp-medicalAidScheme">Medical aid scheme <OptionalTag /></Label>
                 <Input
                   id="pp-medicalAidScheme"
                   value={formMedicalAidScheme}
@@ -200,7 +200,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="pp-medicalAidNumber">Medical aid number</Label>
+                <Label htmlFor="pp-medicalAidNumber">Medical aid number <OptionalTag /></Label>
                 <Input
                   id="pp-medicalAidNumber"
                   value={formMedicalAidNumber}
@@ -212,7 +212,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="pp-medicalAidDependants">Number of dependants</Label>
+              <Label htmlFor="pp-medicalAidDependants">Number of dependants <OptionalTag /></Label>
               <Input
                 id="pp-medicalAidDependants"
                 type="number"
@@ -225,7 +225,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="pp-retirementFundName">Retirement fund name</Label>
+                <Label htmlFor="pp-retirementFundName">Retirement fund name <OptionalTag /></Label>
                 <Input
                   id="pp-retirementFundName"
                   value={formRetirementFundName}
@@ -235,7 +235,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="pp-retirementFundNumber">Fund number</Label>
+                <Label htmlFor="pp-retirementFundNumber">Fund number <OptionalTag /></Label>
                 <Input
                   id="pp-retirementFundNumber"
                   value={formRetirementFundNumber}
@@ -247,7 +247,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="pp-notes">Notes</Label>
+              <Label htmlFor="pp-notes">Notes <OptionalTag /></Label>
               <Textarea
                 id="pp-notes"
                 rows={2}

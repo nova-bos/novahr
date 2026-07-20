@@ -75,13 +75,27 @@ export function WorkforceReport() {
     },
   ];
 
-  const departmentRows = departments.map((dept) => {
-    const members = active.filter((e) => e.department === dept.name);
-    const cost = members.reduce((sum, e) => sum + calculateMonthlyPayroll(e).grossPay, 0);
-    const annualCost = cost * 12;
-    const utilization = dept.budget > 0 ? Math.min(100, (annualCost / dept.budget) * 100) : 0;
-    return { dept, headcount: members.length, cost, annualCost, utilization };
-  });
+  const departmentRows = (() => {
+    const rows = departments.map((dept) => {
+      const members = active.filter((e) => e.department === dept.name);
+      const cost = members.reduce((sum, e) => sum + calculateMonthlyPayroll(e).grossPay, 0);
+      const annualCost = cost * 12;
+      const utilization = dept.budget > 0 ? Math.min(100, (annualCost / dept.budget) * 100) : 0;
+      return { dept, headcount: members.length, cost, annualCost, utilization };
+    });
+    const unassignedMembers = active.filter((e) => !e.department);
+    if (unassignedMembers.length > 0) {
+      const cost = unassignedMembers.reduce((sum, e) => sum + calculateMonthlyPayroll(e).grossPay, 0);
+      rows.push({
+        dept: { id: "unassigned", name: "Unassigned", color: "#94a3b8", budget: 0, tenantId: "", description: "" },
+        headcount: unassignedMembers.length,
+        cost,
+        annualCost: cost * 12,
+        utilization: 0,
+      });
+    }
+    return rows;
+  })();
 
   function handleExportDepartments() {
     const csv = toCSV(

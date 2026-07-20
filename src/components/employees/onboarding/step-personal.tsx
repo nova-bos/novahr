@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { FieldErrors } from "@/lib/schemas/employee";
 import type { NewEmployeeForm } from "./types";
@@ -46,7 +46,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
               <FieldError message={errors.lastName} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="preferredName">Preferred name (optional)</Label>
+              <Label htmlFor="preferredName">Preferred name <OptionalTag /></Label>
               <Input
                 id="preferredName"
                 value={form.preferredName}
@@ -86,7 +86,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
               <FieldError message={errors.phone} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="taxNumber">Tax number (optional)</Label>
+              <Label htmlFor="taxNumber">Tax number <OptionalTag /></Label>
               <Input
                 id="taxNumber"
                 value={form.taxNumber}
@@ -96,7 +96,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
               <FieldError message={errors.taxNumber} />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="address">Residential address</Label>
+              <Label htmlFor="address">Residential address <OptionalTag /></Label>
               <Textarea
                 id="address"
                 rows={2}
@@ -111,7 +111,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Emergency contact</CardTitle>
+          <CardTitle className="flex items-center gap-2">Emergency contact <OptionalTag /></CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3">

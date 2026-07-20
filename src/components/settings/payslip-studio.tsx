@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { createBrowserClient } from "@supabase/ssr";
-import { Check, Loader2, Upload, X } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentTenant } from "@/lib/store/hooks";
@@ -33,7 +32,7 @@ const TEMPLATES = [
 
 const ACCENT_PRESETS = [
   { value: "#6366f1", label: "Indigo" },
-  { value: "#2563eb", label: "Blue" },
+  { value: "#00A8E8", label: "Blue" },
   { value: "#0891b2", label: "Teal" },
   { value: "#16a34a", label: "Green" },
   { value: "#ea580c", label: "Orange" },
@@ -44,12 +43,6 @@ const ACCENT_PRESETS = [
 
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
-function getSupabase() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
 
 interface StudioState {
   template: string;
@@ -225,7 +218,6 @@ export function PayslipStudio() {
   const tenant = useCurrentTenant();
   const [state, setState] = React.useState<StudioState | null>(null);
   const [customHex, setCustomHex] = React.useState("");
-  const [uploadingLogo, setUploadingLogo] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -236,7 +228,7 @@ export function PayslipStudio() {
         template: s.template,
         accentColor: s.accentColor,
         logoUrl: s.logoUrl,
-        companyName: s.companyName ?? "",
+        companyName: s.companyName ?? tenant.name,
         footerNote: s.footerNote ?? "",
         showBanking: s.showBanking,
         showYtd: s.showYtd,
@@ -250,44 +242,6 @@ export function PayslipStudio() {
 
   function patch(update: Partial<StudioState>) {
     setState((s) => (s ? { ...s, ...update } : s));
-  }
-
-  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Logo must be under 2 MB");
-      return;
-    }
-    setUploadingLogo(true);
-    try {
-      const supabase = getSupabase();
-      const ext = file.name.split(".").pop() ?? "png";
-      const path = `${tenant.id}/logo.${ext}`;
-      const { error } = await supabase.storage.from("payslip-assets").upload(path, file, {
-        upsert: true,
-        contentType: file.type,
-      });
-      if (error) throw error;
-      const { data } = supabase.storage.from("payslip-assets").getPublicUrl(path);
-      patch({ logoUrl: data.publicUrl });
-      const result = await updatePayslipSettingsAction(tenant.id, { logoUrl: data.publicUrl });
-      if (!result.success) throw new Error(result.error);
-      toast.success("Logo uploaded");
-    } catch (err) {
-      toast.error("Logo upload failed", {
-        description: err instanceof Error ? err.message : "Please try again.",
-      });
-    } finally {
-      setUploadingLogo(false);
-    }
-  }
-
-  async function handleRemoveLogo() {
-    patch({ logoUrl: null });
-    const result = await updatePayslipSettingsAction(tenant.id, { logoUrl: null });
-    if (result.success) toast.success("Logo removed");
-    else toast.error("Could not remove logo", { description: result.error });
   }
 
   async function handleSave() {
@@ -416,48 +370,6 @@ export function PayslipStudio() {
             ) : null}
           </fieldset>
 
-          {/* Logo */}
-          <div>
-            <p className="text-sm font-medium mb-2">Company logo</p>
-            <div className="flex items-center gap-4">
-              {state.logoUrl ? (
-                <div className="flex items-center gap-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={state.logoUrl}
-                    alt="Company logo"
-                    className="h-10 w-20 object-contain rounded border border-border bg-white"
-                  />
-                  <Button type="button" variant="ghost" size="sm" onClick={handleRemoveLogo}>
-                    <X data-icon="inline-start" className="size-3.5" />
-                    Remove
-                  </Button>
-                </div>
-              ) : null}
-              <Label htmlFor="payslip-logo-upload" className="cursor-pointer">
-                <Button type="button" variant="outline" size="sm" asChild disabled={uploadingLogo}>
-                  <span>
-                    {uploadingLogo ? (
-                      <Loader2 data-icon="inline-start" className="size-3.5 animate-spin" />
-                    ) : (
-                      <Upload data-icon="inline-start" className="size-3.5" />
-                    )}
-                    {uploadingLogo ? "Uploading..." : state.logoUrl ? "Replace logo" : "Upload logo"}
-                  </span>
-                </Button>
-              </Label>
-              <input
-                id="payslip-logo-upload"
-                type="file"
-                accept="image/png,image/jpeg,image/svg+xml"
-                className="sr-only"
-                onChange={handleLogoUpload}
-                disabled={uploadingLogo}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1.5">PNG, JPG or SVG, max 2 MB. Shown in the payslip header.</p>
-          </div>
-
           {/* Branding text */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -470,7 +382,7 @@ export function PayslipStudio() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="payslip-footer-note">Footer note</Label>
+              <Label htmlFor="payslip-footer-note">Footer note <OptionalTag /></Label>
               <Input
                 id="payslip-footer-note"
                 value={state.footerNote}
@@ -517,7 +429,7 @@ export function PayslipStudio() {
         </div>
       </CardContent>
       <CardFooter className="justify-end border-t border-border">
-        <Button onClick={handleSave} disabled={saving || uploadingLogo}>
+        <Button onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 data-icon="inline-start" className="size-4 animate-spin" /> : null}
           {saving ? "Saving..." : "Save payslip branding"}
         </Button>

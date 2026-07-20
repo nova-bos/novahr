@@ -241,6 +241,7 @@ model Employee {
   salaryHousingAllowance           Decimal? @db.Decimal(15, 2)
   salaryPensionContributionPct     Float?
   salaryMedicalAid                  Decimal? @db.Decimal(15, 2)
+  salaryRetirementAnnuity          Decimal? @db.Decimal(15, 2)
 
   bankName              String
   bankAccountNumber     String
@@ -528,6 +529,9 @@ model PayrollSettings {
   uifEmployeeRate    Float    @default(0.01)
   uifEmployerRate    Float    @default(0.01)
   uifCeiling         Decimal @db.Decimal(15, 2)    @default(17712)
+  offersPension      Boolean  @default(false)
+  offersMedicalAid   Boolean  @default(false)
+  payrollConfiguredAt DateTime?
   payslipCompanyName String?
   payslipLogoUrl     String?
   payslipAccentColor String          @default("#6366f1")
@@ -602,6 +606,7 @@ model EmployeeSalaryHistory {
   housingAllowance  Decimal? @db.Decimal(15, 2)
   medicalAid        Decimal? @db.Decimal(15, 2)
   pensionContribPct Float?
+  retirementAnnuity Decimal? @db.Decimal(15, 2)
   effectiveDate     DateTime
   changedBy         String
   changeReason      String?
@@ -636,8 +641,8 @@ model TenantLeavePolicy {
   commissioningDays       Float    @default(50)
   studyDays               Float    @default(5)
   unpaidDays              Float    @default(5)
-  annualCarryover         Boolean  @default(true)
-  annualMaxCarryoverDays  Float    @default(10)
+  annualCarryover         Boolean  @default(false)
+  annualMaxCarryoverDays  Float    @default(5)
   sickRequireDocDays      Int      @default(2)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt

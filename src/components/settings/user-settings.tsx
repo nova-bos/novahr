@@ -22,7 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -38,6 +38,7 @@ import {
   type InviteRow,
   type TenantUserRow,
 } from "@/lib/invites/actions";
+import { useApp } from "@/lib/store/app-provider";
 import type { UserRole } from "@/lib/auth/types";
 
 const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
@@ -55,6 +56,7 @@ const ROLE_BADGE: Record<string, string> = {
 };
 
 export function UserSettings() {
+  const { state } = useApp();
   const [users, setUsers] = React.useState<TenantUserRow[]>([]);
   const [invites, setInvites] = React.useState<InviteRow[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -63,8 +65,18 @@ export function UserSettings() {
   const [email, setEmail] = React.useState("");
   const [name, setName] = React.useState("");
   const [role, setRole] = React.useState<UserRole>("employee");
+  const [employeeId, setEmployeeId] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const [manualLink, setManualLink] = React.useState<string | null>(null);
+
+  const linkedEmployeeIds = React.useMemo(
+    () => new Set(users.map((u) => u.employeeId).filter(Boolean)),
+    [users]
+  );
+  const unlinkableEmployees = React.useMemo(
+    () => state.employees.filter((e) => !linkedEmployeeIds.has(e.id) && e.status !== "terminated"),
+    [state.employees, linkedEmployeeIds]
+  );
 
   const refresh = React.useCallback(async () => {
     try {
@@ -90,7 +102,12 @@ export function UserSettings() {
     setSending(true);
     setManualLink(null);
     try {
-      const result = await createInviteAction({ email: email.trim(), name: name.trim(), role });
+      const result = await createInviteAction({
+        email: email.trim(),
+        name: name.trim(),
+        role,
+        employeeId: (role === "employee" || role === "manager") && employeeId ? employeeId : undefined,
+      });
       if (result.error) {
         toast.error("Couldn't send invite", { description: result.error });
         return;
@@ -101,6 +118,7 @@ export function UserSettings() {
         setEmail("");
         setName("");
         setRole("employee");
+        setEmployeeId("");
       } else if (result.inviteUrl) {
         // Email isn't configured: keep the dialog open and let HR copy the link.
         setManualLink(result.inviteUrl);
@@ -205,7 +223,13 @@ export function UserSettings() {
         open={dialogOpen}
         onOpenChange={(open) => {
           setDialogOpen(open);
-          if (!open) setManualLink(null);
+          if (!open) {
+            setManualLink(null);
+            setEmail("");
+            setName("");
+            setRole("employee");
+            setEmployeeId("");
+          }
         }}
       >
         <DialogContent className="sm:max-w-md">
@@ -257,6 +281,29 @@ export function UserSettings() {
                 </SelectContent>
               </Select>
             </div>
+
+            {(role === "employee" || role === "manager") && unlinkableEmployees.length > 0 ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="invite-employee">Link to employee record <OptionalTag /></Label>
+                <Select value={employeeId || "none"} onValueChange={(v) => setEmployeeId(v === "none" ? "" : v)}>
+                  <SelectTrigger id="invite-employee" className="w-full">
+                    <SelectValue placeholder="Select employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Not linked</SelectItem>
+                    {unlinkableEmployees.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.firstName} {emp.lastName}
+                        {emp.jobTitle ? `, ${emp.jobTitle}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Linking lets this user see their own profile and payslips. Only unlinked active employees are shown.
+                </p>
+              </div>
+            ) : null}
 
             {manualLink ? (
               <div className="space-y-2 rounded-xl border border-border bg-muted/40 p-3">

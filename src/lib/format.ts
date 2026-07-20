@@ -18,6 +18,21 @@ export function formatCurrencyCompact(amount: number, currency = "ZAR"): string 
   return `${prefix} ${amount.toFixed(0)}`;
 }
 
+/** Compact currency for SVG chart axis ticks — no space, no trailing .0, so the label stays on one line. */
+export function formatAxisCurrency(value: number, currency = "ZAR"): string {
+  const prefix = currency === "ZAR" ? "R" : currency;
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) {
+    const n = value / 1_000_000;
+    return `${prefix}${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)}M`;
+  }
+  if (abs >= 1_000) {
+    const n = value / 1_000;
+    return `${prefix}${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)}K`;
+  }
+  return `${prefix}${value.toFixed(0)}`;
+}
+
 export function formatDate(date: string | Date, opts?: Intl.DateTimeFormatOptions): string {
   const d = typeof date === "string" ? new Date(date) : date;
   return new Intl.DateTimeFormat("en-ZA", {

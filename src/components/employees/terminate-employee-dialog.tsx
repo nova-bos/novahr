@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -148,7 +148,7 @@ export function TerminateEmployeeDialog({
               />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="term-notes">Notes (optional)</Label>
+              <Label htmlFor="term-notes">Notes <OptionalTag /></Label>
               <Textarea
                 id="term-notes"
                 rows={2}

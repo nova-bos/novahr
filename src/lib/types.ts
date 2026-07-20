@@ -70,8 +70,13 @@ export interface SalaryInfo {
   housingAllowance?: number;
   pensionContributionPct?: number;
   medicalAid?: number;
+  retirementAnnuity?: number;
   hasLogbook?: boolean;
   medicalAidDependants?: number;
+  // True when the employee belongs to a medical scheme, even if they pay for it
+  // privately (no payroll contribution). Lets the SARS medical tax credit apply
+  // on assessment terms.
+  isMedicalAidMember?: boolean;
 }
 
 export interface LeaveBalance {
@@ -209,6 +214,7 @@ export interface Tenant {
   plan: TenantPlan;
   trialEndsAt?: string;
   payrollDisclaimerAcceptedAt?: string | null;
+  logoUrl?: string;
 }
 
 // Payroll compliance types

@@ -17,7 +17,7 @@ export function DepartmentBreakdown() {
   const employees = useEmployees();
 
   const data = React.useMemo(() => {
-    return departments
+    const deptRows = departments
       .map((dept) => ({
         id: dept.id,
         name: dept.name,
@@ -26,6 +26,11 @@ export function DepartmentBreakdown() {
       }))
       .filter((d) => d.value > 0)
       .sort((a, b) => b.value - a.value);
+    const unassigned = employees.filter((e) => !e.department && e.status !== "terminated").length;
+    if (unassigned > 0) {
+      deptRows.push({ id: "unassigned", name: "Unassigned", color: "#94a3b8", value: unassigned });
+    }
+    return deptRows;
   }, [departments, employees]);
 
   const chartConfig = React.useMemo(() => {

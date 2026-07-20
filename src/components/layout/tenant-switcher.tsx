@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Building2, Check, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -29,10 +30,14 @@ export function TenantSwitcher() {
         >
           <span className="flex min-w-0 items-center gap-2">
             <span
-              className="flex size-6 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold text-white"
-              style={{ backgroundColor: tenant.color }}
+              className="flex size-6 shrink-0 items-center justify-center rounded-md overflow-hidden text-[11px] font-semibold text-white"
+              style={{ backgroundColor: tenant.logoUrl ? "transparent" : tenant.color }}
             >
-              {tenant.initials}
+              {tenant.logoUrl ? (
+                <Image src={tenant.logoUrl} alt={tenant.name} width={24} height={24} className="h-full w-full object-contain" unoptimized />
+              ) : (
+                tenant.initials
+              )}
             </span>
             <span className="hidden truncate text-sm font-medium sm:inline">{tenant.name}</span>
           </span>
@@ -51,10 +56,14 @@ export function TenantSwitcher() {
             className="gap-2 py-2"
           >
             <span
-              className="flex size-7 shrink-0 items-center justify-center rounded-md text-xs font-semibold text-white"
-              style={{ backgroundColor: t.color }}
+              className="flex size-7 shrink-0 items-center justify-center rounded-md overflow-hidden text-xs font-semibold text-white"
+              style={{ backgroundColor: t.logoUrl ? "transparent" : t.color }}
             >
-              {t.initials}
+              {t.logoUrl ? (
+                <Image src={t.logoUrl} alt={t.name} width={28} height={28} className="h-full w-full object-contain" unoptimized />
+              ) : (
+                t.initials
+              )}
             </span>
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-medium">{t.name}</span>
