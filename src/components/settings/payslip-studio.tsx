@@ -214,6 +214,14 @@ function PayslipPreview({ state }: { state: StudioState }) {
   );
 }
 
+const STUDIO_DEFAULTS = {
+  template: "classic",
+  accentColor: "#6366f1",
+  footerNote: "",
+  showBanking: false,
+  showYtd: true,
+};
+
 export function PayslipStudio() {
   const tenant = useCurrentTenant();
   const [state, setState] = React.useState<StudioState | null>(null);
@@ -242,6 +250,17 @@ export function PayslipStudio() {
 
   function patch(update: Partial<StudioState>) {
     setState((s) => (s ? { ...s, ...update } : s));
+  }
+
+  function handleReset() {
+    patch({
+      template: STUDIO_DEFAULTS.template,
+      accentColor: STUDIO_DEFAULTS.accentColor,
+      footerNote: STUDIO_DEFAULTS.footerNote,
+      showBanking: STUDIO_DEFAULTS.showBanking,
+      showYtd: STUDIO_DEFAULTS.showYtd,
+    });
+    setCustomHex(STUDIO_DEFAULTS.accentColor);
   }
 
   async function handleSave() {
@@ -428,7 +447,10 @@ export function PayslipStudio() {
           </p>
         </div>
       </CardContent>
-      <CardFooter className="justify-end border-t border-border">
+      <CardFooter className="flex justify-between border-t border-border">
+        <Button type="button" variant="outline" onClick={handleReset} disabled={saving}>
+          Reset to defaults
+        </Button>
         <Button onClick={handleSave} disabled={saving}>
           {saving ? <Loader2 data-icon="inline-start" className="size-4 animate-spin" /> : null}
           {saving ? "Saving..." : "Save payslip branding"}

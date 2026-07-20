@@ -31,6 +31,21 @@ const LEAVE_FIELDS: {
   { key: "unpaidDays", label: "Unpaid leave (days)", minimum: 0 },
 ];
 
+const POLICY_DEFAULTS = {
+  annualDays: "15",
+  sickDays: "30",
+  familyDays: "3",
+  maternityDays: "88",
+  parentalDays: "10",
+  adoptionDays: "50",
+  commissioningDays: "50",
+  studyDays: "5",
+  unpaidDays: "5",
+  annualCarryover: true,
+  annualMaxCarryoverDays: "10",
+  sickRequireDocDays: "2",
+};
+
 function numericState(v: number) {
   return v.toString();
 }
@@ -68,6 +83,21 @@ export function LeavePolicySettings() {
       setSickRequireDocDays(numericState(p.sickRequireDocDays));
     });
   }, [tenant.id]);
+
+  function handleReset() {
+    setAnnualDays(POLICY_DEFAULTS.annualDays);
+    setSickDays(POLICY_DEFAULTS.sickDays);
+    setFamilyDays(POLICY_DEFAULTS.familyDays);
+    setMaternityDays(POLICY_DEFAULTS.maternityDays);
+    setParentalDays(POLICY_DEFAULTS.parentalDays);
+    setAdoptionDays(POLICY_DEFAULTS.adoptionDays);
+    setCommissioningDays(POLICY_DEFAULTS.commissioningDays);
+    setStudyDays(POLICY_DEFAULTS.studyDays);
+    setUnpaidDays(POLICY_DEFAULTS.unpaidDays);
+    setAnnualCarryover(POLICY_DEFAULTS.annualCarryover);
+    setAnnualMaxCarryoverDays(POLICY_DEFAULTS.annualMaxCarryoverDays);
+    setSickRequireDocDays(POLICY_DEFAULTS.sickRequireDocDays);
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -207,7 +237,10 @@ export function LeavePolicySettings() {
               </p>
             </div>
           </CardContent>
-          <CardFooter className="justify-end">
+          <CardFooter className="flex justify-between">
+            <Button type="button" variant="outline" onClick={handleReset} disabled={saving}>
+              Reset to defaults
+            </Button>
             <Button type="submit" disabled={saving}>
               {saving ? "Saving..." : "Save policy"}
             </Button>

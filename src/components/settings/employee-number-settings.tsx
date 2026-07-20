@@ -28,6 +28,8 @@ import {
   updateEmployeeNumberConfigAction,
 } from "@/lib/employee-numbers/actions";
 
+const EMP_NUMBER_DEFAULTS = { prefix: "EMP", separator: "-", padLength: "4" };
+
 export function EmployeeNumberSettings() {
   const tenant = useCurrentTenant();
   const [prefix, setPrefix] = React.useState("EMP");
@@ -48,6 +50,13 @@ export function EmployeeNumberSettings() {
 
   const actualSeparator = separator === "none" ? "" : separator;
   const preview = `${prefix}${actualSeparator}${String(nextNumber).padStart(Number(padLength), "0")}`;
+
+  function handleReset() {
+    setPrefix(EMP_NUMBER_DEFAULTS.prefix);
+    setSeparator(EMP_NUMBER_DEFAULTS.separator);
+    setPadLength(EMP_NUMBER_DEFAULTS.padLength);
+    setRenumberExisting(false);
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -151,7 +160,10 @@ export function EmployeeNumberSettings() {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="justify-end">
+        <CardFooter className="flex justify-between">
+          <Button type="button" variant="outline" onClick={handleReset} disabled={saving}>
+            Reset to defaults
+          </Button>
           <Button type="submit" disabled={saving}>
             {saving ? "Saving..." : "Save format"}
           </Button>
