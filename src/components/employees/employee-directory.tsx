@@ -199,12 +199,16 @@ export function EmployeeDirectory() {
                   </TableCell>
                   <TableCell>
                     {employee.onboarding ? (
-                      <div className="flex items-center gap-2">
-                        <Progress value={employee.onboarding.progress} className="h-1.5 w-16" />
-                        <span className="text-xs text-muted-foreground">
-                          {employee.onboarding.progress}%
-                        </span>
-                      </div>
+                      employee.onboarding.progress >= 100 ? (
+                        <span className="text-xs font-medium text-success">Onboarded</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Progress value={employee.onboarding.progress} className="h-1.5 w-16" />
+                          <span className="text-xs text-muted-foreground">
+                            {employee.onboarding.progress}%
+                          </span>
+                        </div>
+                      )
                     ) : (
                       <span className="text-xs text-muted-foreground">-</span>
                     )}
