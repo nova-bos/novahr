@@ -50,6 +50,44 @@ export async function updateEmployeeNumberConfigAction(
   });
 }
 
+export async function retroactivelyRenumberEmployeesAction(
+  tenantId: string,
+  data: { prefix: string; padLength: number; separator: string }
+): Promise<{ success: boolean; count?: number; error?: string }> {
+  await requireRole("hr");
+  if (!data.prefix || data.prefix.length > 6)
+    return { success: false, error: "Prefix must be 1 to 6 characters." };
+  if (data.padLength < 1 || data.padLength > 8)
+    return { success: false, error: "Pad length must be 1 to 8." };
+
+  return runAsTenant(tenantId, async (tx) => {
+    const employees = await tx.employee.findMany({
+      where: { tenantId },
+      select: { id: true },
+      orderBy: [{ startDate: "asc" }, { createdAt: "asc" }],
+    });
+
+    const prefix = data.prefix.toUpperCase();
+    const sep = data.separator;
+
+    await Promise.all(
+      employees.map((emp, i) => {
+        const num = i + 1;
+        const employeeNumber = `${prefix}${sep}${String(num).padStart(data.padLength, "0")}`;
+        return tx.employee.update({ where: { id: emp.id }, data: { employeeNumber } });
+      })
+    );
+
+    await tx.employeeNumberConfig.upsert({
+      where: { tenantId },
+      update: { prefix, separator: sep, padLength: data.padLength, nextNumber: employees.length + 1 },
+      create: { tenantId, prefix, separator: sep, padLength: data.padLength, nextNumber: employees.length + 1 },
+    });
+
+    return { success: true, count: employees.length };
+  });
+}
+
 /**
  * Called inside createEmployeeRecord to claim the next employee number atomically.
  * The tx parameter must be a Prisma transaction client.

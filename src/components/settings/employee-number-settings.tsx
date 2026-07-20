@@ -21,8 +21,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCurrentTenant } from "@/lib/store/hooks";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   getEmployeeNumberConfigAction,
+  retroactivelyRenumberEmployeesAction,
   updateEmployeeNumberConfigAction,
 } from "@/lib/employee-numbers/actions";
 
@@ -32,6 +34,7 @@ export function EmployeeNumberSettings() {
   const [padLength, setPadLength] = React.useState("4");
   const [separator, setSeparator] = React.useState("-");
   const [nextNumber, setNextNumber] = React.useState(1);
+  const [renumberExisting, setRenumberExisting] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -49,11 +52,21 @@ export function EmployeeNumberSettings() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    const result = await updateEmployeeNumberConfigAction(tenant.id, {
-      prefix,
-      padLength: Number(padLength),
-      separator: actualSeparator,
-    });
+    const format = { prefix, padLength: Number(padLength), separator: actualSeparator };
+
+    if (renumberExisting) {
+      const result = await retroactivelyRenumberEmployeesAction(tenant.id, format);
+      setSaving(false);
+      if (result.success) {
+        toast.success(`${result.count} employee${result.count === 1 ? "" : "s"} renumbered`);
+        setRenumberExisting(false);
+      } else {
+        toast.error(result.error ?? "Failed to renumber employees");
+      }
+      return;
+    }
+
+    const result = await updateEmployeeNumberConfigAction(tenant.id, format);
     setSaving(false);
     if (result.success) {
       toast.success("Employee number format saved");
@@ -115,6 +128,27 @@ export function EmployeeNumberSettings() {
           <div className="sm:col-span-3 rounded-lg bg-muted/50 px-4 py-3">
             <p className="text-xs text-muted-foreground mb-1">Next employee number preview</p>
             <p className="text-xl font-mono font-semibold tracking-wide">{preview}</p>
+          </div>
+          <div className="sm:col-span-3 flex items-start gap-3 rounded-lg border border-border px-4 py-3">
+            <Checkbox
+              id="renumber-existing"
+              checked={renumberExisting}
+              onCheckedChange={(v) => setRenumberExisting(v === true)}
+              disabled={saving}
+              className="mt-0.5"
+            />
+            <div className="space-y-0.5">
+              <label
+                htmlFor="renumber-existing"
+                className="text-sm font-medium leading-none cursor-pointer select-none"
+              >
+                Apply new format to existing employees
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Renumbers all employees in hire-date order using the format above. Existing numbers
+                will be overwritten.
+              </p>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="justify-end">
