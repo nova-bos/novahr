@@ -1,15 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { HelpCircle, LogOut, Settings, User } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { ROLE_LABELS } from "@/lib/auth/types";
-import { getNavItems, type NavItem } from "./nav-config";
+import { getNavItems } from "./nav-config";
 import { TenantSwitcher } from "./tenant-switcher";
 import { NotificationsMenu } from "./notifications-menu";
 import { SupportHub } from "./support-hub";
 import { CommandMenu } from "./command-menu";
+import { LogoIcon } from "./logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,13 +21,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-function pageTitle(pathname: string, navItems: NavItem[]): string {
-  const match = navItems.find(
-    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
-  );
-  return match?.title ?? "NovaHR";
-}
 
 function MobileProfileMenu() {
   const { user, logout } = useAuth();
@@ -102,21 +96,26 @@ function MobileProfileMenu() {
 }
 
 export function Topbar() {
-  const pathname = usePathname();
   const { user } = useAuth();
   const navItems = getNavItems(user);
   const canSwitchTenant = user?.role === "hr" || user?.role === "exco";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-2 overflow-x-hidden border-b border-border/70 bg-background/80 px-4 backdrop-blur-sm sm:gap-3 sm:px-6">
-      <h1 className="min-w-0 flex-1 truncate text-sm font-semibold tracking-tight text-foreground">
-        {pageTitle(pathname, navItems)}
-      </h1>
+    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 overflow-x-hidden border-b border-border/70 bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+      {/* Logo visible on mobile only; sidebar carries it on desktop */}
+      <Link href="/dashboard" className="flex md:hidden shrink-0 items-center" aria-label="Home">
+        <LogoIcon size={28} />
+      </Link>
+
+      {/* Search bar - takes remaining space on mobile, fixed width on desktop */}
+      <div className="flex-1 min-w-0 lg:flex-none">
+        <CommandMenu />
+      </div>
+
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <SupportHub />
         <NotificationsMenu />
         {canSwitchTenant && <TenantSwitcher />}
-        <CommandMenu />
         <MobileProfileMenu />
       </div>
     </header>

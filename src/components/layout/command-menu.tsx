@@ -70,11 +70,11 @@ export function CommandMenu() {
       </Button>
       <Button
         variant="outline"
-        size="icon"
-        className="size-9 border-border/70 bg-background text-muted-foreground shadow-none lg:hidden"
+        className="h-9 w-full justify-start gap-2 border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none lg:hidden"
         onClick={() => setOpen(true)}
       >
-        <Search className="size-[18px]" />
+        <Search className="size-3.5 shrink-0" />
+        <span className="truncate text-sm">{searchLabel}</span>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Type a command or search..." />
