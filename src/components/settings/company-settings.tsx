@@ -124,7 +124,7 @@ export function CompanySettings() {
                     ) : (
                       <Upload className="size-3.5" />
                     )}
-                    {uploadingLogo ? "Uploading…" : logoUrl ? "Replace logo" : "Upload logo"}
+                    {uploadingLogo ? "Uploading..." : logoUrl ? "Replace logo" : "Upload logo"}
                   </span>
                 </Button>
               </Label>
@@ -204,7 +204,7 @@ export function CompanySettings() {
           </div>
         </CardContent>
         <CardFooter className="justify-end">
-          <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+          <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save changes"}</Button>
         </CardFooter>
       </Card>
     </form>

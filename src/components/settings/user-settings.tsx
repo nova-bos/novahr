@@ -332,7 +332,7 @@ export function UserSettings() {
               </Button>
               {manualLink ? null : (
                 <Button type="submit" disabled={sending}>
-                  {sending ? "Sending…" : "Send invitation"}
+                  {sending ? "Sending..." : "Send invitation"}
                 </Button>
               )}
             </DialogFooter>

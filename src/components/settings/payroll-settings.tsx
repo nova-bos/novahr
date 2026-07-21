@@ -238,7 +238,7 @@ export function PayrollSettings() {
           </div>
         </CardContent>
         <CardFooter className="justify-end">
-          <Button type="submit" disabled={saving}>{saving ? "Saving…" : "Save changes"}</Button>
+          <Button type="submit" disabled={saving}>{saving ? "Saving..." : "Save changes"}</Button>
         </CardFooter>
       </Card>
 

@@ -44,6 +44,7 @@ export function ProfileDeductions({ employee }: { employee: Employee }) {
   const [rows, setRows] = React.useState<EmployeeDeductionRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [cancellingId, setCancellingId] = React.useState<string | null>(null);
   const [kind, setKind] = React.useState("loan");
   const [description, setDescription] = React.useState("");
   const [reference, setReference] = React.useState("");
@@ -91,13 +92,18 @@ export function ProfileDeductions({ employee }: { employee: Employee }) {
 
   async function handleCancel(row: EmployeeDeductionRow) {
     if (!window.confirm(`Cancel "${row.description}"? It will stop being recovered.`)) return;
-    const res = await cancelEmployeeDeduction(row.id);
-    if (res.error || !res.deduction) {
-      toast.error(res.error ?? "Could not cancel");
-      return;
+    setCancellingId(row.id);
+    try {
+      const res = await cancelEmployeeDeduction(row.id);
+      if (res.error || !res.deduction) {
+        toast.error(res.error ?? "Could not cancel");
+        return;
+      }
+      setRows((prev) => prev.map((r) => (r.id === row.id ? res.deduction! : r)));
+      toast.success("Deduction cancelled");
+    } finally {
+      setCancellingId(null);
     }
-    setRows((prev) => prev.map((r) => (r.id === row.id ? res.deduction! : r)));
-    toast.success("Deduction cancelled");
   }
 
   return (
@@ -217,9 +223,10 @@ export function ProfileDeductions({ employee }: { employee: Employee }) {
                         size="sm"
                         className="text-destructive"
                         onClick={() => handleCancel(row)}
+                        disabled={cancellingId === row.id}
                       >
                         <Ban />
-                        <span className="sr-only">Cancel</span>
+                        <span className="sr-only">{cancellingId === row.id ? "Cancelling..." : "Cancel"}</span>
                       </Button>
                     )}
                   </li>

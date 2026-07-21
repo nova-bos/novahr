@@ -173,7 +173,7 @@ export function SubmitNetcashCta() {
             ) : (
               <Send className="size-4" />
             )}
-            {isSubmitting ? "Submitting…" : "Submit payroll to Netcash"}
+            {isSubmitting ? "Submitting..." : "Submit payroll to Netcash"}
           </Button>
         ) : null}
       </div>
@@ -188,7 +188,7 @@ export function SubmitNetcashCta() {
           disabled={bulkDownloading || payslips.length === 0}
         >
           <Download className="size-3" />
-          {bulkDownloading ? "Generating…" : "Download payslips"}
+          {bulkDownloading ? "Generating..." : "Download payslips"}
         </Button>
         {can("bankExports") ? (
           <>
@@ -200,7 +200,7 @@ export function SubmitNetcashCta() {
               disabled={isExporting}
             >
               <FileText className="size-3" />
-              {isExporting ? "Exporting…" : "Export bank CSV"}
+              {isExporting ? "Exporting..." : "Export bank CSV"}
             </Button>
             <Button
               variant="ghost"
@@ -210,7 +210,7 @@ export function SubmitNetcashCta() {
               disabled={isNifExporting}
             >
               <Download className="size-3" />
-              {isNifExporting ? "Generating…" : "Download Netcash NIF"}
+              {isNifExporting ? "Generating..." : "Download Netcash NIF"}
             </Button>
           </>
         ) : null}
@@ -247,7 +247,7 @@ export function SubmitNetcashCta() {
               ) : (
                 <Send className="size-4" />
               )}
-              {isSubmitting ? "Submitting…" : "Confirm and submit"}
+              {isSubmitting ? "Submitting..." : "Confirm and submit"}
             </Button>
           </DialogFooter>
         </DialogContent>

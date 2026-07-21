@@ -60,6 +60,8 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
   const [docs, setDocs] = React.useState<EmployeeDocumentRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [uploading, setUploading] = React.useState(false);
+  const [downloadingId, setDownloadingId] = React.useState<string | null>(null);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
   const [name, setName] = React.useState("");
   const [category, setCategory] = React.useState("contract");
   const [expiresAt, setExpiresAt] = React.useState("");
@@ -108,23 +110,33 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
   }
 
   async function handleDownload(doc: EmployeeDocumentRow) {
-    const res = await getEmployeeDocumentUrl(doc.id);
-    if (res.error || !res.url) {
-      toast.error(res.error ?? "Could not open the document");
-      return;
+    setDownloadingId(doc.id);
+    try {
+      const res = await getEmployeeDocumentUrl(doc.id);
+      if (res.error || !res.url) {
+        toast.error(res.error ?? "Could not open the document");
+        return;
+      }
+      window.open(res.url, "_blank", "noopener,noreferrer");
+    } finally {
+      setDownloadingId(null);
     }
-    window.open(res.url, "_blank", "noopener,noreferrer");
   }
 
   async function handleDelete(doc: EmployeeDocumentRow) {
     if (!window.confirm(`Delete "${doc.name}"? This cannot be undone.`)) return;
-    const res = await deleteEmployeeDocument(doc.id);
-    if (res.error) {
-      toast.error(res.error);
-      return;
+    setDeletingId(doc.id);
+    try {
+      const res = await deleteEmployeeDocument(doc.id);
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      setDocs((prev) => prev.filter((d) => d.id !== doc.id));
+      toast.success("Document deleted");
+    } finally {
+      setDeletingId(null);
     }
-    setDocs((prev) => prev.filter((d) => d.id !== doc.id));
-    toast.success("Document deleted");
   }
 
   return (
@@ -225,9 +237,14 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
                         {doc.uploadedBy ? ` · by ${doc.uploadedBy}` : ""}
                       </p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => handleDownload(doc)}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDownload(doc)}
+                      disabled={downloadingId === doc.id}
+                    >
                       <Download />
-                      <span className="sr-only">Download</span>
+                      <span className="sr-only">{downloadingId === doc.id ? "Downloading..." : "Download"}</span>
                     </Button>
                     {canManage && (
                       <Button
@@ -235,9 +252,10 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
                         size="sm"
                         className="text-destructive"
                         onClick={() => handleDelete(doc)}
+                        disabled={deletingId === doc.id}
                       >
                         <Trash2 />
-                        <span className="sr-only">Delete</span>
+                        <span className="sr-only">{deletingId === doc.id ? "Deleting..." : "Delete"}</span>
                       </Button>
                     )}
                   </li>

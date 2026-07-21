@@ -38,6 +38,7 @@ export function DepartmentSettings() {
   const [description, setDescription] = React.useState("");
   const [saving, setSaving] = React.useState(false);
   const [deleting, setDeleting] = React.useState<Department | null>(null);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
   function openCreate() {
     setEditing(null);
@@ -86,15 +87,17 @@ export function DepartmentSettings() {
 
   async function handleDelete() {
     if (!deleting) return;
+    setIsDeleting(true);
     try {
       await deleteDepartment(deleting.id);
       toast.success("Department deleted", {
         description: "Employees in this department were moved to Unassigned.",
       });
+      setDeleting(null);
     } catch {
       toast.error("Couldn't delete department", { description: "Please try again." });
     } finally {
-      setDeleting(null);
+      setIsDeleting(false);
     }
   }
 
@@ -202,14 +205,14 @@ export function DepartmentSettings() {
                 Cancel
               </Button>
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving…" : editing ? "Save changes" : "Add department"}
+                {saving ? "Saving..." : editing ? "Save changes" : "Add department"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
+      <Dialog open={deleting !== null} onOpenChange={(open) => !open && !isDeleting && setDeleting(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete {deleting?.name}?</DialogTitle>
@@ -223,11 +226,11 @@ export function DepartmentSettings() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleting(null)}>
+            <Button variant="outline" onClick={() => setDeleting(null)} disabled={isDeleting}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Delete department
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? "Deleting..." : "Delete department"}
             </Button>
           </DialogFooter>
         </DialogContent>

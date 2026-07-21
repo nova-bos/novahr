@@ -53,6 +53,7 @@ export function LeaveRequestsTable() {
 
   const [status, setStatus] = React.useState("all");
   const [type, setType] = React.useState("all");
+  const [decidingId, setDecidingId] = React.useState<string | null>(null);
 
   const employeeById = React.useMemo(() => {
     const map = new Map<string, (typeof employees)[number]>();
@@ -69,6 +70,7 @@ export function LeaveRequestsTable() {
   }, [requests, status, type]);
 
   async function handleDecision(id: string, decision: "approved" | "rejected", name: string) {
+    setDecidingId(id);
     try {
       await decideLeaveRequest(id, decision);
       toast(decision === "approved" ? "Leave request approved" : "Leave request rejected", {
@@ -78,6 +80,8 @@ export function LeaveRequestsTable() {
       toast.error("Couldn't update leave request", {
         description: "Please try again.",
       });
+    } finally {
+      setDecidingId(null);
     }
   }
 
@@ -191,6 +195,7 @@ export function LeaveRequestsTable() {
                               size="icon-sm"
                               variant="outline"
                               className="text-success hover:bg-success/10 hover:text-success"
+                              disabled={decidingId === request.id}
                               onClick={() =>
                                 handleDecision(
                                   request.id,
@@ -200,12 +205,13 @@ export function LeaveRequestsTable() {
                               }
                             >
                               <Check className="size-3.5" />
-                              <span className="sr-only">Approve</span>
+                              <span className="sr-only">{decidingId === request.id ? "Approving..." : "Approve"}</span>
                             </Button>
                             <Button
                               size="icon-sm"
                               variant="outline"
                               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              disabled={decidingId === request.id}
                               onClick={() =>
                                 handleDecision(
                                   request.id,
@@ -215,7 +221,7 @@ export function LeaveRequestsTable() {
                               }
                             >
                               <X className="size-3.5" />
-                              <span className="sr-only">Reject</span>
+                              <span className="sr-only">{decidingId === request.id ? "Rejecting..." : "Reject"}</span>
                             </Button>
                           </div>
                         ) : (

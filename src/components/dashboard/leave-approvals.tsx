@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Check, X } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -20,10 +21,12 @@ export function LeaveApprovals() {
   const leaveRequests = useLeaveRequests();
   const employees = useEmployees();
   const { decideLeaveRequest } = useApp();
+  const [decidingId, setDecidingId] = React.useState<string | null>(null);
 
   const pending = leaveRequests.filter((r) => r.status === "pending").slice(0, 4);
 
   async function handleDecision(id: string, status: "approved" | "rejected", name: string) {
+    setDecidingId(id);
     try {
       await decideLeaveRequest(id, status);
       toast(status === "approved" ? "Leave request approved" : "Leave request rejected", {
@@ -33,6 +36,8 @@ export function LeaveApprovals() {
       toast.error("Couldn't update leave request", {
         description: "Please try again.",
       });
+    } finally {
+      setDecidingId(null);
     }
   }
 
@@ -89,23 +94,25 @@ export function LeaveApprovals() {
                       size="icon-sm"
                       variant="outline"
                       className="text-success hover:bg-success/10 hover:text-success"
+                      disabled={decidingId === request.id}
                       onClick={() =>
                         handleDecision(request.id, "approved", `${employee.firstName} ${employee.lastName}`)
                       }
                     >
                       <Check className="size-3.5" />
-                      <span className="sr-only">Approve</span>
+                      <span className="sr-only">{decidingId === request.id ? "Approving..." : "Approve"}</span>
                     </Button>
                     <Button
                       size="icon-sm"
                       variant="outline"
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      disabled={decidingId === request.id}
                       onClick={() =>
                         handleDecision(request.id, "rejected", `${employee.firstName} ${employee.lastName}`)
                       }
                     >
                       <X className="size-3.5" />
-                      <span className="sr-only">Reject</span>
+                      <span className="sr-only">{decidingId === request.id ? "Rejecting..." : "Reject"}</span>
                     </Button>
                   </div>
                 </div>

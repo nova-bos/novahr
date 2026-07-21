@@ -100,7 +100,7 @@ export function OnboardingWizard() {
         {isLastStep ? (
           <Button type="button" onClick={handleCreate} disabled={creating}>
             {creating ? <Loader2 className="animate-spin" /> : <UserPlus />}
-            {creating ? "Creating employee…" : "Create employee"}
+            {creating ? "Creating employee..." : "Create employee"}
           </Button>
         ) : (
           <Button type="button" onClick={goNext} disabled={!canAdvance}>

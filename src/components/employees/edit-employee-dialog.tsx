@@ -53,6 +53,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
   const departments = useDepartments();
   const allEmployees = useEmployees();
   const tenantId = useTenantId();
+  const [saving, setSaving] = React.useState(false);
 
   const managerOptions = allEmployees.filter(
     (e) => e.id !== employee.id && e.status !== "terminated"
@@ -98,6 +99,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
       return;
     }
 
+    setSaving(true);
     try {
       await updateEmployee(employee.id, {
         firstName: form.firstName,
@@ -141,6 +143,8 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
       toast.error("Couldn't update employee profile", {
         description: "Please try again.",
       });
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -334,7 +338,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                         <SelectItem value="none">No manager</SelectItem>
                         {managerOptions.map((emp) => (
                           <SelectItem key={emp.id} value={emp.id}>
-                            {emp.firstName} {emp.lastName}{emp.jobTitle ? ` — ${emp.jobTitle}` : ""}
+                            {emp.firstName} {emp.lastName}{emp.jobTitle ? `, ${emp.jobTitle}` : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -450,10 +454,12 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
           </Tabs>
 
           <DialogFooter className="mt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
               Cancel
             </Button>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit" disabled={saving}>
+              {saving ? "Saving..." : "Save changes"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
