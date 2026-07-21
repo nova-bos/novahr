@@ -96,38 +96,40 @@ export function CompanySettings() {
           <CardTitle>Company logo</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
+          <div className="flex items-start gap-4">
             {logoUrl ? (
-              <div className="flex items-center gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={logoUrl}
-                  alt="Company logo"
-                  className="h-12 w-24 object-contain rounded-lg border border-border bg-muted/40 p-1"
-                />
-                <Button type="button" variant="ghost" size="sm" onClick={handleRemoveLogo} disabled={uploadingLogo}>
-                  <X className="size-3.5" />
-                  Remove
-                </Button>
-              </div>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={logoUrl}
+                alt="Company logo"
+                className="h-12 w-24 shrink-0 object-contain rounded-lg border border-border bg-muted/40 p-1"
+              />
             ) : (
-              <div className="flex h-12 w-24 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
+              <div className="flex h-12 w-24 shrink-0 items-center justify-center rounded-lg border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
                 No logo
               </div>
             )}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="company-logo-upload" className="cursor-pointer">
-                <Button type="button" variant="outline" size="sm" asChild disabled={uploadingLogo}>
-                  <span>
-                    {uploadingLogo ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <Upload className="size-3.5" />
-                    )}
-                    {uploadingLogo ? "Uploading..." : logoUrl ? "Replace logo" : "Upload logo"}
-                  </span>
-                </Button>
-              </Label>
+              <div className="flex flex-wrap gap-2">
+                <Label htmlFor="company-logo-upload" className="cursor-pointer">
+                  <Button type="button" variant="outline" size="sm" asChild disabled={uploadingLogo}>
+                    <span>
+                      {uploadingLogo ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="size-3.5" />
+                      )}
+                      {uploadingLogo ? "Uploading..." : logoUrl ? "Replace logo" : "Upload logo"}
+                    </span>
+                  </Button>
+                </Label>
+                {logoUrl && (
+                  <Button type="button" variant="ghost" size="sm" onClick={handleRemoveLogo} disabled={uploadingLogo}>
+                    <X className="size-3.5" />
+                    Remove
+                  </Button>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">PNG, JPG or SVG up to 2 MB. Used across the app and on payslips.</p>
             </div>
           </div>
