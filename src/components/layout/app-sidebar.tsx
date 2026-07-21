@@ -158,7 +158,7 @@ export function AppSidebar() {
                   <DropdownMenuItem asChild>
                     <Link href="/settings">
                       <Settings />
-                      Workspace settings
+                      Settings
                     </Link>
                   </DropdownMenuItem>
                 )}

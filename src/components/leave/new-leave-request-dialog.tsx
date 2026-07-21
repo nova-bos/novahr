@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -173,8 +172,8 @@ export function NewLeaveRequestDialog() {
           Request leave
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex flex-col gap-0 p-0 sm:max-w-md max-h-[85svh]">
-        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+      <DialogContent className="sm:max-w-md" noInnerPad>
+        <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <DialogHeader className="shrink-0 border-b px-6 py-4">
             <DialogTitle>Request leave</DialogTitle>
           </DialogHeader>
@@ -310,14 +309,14 @@ export function NewLeaveRequestDialog() {
             />
           </div>
 
-          <DialogFooter className="shrink-0 border-t px-6 py-4">
+          <div className="shrink-0 border-t bg-muted/50 px-6 py-4 flex flex-col-reverse gap-2 rounded-b-xl sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={submitting}>
-              {submitting ? "Submitting…" : "Submit request"}
+              {submitting ? "Submitting..." : "Submit request"}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>
