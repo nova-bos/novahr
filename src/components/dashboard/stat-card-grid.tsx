@@ -29,45 +29,53 @@ export function StatCardGrid({
           <Card key={stat.label}>
             <CardContent className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 flex-col gap-1">
-                <p className="text-sm text-muted-foreground">{stat.label}</p>
-                {stat.sensitive ? (
-                  <button
-                    type="button"
-                    onClick={onToggle}
-                    className="flex items-center gap-1.5 text-left"
-                    aria-label={blurred ? `Reveal ${stat.label}` : `Hide ${stat.label}`}
-                  >
-                    <span
-                      className={cn(
-                        "text-2xl font-semibold tracking-tight tabular-nums transition-all duration-200",
-                        blurred && "blur-sm select-none"
-                      )}
-                    >
-                      {stat.value}
-                    </span>
-                    {blurred ? (
-                      <Eye className="size-4 shrink-0 text-muted-foreground" />
-                    ) : (
-                      <EyeOff className="size-4 shrink-0 text-muted-foreground/50" />
-                    )}
-                  </button>
-                ) : (
-                  <p className="truncate text-2xl font-semibold tracking-tight tabular-nums">
-                    {stat.value}
-                  </p>
-                )}
+                <p className="truncate text-sm text-muted-foreground">{stat.label}</p>
+                <p
+                  className={cn(
+                    "truncate text-2xl font-semibold tracking-tight tabular-nums transition-[filter] duration-200",
+                    blurred && "blur-sm select-none"
+                  )}
+                >
+                  {stat.value}
+                </p>
                 {stat.detail ? (
                   <p className="truncate text-xs text-muted-foreground">{stat.detail}</p>
                 ) : null}
               </div>
-              <div
-                className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-lg",
-                  stat.iconClassName
-                )}
-              >
-                <stat.icon className="size-4" />
-              </div>
+
+              {stat.sensitive ? (
+                <div className="flex shrink-0 flex-col items-end justify-between self-stretch gap-2">
+                  <button
+                    type="button"
+                    onClick={onToggle}
+                    className="rounded p-0.5 text-muted-foreground/50 transition-colors hover:text-muted-foreground"
+                    aria-label={blurred ? `Reveal ${stat.label}` : `Hide ${stat.label}`}
+                  >
+                    {blurred ? (
+                      <Eye className="size-4" />
+                    ) : (
+                      <EyeOff className="size-4" />
+                    )}
+                  </button>
+                  <div
+                    className={cn(
+                      "flex size-9 items-center justify-center rounded-lg",
+                      stat.iconClassName
+                    )}
+                  >
+                    <stat.icon className="size-4" />
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                    stat.iconClassName
+                  )}
+                >
+                  <stat.icon className="size-4" />
+                </div>
+              )}
             </CardContent>
           </Card>
         );
