@@ -514,9 +514,19 @@ export function UserSettings() {
     () => new Set(users.map((u) => u.employeeId).filter(Boolean)),
     [users]
   );
+  const linkedEmails = React.useMemo(
+    () => new Set(users.map((u) => u.email).filter(Boolean)),
+    [users]
+  );
   const invitableEmployees = React.useMemo(
-    () => state.employees.filter((e) => !linkedEmployeeIds.has(e.id) && e.status !== "terminated"),
-    [state.employees, linkedEmployeeIds]
+    () =>
+      state.employees.filter(
+        (e) =>
+          !linkedEmployeeIds.has(e.id) &&
+          !(e.email && linkedEmails.has(e.email)) &&
+          e.status !== "terminated"
+      ),
+    [state.employees, linkedEmployeeIds, linkedEmails]
   );
 
   const refresh = React.useCallback(async () => {
