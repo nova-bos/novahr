@@ -59,18 +59,18 @@ export function CommandMenu() {
     <>
       <Button
         variant="outline"
-        className="hidden h-9 w-52 justify-between gap-2 border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none lg:flex xl:w-64"
+        className="hidden h-9 w-52 min-w-0 justify-between gap-2 overflow-hidden border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none lg:flex xl:w-64"
         onClick={() => setOpen(true)}
       >
-        <span className="flex items-center gap-2">
-          <Search className="size-3.5" />
-          <span className="text-sm">{searchLabel}</span>
+        <span className="flex min-w-0 items-center gap-2 overflow-hidden">
+          <Search className="size-3.5 shrink-0" />
+          <span className="truncate text-sm">{searchLabel}</span>
         </span>
-        <CommandShortcut className="hidden sm:inline-flex">⌘K</CommandShortcut>
+        <CommandShortcut className="ml-2 shrink-0 hidden sm:inline-flex">⌘K</CommandShortcut>
       </Button>
       <Button
         variant="outline"
-        className="h-9 w-full justify-start gap-2 border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none lg:hidden"
+        className="h-9 w-full min-w-0 justify-start gap-2 overflow-hidden border-border/70 bg-background px-3 font-normal text-muted-foreground shadow-none lg:hidden"
         onClick={() => setOpen(true)}
       >
         <Search className="size-3.5 shrink-0" />
