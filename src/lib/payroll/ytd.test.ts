@@ -7,8 +7,6 @@ function makePayslip(overrides: Partial<Payslip> & { period: string; employeeId:
     id: `ps-${overrides.period}-${overrides.employeeId}`,
     tenantId: "t1",
     runId: "run1",
-    period: overrides.period,
-    employeeId: overrides.employeeId,
     payDate: `${overrides.period}-25`,
     basicSalary: 10000,
     earnings: [{ label: "Travel allowance", amount: 1000 }],

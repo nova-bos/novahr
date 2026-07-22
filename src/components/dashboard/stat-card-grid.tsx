@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { Eye, EyeOff } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -5,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 export interface StatItem {
   label: string;
-  value: string;
+  value: React.ReactNode;
   detail?: string;
   icon: LucideIcon;
   iconClassName: string;

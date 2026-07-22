@@ -1,19 +1,28 @@
-export function formatCurrency(amount: number, currency = "ZAR"): string {
+export function formatCurrency(
+  amount: number,
+  currency = "ZAR",
+  opts?: { cents?: boolean }
+): string {
   const prefix = currency === "ZAR" ? "R" : currency;
+  const cents = opts?.cents ?? true;
   const formatted = new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: cents ? 2 : 0,
+    maximumFractionDigits: cents ? 2 : 0,
   }).format(amount);
   return `${prefix} ${formatted}`;
 }
 
 export function formatCurrencyCompact(amount: number, currency = "ZAR"): string {
   const prefix = currency === "ZAR" ? "R" : currency;
-  if (Math.abs(amount) >= 1_000_000) {
-    return `${prefix} ${(amount / 1_000_000).toFixed(1)}M`;
+  const abs = Math.abs(amount);
+  // Drop a trailing ".0" so whole magnitudes read cleanly, e.g. "R 40K" not "R 40.0K".
+  if (abs >= 1_000_000) {
+    const n = amount / 1_000_000;
+    return `${prefix} ${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)}M`;
   }
-  if (Math.abs(amount) >= 1_000) {
-    return `${prefix} ${(amount / 1_000).toFixed(1)}K`;
+  if (abs >= 1_000) {
+    const n = amount / 1_000;
+    return `${prefix} ${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)}K`;
   }
   return `${prefix} ${amount.toFixed(0)}`;
 }

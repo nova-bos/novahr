@@ -16,7 +16,8 @@ import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-gr
 import { useCurrentEmployee } from "@/lib/auth/scope";
 import { usePayrollRuns, usePayslipsByEmployee } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrency, formatCurrencyCompact, formatDate, formatMonthYear } from "@/lib/format";
+import { formatCurrency, formatDate, formatMonthYear } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import type { Payslip } from "@/lib/types";
 import { PayslipDialog } from "./payslip-dialog";
 
@@ -52,7 +53,7 @@ export function MyPayslips() {
     },
     {
       label: "Year to date",
-      value: formatCurrencyCompact(ytdNet),
+      value: <Currency amount={ytdNet} />,
       detail: `${payslips.length} payslip${payslips.length === 1 ? "" : "s"}`,
       icon: FileText,
       iconClassName: "bg-info/10 text-info",

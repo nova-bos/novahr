@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/table";
 import { useDepartments, useEmployees } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrency, formatCurrencyCompact } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { HeadcountChart } from "./headcount-chart";
@@ -54,7 +55,7 @@ export function WorkforceReport() {
     },
     {
       label: "Monthly payroll cost",
-      value: formatCurrencyCompact(monthlyCost),
+      value: <Currency amount={monthlyCost} />,
       detail: "Gross, current roster",
       icon: TrendingUp,
       iconClassName: "bg-primary/10 text-primary",

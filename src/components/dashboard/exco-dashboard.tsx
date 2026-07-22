@@ -17,7 +17,8 @@ import {
   usePayrollRuns,
 } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrency, formatCurrencyCompact, formatDateLong, formatMonthYear } from "@/lib/format";
+import { formatCurrency, formatDateLong, formatMonthYear } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import { cn } from "@/lib/utils";
 import { DashboardHeader } from "./dashboard-header";
 import { StatCardGrid, type StatItem } from "./stat-card-grid";
@@ -61,7 +62,7 @@ export function ExcoDashboard() {
     },
     {
       label: "Monthly payroll",
-      value: formatCurrencyCompact(monthlyGross),
+      value: <Currency amount={monthlyGross} />,
       detail: "Gross, current roster",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",

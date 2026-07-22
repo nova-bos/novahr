@@ -20,7 +20,8 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import { useCanDecideRequest, useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
 import { useApp } from "@/lib/store/app-provider";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrencyCompact, formatDate, formatDateLong, getInitials, leaveTypeLabel } from "@/lib/format";
+import { formatDate, formatDateLong, getInitials, leaveTypeLabel } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import { cn } from "@/lib/utils";
 import { DashboardHeader } from "./dashboard-header";
 import { StatCardGrid, type StatItem } from "./stat-card-grid";
@@ -78,7 +79,7 @@ export function ManagerDashboard() {
     },
     {
       label: "Team payroll",
-      value: formatCurrencyCompact(monthlyPayroll),
+      value: <Currency amount={monthlyPayroll} />,
       detail: "Gross, per month",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",

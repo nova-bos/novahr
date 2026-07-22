@@ -26,6 +26,15 @@ describe("formatCurrency", () => {
   it("formats negative amounts", () => {
     expect(formatCurrency(-500)).toBe("R -500.00");
   });
+
+  it("omits cents when cents is false", () => {
+    expect(formatCurrency(40_000, "ZAR", { cents: false })).toBe("R 40,000");
+    expect(formatCurrency(28_077.88, "ZAR", { cents: false })).toBe("R 28,078");
+  });
+
+  it("keeps cents by default", () => {
+    expect(formatCurrency(40_000)).toBe("R 40,000.00");
+  });
 });
 
 describe("formatCurrencyCompact", () => {
@@ -39,6 +48,11 @@ describe("formatCurrencyCompact", () => {
 
   it("formats amounts under 1000 with no suffix", () => {
     expect(formatCurrencyCompact(500)).toBe("R 500");
+  });
+
+  it("drops a trailing .0 for whole magnitudes", () => {
+    expect(formatCurrencyCompact(40_000)).toBe("R 40K");
+    expect(formatCurrencyCompact(1_000_000)).toBe("R 1M");
   });
 
   it("uses the given currency as the prefix for non-ZAR currencies", () => {

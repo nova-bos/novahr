@@ -24,7 +24,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useScopedEmployees } from "@/lib/auth/scope";
-import { employmentTypeLabel, formatCurrencyCompact, getInitials } from "@/lib/format";
+import { employmentTypeLabel, getInitials } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import { StatusBadge } from "./status-badge";
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
@@ -196,7 +197,7 @@ export function EmployeeDirectory() {
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="text-sm tabular-nums">
-                      {formatCurrencyCompact(employee.salary.annualGross)}
+                      <Currency amount={employee.salary.annualGross} />
                     </span>
                   </TableCell>
                   <TableCell>

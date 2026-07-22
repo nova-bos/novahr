@@ -4,7 +4,8 @@ import * as React from "react";
 import { CalendarClock, ClipboardList, Users, Wallet } from "lucide-react";
 import { useEmployees, useLeaveRequests, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrencyCompact, formatDate, plural } from "@/lib/format";
+import { formatDate, plural } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import { StatCardGrid, type StatItem } from "./stat-card-grid";
 
 export function StatCards() {
@@ -39,7 +40,7 @@ export function StatCards() {
     },
     {
       label: "Monthly payroll",
-      value: formatCurrencyCompact(monthlyGross),
+      value: <Currency amount={monthlyGross} />,
       detail: "Gross, current roster",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",

@@ -3,7 +3,8 @@
 import { Banknote, CalendarClock, ReceiptText, Users } from "lucide-react";
 import { useEmployees, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrencyCompact, formatDate, plural } from "@/lib/format";
+import { formatDate, plural } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 
 export function PayrollStats() {
@@ -35,21 +36,21 @@ export function PayrollStats() {
     },
     {
       label: "Projected gross",
-      value: formatCurrencyCompact(monthlyGross),
+      value: <Currency amount={monthlyGross} />,
       detail: "Current roster, per month",
       icon: Banknote,
       iconClassName: "bg-primary/10 text-primary",
     },
     {
       label: "Projected net",
-      value: formatCurrencyCompact(monthlyNet),
+      value: <Currency amount={monthlyNet} />,
       detail: "After tax and deductions",
       icon: ReceiptText,
       iconClassName: "bg-success/10 text-success",
     },
     {
       label: "Year to date",
-      value: formatCurrencyCompact(ytdNet),
+      value: <Currency amount={ytdNet} />,
       detail: `${completedRuns.length} completed runs`,
       icon: Users,
       iconClassName: "bg-warning/10 text-warning",

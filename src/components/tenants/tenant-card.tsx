@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useApp } from "@/lib/store/app-provider";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrencyCompact, formatOrdinal } from "@/lib/format";
+import { formatOrdinal } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import type { Tenant } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +69,7 @@ export function TenantCard({ tenant }: { tenant: Tenant }) {
           </div>
           <div className="rounded-xl border border-border/70 p-2 sm:p-3 text-center">
             <p className="text-lg font-semibold tabular-nums">
-              {formatCurrencyCompact(monthlyGross)}
+              <Currency amount={monthlyGross} />
             </p>
             <p className="text-xs text-muted-foreground leading-tight">Monthly payroll</p>
           </div>

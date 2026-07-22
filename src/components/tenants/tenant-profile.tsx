@@ -14,7 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { payFrequencyOptions } from "@/lib/config/leave";
-import { formatCurrencyCompact, formatOrdinal } from "@/lib/format";
+import { formatOrdinal } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import { useCurrentTenant, useDepartments, useEmployees, usePayrollConfig } from "@/lib/store/hooks";
 
 function InfoRow({
@@ -147,7 +148,7 @@ export function TenantProfile() {
                       </div>
                     </div>
                     <p className="shrink-0 text-sm font-medium tabular-nums">
-                      {formatCurrencyCompact(dept.budget)}
+                      <Currency amount={dept.budget} />
                     </p>
                   </div>
                 );

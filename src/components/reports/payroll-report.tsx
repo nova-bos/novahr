@@ -13,7 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePayrollRuns } from "@/lib/store/hooks";
-import { formatCurrency, formatCurrencyCompact, formatDate, formatMonthYear } from "@/lib/format";
+import { formatCurrency, formatDate, formatMonthYear } from "@/lib/format";
+import { Currency } from "@/components/ui/currency";
 import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { PayrollStatusBadge } from "@/components/payroll/payroll-status-badge";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
@@ -50,28 +51,28 @@ export function PayrollReport() {
   const stats: StatItem[] = [
     {
       label: "YTD gross pay",
-      value: formatCurrencyCompact(ytdGross),
+      value: <Currency amount={ytdGross} />,
       detail: `${completed.length} completed pay runs`,
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",
     },
     {
       label: "YTD net pay",
-      value: formatCurrencyCompact(ytdNet),
+      value: <Currency amount={ytdNet} />,
       detail: "Paid out to employees",
       icon: Banknote,
       iconClassName: "bg-success/10 text-success",
     },
     {
       label: "YTD PAYE withheld",
-      value: formatCurrencyCompact(ytdPaye),
+      value: <Currency amount={ytdPaye} />,
       detail: "Remitted to SARS",
       icon: FileText,
       iconClassName: "bg-info/10 text-info",
     },
     {
       label: "YTD UIF contributions",
-      value: formatCurrencyCompact(ytdUif),
+      value: <Currency amount={ytdUif} />,
       detail: "Capped at R177.12 / employee",
       icon: ShieldCheck,
       iconClassName: "bg-warning/10 text-warning",
