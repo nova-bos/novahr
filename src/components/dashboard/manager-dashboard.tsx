@@ -31,6 +31,7 @@ export function ManagerDashboard() {
   const scopedEmployees = useScopedEmployees();
   const team = scopedEmployees.filter((e) => e.id !== user?.employeeId);
   const [decidingId, setDecidingId] = React.useState<string | null>(null);
+  const [revealed, setRevealed] = React.useState(false);
   const requests = useScopedLeaveRequests();
   const canDecide = useCanDecideRequest();
 
@@ -81,6 +82,7 @@ export function ManagerDashboard() {
       detail: "Gross, per month",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",
+      sensitive: true,
     },
     {
       label: "On leave today",
@@ -96,7 +98,7 @@ export function ManagerDashboard() {
       <DashboardHeader
         subtitle={`Here's how your team is doing today, ${formatDateLong(new Date())}.`}
       />
-      <StatCardGrid stats={stats} />
+      <StatCardGrid stats={stats} revealed={revealed} onReveal={() => setRevealed(true)} />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>

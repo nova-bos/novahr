@@ -1,6 +1,7 @@
 "use client";
 
-import { CalendarClock, ClipboardList, ShieldCheck, Users, Wallet } from "lucide-react";
+import * as React from "react";
+import { CalendarClock, ClipboardList, Eye, ShieldCheck, Users, Wallet } from "lucide-react";
 
 import {
   Card,
@@ -28,6 +29,7 @@ export function ExcoDashboard() {
   const employees = useEmployees();
   const leaveRequests = useLeaveRequests();
   const payrollRuns = usePayrollRuns();
+  const [revealed, setRevealed] = React.useState(false);
 
   const activeEmployees = employees.filter((e) => e.status !== "terminated");
   const onLeaveToday = activeEmployees.filter((e) => e.status === "on_leave").length;
@@ -62,6 +64,7 @@ export function ExcoDashboard() {
       detail: "Gross, current roster",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",
+      sensitive: true,
     },
     {
       label: "Pending leave",
@@ -84,7 +87,7 @@ export function ExcoDashboard() {
       <DashboardHeader
         subtitle={`A read-only executive view of ${tenant.name}, ${formatDateLong(new Date())}.`}
       />
-      <StatCardGrid stats={stats} />
+      <StatCardGrid stats={stats} revealed={revealed} onReveal={() => setRevealed(true)} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <PayrollTrendChart />
@@ -120,9 +123,21 @@ export function ExcoDashboard() {
                 </div>
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <span className="truncate text-muted-foreground">Projected gross</span>
-                  <span className="shrink-0 font-medium tabular-nums">
-                    {formatCurrency(projectedGross)}
-                  </span>
+                  {revealed ? (
+                    <span className="shrink-0 font-medium tabular-nums">
+                      {formatCurrency(projectedGross)}
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setRevealed(true)}
+                      className="flex shrink-0 items-center gap-1"
+                      aria-label="Reveal projected gross"
+                    >
+                      <span className="font-medium tracking-widest text-muted-foreground/60 select-none">••••••</span>
+                      <Eye className="size-3.5 text-muted-foreground" />
+                    </button>
+                  )}
                 </div>
               </>
             ) : (

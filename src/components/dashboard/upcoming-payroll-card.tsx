@@ -1,7 +1,8 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarClock } from "lucide-react";
+import { ArrowRight, CalendarClock, Eye } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ export function UpcomingPayrollCard() {
   const runs = usePayrollRuns();
   const employees = useEmployees();
   const upcoming = runs.find((r) => r.status === "scheduled" || r.status === "processing");
+  const [revealed, setRevealed] = React.useState(false);
 
   if (!upcoming) {
     return null;
@@ -51,7 +53,19 @@ export function UpcomingPayrollCard() {
         </div>
         <div className="flex items-center justify-between gap-2 text-sm">
           <span className="truncate text-muted-foreground">Projected gross</span>
-          <span className="shrink-0 font-medium tabular-nums">{formatCurrency(projectedGross)}</span>
+          {revealed ? (
+            <span className="shrink-0 font-medium tabular-nums">{formatCurrency(projectedGross)}</span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setRevealed(true)}
+              className="flex shrink-0 items-center gap-1"
+              aria-label="Reveal projected gross"
+            >
+              <span className="font-medium tracking-widest text-muted-foreground/60 select-none">••••••</span>
+              <Eye className="size-3.5 text-muted-foreground" />
+            </button>
+          )}
         </div>
       </CardContent>
       <CardFooter className="border-t-0 bg-transparent p-(--card-spacing) pt-0">

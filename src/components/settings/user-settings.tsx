@@ -25,20 +25,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -92,51 +78,85 @@ function EmployeePicker({
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const ref = React.useRef<HTMLDivElement>(null);
   const selected = employees.find((e) => e.id === value);
-  const grouped = groupByDepartment(employees);
+
+  React.useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  const filtered = React.useMemo(() => {
+    const q = search.toLowerCase();
+    if (!q) return employees;
+    return employees.filter(
+      (e) =>
+        `${e.firstName} ${e.lastName}`.toLowerCase().includes(q) ||
+        (e.jobTitle?.toLowerCase().includes(q) ?? false)
+    );
+  }, [employees, search]);
+
+  const grouped = React.useMemo(() => groupByDepartment(filtered), [filtered]);
   const departments = Object.keys(grouped).sort();
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between font-normal text-left"
-        >
-          {selected ? (
-            <span className="flex items-center gap-2 min-w-0">
-              <Avatar className="size-5 shrink-0">
-                <AvatarFallback
-                  className="text-[10px] font-semibold text-white"
-                  style={{ backgroundColor: selected.avatarColor }}
-                >
-                  {selected.initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="truncate">
-                {selected.firstName} {selected.lastName}
-                {selected.jobTitle ? <span className="text-muted-foreground"> · {selected.jobTitle}</span> : null}
-              </span>
-            </span>
-          ) : (
-            <span className="text-muted-foreground">Search employees...</span>
-          )}
-          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-[--radix-popover-trigger-width] max-h-[min(360px,var(--radix-popover-available-height))] overflow-hidden p-0"
-        align="start"
+    <div ref={ref} className="flex flex-col gap-1">
+      <Button
+        type="button"
+        variant="outline"
+        role="combobox"
+        aria-expanded={open}
+        className="w-full justify-between font-normal text-left"
+        onClick={() => setOpen((v) => !v)}
       >
-        <Command className="flex h-full flex-col">
-          <CommandInput placeholder="Search by name or job title..." />
-          <CommandList className="flex-1 overflow-y-auto">
-            <CommandEmpty>
-              <div className="flex flex-col items-center gap-3 py-4">
+        {selected ? (
+          <span className="flex min-w-0 items-center gap-2">
+            <Avatar className="size-5 shrink-0">
+              <AvatarFallback
+                className="text-[10px] font-semibold text-white"
+                style={{ backgroundColor: selected.avatarColor }}
+              >
+                {selected.initials}
+              </AvatarFallback>
+            </Avatar>
+            <span className="truncate">
+              {selected.firstName} {selected.lastName}
+              {selected.jobTitle ? (
+                <span className="text-muted-foreground"> · {selected.jobTitle}</span>
+              ) : null}
+            </span>
+          </span>
+        ) : (
+          <span className="text-muted-foreground">Search employees...</span>
+        )}
+        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+      </Button>
+
+      {open && (
+        <div className="overflow-hidden rounded-xl border border-border bg-popover shadow-md">
+          <div className="border-b p-2">
+            <Input
+              placeholder="Search by name or job title..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8 text-sm"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-52 overflow-y-auto">
+            {departments.length === 0 ? (
+              <div className="flex flex-col items-center gap-3 py-6">
                 <p className="text-sm text-muted-foreground">No employee found.</p>
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
                   onClick={() => {
@@ -148,45 +168,59 @@ function EmployeePicker({
                   Add new employee
                 </Button>
               </div>
-            </CommandEmpty>
-            {departments.map((dept, i) => (
-              <React.Fragment key={dept}>
-                {i > 0 && <CommandSeparator />}
-                <CommandGroup heading={dept}>
-                  {grouped[dept].map((emp) => (
-                    <CommandItem
-                      key={emp.id}
-                      value={`${emp.firstName} ${emp.lastName} ${emp.jobTitle} ${dept}`}
-                      onSelect={() => {
-                        onChange(emp.id === value ? null : emp);
-                        setOpen(false);
-                      }}
-                    >
-                      <Avatar className="size-5 shrink-0">
-                        <AvatarFallback
-                          className="text-[10px] font-semibold text-white"
-                          style={{ backgroundColor: emp.avatarColor }}
-                        >
-                          {emp.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <span className="font-medium">{emp.firstName} {emp.lastName}</span>
-                        {emp.jobTitle ? (
-                          <span className="ml-1 text-xs text-muted-foreground">{emp.jobTitle}</span>
-                        ) : null}
-                      </div>
-                      <Check
-                        className={cn("ml-auto size-3.5 shrink-0", emp.id === value ? "opacity-100" : "opacity-0")}
-                      />
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </React.Fragment>
-            ))}
-          </CommandList>
+            ) : (
+              <div className="p-1">
+                {departments.map((dept, i) => (
+                  <React.Fragment key={dept}>
+                    {i > 0 && <div className="my-1 h-px bg-border" />}
+                    <div className="px-2 py-1 text-xs font-medium text-muted-foreground">
+                      {dept}
+                    </div>
+                    {grouped[dept].map((emp) => (
+                      <button
+                        key={emp.id}
+                        type="button"
+                        className={cn(
+                          "flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-accent",
+                          emp.id === value && "bg-accent"
+                        )}
+                        onClick={() => {
+                          onChange(emp.id === value ? null : emp);
+                          setSearch("");
+                          setOpen(false);
+                        }}
+                      >
+                        <Avatar className="size-5 shrink-0">
+                          <AvatarFallback
+                            className="text-[10px] font-semibold text-white"
+                            style={{ backgroundColor: emp.avatarColor }}
+                          >
+                            {emp.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1 text-left">
+                          <span className="font-medium">
+                            {emp.firstName} {emp.lastName}
+                          </span>
+                          {emp.jobTitle ? (
+                            <span className="ml-1 text-xs text-muted-foreground">
+                              {emp.jobTitle}
+                            </span>
+                          ) : null}
+                        </div>
+                        {emp.id === value && (
+                          <Check className="ml-auto size-3.5 shrink-0 text-primary" />
+                        )}
+                      </button>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="border-t p-2">
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className="w-full justify-start gap-2 text-muted-foreground"
@@ -199,9 +233,9 @@ function EmployeePicker({
               Employee not in the list? Add them first
             </Button>
           </div>
-        </Command>
-      </PopoverContent>
-    </Popover>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { CalendarClock, ClipboardList, Users, Wallet } from "lucide-react";
 import { useEmployees, useLeaveRequests, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
@@ -10,6 +11,7 @@ export function StatCards() {
   const employees = useEmployees();
   const leaveRequests = useLeaveRequests();
   const payrollRuns = usePayrollRuns();
+  const [revealed, setRevealed] = React.useState(false);
 
   const activeEmployees = employees.filter((e) => e.status !== "terminated");
   const onProbation = activeEmployees.filter((e) => e.status === "probation").length;
@@ -41,6 +43,7 @@ export function StatCards() {
       detail: "Gross, current roster",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",
+      sensitive: true,
     },
     {
       label: "Pending leave requests",
@@ -58,5 +61,5 @@ export function StatCards() {
     },
   ];
 
-  return <StatCardGrid stats={stats} />;
+  return <StatCardGrid stats={stats} revealed={revealed} onReveal={() => setRevealed(true)} />;
 }

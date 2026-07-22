@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -55,6 +56,7 @@ export function EmployeeDashboard() {
   const manager = useEmployee(employee?.managerId);
   const payslips = usePayslipsByEmployee(employee?.id);
   const latestPayslip = payslips[0];
+  const [revealed, setRevealed] = React.useState(false);
 
   if (!employee) return null;
 
@@ -77,6 +79,7 @@ export function EmployeeDashboard() {
       detail: latestPayslip ? `${formatMonthYear(latestPayslip.period)} · net pay` : "No payslips yet",
       icon: Wallet,
       iconClassName: "bg-primary/10 text-primary",
+      sensitive: true,
     },
     {
       label: "Monthly gross",
@@ -84,6 +87,7 @@ export function EmployeeDashboard() {
       detail: "Current salary",
       icon: Banknote,
       iconClassName: "bg-success/10 text-success",
+      sensitive: true,
     },
     {
       label: "At NovaTech",
@@ -97,7 +101,7 @@ export function EmployeeDashboard() {
   return (
     <div className="flex flex-col gap-6">
       <DashboardHeader subtitle={`Here's your overview for today, ${formatDateLong(new Date())}.`} />
-      <StatCardGrid stats={stats} />
+      <StatCardGrid stats={stats} revealed={revealed} onReveal={() => setRevealed(true)} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
