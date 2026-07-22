@@ -254,9 +254,15 @@ export function LeaveDetailSheet({ requestId, onClose }: LeaveDetailSheetProps) 
             </div>
           </>
         ) : (
-          <div className="flex h-full items-center justify-center p-8">
-            <p className="text-sm text-muted-foreground">No request selected.</p>
-          </div>
+          <>
+            <SheetHeader className="sr-only">
+              <SheetTitle>Leave request</SheetTitle>
+              <SheetDescription>No request selected.</SheetDescription>
+            </SheetHeader>
+            <div className="flex h-full items-center justify-center p-8">
+              <p className="text-sm text-muted-foreground">No request selected.</p>
+            </div>
+          </>
         )}
       </SheetContent>
     </Sheet>

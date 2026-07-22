@@ -19,7 +19,7 @@ interface RejectLeaveDialogProps {
   disabled?: boolean;
   /** Called with the optional rejection note when the user confirms. */
   onReject: (note: string) => Promise<void>;
-  /** Override the trigger appearance — defaults to the standard icon button. */
+  /** Override the trigger appearance. Defaults to the standard icon button. */
   trigger?: React.ReactNode;
 }
 

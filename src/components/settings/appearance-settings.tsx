@@ -23,7 +23,7 @@ export function AppearanceSettings() {
         <CardContent>
           <div className="flex items-center justify-between gap-4 py-3">
             <div className="space-y-0.5">
-              <p className="text-sm font-medium">Color theme</p>
+              <p className="text-sm font-medium">Colour theme</p>
               <p className="text-xs text-muted-foreground">
                 Choose between light, dark, or follow your system preference.
               </p>

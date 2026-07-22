@@ -358,14 +358,15 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
   const leave = summariseLeave(employee.leaveBalances ?? []);
   const payFrequency = employee.salary.payFrequency;
 
-  // Employer contributions (informational — not deducted from the employee).
+  // Employer contributions (informational, not deducted from the employee).
   const uifEmployer = payslip.uif; // employer matches employee UIF 1:1 in SA
   const employerContribs: { label: string; amount: number }[] = [
     { label: "UIF (employer)", amount: uifEmployer },
   ];
+  // pensionContributionPct is stored as a fraction (e.g. 0.075), so multiply directly.
   const pensionPct = employee.salary.pensionContributionPct;
   if (pensionPct && pensionPct > 0) {
-    employerContribs.push({ label: "Pension (employer)", amount: Math.round((payslip.basicSalary * pensionPct) / 100) });
+    employerContribs.push({ label: "Pension (employer)", amount: Math.round(payslip.basicSalary * pensionPct * 100) / 100 });
   }
 
   const s = StyleSheet.create({
@@ -584,7 +585,7 @@ function BrandedPayslipDocument(props: PayslipDocumentProps) {
 
           <View style={s.metaRow}>
             <View style={s.metaItem}><Text style={s.metaLabel}>Payslip</Text><Text style={s.metaValue}>{payslipNumber}</Text></View>
-            <View style={s.metaItem}><Text style={s.metaLabel}>Employee no</Text><Text style={s.metaValue}>{employee.employeeNumber}</Text></View>
+            <View style={s.metaItem}><Text style={s.metaLabel}>Employee no.</Text><Text style={s.metaValue}>{employee.employeeNumber}</Text></View>
             <View style={s.metaItem}><Text style={s.metaLabel}>Gross</Text><Text style={s.metaValue}>{formatCurrency(payslip.grossPay)}</Text></View>
           </View>
 

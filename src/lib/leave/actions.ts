@@ -169,10 +169,32 @@ export async function decideLeaveRequestRecord(
     const actor = `${employee.firstName} ${employee.lastName}`;
     const label = leaveTypeLabel(target.type as LeaveType).toLowerCase();
 
-    const leaveRequest = await tx.leaveRequest.update({
-      where: { id },
+    // Read the current balance once so we can validate and floor writes.
+    const existingBalance = await tx.leaveBalance.findUnique({
+      where: { employeeId_type: { employeeId: target.employeeId, type: target.type } },
+    });
+    const balanceTotal = existingBalance?.total ?? DEFAULT_LEAVE_TOTALS[target.type as LeaveType] ?? 0;
+    const balanceUsed = existingBalance?.used ?? 0;
+
+    // Server-side balance guard: approving must not push used past the entitlement
+    // for capped leave types (unpaid and other zero-total types are not capped).
+    if (status === "approved" && balanceTotal > 0 && balanceUsed + target.days > balanceTotal) {
+      const remaining = Math.max(0, balanceTotal - balanceUsed);
+      throw new Error(
+        `Approving this request would exceed the employee's ${label} entitlement. ${remaining} of ${balanceTotal} days remain.`
+      );
+    }
+
+    // Compare-and-swap the status transition so two approvers (or a double click)
+    // cannot both pass the guard above and both adjust the balance.
+    const cas = await tx.leaveRequest.updateMany({
+      where: { id, tenantId, status: previousStatus },
       data: { status, decidedBy, decidedOn: new Date(), decisionNote },
     });
+    if (cas.count === 0) {
+      throw new Error("This request was already updated by someone else.");
+    }
+    const leaveRequest = await tx.leaveRequest.findFirstOrThrow({ where: { id, tenantId } });
 
     let leaveBalance;
     if (status === "approved") {
@@ -188,10 +210,11 @@ export async function decideLeaveRequestRecord(
         },
       });
     } else if (previousStatus === "approved") {
-      // Revoking a prior approval: give the days back.
+      // Revoking a prior approval: give the days back, floored at zero so the
+      // balance can never go negative from inconsistent data.
       leaveBalance = await tx.leaveBalance.upsert({
         where: { employeeId_type: { employeeId: target.employeeId, type: target.type } },
-        update: { used: { decrement: target.days } },
+        update: { used: Math.max(0, balanceUsed - target.days) },
         create: {
           employeeId: target.employeeId,
           type: target.type,

@@ -32,7 +32,7 @@ vi.mock("@/lib/bank-exports/netcash", async (importOriginal) => {
   return { ...actual, submitNifBatch: netcashMocks.submitNifBatch };
 });
 
-vi.mock("@/lib/settings/actions", () => ({
+vi.mock("@/lib/settings/netcash-keys", () => ({
   getNetcashServiceKeys: vi.fn(async () => ({
     salaryKey: "7f9c2b4e-1a3d-4c5f-8e6a-9b0d1c2e3f4a",
     accountServicesKey: null,

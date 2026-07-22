@@ -58,9 +58,14 @@ export function Currency({
     return <span className={cn("tabular-nums", className)} {...props}>{compact}</span>;
   }
 
+  // A single aria-label on the wrapper gives assistive tech the precise value
+  // with cents, while both visual spans are hidden from it, so nothing double-reads.
   return (
-    <span className={cn("tabular-nums", className)} {...props}>
-      <span className="sr-only">{formatCurrency(amount, currency, { cents: true })}</span>
+    <span
+      className={cn("tabular-nums", className)}
+      aria-label={formatCurrency(amount, currency, { cents: true })}
+      {...props}
+    >
       <span aria-hidden className={FULL_AT[from]}>{full}</span>
       <span aria-hidden className={COMPACT_AT[from]}>{compact}</span>
     </span>

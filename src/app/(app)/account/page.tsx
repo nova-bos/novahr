@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { updateUserProfileAction, sendPasswordResetAction } from "@/lib/auth/profile-actions";
 import { CloseAccountCard } from "@/components/settings/close-account-card";
+import { AppearanceSettings } from "@/components/settings/appearance-settings";
 
 const AVATAR_COLORS = [
   "#4C6FFF",
@@ -155,6 +156,8 @@ export default function AccountPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <AppearanceSettings />
 
       <CloseAccountCard />
     </div>

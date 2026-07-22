@@ -1,7 +1,7 @@
 "use server";
 
 import { requireTenant } from "@/lib/auth/require";
-import { getNetcashServiceKeys } from "@/lib/settings/actions";
+import { getNetcashServiceKeys } from "@/lib/settings/netcash-keys";
 import { getAccountBalance } from "@/lib/services/netcash/accountBalance";
 import { getPaymentLimits } from "@/lib/services/netcash/accountLimits";
 

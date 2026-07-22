@@ -3,7 +3,7 @@
 import { ComplianceStatus, ComplianceType, Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant } from "@/lib/auth/require";
-import { getComplianceDueDate, calculateSdl } from "./utils";
+import { getComplianceDueDate, calculateSdl, isSdlLiable } from "./utils";
 import {
   applyEti,
   calculateEti,
@@ -154,7 +154,13 @@ export async function generateComplianceFromRunAction(
     const run = await tx.payrollRun.findFirstOrThrow({ where: { id: payrollRunId, tenantId } });
     const period = run.period;
     const dueDate = getComplianceDueDate(period);
-    const sdlAmount = calculateSdl(run.totalGross.toNumber());
+    // SDL only applies above the R500,000 annual-payroll threshold (SARS exemption).
+    const activeEmployees = await tx.employee.findMany({
+      where: { tenantId, status: { not: "terminated" } },
+      select: { salaryAnnualGross: true },
+    });
+    const totalAnnualPayroll = activeEmployees.reduce((s, e) => s + e.salaryAnnualGross.toNumber(), 0);
+    const sdlAmount = isSdlLiable(totalAnnualPayroll) ? calculateSdl(run.totalGross.toNumber()) : 0;
 
     const payeRecord = await tx.complianceRecord.upsert({
       where: { tenantId_period_type: { tenantId, period, type: ComplianceType.paye_return } },
@@ -291,7 +297,13 @@ export async function generateEmp201FromRunAction(
     const run = await tx.payrollRun.findFirstOrThrow({ where: { id: payrollRunId, tenantId } });
     const period = run.period;
     const dueDate = getComplianceDueDate(period);
-    const totalSdl = calculateSdl(run.totalGross.toNumber());
+    // SDL only applies above the R500,000 annual-payroll threshold (SARS exemption).
+    const activeEmployees = await tx.employee.findMany({
+      where: { tenantId, status: { not: "terminated" } },
+      select: { salaryAnnualGross: true },
+    });
+    const totalAnnualPayroll = activeEmployees.reduce((s, e) => s + e.salaryAnnualGross.toNumber(), 0);
+    const totalSdl = isSdlLiable(totalAnnualPayroll) ? calculateSdl(run.totalGross.toNumber()) : 0;
     const etiCalculated = await computeRunEti(tx, tenantId, payrollRunId, period);
 
     // ETI carry-forward: unused ETI (calculated plus any brought forward from

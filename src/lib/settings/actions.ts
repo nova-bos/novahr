@@ -2,7 +2,7 @@
 
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole, requireTenant } from "@/lib/auth/require";
-import { encryptServiceKey, decryptServiceKey } from "@/lib/crypto/service-keys";
+import { encryptServiceKey } from "@/lib/crypto/service-keys";
 import { prisma } from "@/lib/prisma";
 import { isValidServiceKey } from "@/lib/services/netcash/auth";
 import { checkRateLimit } from "@/lib/security/rate-limit";
@@ -139,28 +139,6 @@ export async function getPayrollSettingsAction(
   });
 }
 
-export async function getNetcashServiceKeys(tenantId: string): Promise<{
-  salaryKey: string | null;
-  accountServicesKey: string | null;
-  instruction: string;
-  environment: "production" | "uat";
-}> {
-  const settings = await prisma.payrollSettings.findUnique({ where: { tenantId } });
-  if (!settings) return { salaryKey: null, accountServicesKey: null, instruction: "DatedSalaries", environment: "production" };
-
-  function safeDecrypt(val: string | null): string | null {
-    if (!val) return null;
-    try { return decryptServiceKey(val); } catch { return null; }
-  }
-
-  return {
-    salaryKey: safeDecrypt(settings.netcashSalaryKey),
-    accountServicesKey: safeDecrypt(settings.netcashAccountServicesKey),
-    instruction: settings.netcashInstruction,
-    environment: settings.netcashEnvironment as "production" | "uat",
-  };
-}
-
 export async function updateTaxSettingsAction(
   tenantId: string,
   data: {
@@ -284,7 +262,7 @@ export async function updatePayslipSettingsAction(
     showYtd?: boolean;
   }
 ): Promise<{ success: boolean; error?: string }> {
-  await requireRole("hr");
+  await requireTenant(tenantId, "hr");
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({

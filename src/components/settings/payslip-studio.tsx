@@ -239,7 +239,7 @@ function PayslipPreview({ state }: { state: StudioState }) {
         </div>
         <div className="px-4 py-2.5 flex-1">
           <div className="flex flex-wrap border border-neutral-300 rounded p-1.5 mb-2">
-            {[["Employee", SAMPLE.employee], ["Emp no", SAMPLE.empNo], ["ID", "******1234"], ["Tax no", "0123456789"], ["Job title", SAMPLE.title], ["Department", SAMPLE.department]].map(([l, v]) => (
+            {[["Employee", SAMPLE.employee], ["Employee no.", SAMPLE.empNo], ["ID", "******1234"], ["Tax no", "0123456789"], ["Job title", SAMPLE.title], ["Department", SAMPLE.department]].map(([l, v]) => (
               <div key={l} className="w-1/3 mb-1"><p className="text-[5px] uppercase text-neutral-400">{l}</p><p className="text-[7px] font-bold">{v}</p></div>
             ))}
           </div>
@@ -281,7 +281,7 @@ function PayslipPreview({ state }: { state: StudioState }) {
           <p className="text-[7px] text-neutral-500 mt-0.5">{SAMPLE.title} · Paid {SAMPLE.payDate}</p>
         </div>
         <div className="flex justify-center gap-4 mb-4">
-          {[["Payslip", "2026-06"], ["Emp no", SAMPLE.empNo], ["Gross", SAMPLE.gross]].map(([l, v]) => (
+          {[["Payslip", "2026-06"], ["Employee no.", SAMPLE.empNo], ["Gross", SAMPLE.gross]].map(([l, v]) => (
             <div key={l} className="text-center"><p className="text-[5px] uppercase text-neutral-400">{l}</p><p className="text-[8px] font-bold">{v}</p></div>
           ))}
         </div>

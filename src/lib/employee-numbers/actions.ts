@@ -1,7 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
-import { requireRole, requireTenant } from "@/lib/auth/require";
+import { requireTenant } from "@/lib/auth/require";
 import type { Prisma } from "@prisma/client";
 
 export interface EmployeeNumberConfig {
@@ -25,7 +25,7 @@ export async function updateEmployeeNumberConfigAction(
   tenantId: string,
   data: { prefix: string; padLength: number; separator: string }
 ): Promise<{ success: boolean; error?: string }> {
-  await requireRole("hr");
+  await requireTenant(tenantId, "hr");
   if (!data.prefix || data.prefix.length > 6)
     return { success: false, error: "Prefix must be 1 to 6 characters." };
   if (data.padLength < 1 || data.padLength > 8)
@@ -54,7 +54,7 @@ export async function retroactivelyRenumberEmployeesAction(
   tenantId: string,
   data: { prefix: string; padLength: number; separator: string }
 ): Promise<{ success: boolean; count?: number; error?: string }> {
-  await requireRole("hr");
+  await requireTenant(tenantId, "hr");
   if (!data.prefix || data.prefix.length > 6)
     return { success: false, error: "Prefix must be 1 to 6 characters." };
   if (data.padLength < 1 || data.padLength > 8)

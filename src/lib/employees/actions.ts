@@ -8,7 +8,7 @@ import { mapActivityItem, mapEmployee, mapNotificationItem } from "../workspace/
 import { claimNextEmployeeNumber } from "@/lib/employee-numbers/actions";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 import type { LeaveType } from "@/lib/types";
-import { getNetcashServiceKeys } from "@/lib/settings/actions";
+import { getNetcashServiceKeys } from "@/lib/settings/netcash-keys";
 import { validateBankAccount } from "@/lib/services/netcash/bankValidation";
 import { mapAccountType } from "@/lib/services/netcash/helpers";
 import { createAdminClient } from "@/lib/supabase/admin";

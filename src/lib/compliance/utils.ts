@@ -36,6 +36,17 @@ export function calculateSdl(totalGross: number): number {
 }
 
 /**
+ * SARS SDL exemption: an employer is only liable for the Skills Development Levy
+ * when the total remuneration paid to all employees over the next 12 months
+ * exceeds R500,000. Mirrors the per-payslip gate in payroll/actions.ts.
+ */
+export const SDL_ANNUAL_THRESHOLD = 500_000;
+
+export function isSdlLiable(totalAnnualPayroll: number): boolean {
+  return totalAnnualPayroll >= SDL_ANNUAL_THRESHOLD;
+}
+
+/**
  * Returns the current South African tax year string, e.g. "2025/2026".
  * The SA tax year runs from 1 March to 28/29 February.
  */

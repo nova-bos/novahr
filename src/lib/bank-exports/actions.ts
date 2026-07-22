@@ -4,7 +4,7 @@ import { decToNumber } from "@/lib/workspace/mappers";
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant } from "@/lib/auth/require";
 import { generateNifFile, submitNifBatch, type NifInstruction } from "@/lib/bank-exports/netcash";
-import { getNetcashServiceKeys } from "@/lib/settings/actions";
+import { getNetcashServiceKeys } from "@/lib/settings/netcash-keys";
 
 export async function generateBankExportCsvAction(
   tenantId: string,

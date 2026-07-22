@@ -1,7 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
-import { requireRole, requireTenant } from "@/lib/auth/require";
+import { requireTenant } from "@/lib/auth/require";
 
 export interface LeavePolicyData {
   annualDays: number;
@@ -61,7 +61,7 @@ export async function updateLeavePolicyAction(
   tenantId: string,
   data: LeavePolicyData
 ): Promise<{ success: boolean; error?: string }> {
-  await requireRole("hr");
+  await requireTenant(tenantId, "hr");
   // Enforce minimums
   const violations = Object.entries(MINIMUMS)
     .filter(([key, min]) => {

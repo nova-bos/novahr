@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockPrisma = vi.hoisted(() => {
   const tx = {
-    leaveRequest: { create: vi.fn(), update: vi.fn() },
+    leaveRequest: { create: vi.fn(), update: vi.fn(), updateMany: vi.fn() },
     activityItem: { create: vi.fn() },
     notificationItem: { create: vi.fn() },
-    leaveBalance: { update: vi.fn(), upsert: vi.fn() },
+    leaveBalance: { update: vi.fn(), upsert: vi.fn(), findUnique: vi.fn() },
   };
   return {
     employee: { findFirstOrThrow: vi.fn() },
@@ -179,17 +179,22 @@ describe("createLeaveRequestRecord validation", () => {
 
 describe("decideLeaveRequestRecord", () => {
   it("approves a request, increments the leave balance, and records activity", async () => {
-    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
+    // First findFirstOrThrow reads the pending target; the second reads the row
+    // back after the compare-and-swap status transition.
+    mockPrisma.leaveRequest.findFirstOrThrow
+      .mockResolvedValueOnce(makeLeaveRequestRow({ status: "pending" }))
+      .mockResolvedValueOnce(
+        makeLeaveRequestRow({ status: "approved", decidedBy: "Lerato Dlamini", decidedOn: new Date("2026-06-16T00:00:00Z") })
+      );
     mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
-    mockPrisma.leaveRequest.update.mockResolvedValue(
-      makeLeaveRequestRow({ status: "approved", decidedBy: "Lerato Dlamini", decidedOn: new Date("2026-06-16T00:00:00Z") })
-    );
+    mockPrisma.leaveBalance.findUnique.mockResolvedValue({ id: "lb-1", employeeId: "emp-1", type: "annual", total: 18, used: 5 });
+    mockPrisma.leaveRequest.updateMany.mockResolvedValue({ count: 1 });
     mockPrisma.leaveBalance.upsert.mockResolvedValue({
       id: "lb-1",
       employeeId: "emp-1",
       type: "annual",
       total: 18,
-      used: 5,
+      used: 10,
     });
     mockPrisma.activityItem.create.mockResolvedValue(
       makeActivityRow({ type: "leave_approved", message: "annual leave request was approved" })
@@ -198,11 +203,11 @@ describe("decideLeaveRequestRecord", () => {
     const result = await decideLeaveRequestRecord("leave-1", "approved");
 
     expect(result.leaveRequest.status).toBe("approved");
-    expect(result.leaveBalance).toEqual({ employeeId: "emp-1", type: "annual", used: 5 });
+    expect(result.leaveBalance).toEqual({ employeeId: "emp-1", type: "annual", used: 10 });
     expect(result.activity.message).toBe("annual leave request was approved");
 
-    expect(mockPrisma.leaveRequest.update).toHaveBeenCalledWith({
-      where: { id: "leave-1" },
+    expect(mockPrisma.leaveRequest.updateMany).toHaveBeenCalledWith({
+      where: { id: "leave-1", tenantId: "novatech", status: "pending" },
       data: {
         status: "approved",
         decidedBy: "Lerato Dlamini",
@@ -226,12 +231,26 @@ describe("decideLeaveRequestRecord", () => {
     });
   });
 
-  it("rejects a request without touching the leave balance", async () => {
-    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
+  it("blocks approval that would exceed the leave entitlement", async () => {
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValueOnce(makeLeaveRequestRow({ status: "pending", days: 5 }));
     mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
-    mockPrisma.leaveRequest.update.mockResolvedValue(
-      makeLeaveRequestRow({ status: "rejected", decidedBy: "Lerato Dlamini", decidedOn: new Date("2026-06-16T00:00:00Z") })
-    );
+    // 16 of 18 used, approving 5 more would exceed the entitlement.
+    mockPrisma.leaveBalance.findUnique.mockResolvedValue({ id: "lb-1", employeeId: "emp-1", type: "annual", total: 18, used: 16 });
+
+    await expect(decideLeaveRequestRecord("leave-1", "approved")).rejects.toThrow(/exceed the employee's annual leave entitlement/);
+    expect(mockPrisma.leaveRequest.updateMany).not.toHaveBeenCalled();
+    expect(mockPrisma.leaveBalance.upsert).not.toHaveBeenCalled();
+  });
+
+  it("rejects a request without touching the leave balance", async () => {
+    mockPrisma.leaveRequest.findFirstOrThrow
+      .mockResolvedValueOnce(makeLeaveRequestRow({ status: "pending" }))
+      .mockResolvedValueOnce(
+        makeLeaveRequestRow({ status: "rejected", decidedBy: "Lerato Dlamini", decidedOn: new Date("2026-06-16T00:00:00Z") })
+      );
+    mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
+    mockPrisma.leaveBalance.findUnique.mockResolvedValue(null);
+    mockPrisma.leaveRequest.updateMany.mockResolvedValue({ count: 1 });
     mockPrisma.activityItem.create.mockResolvedValue(
       makeActivityRow({ type: "leave_rejected", message: "annual leave request was rejected" })
     );
@@ -244,20 +263,23 @@ describe("decideLeaveRequestRecord", () => {
     expect(mockPrisma.leaveBalance.upsert).not.toHaveBeenCalled();
   });
 
-  it("passes the decision note through to the update", async () => {
-    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(makeLeaveRequestRow({ status: "pending" }));
+  it("passes the decision note through to the compare-and-swap update", async () => {
+    mockPrisma.leaveRequest.findFirstOrThrow
+      .mockResolvedValueOnce(makeLeaveRequestRow({ status: "pending" }))
+      .mockResolvedValueOnce(
+        makeLeaveRequestRow({ status: "rejected", decidedBy: "Lerato Dlamini", decisionNote: "Team is short-staffed that week" })
+      );
     mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
-    mockPrisma.leaveRequest.update.mockResolvedValue(
-      makeLeaveRequestRow({ status: "rejected", decidedBy: "Lerato Dlamini", decisionNote: "Team is short-staffed that week" })
-    );
+    mockPrisma.leaveBalance.findUnique.mockResolvedValue(null);
+    mockPrisma.leaveRequest.updateMany.mockResolvedValue({ count: 1 });
     mockPrisma.activityItem.create.mockResolvedValue(
       makeActivityRow({ type: "leave_rejected", message: "annual leave request was rejected" })
     );
 
     await decideLeaveRequestRecord("leave-1", "rejected", "Team is short-staffed that week");
 
-    expect(mockPrisma.leaveRequest.update).toHaveBeenCalledWith({
-      where: { id: "leave-1" },
+    expect(mockPrisma.leaveRequest.updateMany).toHaveBeenCalledWith({
+      where: { id: "leave-1", tenantId: "novatech", status: "pending" },
       data: {
         status: "rejected",
         decidedBy: "Lerato Dlamini",

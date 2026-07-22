@@ -58,6 +58,12 @@ export async function completePayrollRunRecord(
     tenantId,
     async (tx) => {
       const run = await tx.payrollRun.findFirstOrThrow({ where: { id: runId, tenantId } });
+      // Idempotency guard: only a run that is scheduled or processing may be
+      // completed. Re-completing an already-processed run would recompute and
+      // re-apply recurring deductions, taking loan/garnishee instalments twice.
+      if (run.status !== "scheduled" && run.status !== "processing") {
+        throw new Error("This payroll run has already been processed.");
+      }
       const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: run.tenantId } });
       const [employeeRows, payrollProfiles] = await Promise.all([
         tx.employee.findMany({

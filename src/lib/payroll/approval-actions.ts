@@ -25,14 +25,22 @@ export async function approvePayrollRunAction(
     if (settings?.approvalUserId && settings.approvalUserId !== session.id) {
       throw new Error("Only the designated approver can approve this run.");
     }
-    const updated = await tx.payrollRun.update({
-      where: { id: runId },
+    // Compare-and-swap the status transition so two approvers (or a double
+    // click) cannot both proceed and both dispatch payslip emails.
+    const cas = await tx.payrollRun.updateMany({
+      where: { id: runId, tenantId: session.tenantId, status: "awaiting_approval" },
       data: {
         status: "completed",
         approvedBy: session.id,
         approvedAt: new Date(),
         approvalNote: approvalNote ?? null,
       },
+    });
+    if (cas.count === 0) {
+      throw new Error("Run is not awaiting approval.");
+    }
+    const updated = await tx.payrollRun.findFirstOrThrow({
+      where: { id: runId, tenantId: session.tenantId },
     });
     const payslips = await tx.payslip.findMany({ where: { runId } });
 
