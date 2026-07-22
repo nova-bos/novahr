@@ -400,16 +400,22 @@ model ActivityItem {
 }
 
 model NotificationItem {
-  id          String           @id @default(cuid())
-  tenantId    String
-  tenant      Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  title       String
-  description String
-  timestamp   DateTime         @default(now())
-  read        Boolean          @default(false)
-  type        NotificationType
+  id                  String           @id @default(cuid())
+  tenantId            String
+  tenant              Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title               String
+  description         String
+  timestamp           DateTime         @default(now())
+  read                Boolean          @default(false)
+  type                NotificationType
+  // Audience scoping. Only one of these should be set per notification.
+  // audienceRole: "hr" = hr+exco only; "manager" = hr+exco+manager; null = broadcast (use sparingly)
+  // recipientEmployeeId: personal notification for exactly one employee (takes precedence)
+  audienceRole        String?
+  recipientEmployeeId String?
 
   @@index([tenantId])
+  @@index([tenantId, recipientEmployeeId])
 }
 
 // ============================================================

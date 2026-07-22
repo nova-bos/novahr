@@ -67,12 +67,14 @@ export async function createLeaveRequestRecord(
       },
     });
 
+    // Broadcast to managers and HR: a request needs review.
     const notification = await tx.notificationItem.create({
       data: {
         tenantId,
         title: "Leave request awaiting approval",
         description: `${actor} requested ${days} ${dayWord} of ${label}.`,
         type: "warning",
+        audienceRole: "manager",
       },
     });
 
@@ -195,15 +197,31 @@ export async function decideLeaveRequestRecord(
       },
     });
 
+    // Broadcast notification: visible to the approver and other HR/managers.
     const notification = await tx.notificationItem.create({
       data: {
         tenantId,
-        title: status === "approved" ? "Leave request approved" : "Leave request declined",
+        title: status === "approved" ? "Leave approved" : "Leave declined",
         description:
           status === "approved"
-            ? `${actor}'s ${label} request has been approved.`
-            : `${actor}'s ${label} request was not approved.`,
+            ? `${actor}'s ${label} request was approved by ${decidedBy}.`
+            : `${actor}'s ${label} request was not approved by ${decidedBy}.`,
         type: status === "approved" ? "success" : "warning",
+        audienceRole: "manager",
+      },
+    });
+
+    // Personal notification: only the requesting employee sees this.
+    await tx.notificationItem.create({
+      data: {
+        tenantId,
+        title: status === "approved" ? "Your leave request was approved" : "Your leave request was not approved",
+        description:
+          status === "approved"
+            ? `Your ${label} request has been approved.`
+            : `Your ${label} request was not approved. Contact your manager for details.`,
+        type: status === "approved" ? "success" : "warning",
+        recipientEmployeeId: target.employeeId,
       },
     });
 

@@ -32,29 +32,77 @@ import { markAllNotificationsReadRecord, markNotificationReadRecord } from "./ac
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockSession.current = {
+    id: "user-1",
+    tenantId: "novatech",
+    role: "hr",
+    name: "Lerato Dlamini",
+    email: "hr@novatech.co.za",
+    employeeId: undefined,
+  };
 });
 
 describe("markNotificationReadRecord", () => {
-  it("marks the given notification as read", async () => {
+  it("marks the given notification as read, scoped to HR-visible notifications", async () => {
     mockPrisma.notificationItem.updateMany.mockResolvedValue({ count: 1 });
 
     await markNotificationReadRecord("notif-1");
 
     expect(mockPrisma.notificationItem.updateMany).toHaveBeenCalledWith({
-      where: { id: "notif-1", tenantId: "novatech" },
+      where: {
+        id: "notif-1",
+        tenantId: "novatech",
+        OR: [{ recipientEmployeeId: null }],
+      },
+      data: { read: true },
+    });
+  });
+
+  it("scopes to personal notifications only for an employee user", async () => {
+    mockSession.current = { ...mockSession.current, role: "employee", employeeId: "emp-1" };
+    mockPrisma.notificationItem.updateMany.mockResolvedValue({ count: 1 });
+
+    await markNotificationReadRecord("notif-1");
+
+    expect(mockPrisma.notificationItem.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: "notif-1",
+        tenantId: "novatech",
+        recipientEmployeeId: "emp-1",
+      },
       data: { read: true },
     });
   });
 });
 
 describe("markAllNotificationsReadRecord", () => {
-  it("marks every unread notification for the tenant as read", async () => {
+  it("marks unread notifications visible to the HR user as read", async () => {
     mockPrisma.notificationItem.updateMany.mockResolvedValue({ count: 3 });
 
     await markAllNotificationsReadRecord();
 
     expect(mockPrisma.notificationItem.updateMany).toHaveBeenCalledWith({
-      where: { tenantId: "novatech", read: false },
+      where: {
+        tenantId: "novatech",
+        read: false,
+        OR: [{ recipientEmployeeId: null }],
+      },
+      data: { read: true },
+    });
+  });
+
+  it("marks only the employee's own notifications as read for an employee user", async () => {
+    mockSession.current = { ...mockSession.current, role: "employee", employeeId: "emp-1" };
+    mockPrisma.notificationItem.updateMany.mockResolvedValue({ count: 1 });
+
+    await markAllNotificationsReadRecord();
+
+    expect(mockPrisma.notificationItem.updateMany).toHaveBeenCalledWith({
+      where: {
+        tenantId: "novatech",
+        read: false,
+        recipientEmployeeId: "emp-1",
+      },
       data: { read: true },
     });
   });

@@ -77,13 +77,14 @@ export async function terminateEmployeeAction(
       },
     });
 
-    // Notification
+    // Notification: HR only
     await tx.notificationItem.create({
       data: {
         tenantId: session.tenantId,
         title: "Employee terminated",
         description: `${employee.firstName} ${employee.lastName} was terminated on ${input.terminationDate}.`,
         type: "warning",
+        audienceRole: "hr",
       },
     });
 

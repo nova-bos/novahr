@@ -136,6 +136,7 @@ export async function createEmployeeRecord(
           isOnboarding ? "started onboarding as" : "joined as"
         } ${created.jobTitle}.`,
         type: "info",
+        audienceRole: "hr",
       },
     });
 

@@ -9,7 +9,7 @@ const mockPrisma = vi.hoisted(() => {
     payrollSettings: { findUnique: vi.fn().mockResolvedValue(null) },
     payrollRun: { update: vi.fn(), create: vi.fn() },
     activityItem: { create: vi.fn() },
-    notificationItem: { create: vi.fn() },
+    notificationItem: { create: vi.fn(), createMany: vi.fn().mockResolvedValue({ count: 0 }) },
     employeeDeduction: { findMany: vi.fn().mockResolvedValue([]), update: vi.fn() },
   };
   return {

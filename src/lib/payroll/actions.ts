@@ -327,6 +327,7 @@ export async function completePayrollRunRecord(
         },
       });
 
+      // Broadcast notification for HR: the run summary.
       const notification = await tx.notificationItem.create({
         data: {
           tenantId: run.tenantId,
@@ -335,8 +336,24 @@ export async function completePayrollRunRecord(
             ? `${formatMonthYear(run.period)} payroll for ${newPayslips.length} employees is awaiting sign-off.`
             : `${formatMonthYear(run.period)} payslips have been generated for ${newPayslips.length} employees.`,
           type: needsApproval ? "warning" : "success",
+          audienceRole: "hr",
         },
       });
+
+      // Personal payslip notifications: one per employee, only visible to them.
+      // Created even when approval is pending so employees are notified once the run completes.
+      if (!needsApproval && newPayslips.length > 0) {
+        await tx.notificationItem.createMany({
+          skipDuplicates: true,
+          data: newPayslips.map((p) => ({
+            tenantId: run.tenantId,
+            title: `Your ${formatMonthYear(run.period)} payslip is ready`,
+            description: `Your payslip for ${formatMonthYear(run.period)} has been published. Log in to view it.`,
+            type: "success" as const,
+            recipientEmployeeId: p.employeeId,
+          })),
+        });
+      }
 
       const nextRun = nextRunExists
         ? undefined

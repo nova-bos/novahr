@@ -1,5 +1,6 @@
 "use server";
 
+import type { Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
 import { requireUser } from "@/lib/auth/require";
 import type {
@@ -92,6 +93,42 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
   const tenantId = session.tenantId;
 
   return runAsTenant(tenantId, async (tx) => {
+    // Determine privilege level before building scoped queries.
+    const isPrivilegedEarly = session.role === "hr" || session.role === "exco";
+    const isManagerEarly = session.role === "manager";
+
+    // Notifications are scoped per-user. Only load what the signed-in user
+    // is permitted to see, based on audienceRole and recipientEmployeeId.
+    let notifWhere: Prisma.NotificationItemWhereInput;
+    if (isPrivilegedEarly) {
+      // HR and exco see all broadcast notifications (recipientEmployeeId = null)
+      // plus their own personal ones.
+      notifWhere = {
+        tenantId,
+        OR: [
+          { recipientEmployeeId: null },
+          ...(session.employeeId ? [{ recipientEmployeeId: session.employeeId }] : []),
+        ],
+      };
+    } else if (isManagerEarly) {
+      // Managers see manager-audience broadcasts plus their own personal ones.
+      notifWhere = {
+        tenantId,
+        OR: [
+          {
+            recipientEmployeeId: null,
+            OR: [{ audienceRole: null }, { audienceRole: "manager" }],
+          },
+          ...(session.employeeId ? [{ recipientEmployeeId: session.employeeId }] : []),
+        ],
+      };
+    } else {
+      // Employees only see their personal notifications.
+      notifWhere = session.employeeId
+        ? { tenantId, recipientEmployeeId: session.employeeId }
+        : { tenantId, id: "__never__" };
+    }
+
     const [tenant, payrollSettings, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows, customHolidayRows, leaveReviewerRows] =
       await Promise.all([
         tx.tenant.findUnique({ where: { id: tenantId } }),
@@ -102,14 +139,17 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
         tx.payrollRun.findMany({ where: { tenantId } }),
         tx.payslip.findMany({ where: { tenantId } }),
         tx.activityItem.findMany({ where: { tenantId }, orderBy: { timestamp: "desc" }, take: 100 }),
-        tx.notificationItem.findMany({ where: { tenantId }, orderBy: { timestamp: "desc" }, take: 100 }),
+        tx.notificationItem.findMany({ where: notifWhere, orderBy: { timestamp: "desc" }, take: 100 }),
         tx.customHoliday.findMany({ where: { tenantId }, orderBy: { date: "asc" } }),
-        tx.leaveReviewer.findMany({ where: { tenantId } }),
+        // LeaveReviewers are HR-admin configuration; non-privileged users have no use for them.
+        isPrivilegedEarly
+          ? tx.leaveReviewer.findMany({ where: { tenantId } })
+          : Promise.resolve([]),
       ]);
 
     if (!tenant) return null;
 
-    const isPrivileged = session.role === "hr" || session.role === "exco";
+    const isPrivileged = isPrivilegedEarly;
 
     let employees = employeeRows.map(mapEmployee);
     let leaveRequests = leaveRequestRows.map(mapLeaveRequest);

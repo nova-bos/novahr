@@ -11,6 +11,8 @@ const mockPrisma = vi.hoisted(() => ({
   payslip: { findMany: vi.fn() },
   activityItem: { findMany: vi.fn() },
   notificationItem: { findMany: vi.fn() },
+  customHoliday: { findMany: vi.fn().mockResolvedValue([]) },
+  leaveReviewer: { findMany: vi.fn().mockResolvedValue([]) },
 }));
 
 const mockSession = vi.hoisted(() => ({
