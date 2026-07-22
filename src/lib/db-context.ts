@@ -5,12 +5,13 @@ import type { Prisma } from "@prisma/client";
  * Runs `fn` inside a Prisma transaction with the Postgres session variable
  * `app.tenant_id` set to `tenantId` for the duration of the transaction.
  *
- * RLS policies on tenant-scoped tables use this variable to enforce row-level
- * isolation: only rows where "tenantId" matches the session variable are
- * visible or writable.
- *
- * All server actions that touch tenant-scoped data must call this instead of
- * using the global `prisma` client directly.
+ * IMPORTANT: tenant isolation is enforced in APPLICATION CODE, not by the
+ * database. The runtime DB role carries BYPASSRLS, so the row-level security
+ * policies that reference `app.tenant_id` do NOT constrain these queries at
+ * runtime. This helper sets the variable (so RLS would work if the role ever
+ * loses BYPASSRLS), but the real protection is that every query inside `fn`
+ * MUST carry an explicit `where: { tenantId }` predicate. Never rely on this
+ * helper alone to scope a query.
  */
 export async function runAsTenant<T>(
   tenantId: string,

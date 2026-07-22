@@ -332,22 +332,26 @@ export async function requestLeaveDocumentationRecord(leaveRequestId: string): P
     });
 
     void (async () => {
-      const { Resend } = await import("resend");
-      const key = process.env.RESEND_API_KEY;
-      if (!key) return;
-      const client = new Resend(key);
-      const from = process.env.RESEND_FROM ?? "NovaHR <noreply@novahr.co.za>";
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novahr-five.vercel.app";
-      void client.emails.send({
-        from,
-        to: employee.email,
-        subject: "Supporting documents required for your leave request",
-        html: `<p>Hi ${employee.firstName},</p>
+      try {
+        const { Resend } = await import("resend");
+        const key = process.env.RESEND_API_KEY;
+        if (!key) return;
+        const client = new Resend(key);
+        const from = process.env.RESEND_FROM ?? "NovaHR <noreply@novahr.co.za>";
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novahr-five.vercel.app";
+        await client.emails.send({
+          from,
+          to: employee.email,
+          subject: "Supporting documents required for your leave request",
+          html: `<p>Hi ${employee.firstName},</p>
 <p>Your reviewer has requested supporting documentation for your <strong>${label}</strong> leave request from <strong>${startDate}</strong> to <strong>${endDate}</strong>.</p>
 <p>Please log in and attach the relevant documents to your leave request.</p>
 <p><a href="${appUrl}/leave">View my leave requests</a></p>
 <p>The NovaHR team</p>`,
-      });
+        });
+      } catch (err) {
+        console.error("[leave] supporting-documents email failed:", err instanceof Error ? err.message : err);
+      }
     })();
   });
 }

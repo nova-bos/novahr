@@ -44,13 +44,18 @@ export async function approvePayrollRunAction(
     });
     const payslips = await tx.payslip.findMany({ where: { runId } });
 
+    // Load every employee for this run in one query rather than per payslip.
+    const employeeIds = [...new Set(payslips.map((p) => p.employeeId))];
+    const employeeRows = await tx.employee.findMany({
+      where: { id: { in: employeeIds }, tenantId: session.tenantId },
+      include: { leaveBalances: true },
+    });
+    const employeeById = new Map(employeeRows.map((e) => [e.id, e]));
+
     // Send payslip emails now that the run is approved
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
     for (const ps of payslips) {
-      const empRow = await tx.employee.findUnique({
-        where: { id: ps.employeeId },
-        include: { leaveBalances: true },
-      });
+      const empRow = employeeById.get(ps.employeeId);
       if (!empRow) continue;
       const emp = mapEmployee(empRow);
       void sendPayslipEmail({
