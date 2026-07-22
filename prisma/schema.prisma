@@ -64,6 +64,12 @@ enum PayslipTemplate {
   branded
 }
 
+enum PayslipLogoAlignment {
+  left
+  center
+  right
+}
+
 enum ActivityType {
   hire
   leave_request
@@ -547,6 +553,7 @@ model PayrollSettings {
   payslipLogoUrl     String?
   payslipAccentColor String          @default("#6366f1")
   payslipTemplate    PayslipTemplate @default(classic)
+  payslipLogoAlignment PayslipLogoAlignment @default(left)
   payslipFooterNote  String?
   payslipShowBanking Boolean         @default(false)
   payslipShowYtd     Boolean         @default(true)

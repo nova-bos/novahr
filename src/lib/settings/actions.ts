@@ -236,11 +236,16 @@ export async function updateStatutoryReferencesAction(
 export interface PayslipSettingsResult {
   template: string;
   logoUrl: string | null;
+  logoAlignment: "left" | "center" | "right";
   companyName: string | null;
   accentColor: string;
   footerNote: string | null;
   showBanking: boolean;
   showYtd: boolean;
+  payeReference: string | null;
+  uifReference: string | null;
+  sdlReference: string | null;
+  taxYearStartMonth: number;
 }
 
 export async function getPayslipSettingsAction(
@@ -252,11 +257,16 @@ export async function getPayslipSettingsAction(
     return {
       template: s?.payslipTemplate ?? "classic",
       logoUrl: s?.payslipLogoUrl ?? null,
+      logoAlignment: (s?.payslipLogoAlignment ?? "left") as "left" | "center" | "right",
       companyName: s?.payslipCompanyName ?? null,
       accentColor: s?.payslipAccentColor ?? "#6366f1",
       footerNote: s?.payslipFooterNote ?? null,
       showBanking: s?.payslipShowBanking ?? false,
       showYtd: s?.payslipShowYtd ?? true,
+      payeReference: s?.payeReferenceNumber ?? null,
+      uifReference: s?.uifReferenceNumber ?? null,
+      sdlReference: s?.sdlReferenceNumber ?? null,
+      taxYearStartMonth: s?.taxYearStart ? Number(s.taxYearStart) : 3,
     };
   });
 }
@@ -266,6 +276,7 @@ export async function updatePayslipSettingsAction(
   data: {
     template?: string;
     logoUrl?: string | null;
+    logoAlignment?: "left" | "center" | "right";
     companyName?: string | null;
     accentColor?: string;
     footerNote?: string | null;
@@ -281,6 +292,7 @@ export async function updatePayslipSettingsAction(
         update: {
           ...(data.template !== undefined ? { payslipTemplate: data.template as "classic" | "modern" | "corporate" | "branded" } : {}),
           ...(data.logoUrl !== undefined ? { payslipLogoUrl: data.logoUrl } : {}),
+          ...(data.logoAlignment !== undefined ? { payslipLogoAlignment: data.logoAlignment } : {}),
           ...(data.companyName !== undefined ? { payslipCompanyName: data.companyName } : {}),
           ...(data.accentColor !== undefined ? { payslipAccentColor: data.accentColor } : {}),
           ...(data.footerNote !== undefined ? { payslipFooterNote: data.footerNote } : {}),
@@ -291,6 +303,7 @@ export async function updatePayslipSettingsAction(
           tenantId,
           ...(data.template ? { payslipTemplate: data.template as "classic" | "modern" | "corporate" | "branded" } : {}),
           ...(data.logoUrl !== undefined ? { payslipLogoUrl: data.logoUrl } : {}),
+          ...(data.logoAlignment !== undefined ? { payslipLogoAlignment: data.logoAlignment } : {}),
           ...(data.companyName !== undefined ? { payslipCompanyName: data.companyName } : {}),
           ...(data.accentColor ? { payslipAccentColor: data.accentColor } : {}),
           ...(data.footerNote !== undefined ? { payslipFooterNote: data.footerNote } : {}),

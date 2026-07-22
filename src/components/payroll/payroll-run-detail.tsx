@@ -16,7 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatCurrency, formatDateLong, getInitials } from "@/lib/format";
-import { useEmployees, usePayslipsByRun, useTenantId } from "@/lib/store/hooks";
+import { useAllPayslips, useEmployees, usePayslipsByRun, useTenantId } from "@/lib/store/hooks";
 import type { PayrollRun, Payslip } from "@/lib/types";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import { usePlan } from "@/lib/plan/use-plan";
@@ -29,6 +29,7 @@ import { PayslipDialog } from "./payslip-dialog";
 
 export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const payslips = usePayslipsByRun(run.id);
+  const allPayslips = useAllPayslips();
   const employees = useEmployees();
   const tenantId = useTenantId();
   const tenant = useCurrentTenant();
@@ -78,27 +79,37 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
       ]);
       const zip = new JSZip();
       const settings = await getPayslipSettingsAction(tenantId);
+      const { computePayslipYtd } = await import("@/lib/payroll/ytd");
       for (let i = 0; i < payslips.length; i++) {
         const ps = payslips[i];
         const emp = employees.find((e) => e.id === ps.employeeId);
         if (!emp) continue;
         setBulkProgress(`Generating ${i + 1} of ${payslips.length}...`);
+        const ytd = settings.showYtd
+          ? computePayslipYtd(allPayslips, emp.id, ps.period, settings.taxYearStartMonth)
+          : undefined;
         const blob = await pdf(
           <PayslipDocument
             employee={emp}
             payslip={ps}
             companyName={settings.companyName ?? tenant.name}
             logoUrl={settings.logoUrl ?? undefined}
+            logoAlignment={settings.logoAlignment}
             accentColor={settings.accentColor}
             template={settings.template}
             footerNote={settings.footerNote ?? undefined}
             showBanking={settings.showBanking}
             showYtd={settings.showYtd}
             companyAddress={`${tenant.address}, ${tenant.city}`}
+            companyRegistration={tenant.registrationNumber || undefined}
+            payeReference={settings.payeReference ?? undefined}
+            uifReference={settings.uifReference ?? undefined}
+            sdlReference={settings.sdlReference ?? undefined}
+            ytd={ytd}
           />
         ).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
-        zip.file(`payslip-${emp.lastName.toLowerCase()}-${ps.period}.pdf`, arrayBuffer);
+        zip.file(`payslip-${emp.lastName.toLowerCase()}-${emp.employeeNumber}-${ps.period}.pdf`, arrayBuffer);
       }
       setBulkProgress("Building archive...");
       const zipBlob = await zip.generateAsync({ type: "blob" });

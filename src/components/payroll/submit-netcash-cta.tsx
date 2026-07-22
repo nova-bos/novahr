@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatCurrency, formatDateLong, formatMonthYear } from "@/lib/format";
-import { usePayrollRuns, useTenantId, usePayslipsByRun, useEmployees, useCurrentTenant } from "@/lib/store/hooks";
+import { usePayrollRuns, useTenantId, usePayslipsByRun, useEmployees, useCurrentTenant, useAllPayslips } from "@/lib/store/hooks";
 import { usePlan } from "@/lib/plan/use-plan";
 import {
   submitNetcashBatchAction,
@@ -27,6 +27,7 @@ export function SubmitNetcashCta() {
   const tenant = useCurrentTenant();
   const runs = usePayrollRuns();
   const employees = useEmployees();
+  const allPayslips = useAllPayslips();
   const { can } = usePlan();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [isSubmitting, startSubmitTransition] = React.useTransition();
@@ -114,25 +115,35 @@ export function SubmitNetcashCta() {
       ]);
       const zip = new JSZip();
       const settings = await getPayslipSettingsAction(tenantId);
+      const { computePayslipYtd } = await import("@/lib/payroll/ytd");
       for (const ps of payslips) {
         const emp = employees.find((e) => e.id === ps.employeeId);
         if (!emp) continue;
+        const ytd = settings.showYtd
+          ? computePayslipYtd(allPayslips, emp.id, ps.period, settings.taxYearStartMonth)
+          : undefined;
         const blob = await pdf(
           <PayslipDocument
             employee={emp}
             payslip={ps}
             companyName={settings.companyName ?? tenant.name}
             logoUrl={settings.logoUrl ?? undefined}
+            logoAlignment={settings.logoAlignment}
             accentColor={settings.accentColor}
             template={settings.template}
             footerNote={settings.footerNote ?? undefined}
             showBanking={settings.showBanking}
             showYtd={settings.showYtd}
             companyAddress={`${tenant.address}, ${tenant.city}`}
+            companyRegistration={tenant.registrationNumber || undefined}
+            payeReference={settings.payeReference ?? undefined}
+            uifReference={settings.uifReference ?? undefined}
+            sdlReference={settings.sdlReference ?? undefined}
+            ytd={ytd}
           />
         ).toBlob();
         const ab = await blob.arrayBuffer();
-        zip.file(`payslip-${emp.lastName.toLowerCase()}-${ps.period}.pdf`, ab);
+        zip.file(`payslip-${emp.lastName.toLowerCase()}-${emp.employeeNumber}-${ps.period}.pdf`, ab);
       }
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const url = URL.createObjectURL(zipBlob);

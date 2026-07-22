@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Check, Loader2 } from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,11 +23,13 @@ import {
 } from "@/lib/settings/actions";
 import { cn } from "@/lib/utils";
 
+type LogoAlignment = "left" | "center" | "right";
+
 const TEMPLATES = [
-  { id: "classic", name: "Classic", description: "Clean black-and-white layout with a bold header line." },
-  { id: "modern", name: "Modern", description: "Coloured header band with accent-tinted table rows." },
-  { id: "corporate", name: "Corporate", description: "Formal two-column header with PAYE reference and strong borders." },
-  { id: "branded", name: "Branded", description: "Large accent header with centred logo and company name." },
+  { id: "classic", name: "Classic", description: "Monochrome ledger. Labelled identity grid, hairline tables and an employer signature line. Print-first and formal." },
+  { id: "modern", name: "Modern", description: "Accent header band with a Gross / Deductions / Net summary strip and earnings and deductions side by side." },
+  { id: "corporate", name: "Corporate", description: "Statutory statement. Registration and PAYE, UIF and SDL references, employer contributions and leave balances." },
+  { id: "branded", name: "Branded", description: "Bold accent hero with a large net-pay statement front and centre. Designed for a polished, on-brand feel." },
 ] as const;
 
 const ACCENT_PRESETS = [
@@ -41,13 +43,19 @@ const ACCENT_PRESETS = [
   { value: "#0f172a", label: "Slate" },
 ];
 
-const HEX_RE = /^#[0-9a-fA-F]{6}$/;
+const ALIGNMENTS: { value: LogoAlignment; label: string; icon: typeof AlignLeft }[] = [
+  { value: "left", label: "Left", icon: AlignLeft },
+  { value: "center", label: "Centre", icon: AlignCenter },
+  { value: "right", label: "Right", icon: AlignRight },
+];
 
+const HEX_RE = /^#[0-9a-fA-F]{6}$/;
 
 interface StudioState {
   template: string;
   accentColor: string;
   logoUrl: string | null;
+  logoAlignment: LogoAlignment;
   companyName: string;
   footerNote: string;
   showBanking: boolean;
@@ -57,159 +65,238 @@ interface StudioState {
 // Sample figures used only for the on-screen preview.
 const SAMPLE = {
   employee: "Thandi Nkosi",
-  meta: "Software Engineer · Engineering · EMP001",
+  title: "Software Engineer",
+  department: "Engineering",
+  empNo: "EMP001",
   period: "June 2026",
+  payDate: "25 Jun 2026",
   earnings: [
-    { label: "Basic salary", amount: "R32 500.00" },
-    { label: "Travel allowance", amount: "R2 000.00" },
+    { label: "Basic salary", amount: "R32,500.00", ytd: "R97,500.00" },
+    { label: "Travel allowance", amount: "R2,000.00", ytd: "R6,000.00" },
   ],
-  gross: "R34 500.00",
+  gross: "R34,500.00",
+  grossYtd: "R103,500.00",
   deductions: [
-    { label: "PAYE", amount: "-R6 245.00" },
-    { label: "UIF", amount: "-R177.12" },
+    { label: "PAYE", amount: "R6,245.00", ytd: "R18,735.00" },
+    { label: "UIF", amount: "R177.12", ytd: "R531.36" },
   ],
-  totalDeductions: "-R6 422.12",
-  netPay: "R28 077.88",
+  totalDeductions: "R6,422.12",
+  totalDeductionsYtd: "R19,266.36",
+  netPay: "R28,077.88",
 };
 
-function PreviewTable({ title, rows, total, headBg }: {
+const alignClass: Record<LogoAlignment, string> = {
+  left: "items-start text-left",
+  center: "items-center text-center",
+  right: "items-end text-right",
+};
+
+function BrandBlock({ state, light }: { state: StudioState; light?: boolean }) {
+  const name = state.companyName.trim() || "NovaHR";
+  return (
+    <div className={cn("flex flex-col", alignClass[state.logoAlignment])}>
+      {state.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={state.logoUrl} alt="" className="h-6 object-contain mb-1" />
+      ) : null}
+      <p className={cn("font-bold leading-tight text-sm", light && "text-white")}>{name}</p>
+      <p className={cn("text-[8px]", light ? "text-white/80" : "text-neutral-500")}>Employee payslip</p>
+    </div>
+  );
+}
+
+function MiniTable({
+  title, rows, total, showYtd, accent, bordered,
+}: {
   title: string;
-  rows: { label: string; amount: string }[];
-  total: { label: string; amount: string };
-  headBg: string;
+  rows: { label: string; amount: string; ytd: string }[];
+  total: { label: string; amount: string; ytd: string };
+  showYtd: boolean;
+  accent: string;
+  bordered?: boolean;
 }) {
   return (
-    <div className="mb-3">
-      <p className="text-[8px] font-bold uppercase tracking-wide text-neutral-500 mb-1">{title}</p>
-      <div className="flex justify-between px-1.5 py-0.5 text-[8px] font-bold text-neutral-600" style={{ backgroundColor: headBg }}>
-        <span>Description</span>
-        <span>Amount</span>
+    <div className="mb-2">
+      <p className="text-[8px] font-bold uppercase tracking-wide mb-1" style={{ color: accent }}>{title}</p>
+      <div className={cn("flex px-1.5 py-0.5 text-[7px] font-bold text-neutral-500", bordered && "border border-neutral-300")} style={{ backgroundColor: `${accent}14` }}>
+        <span className="flex-[3]">Description</span>
+        <span className="flex-1 text-right">{showYtd ? "Month" : "Amount"}</span>
+        {showYtd ? <span className="flex-1 text-right">YTD</span> : null}
       </div>
       {rows.map((r) => (
-        <div key={r.label} className="flex justify-between px-1.5 py-1 text-[9px] text-neutral-700 border-b border-neutral-200">
-          <span>{r.label}</span>
-          <span>{r.amount}</span>
+        <div key={r.label} className={cn("flex px-1.5 py-0.5 text-[8px] text-neutral-700 border-b border-neutral-200", bordered && "border-x border-neutral-200")}>
+          <span className="flex-[3]">{r.label}</span>
+          <span className="flex-1 text-right">{r.amount}</span>
+          {showYtd ? <span className="flex-1 text-right text-neutral-400">{r.ytd}</span> : null}
         </div>
       ))}
-      <div className="flex justify-between px-1.5 py-1 text-[9px] font-bold text-neutral-900" style={{ backgroundColor: headBg }}>
-        <span>{total.label}</span>
-        <span>{total.amount}</span>
+      <div className="flex px-1.5 py-0.5 text-[8px] font-bold text-neutral-900" style={{ backgroundColor: `${accent}14` }}>
+        <span className="flex-[3]">{total.label}</span>
+        <span className="flex-1 text-right">{total.amount}</span>
+        {showYtd ? <span className="flex-1 text-right">{total.ytd}</span> : null}
       </div>
     </div>
   );
 }
 
-// On-screen approximation of src/lib/payroll/pdf.tsx. Layout and colour
-// decisions here mirror the four PDF templates so what the user sees is
-// what the generated document will look like.
 function PayslipPreview({ state }: { state: StudioState }) {
   const accent = HEX_RE.test(state.accentColor) ? state.accentColor : "#6366f1";
   const name = state.companyName.trim() || "NovaHR";
-  const tint = `${accent}18`;
-  const isBandHeader = state.template === "modern" || state.template === "branded";
+  const showYtd = state.showYtd;
 
-  const headBg = state.template === "modern" ? tint : "#f0f0f0";
+  const earn = { title: "Earnings", rows: SAMPLE.earnings, total: { label: "Gross pay", amount: SAMPLE.gross, ytd: SAMPLE.grossYtd }, showYtd, accent };
+  const ded = { title: "Deductions", rows: SAMPLE.deductions.map((d) => ({ ...d, amount: `-${d.amount}`, ytd: `-${d.ytd}` })), total: { label: "Total deductions", amount: `-${SAMPLE.totalDeductions}`, ytd: `-${SAMPLE.totalDeductionsYtd}` }, showYtd, accent };
 
-  return (
-    <div className="rounded-lg border border-border bg-white text-neutral-900 shadow-sm overflow-hidden aspect-[210/260] flex flex-col" aria-label="Payslip preview">
-      {/* Header */}
-      {isBandHeader ? (
-        <div
-          className={cn("px-5 py-4 text-white", state.template === "branded" && "text-center")}
-          style={{ backgroundColor: accent }}
-        >
-          <div className={cn("flex items-start justify-between", state.template === "branded" && "flex-col items-center gap-1")}>
-            <div className={state.template === "branded" ? "text-center" : ""}>
-              {state.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={state.logoUrl} alt="" className={cn("h-6 object-contain mb-1", state.template === "branded" && "mx-auto")} />
-              ) : null}
-              <p className={cn("font-bold leading-tight", state.template === "branded" ? "text-base" : "text-sm")}>{name}</p>
-              <p className="text-[8px] text-white/80">Employee payslip</p>
+  const shell = "rounded-lg border border-border bg-white text-neutral-900 shadow-sm overflow-hidden aspect-[210/297] flex flex-col";
+
+  // ── CLASSIC ──
+  if (state.template === "classic") {
+    return (
+      <div className={shell} aria-label="Classic payslip preview">
+        <div className="px-4 pt-4">
+          <div className="flex items-start justify-between">
+            <BrandBlock state={state} />
+            <div className="border border-neutral-900 p-1.5 text-[7px] min-w-[80px]">
+              <div className="flex justify-between"><span className="text-neutral-500">Payslip</span><span className="font-bold">2026-06-EMP001</span></div>
+              <div className="flex justify-between"><span className="text-neutral-500">Period</span><span className="font-bold">{SAMPLE.period}</span></div>
+              <div className="flex justify-between"><span className="text-neutral-500">Pay date</span><span className="font-bold">{SAMPLE.payDate}</span></div>
             </div>
-            {state.template === "modern" ? (
-              <div className="text-right text-[8px] text-white/80">
-                <p className="uppercase tracking-wide">Pay period</p>
-                <p className="font-bold text-white text-[9px]">{SAMPLE.period}</p>
-              </div>
-            ) : null}
           </div>
-        </div>
-      ) : (
-        <div
-          className={cn(
-            "px-5 py-3 flex items-start justify-between",
-            state.template === "corporate" ? "bg-neutral-100 border-b border-neutral-300" : "border-b-2 border-neutral-900"
-          )}
-        >
-          <div>
-            {state.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={state.logoUrl} alt="" className="h-6 object-contain mb-1" />
-            ) : null}
-            <p className="text-sm font-bold leading-tight">{name}</p>
-            <p className="text-[8px] text-neutral-500">Employee payslip</p>
+          <div className="border-b-2 border-neutral-900 mt-2.5 mb-3" />
+          <div className="flex flex-wrap mb-3">
+            {[["Employee", SAMPLE.employee], ["Employee number", SAMPLE.empNo], ["Job title", SAMPLE.title], ["Department", SAMPLE.department]].map(([l, v]) => (
+              <div key={l} className="w-1/2 mb-1.5"><p className="text-[6px] uppercase tracking-wide text-neutral-400">{l}</p><p className="text-[8px] font-bold">{v}</p></div>
+            ))}
           </div>
-          <div className="text-right text-[8px] text-neutral-500">
-            <p className="uppercase tracking-wide">Pay period</p>
-            <p className="font-bold text-neutral-900 text-[9px]">{SAMPLE.period}</p>
-          </div>
-        </div>
-      )}
-
-      <div className="px-5 py-3 flex-1">
-        {/* Employee box */}
-        <div className={cn("rounded bg-neutral-100 px-2.5 py-1.5 mb-3", state.template === "branded" && "text-center")}>
-          <p className="text-[10px] font-bold">{SAMPLE.employee}</p>
-          <p className="text-[8px] text-neutral-500">{SAMPLE.meta}</p>
-        </div>
-
-        <PreviewTable
-          title="Earnings"
-          rows={SAMPLE.earnings}
-          total={{ label: "Gross pay", amount: SAMPLE.gross }}
-          headBg={headBg}
-        />
-        <PreviewTable
-          title="Deductions"
-          rows={SAMPLE.deductions}
-          total={{ label: "Total deductions", amount: SAMPLE.totalDeductions }}
-          headBg={headBg}
-        />
-
-        {/* Net pay band */}
-        {isBandHeader ? (
-          <div className="flex items-center justify-between rounded px-3 py-2 text-white" style={{ backgroundColor: accent }}>
-            <span className="text-[9px] font-bold">Net pay</span>
-            <span className="text-sm font-bold">{SAMPLE.netPay}</span>
-          </div>
-        ) : (
-          <div
-            className="flex items-center justify-between rounded px-3 py-2"
-            style={{ backgroundColor: tint, border: state.template === "corporate" ? `1px solid ${accent}` : undefined }}
-          >
-            <span className="text-[9px] font-bold">Net pay</span>
+          <MiniTable {...earn} accent="#333333" />
+          <MiniTable {...ded} accent="#333333" />
+          <div className="flex items-center justify-between border-y-2 border-neutral-900 py-1.5 mt-1">
+            <span className="text-[9px] font-bold uppercase tracking-wide">Net pay</span>
             <span className="text-sm font-bold" style={{ color: accent }}>{SAMPLE.netPay}</span>
           </div>
-        )}
-
-        {state.showBanking ? (
-          <div className="mt-3">
-            <p className="text-[8px] font-bold uppercase tracking-wide text-neutral-500 mb-1">Banking details</p>
-            <div className="flex justify-between px-1.5 py-1 text-[9px] text-neutral-700 border-b border-neutral-200">
-              <span>Bank</span><span>First National Bank</span>
-            </div>
-            <div className="flex justify-between px-1.5 py-1 text-[9px] text-neutral-700 border-b border-neutral-200">
-              <span>Account number</span><span>****6789</span>
-            </div>
+          <div className="flex justify-between mt-6 mb-3">
+            <span className="text-[7px] text-neutral-400 border-t border-neutral-900 pt-1 w-[42%]">Employer signature</span>
+            <span className="text-[7px] text-neutral-400 border-t border-neutral-900 pt-1 w-[42%]">Date</span>
           </div>
-        ) : null}
+        </div>
+        <p className="mt-auto px-4 pb-2 text-center text-[6px] text-neutral-400 border-t border-neutral-200 pt-1.5">{name} · Computer-generated payslip · NovaHR</p>
       </div>
+    );
+  }
 
-      <p className="px-5 pb-2 text-center text-[7px] text-neutral-400 border-t border-neutral-200 pt-1.5 mx-5">
-        {name}
-        {state.footerNote.trim() ? ` · ${state.footerNote.trim()}` : ""} · Generated by NovaHR
-      </p>
+  // ── MODERN ──
+  if (state.template === "modern") {
+    return (
+      <div className={shell} aria-label="Modern payslip preview">
+        <div className="px-4 py-3 flex items-center justify-between" style={{ backgroundColor: accent }}>
+          <BrandBlock state={state} light />
+          <div className="text-right text-[7px] text-white/80">
+            <p className="uppercase tracking-wide">Pay period</p>
+            <p className="font-bold text-white text-[8px]">{SAMPLE.period}</p>
+          </div>
+        </div>
+        <div className="px-4 py-3 flex-1">
+          <p className="text-[10px] font-bold">{SAMPLE.employee}</p>
+          <p className="text-[8px] text-neutral-500 mb-2">{SAMPLE.title} · {SAMPLE.department} · {SAMPLE.empNo}</p>
+          <div className="flex gap-1.5 mb-3">
+            <div className="flex-1 rounded p-1.5" style={{ backgroundColor: `${accent}14` }}><p className="text-[6px] uppercase text-neutral-500">Gross</p><p className="text-[9px] font-bold">{SAMPLE.gross}</p></div>
+            <div className="flex-1 rounded p-1.5" style={{ backgroundColor: `${accent}14` }}><p className="text-[6px] uppercase text-neutral-500">Deductions</p><p className="text-[9px] font-bold">-{SAMPLE.totalDeductions}</p></div>
+            <div className="flex-1 rounded p-1.5 text-white" style={{ backgroundColor: accent }}><p className="text-[6px] uppercase text-white/80">Net</p><p className="text-[9px] font-bold">{SAMPLE.netPay}</p></div>
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1"><MiniTable {...earn} /></div>
+            <div className="flex-1"><MiniTable {...ded} /></div>
+          </div>
+          <div className="flex items-center justify-between rounded px-2.5 py-2 text-white mt-2" style={{ backgroundColor: accent }}>
+            <div><span className="text-[9px] font-bold">Net pay</span><p className="text-[6px] text-white/80">Paid {SAMPLE.payDate}</p></div>
+            <span className="text-base font-bold">{SAMPLE.netPay}</span>
+          </div>
+        </div>
+        <p className="px-4 pb-2 text-center text-[6px] text-neutral-400 pt-1.5">{name} · NovaHR</p>
+      </div>
+    );
+  }
+
+  // ── CORPORATE ──
+  if (state.template === "corporate") {
+    return (
+      <div className={shell} aria-label="Corporate payslip preview">
+        <div className="px-4 py-2.5 flex items-start justify-between bg-neutral-100" style={{ borderBottom: `2px solid ${accent}` }}>
+          <div className={cn("flex flex-col", alignClass[state.logoAlignment])}>
+            {state.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={state.logoUrl} alt="" className="h-5 object-contain mb-1" />
+            ) : null}
+            <p className="text-[11px] font-bold">{name}</p>
+            <p className="text-[6px] text-neutral-500">Registration: 2019/123456/07</p>
+            <p className="text-[6px] text-neutral-500">PAYE: 7990112345 · UIF: U123456 · SDL: L123456</p>
+          </div>
+          <div className="text-right text-[6px] text-neutral-500">
+            <p className="uppercase">Payslip</p><p className="font-bold text-neutral-900 text-[7px]">2026-06-EMP001</p>
+            <p className="uppercase mt-0.5">Period</p><p className="font-bold text-neutral-900 text-[7px]">{SAMPLE.period}</p>
+            <p className="uppercase mt-0.5">Frequency</p><p className="font-bold text-neutral-900 text-[7px]">Monthly</p>
+          </div>
+        </div>
+        <div className="px-4 py-2.5 flex-1">
+          <div className="flex flex-wrap border border-neutral-300 rounded p-1.5 mb-2">
+            {[["Employee", SAMPLE.employee], ["Emp no", SAMPLE.empNo], ["ID", "******1234"], ["Tax no", "0123456789"], ["Job title", SAMPLE.title], ["Department", SAMPLE.department]].map(([l, v]) => (
+              <div key={l} className="w-1/3 mb-1"><p className="text-[5px] uppercase text-neutral-400">{l}</p><p className="text-[7px] font-bold">{v}</p></div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1"><MiniTable {...earn} accent="#555555" bordered /></div>
+            <div className="flex-1"><MiniTable {...ded} accent="#555555" bordered /></div>
+          </div>
+          <div className="flex items-center justify-between border rounded px-2.5 py-1.5 my-2" style={{ borderColor: accent }}>
+            <div><span className="text-[9px] font-bold">Net pay</span><p className="text-[6px] text-neutral-500">Amount paid into bank account</p></div>
+            <span className="text-sm font-bold" style={{ color: accent }}>{SAMPLE.netPay}</span>
+          </div>
+          <div className="flex gap-1.5">
+            {[["Annual leave", "15"], ["Sick leave", "8"], ["Family", "3"]].map(([l, v]) => (
+              <div key={l} className="flex-1 border border-neutral-300 rounded p-1"><p className="text-[5px] uppercase text-neutral-400">{l} left</p><p className="text-[9px] font-bold">{v} <span className="text-[5px] text-neutral-400">days</span></p></div>
+            ))}
+          </div>
+        </div>
+        <p className="px-4 pb-2 text-center text-[5px] text-neutral-400 border-t border-neutral-200 pt-1">{name} · Statutory deductions per the Income Tax and UIF Acts · NovaHR</p>
+      </div>
+    );
+  }
+
+  // ── BRANDED ──
+  return (
+    <div className={shell} aria-label="Branded payslip preview">
+      <div className={cn("px-4 py-5 flex flex-col", alignClass[state.logoAlignment])} style={{ backgroundColor: accent }}>
+        {state.logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={state.logoUrl} alt="" className="h-7 object-contain mb-1.5" />
+        ) : null}
+        <p className="text-lg font-bold text-white">{name}</p>
+        <p className="text-[8px] uppercase tracking-widest text-white/80 mt-0.5">Payslip · {SAMPLE.period}</p>
+      </div>
+      <div className="px-5 py-4 flex-1">
+        <div className="text-center mb-4">
+          <p className="text-[8px] text-neutral-500">Net pay for</p>
+          <p className="text-[10px] font-bold">{SAMPLE.employee}</p>
+          <p className="text-2xl font-bold mt-1" style={{ color: accent }}>{SAMPLE.netPay}</p>
+          <p className="text-[7px] text-neutral-500 mt-0.5">{SAMPLE.title} · Paid {SAMPLE.payDate}</p>
+        </div>
+        <div className="flex justify-center gap-4 mb-4">
+          {[["Payslip", "2026-06"], ["Emp no", SAMPLE.empNo], ["Gross", SAMPLE.gross]].map(([l, v]) => (
+            <div key={l} className="text-center"><p className="text-[5px] uppercase text-neutral-400">{l}</p><p className="text-[8px] font-bold">{v}</p></div>
+          ))}
+        </div>
+        <div className="h-0.5 w-8 rounded mx-auto mb-4" style={{ backgroundColor: accent }} />
+        {[earn, ded].map((t) => (
+          <div key={t.title} className="mb-3">
+            <div className="flex items-center mb-1"><span className="w-0.5 h-2.5 rounded mr-1" style={{ backgroundColor: accent }} /><span className="text-[8px] font-bold uppercase tracking-wide">{t.title}</span></div>
+            {t.rows.map((r) => (
+              <div key={r.label} className="flex justify-between py-0.5 border-b border-neutral-100 text-[8px]"><span className="flex-[3] text-neutral-700">{r.label}</span><span className="flex-1 text-right">{r.amount}</span>{showYtd ? <span className="flex-1 text-right text-[6px] text-neutral-400">{r.ytd}</span> : null}</div>
+            ))}
+            <div className="flex justify-between py-0.5 text-[8px] font-bold"><span className="flex-[3]">{t.total.label}</span><span className="flex-1 text-right">{t.total.amount}</span>{showYtd ? <span className="flex-1 text-right text-[6px] text-neutral-400">{t.total.ytd}</span> : null}</div>
+          </div>
+        ))}
+      </div>
+      <p className="px-4 pb-2 text-center text-[6px] pt-1.5" style={{ color: accent }}>{name} · NovaHR</p>
     </div>
   );
 }
@@ -217,6 +304,7 @@ function PayslipPreview({ state }: { state: StudioState }) {
 const STUDIO_DEFAULTS = {
   template: "classic",
   accentColor: "#6366f1",
+  logoAlignment: "left" as LogoAlignment,
   footerNote: "",
   showBanking: false,
   showYtd: true,
@@ -236,6 +324,7 @@ export function PayslipStudio() {
         template: s.template,
         accentColor: s.accentColor,
         logoUrl: s.logoUrl,
+        logoAlignment: s.logoAlignment,
         companyName: s.companyName ?? tenant.name,
         footerNote: s.footerNote ?? "",
         showBanking: s.showBanking,
@@ -256,6 +345,7 @@ export function PayslipStudio() {
     patch({
       template: STUDIO_DEFAULTS.template,
       accentColor: STUDIO_DEFAULTS.accentColor,
+      logoAlignment: STUDIO_DEFAULTS.logoAlignment,
       footerNote: STUDIO_DEFAULTS.footerNote,
       showBanking: STUDIO_DEFAULTS.showBanking,
       showYtd: STUDIO_DEFAULTS.showYtd,
@@ -273,6 +363,7 @@ export function PayslipStudio() {
     const result = await updatePayslipSettingsAction(tenant.id, {
       template: state.template,
       accentColor: state.accentColor,
+      logoAlignment: state.logoAlignment,
       companyName: state.companyName.trim() || null,
       footerNote: state.footerNote.trim() || null,
       showBanking: state.showBanking,
@@ -296,7 +387,7 @@ export function PayslipStudio() {
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-2/3" />
           </div>
-          <Skeleton className="aspect-[210/260] w-full" />
+          <Skeleton className="aspect-[210/297] w-full" />
         </CardContent>
       </Card>
     );
@@ -307,10 +398,10 @@ export function PayslipStudio() {
       <CardHeader>
         <CardTitle>Payslips</CardTitle>
         <CardDescription>
-          Control how generated payslip PDFs look: template, accent colour, logo and branding. The preview updates as you make changes.
+          Control how generated payslip PDFs look: template, accent colour, logo placement and branding. The preview updates as you make changes.
         </CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-8 lg:grid-cols-[1fr_minmax(260px,340px)]">
+      <CardContent className="grid gap-8 lg:grid-cols-[1fr_minmax(240px,300px)]">
         <div className="flex flex-col gap-6">
           {/* Template */}
           <fieldset>
@@ -389,6 +480,36 @@ export function PayslipStudio() {
             ) : null}
           </fieldset>
 
+          {/* Logo alignment */}
+          <fieldset>
+            <legend className="text-sm font-medium mb-2">Logo and header alignment</legend>
+            <div className="inline-flex rounded-lg border border-border p-1" role="radiogroup" aria-label="Logo alignment">
+              {ALIGNMENTS.map((a) => {
+                const Icon = a.icon;
+                const active = state.logoAlignment === a.value;
+                return (
+                  <button
+                    key={a.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => patch({ logoAlignment: a.value })}
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <Icon className="size-3.5" />
+                    {a.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Positions the logo and company name in the payslip header. Branded uses centre by default.
+            </p>
+          </fieldset>
+
           {/* Branding text */}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
@@ -415,13 +536,13 @@ export function PayslipStudio() {
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium">Show year-to-date column</p>
-                <p className="text-xs text-muted-foreground">Adds a YTD column to earnings and deductions tables.</p>
+                <p className="text-sm font-medium">Show year-to-date figures</p>
+                <p className="text-xs text-muted-foreground">Adds a real YTD column summing each employee&apos;s pay for the current tax year.</p>
               </div>
               <Switch
                 checked={state.showYtd}
                 onCheckedChange={(v) => patch({ showYtd: v })}
-                aria-label="Show year-to-date column"
+                aria-label="Show year-to-date figures"
               />
             </div>
             <div className="flex items-center justify-between gap-4">

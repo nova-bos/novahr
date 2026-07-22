@@ -98,6 +98,12 @@ export function usePayslip(id: string | undefined): Payslip | undefined {
   return React.useMemo(() => state.payslips.find((p) => p.id === id), [state.payslips, id]);
 }
 
+/** Every payslip the current user can see. Used for year-to-date calculations. */
+export function useAllPayslips(): Payslip[] {
+  const { state } = useApp();
+  return state.payslips;
+}
+
 export function useActivity(limit?: number): ActivityItem[] {
   const { state } = useApp();
   return React.useMemo(() => {

@@ -16,8 +16,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency, formatDate, getInitials } from "@/lib/format";
 import type { Employee, Payslip } from "@/lib/types";
-import { useCurrentTenant } from "@/lib/store/hooks";
+import { useAllPayslips, useCurrentTenant } from "@/lib/store/hooks";
 import { getPayslipSettingsAction, type PayslipSettingsResult } from "@/lib/settings/actions";
+import { computePayslipYtd, type PayslipYtd } from "@/lib/payroll/ytd";
 
 async function downloadPayslipPdf(
   employee: Employee,
@@ -26,12 +27,17 @@ async function downloadPayslipPdf(
   settings: {
     template: string;
     logoUrl: string | null;
+    logoAlignment: "left" | "center" | "right";
     accentColor: string;
     footerNote: string | null;
     showBanking: boolean;
     showYtd: boolean;
     companyAddress?: string;
+    companyRegistration?: string;
     payeReference?: string;
+    uifReference?: string;
+    sdlReference?: string;
+    ytd?: PayslipYtd;
   }
 ): Promise<void> {
   const [{ pdf }, { PayslipDocument }] = await Promise.all([
@@ -44,13 +50,18 @@ async function downloadPayslipPdf(
       payslip={payslip}
       companyName={companyName}
       logoUrl={settings.logoUrl ?? undefined}
+      logoAlignment={settings.logoAlignment}
       accentColor={settings.accentColor}
       template={settings.template}
       footerNote={settings.footerNote ?? undefined}
       showBanking={settings.showBanking}
       showYtd={settings.showYtd}
       companyAddress={settings.companyAddress}
+      companyRegistration={settings.companyRegistration}
       payeReference={settings.payeReference}
+      uifReference={settings.uifReference}
+      sdlReference={settings.sdlReference}
+      ytd={settings.ytd}
     />
   ).toBlob();
   const url = URL.createObjectURL(blob);
@@ -75,6 +86,7 @@ export function PayslipDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const tenant = useCurrentTenant();
+  const allPayslips = useAllPayslips();
   const [downloading, setDownloading] = React.useState(false);
   const [payslipSettings, setPayslipSettings] = React.useState<PayslipSettingsResult | null>(null);
 
@@ -90,23 +102,37 @@ export function PayslipDialog({
     if (!payslip) return;
     setDownloading(true);
     try {
-      const settings = payslipSettings ?? {
+      const settings: PayslipSettingsResult = payslipSettings ?? {
         template: "classic",
         logoUrl: null,
+        logoAlignment: "left",
         accentColor: "#6366f1",
         footerNote: null,
         showBanking: false,
         showYtd: true,
         companyName: null,
+        payeReference: null,
+        uifReference: null,
+        sdlReference: null,
+        taxYearStartMonth: 3,
       };
+      const ytd = settings.showYtd
+        ? computePayslipYtd(allPayslips, employee.id, payslip.period, settings.taxYearStartMonth)
+        : undefined;
       await downloadPayslipPdf(employee, payslip, settings.companyName ?? tenant.name, {
         template: settings.template,
         logoUrl: settings.logoUrl,
+        logoAlignment: settings.logoAlignment,
         accentColor: settings.accentColor,
         footerNote: settings.footerNote,
         showBanking: settings.showBanking,
         showYtd: settings.showYtd,
         companyAddress: `${tenant.address}, ${tenant.city}`,
+        companyRegistration: tenant.registrationNumber || undefined,
+        payeReference: settings.payeReference ?? undefined,
+        uifReference: settings.uifReference ?? undefined,
+        sdlReference: settings.sdlReference ?? undefined,
+        ytd,
       });
     } catch {
       toast.error("Could not generate PDF", { description: "Please try again." });
