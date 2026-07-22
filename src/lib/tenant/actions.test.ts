@@ -2,6 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mockPrisma = vi.hoisted(() => ({
   tenant: { update: vi.fn() },
+  payrollSettings: { findUnique: vi.fn(), upsert: vi.fn() },
+  $transaction: vi.fn((fn: (tx: unknown) => unknown) => fn(mockPrisma)),
 }));
 
 vi.mock("@/lib/prisma", () => ({ prisma: mockPrisma }));

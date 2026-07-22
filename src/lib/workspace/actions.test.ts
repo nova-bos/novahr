@@ -7,6 +7,7 @@ const mockPrisma = vi.hoisted(() => ({
   department: { findMany: vi.fn() },
   leaveRequest: { findMany: vi.fn() },
   payrollRun: { findMany: vi.fn() },
+  payrollSettings: { findUnique: vi.fn().mockResolvedValue(null) },
   payslip: { findMany: vi.fn() },
   activityItem: { findMany: vi.fn() },
   notificationItem: { findMany: vi.fn() },
