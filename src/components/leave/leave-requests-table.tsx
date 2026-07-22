@@ -28,6 +28,7 @@ import { formatDate, getInitials, leaveTypeLabel } from "@/lib/format";
 import { LeaveStatusBadge } from "./leave-status-badge";
 import { LeaveDocumentLink } from "./leave-document-link";
 import { RejectLeaveDialog } from "./reject-leave-dialog";
+import { LeaveDetailSheet } from "./leave-detail-sheet";
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All statuses" },
@@ -55,6 +56,7 @@ export function LeaveRequestsTable() {
   const [status, setStatus] = React.useState("all");
   const [type, setType] = React.useState("all");
   const [decidingId, setDecidingId] = React.useState<string | null>(null);
+  const [detailRequestId, setDetailRequestId] = React.useState<string | null>(null);
 
   const employeeById = React.useMemo(() => {
     const map = new Map<string, (typeof employees)[number]>();
@@ -87,6 +89,8 @@ export function LeaveRequestsTable() {
   }
 
   return (
+    <>
+    <LeaveDetailSheet requestId={detailRequestId} onClose={() => setDetailRequestId(null)} />
     <Card>
       <CardContent>
         <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -146,7 +150,11 @@ export function LeaveRequestsTable() {
                 const employee = employeeById.get(request.employeeId);
                 if (!employee) return null;
                 return (
-                  <TableRow key={request.id}>
+                  <TableRow
+                    key={request.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => setDetailRequestId(request.id)}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar size="sm">
@@ -189,7 +197,7 @@ export function LeaveRequestsTable() {
                       <LeaveStatusBadge status={request.status} />
                     </TableCell>
                     {showActions && (
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                         {request.status === "pending" && canDecide(employee.id) ? (
                           <div className="flex justify-end gap-1.5">
                             <Button
@@ -237,5 +245,6 @@ export function LeaveRequestsTable() {
         )}
       </CardContent>
     </Card>
+    </>
   );
 }

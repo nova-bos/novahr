@@ -111,14 +111,12 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
         ],
       };
     } else if (isManagerEarly) {
-      // Managers see manager-audience broadcasts plus their own personal ones.
+      // Managers see only explicit manager-audience broadcasts plus their own personal ones.
+      // Notifications with audienceRole=null are HR-internal and must not leak to managers.
       notifWhere = {
         tenantId,
         OR: [
-          {
-            recipientEmployeeId: null,
-            OR: [{ audienceRole: null }, { audienceRole: "manager" }],
-          },
+          { recipientEmployeeId: null, audienceRole: "manager" },
           ...(session.employeeId ? [{ recipientEmployeeId: session.employeeId }] : []),
         ],
       };

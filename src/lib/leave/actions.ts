@@ -121,9 +121,12 @@ export async function decideLeaveRequestRecord(
 
   const inner = await runAsTenant(tenantId, async (tx) => {
     const target = await tx.leaveRequest.findFirstOrThrow({ where: { id, tenantId } });
-    if (target.status !== "pending") {
-      throw new Error("This request has already been decided.");
+
+    if (target.status === status) {
+      throw new Error(`This leave request is already ${status}.`);
     }
+
+    const previousStatus = target.status;
 
     const employee = await tx.employee.findFirstOrThrow({
       where: { id: target.employeeId, tenantId },
@@ -171,27 +174,47 @@ export async function decideLeaveRequestRecord(
       data: { status, decidedBy, decidedOn: new Date(), decisionNote },
     });
 
-    // Upsert so approvals work even when the employee predates a leave type
-    // and has no balance row yet.
-    const leaveBalance =
+    let leaveBalance;
+    if (status === "approved") {
+      // Approving (from pending or reversed rejected): increment balance.
+      leaveBalance = await tx.leaveBalance.upsert({
+        where: { employeeId_type: { employeeId: target.employeeId, type: target.type } },
+        update: { used: { increment: target.days } },
+        create: {
+          employeeId: target.employeeId,
+          type: target.type,
+          total: DEFAULT_LEAVE_TOTALS[target.type as LeaveType] ?? target.days,
+          used: target.days,
+        },
+      });
+    } else if (previousStatus === "approved") {
+      // Revoking a prior approval: give the days back.
+      leaveBalance = await tx.leaveBalance.upsert({
+        where: { employeeId_type: { employeeId: target.employeeId, type: target.type } },
+        update: { used: { decrement: target.days } },
+        create: {
+          employeeId: target.employeeId,
+          type: target.type,
+          total: DEFAULT_LEAVE_TOTALS[target.type as LeaveType] ?? 0,
+          used: 0,
+        },
+      });
+    }
+
+    const actionVerb =
       status === "approved"
-        ? await tx.leaveBalance.upsert({
-            where: { employeeId_type: { employeeId: target.employeeId, type: target.type } },
-            update: { used: { increment: target.days } },
-            create: {
-              employeeId: target.employeeId,
-              type: target.type,
-              total: DEFAULT_LEAVE_TOTALS[target.type as LeaveType] ?? target.days,
-              used: target.days,
-            },
-          })
-        : undefined;
+        ? previousStatus === "rejected"
+          ? "approved (overriding earlier decline)"
+          : "approved"
+        : previousStatus === "approved"
+          ? "declined (revoking earlier approval)"
+          : "declined";
 
     const activity = await tx.activityItem.create({
       data: {
         tenantId,
         type: status === "approved" ? "leave_approved" : "leave_rejected",
-        message: `${label} request was ${status}`,
+        message: `${label} request was ${actionVerb}`,
         actor,
         employeeId: target.employeeId,
       },
@@ -262,4 +285,46 @@ export async function decideLeaveRequestRecord(
     activity: mapActivityItem(inner.activity),
     notification: mapNotificationItem(inner.notification),
   };
+}
+
+export async function requestLeaveDocumentationRecord(leaveRequestId: string): Promise<void> {
+  const session = await requireUser();
+  const tenantId = session.tenantId;
+
+  await runAsTenant(tenantId, async (tx) => {
+    const target = await tx.leaveRequest.findFirstOrThrow({ where: { id: leaveRequestId, tenantId } });
+    const employee = await tx.employee.findFirstOrThrow({ where: { id: target.employeeId, tenantId } });
+    const label = leaveTypeLabel(target.type as LeaveType).toLowerCase();
+    const startDate = target.startDate.toISOString().slice(0, 10);
+    const endDate = target.endDate.toISOString().slice(0, 10);
+
+    await tx.notificationItem.create({
+      data: {
+        tenantId,
+        title: "Supporting documents requested",
+        description: `Please upload supporting documentation for your ${label} request (${startDate} to ${endDate}).`,
+        type: "warning",
+        recipientEmployeeId: target.employeeId,
+      },
+    });
+
+    void (async () => {
+      const { Resend } = await import("resend");
+      const key = process.env.RESEND_API_KEY;
+      if (!key) return;
+      const client = new Resend(key);
+      const from = process.env.RESEND_FROM ?? "NovaHR <noreply@novahr.co.za>";
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novahr-five.vercel.app";
+      void client.emails.send({
+        from,
+        to: employee.email,
+        subject: "Supporting documents required for your leave request",
+        html: `<p>Hi ${employee.firstName},</p>
+<p>Your reviewer has requested supporting documentation for your <strong>${label}</strong> leave request from <strong>${startDate}</strong> to <strong>${endDate}</strong>.</p>
+<p>Please log in and attach the relevant documents to your leave request.</p>
+<p><a href="${appUrl}/leave">View my leave requests</a></p>
+<p>The NovaHR team</p>`,
+      });
+    })();
+  });
 }

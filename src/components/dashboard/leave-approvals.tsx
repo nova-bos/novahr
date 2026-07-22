@@ -17,6 +17,7 @@ import { useEmployees, useLeaveRequests } from "@/lib/store/hooks";
 import { formatDate, getInitials, leaveTypeLabel } from "@/lib/format";
 import { LeaveDocumentLink } from "@/components/leave/leave-document-link";
 import { RejectLeaveDialog } from "@/components/leave/reject-leave-dialog";
+import { LeaveDetailSheet } from "@/components/leave/leave-detail-sheet";
 
 export function LeaveApprovals() {
   const leaveRequests = useLeaveRequests();
@@ -25,6 +26,7 @@ export function LeaveApprovals() {
   const [decidingId, setDecidingId] = React.useState<string | null>(null);
 
   const pending = leaveRequests.filter((r) => r.status === "pending").slice(0, 4);
+  const [detailRequestId, setDetailRequestId] = React.useState<string | null>(null);
 
   async function handleDecision(id: string, status: "approved" | "rejected", name: string, note?: string) {
     setDecidingId(id);
@@ -43,6 +45,8 @@ export function LeaveApprovals() {
   }
 
   return (
+    <>
+    <LeaveDetailSheet requestId={detailRequestId} onClose={() => setDetailRequestId(null)} />
     <Card>
       <CardHeader>
         <CardTitle>Leave approvals</CardTitle>
@@ -61,7 +65,11 @@ export function LeaveApprovals() {
               const employee = employees.find((e) => e.id === request.employeeId);
               if (!employee) return null;
               return (
-                <div key={request.id} className="flex items-start gap-3">
+                <div
+                  key={request.id}
+                  className="flex cursor-pointer items-start gap-3 rounded-lg px-1 -mx-1 hover:bg-muted/50 transition-colors"
+                  onClick={() => setDetailRequestId(request.id)}
+                >
                   <Avatar size="sm" className="mt-0.5">
                     {employee.photoUrl ? (
                       <AvatarImage src={employee.photoUrl} alt={`${employee.firstName} ${employee.lastName}`} />
@@ -84,7 +92,7 @@ export function LeaveApprovals() {
                       {formatDate(request.startDate)} to {formatDate(request.endDate)}
                     </p>
                   </div>
-                  <div className="flex shrink-0 gap-1.5">
+                  <div className="flex shrink-0 gap-1.5" onClick={(e) => e.stopPropagation()}>
                     {request.documentPath ? (
                       <LeaveDocumentLink
                         leaveRequestId={request.id}
@@ -118,5 +126,6 @@ export function LeaveApprovals() {
         )}
       </CardContent>
     </Card>
+    </>
   );
 }
