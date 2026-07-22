@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { formatCurrency, formatDate, leaveTypeLabel } from "@/lib/format";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
+import { useLeaveRequests } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
 
 function formatTenure(startDate: string): string {
@@ -25,6 +26,10 @@ function formatTenure(startDate: string): string {
 export function ProfileSidebar({ employee }: { employee: Employee }) {
   const breakdown = calculateMonthlyPayroll(employee);
   const annualLeave = employee.leaveBalances.find((b) => b.type === "annual");
+  const allLeaveRequests = useLeaveRequests();
+  const annualPendingDays = allLeaveRequests
+    .filter((r) => r.employeeId === employee.id && r.type === "annual" && r.status === "pending")
+    .reduce((sum, r) => sum + r.days, 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -90,18 +95,19 @@ export function ProfileSidebar({ employee }: { employee: Employee }) {
           <CardContent>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {annualLeave.total - annualLeave.used} days remaining
+                {annualLeave.total - annualLeave.used - annualPendingDays} days remaining
               </span>
               <span className="font-medium">
-                {annualLeave.used}/{annualLeave.total}
+                {annualLeave.used + annualPendingDays}/{annualLeave.total}
               </span>
             </div>
             <Progress
-              value={(annualLeave.used / annualLeave.total) * 100}
+              value={((annualLeave.used + annualPendingDays) / annualLeave.total) * 100}
               className="mt-3"
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              {leaveTypeLabel(annualLeave.type)} balance for this year
+              {annualLeave.used} approved
+              {annualPendingDays > 0 ? ` · ${annualPendingDays} pending` : ""}
             </p>
           </CardContent>
         </Card>

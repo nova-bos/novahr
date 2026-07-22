@@ -33,7 +33,7 @@ import {
 import { useApp } from "@/lib/store/app-provider";
 import { useTenantId } from "@/lib/store/hooks";
 import { useAuth } from "@/lib/auth/auth-provider";
-import { useScopedEmployees } from "@/lib/auth/scope";
+import { useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
 import { leaveTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { DaySelection, LeaveType } from "@/lib/types";
@@ -52,6 +52,7 @@ export function NewLeaveRequestDialog() {
   const { addLeaveRequest } = useApp();
   const { user } = useAuth();
   const employees = useScopedEmployees();
+  const leaveRequests = useScopedLeaveRequests();
   const tenantId = useTenantId();
   const lockToSelf = user?.role === "employee";
 
@@ -92,12 +93,17 @@ export function NewLeaveRequestDialog() {
     (sum, d) => sum + (d.type === "full" ? 1 : 0.5),
     0
   );
-  const available = balance ? balance.total - balance.used : 0;
+
+  // Subtract pending leave of the same type so employees see their real headroom
+  const pendingDays = leaveRequests
+    .filter((r) => r.employeeId === employeeId && r.type === type && r.status === "pending")
+    .reduce((sum, r) => sum + r.days, 0);
+  const available = balance ? balance.total - balance.used - pendingDays : 0;
   const remainingAfter = available - requestedDays;
   const isOverLimit = Boolean(balance) && daySelections.length > 0 && remainingAfter < 0;
   const usagePct =
     balance && balance.total > 0
-      ? Math.min(100, ((balance.used + requestedDays) / balance.total) * 100)
+      ? Math.min(100, ((balance.used + pendingDays + requestedDays) / balance.total) * 100)
       : 0;
 
   async function handleSubmit(event: React.FormEvent) {

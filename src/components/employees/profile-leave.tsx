@@ -30,8 +30,12 @@ export function ProfileLeave({ employee }: { employee: Employee }) {
         <CardContent>
           <div className="grid gap-5 sm:grid-cols-2">
             {employee.leaveBalances.map((balance) => {
-              const remaining = balance.total - balance.used;
-              const percentage = balance.total > 0 ? (balance.used / balance.total) * 100 : 0;
+              const pendingDays = requests
+                .filter((r) => r.type === balance.type && r.status === "pending")
+                .reduce((sum, r) => sum + r.days, 0);
+              const effectiveUsed = balance.used + pendingDays;
+              const remaining = balance.total - effectiveUsed;
+              const percentage = balance.total > 0 ? (effectiveUsed / balance.total) * 100 : 0;
               return (
                 <div key={balance.type} className="rounded-xl border border-border/70 p-4">
                   <div className="flex items-center justify-between">
@@ -42,7 +46,8 @@ export function ProfileLeave({ employee }: { employee: Employee }) {
                   </div>
                   <Progress value={percentage} className="mt-3" />
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {balance.used} days used this year
+                    {balance.used} days approved
+                    {pendingDays > 0 ? ` · ${pendingDays} pending` : ""}
                   </p>
                 </div>
               );
