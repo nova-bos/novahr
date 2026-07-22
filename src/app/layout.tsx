@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { AppProvider } from "@/lib/store/app-provider";
 import { AuthProvider } from "@/lib/auth/auth-provider";
 import { EnvBanner } from "@/components/layout/env-banner";
+import { UATPanel } from "@/components/layout/uat-panel";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -48,6 +49,7 @@ export default function RootLayout({
             <AuthProvider>
               <TooltipProvider delayDuration={150}>
                 {children}
+                <UATPanel />
                 <Toaster position="top-right" richColors closeButton />
               </TooltipProvider>
             </AuthProvider>
