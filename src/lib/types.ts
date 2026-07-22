@@ -335,6 +335,10 @@ export interface NotificationItem {
   timestamp: string;
   read: boolean;
   type: "info" | "success" | "warning";
+  // Audience scoping. Mirrors the server-side fields so the client can filter
+  // optimistically-added notifications to the same rules the workspace query uses.
+  audienceRole?: string | null;
+  recipientEmployeeId?: string | null;
 }
 
 export interface CustomHoliday {

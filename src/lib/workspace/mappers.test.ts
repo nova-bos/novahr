@@ -434,6 +434,8 @@ describe("mapNotificationItem", () => {
       timestamp: "2026-06-25T08:00:00.000Z",
       read: false,
       type: "success",
+      audienceRole: "hr",
+      recipientEmployeeId: null,
     });
   });
 });

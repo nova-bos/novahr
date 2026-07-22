@@ -55,12 +55,12 @@ function visibleToUser(session: {
     };
   }
   if (isManager) {
+    // Managers see only explicit manager-audience broadcasts (never HR-internal
+    // audienceRole: null ones) plus their own personal notifications. This must
+    // match the workspace read scope so the two paths cannot drift.
     return {
       OR: [
-        {
-          recipientEmployeeId: null,
-          OR: [{ audienceRole: null }, { audienceRole: "manager" }],
-        },
+        { recipientEmployeeId: null, audienceRole: "manager" },
         ...(session.employeeId ? [{ recipientEmployeeId: session.employeeId }] : []),
       ],
     };

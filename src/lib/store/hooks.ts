@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import { useApp } from "./app-provider";
+import { useAuth } from "@/lib/auth/auth-provider";
+import { isNotificationVisibleTo } from "@/lib/notifications/visibility";
 import { leavePolicies } from "@/lib/config/leave";
 import { getPayrollConfig } from "@/lib/config/payroll";
 import type {
@@ -16,6 +18,23 @@ import type {
   Payslip,
   Tenant,
 } from "../types";
+
+/** True once the workspace has finished loading (success or empty tenant). */
+export function useWorkspaceReady(): boolean {
+  const { state } = useApp();
+  return state.ready;
+}
+
+/** True when the workspace fetch failed. */
+export function useWorkspaceError(): boolean {
+  const { state } = useApp();
+  return state.loadError;
+}
+
+export function useReloadWorkspace(): () => void {
+  const { reloadWorkspace } = useApp();
+  return reloadWorkspace;
+}
 
 export function useTenantId(): string {
   return useApp().state.tenantId;
@@ -114,9 +133,15 @@ export function useActivity(limit?: number): ActivityItem[] {
 
 export function useNotifications(): NotificationItem[] {
   const { state } = useApp();
+  const { user } = useAuth();
   return React.useMemo(
-    () => [...state.notifications].sort((a, b) => b.timestamp.localeCompare(a.timestamp)),
-    [state.notifications]
+    () =>
+      state.notifications
+        // Guard against optimistic drift: only surface notifications the current
+        // user is entitled to, matching the server-side workspace scoping.
+        .filter((n) => isNotificationVisibleTo(n, user))
+        .sort((a, b) => b.timestamp.localeCompare(a.timestamp)),
+    [state.notifications, user]
   );
 }
 

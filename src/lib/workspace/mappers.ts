@@ -243,5 +243,7 @@ export function mapNotificationItem(row: PrismaNotificationItem): NotificationIt
     timestamp: toTimestamp(row.timestamp),
     read: row.read,
     type: row.type,
+    audienceRole: row.audienceRole ?? null,
+    recipientEmployeeId: row.recipientEmployeeId ?? null,
   };
 }

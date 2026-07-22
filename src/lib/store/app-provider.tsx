@@ -50,11 +50,16 @@ export interface AppState {
   notifications: NotificationItem[];
   customHolidays: CustomHoliday[];
   leaveReviewers: LeaveReviewer[];
+  /** True once the workspace has finished loading (success or empty). */
+  ready: boolean;
+  /** True when the workspace fetch failed and views should show an error. */
+  loadError: boolean;
 }
 
 export type Action =
   | { type: "SET_TENANT"; tenantId: string }
   | { type: "SET_WORKSPACE"; workspace: TenantWorkspace | null }
+  | { type: "WORKSPACE_LOAD_FAILED" }
   | { type: "EMPLOYEE_ADDED"; employee: Employee; activity: ActivityItem; notification: NotificationItem }
   | { type: "EMPLOYEE_UPDATED"; employee: Employee }
   | { type: "ONBOARDING_STEP_TOGGLED"; employee: Employee; activity?: ActivityItem }
@@ -104,6 +109,8 @@ export const initialState: AppState = {
   notifications: [],
   customHolidays: [],
   leaveReviewers: [],
+  ready: false,
+  loadError: false,
 };
 
 export function reducer(state: AppState, action: Action): AppState {
@@ -122,11 +129,16 @@ export function reducer(state: AppState, action: Action): AppState {
         notifications: [],
         customHolidays: [],
         leaveReviewers: [],
+        ready: false,
+        loadError: false,
       };
 
     case "SET_WORKSPACE":
-      if (!action.workspace) return { ...state, currentTenant: null };
-      return { ...state, ...action.workspace };
+      if (!action.workspace) return { ...state, currentTenant: null, ready: true, loadError: false };
+      return { ...state, ...action.workspace, ready: true, loadError: false };
+
+    case "WORKSPACE_LOAD_FAILED":
+      return { ...state, ready: false, loadError: true };
 
     case "EMPLOYEE_ADDED":
       return {
@@ -275,6 +287,7 @@ export function reducer(state: AppState, action: Action): AppState {
 interface AppContextValue {
   state: AppState;
   setTenant: (tenantId: string) => void;
+  reloadWorkspace: () => void;
   addEmployee: (employee: Employee) => Promise<Employee>;
   updateEmployee: (id: string, updates: Partial<Employee>) => Promise<void>;
   updateEmployeePhoto: (employeeId: string, photoUrl: string) => Promise<void>;
@@ -314,6 +327,7 @@ const AppContext = React.createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = React.useReducer(reducer, initialState);
+  const [reloadKey, setReloadKey] = React.useState(0);
 
   React.useEffect(() => {
     if (!state.tenantId) return;
@@ -324,16 +338,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       })
       .catch((err) => {
         console.error("[AppProvider] workspace fetch failed:", err);
+        if (active) dispatch({ type: "WORKSPACE_LOAD_FAILED" });
       });
     return () => {
       active = false;
     };
-  }, [state.tenantId]);
+    // reloadKey lets the error UI retry the workspace fetch.
+  }, [state.tenantId, reloadKey]);
 
   const value = React.useMemo<AppContextValue>(
     () => ({
       state,
       setTenant: (tenantId) => dispatch({ type: "SET_TENANT", tenantId }),
+      reloadWorkspace: () => setReloadKey((k) => k + 1),
       addEmployee: async (employee) => {
         const result = await createEmployeeRecord(employee);
         dispatch({

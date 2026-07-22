@@ -9,7 +9,7 @@ import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
 import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator";
 import { workingDaysBetween } from "@/lib/leave/business-days";
 import { applyRecurringDeductions } from "./recurring-deductions";
-import type { ActivityItem, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
+import type { ActivityItem, DaySelection, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
   decToNumber,
   mapActivityItem,
@@ -141,13 +141,31 @@ export async function completePayrollRunRecord(
           startDate: { lte: periodEnd },
           endDate: { gte: periodStart },
         },
-        select: { employeeId: true, startDate: true, endDate: true },
+        select: { employeeId: true, startDate: true, endDate: true, daySelections: true },
       });
+      const periodStartKey = toDateOnly(periodStart);
+      const periodEndKey = toDateOnly(periodEnd);
       const unpaidDaysByEmployee = new Map<string, number>();
       for (const r of unpaidRequests) {
-        const overlapStart = r.startDate > periodStart ? r.startDate : periodStart;
-        const overlapEnd = r.endDate < periodEnd ? r.endDate : periodEnd;
-        const days = workingDaysBetween(toDateOnly(overlapStart), toDateOnly(overlapEnd));
+        // Prefer the exact selected days (supports half-days and non-contiguous
+        // dates); only count those that fall inside this run's period. Fall back
+        // to a working-day span for legacy rows without daySelections.
+        const selections = Array.isArray(r.daySelections)
+          ? (r.daySelections as unknown as DaySelection[])
+          : null;
+        let days: number;
+        if (selections && selections.length > 0) {
+          days = selections.reduce((sum, sel) => {
+            if (sel.date >= periodStartKey && sel.date <= periodEndKey) {
+              return sum + (sel.type === "full" ? 1 : 0.5);
+            }
+            return sum;
+          }, 0);
+        } else {
+          const overlapStart = r.startDate > periodStart ? r.startDate : periodStart;
+          const overlapEnd = r.endDate < periodEnd ? r.endDate : periodEnd;
+          days = workingDaysBetween(toDateOnly(overlapStart), toDateOnly(overlapEnd));
+        }
         if (days > 0) {
           unpaidDaysByEmployee.set(
             r.employeeId,

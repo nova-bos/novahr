@@ -6,6 +6,14 @@ import { ArrowLeft, Banknote, Download, Loader2, Receipt, ReceiptText, Send, Wal
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -42,11 +50,14 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const [bulkProgress, setBulkProgress] = React.useState<string | null>(null);
   const [isApproving, startApproveTransition] = React.useTransition();
   const [isRejecting, startRejectTransition] = React.useTransition();
+  const [confirmApproveOpen, setConfirmApproveOpen] = React.useState(false);
+  const [confirmSubmitOpen, setConfirmSubmitOpen] = React.useState(false);
 
   function handleApprove() {
     startApproveTransition(async () => {
       try {
         await approvePayrollRunAction(run.id);
+        setConfirmApproveOpen(false);
         toast.success("Payroll approved. Payslip emails will be sent shortly.");
       } catch (err) {
         toast.error("Could not approve payroll", {
@@ -178,6 +189,7 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
         toast.error("Netcash submission failed", { description: result.error });
         return;
       }
+      setConfirmSubmitOpen(false);
       toast.success("Batch submitted to Netcash", {
         description: `File token: ${result.token}. You will receive a load report by email.`,
       });
@@ -278,7 +290,7 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
                 </Button>
                 <Button
                   size="lg"
-                  onClick={handleNetcashSubmit}
+                  onClick={() => setConfirmSubmitOpen(true)}
                   disabled={isSubmitting}
                   className="w-full sm:w-auto sm:order-first"
                 >
@@ -289,6 +301,26 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
                   )}
                   {isSubmitting ? "Submitting..." : "Submit payroll to Netcash"}
                 </Button>
+                <Dialog open={confirmSubmitOpen} onOpenChange={(o) => !isSubmitting && setConfirmSubmitOpen(o)}>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Submit this payroll to Netcash?</DialogTitle>
+                      <DialogDescription>
+                        This sends a payment batch of {formatCurrency(run.totalNet)} for {run.employeeCount}
+                        {" "}employee{run.employeeCount === 1 ? "" : "s"} to Netcash for disbursement. Once submitted
+                        the batch is handed to your bank and cannot be recalled from NovaHR.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setConfirmSubmitOpen(false)} disabled={isSubmitting}>
+                        Cancel
+                      </Button>
+                      <Button onClick={handleNetcashSubmit} disabled={isSubmitting}>
+                        {isSubmitting ? "Submitting..." : "Submit to Netcash"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </>
             ) : null}
           </div>
@@ -315,13 +347,34 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
             </Button>
             <Button
               size="sm"
-              onClick={handleApprove}
+              onClick={() => setConfirmApproveOpen(true)}
               disabled={isApproving || isRejecting}
               className="bg-amber-600 hover:bg-amber-700 text-white"
             >
               {isApproving ? "Approving..." : "Approve"}
             </Button>
           </div>
+
+          <Dialog open={confirmApproveOpen} onOpenChange={(o) => !isApproving && setConfirmApproveOpen(o)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Approve this payroll run?</DialogTitle>
+                <DialogDescription>
+                  This will finalise pay for {run.employeeCount} employee{run.employeeCount === 1 ? "" : "s"}
+                  {" "}with a net total of {formatCurrency(run.totalNet)} and email a payslip to every employee.
+                  Payslip emails cannot be recalled once sent.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setConfirmApproveOpen(false)} disabled={isApproving}>
+                  Cancel
+                </Button>
+                <Button onClick={handleApprove} disabled={isApproving}>
+                  {isApproving ? "Approving..." : "Approve and send payslips"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       ) : null}
 

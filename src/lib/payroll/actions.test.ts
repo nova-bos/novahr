@@ -121,6 +121,26 @@ describe("completePayrollRunRecord", () => {
     return { run, tenant, eligibleEmployee, terminatedEmployee };
   }
 
+  it("refuses to re-complete an already-processed run (no double deduction)", async () => {
+    // A completed run must not be reprocessed: doing so would recompute and
+    // re-apply recurring deductions, taking loan/garnishee instalments twice.
+    mockPrisma.payrollRun.findFirstOrThrow.mockResolvedValue(makePayrollRunRow({ status: "completed" }));
+
+    await expect(completePayrollRunRecord("novatech-run-2026-06")).rejects.toThrow(
+      /already been processed/
+    );
+    expect(mockPrisma.payrollRun.update).not.toHaveBeenCalled();
+    expect(mockPrisma.payslip.createMany).not.toHaveBeenCalled();
+  });
+
+  it("refuses to complete a run awaiting approval", async () => {
+    mockPrisma.payrollRun.findFirstOrThrow.mockResolvedValue(makePayrollRunRow({ status: "awaiting_approval" }));
+
+    await expect(completePayrollRunRecord("novatech-run-2026-06")).rejects.toThrow(
+      /already been processed/
+    );
+  });
+
   it("excludes terminated employees, builds payslips, and creates the next scheduled run", async () => {
     setupCommon();
     mockPrisma.payrollRun.findUnique.mockResolvedValue(null);
