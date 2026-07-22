@@ -247,23 +247,6 @@ export async function listTenantUsersAction(): Promise<TenantUserRow[]> {
     where: { tenantId: session.tenantId },
     orderBy: { createdAt: "asc" },
   });
-
-  // For users without an explicit employeeId, resolve by email match so the
-  // client can correctly exclude them from the bulk-invite list.
-  const unlinkedEmails = rows.filter((u) => !u.employeeId).map((u) => u.email);
-  const emailMatched =
-    unlinkedEmails.length > 0
-      ? await prisma.employee.findMany({
-          where: {
-            tenantId: session.tenantId,
-            email: { in: unlinkedEmails, mode: "insensitive" },
-          },
-          select: { id: true, email: true },
-        })
-      : [];
-
-  const emailToEmployeeId = new Map(emailMatched.map((e) => [e.email.toLowerCase(), e.id]));
-
   return rows.map((u) => ({
     id: u.id,
     name: u.name,
@@ -272,8 +255,69 @@ export async function listTenantUsersAction(): Promise<TenantUserRow[]> {
     role: u.role,
     initials: u.initials,
     avatarColor: u.avatarColor,
-    employeeId: u.employeeId ?? emailToEmployeeId.get(u.email.toLowerCase()) ?? undefined,
+    employeeId: u.employeeId ?? undefined,
   }));
+}
+
+/**
+ * Returns employee IDs that should be excluded from the bulk-invite list
+ * because they already have portal access or a pending invite. Computed
+ * entirely server-side to avoid client-side email-matching edge cases.
+ */
+export async function getUninvitableEmployeeIdsAction(): Promise<string[]> {
+  const session = await requireRole("hr");
+
+  const [users, pendingInvites] = await Promise.all([
+    prisma.user.findMany({
+      where: { tenantId: session.tenantId },
+      select: { employeeId: true, email: true },
+    }),
+    prisma.invite.findMany({
+      where: { tenantId: session.tenantId, status: "pending" },
+      select: { employeeId: true, email: true },
+    }),
+  ]);
+
+  const userEmails = users.map((u) => u.email);
+
+  // Find all employees whose email matches any user or pending-invite email
+  const emailMatchedEmployees =
+    userEmails.length > 0
+      ? await prisma.employee.findMany({
+          where: {
+            tenantId: session.tenantId,
+            email: { in: userEmails, mode: "insensitive" },
+          },
+          select: { id: true },
+        })
+      : [];
+
+  const ids = new Set<string>();
+  for (const u of users) {
+    if (u.employeeId) ids.add(u.employeeId);
+  }
+  for (const e of emailMatchedEmployees) {
+    ids.add(e.id);
+  }
+  for (const inv of pendingInvites) {
+    if (inv.employeeId) ids.add(inv.employeeId);
+    // Also exclude employees whose email matches a pending invite
+  }
+
+  // Also exclude by pending-invite email
+  const inviteEmails = pendingInvites.map((i) => i.email).filter(Boolean);
+  if (inviteEmails.length > 0) {
+    const inviteEmailMatched = await prisma.employee.findMany({
+      where: {
+        tenantId: session.tenantId,
+        email: { in: inviteEmails, mode: "insensitive" },
+      },
+      select: { id: true },
+    });
+    for (const e of inviteEmailMatched) ids.add(e.id);
+  }
+
+  return [...ids];
 }
 
 export interface PublicInviteInfo {

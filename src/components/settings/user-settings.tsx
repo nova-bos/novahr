@@ -35,6 +35,7 @@ import {
 import {
   createInviteAction,
   getInviteLinkAction,
+  getUninvitableEmployeeIdsAction,
   listInvitesAction,
   listTenantUsersAction,
   removeUserAccessAction,
@@ -166,7 +167,7 @@ function BulkInviteDialog({
             <DialogTitle>Invite everyone</DialogTitle>
             <DialogDescription>
               {finished
-                ? `${sentCount} invitation${sentCount === 1 ? "" : "s"} sent${failedCount > 0 ? `, ${failedCount} failed — check those rows and retry` : "."}`
+                ? `${sentCount} invitation${sentCount === 1 ? "" : "s"} sent${failedCount > 0 ? `. ${failedCount} failed: check those rows and retry.` : "."}`
                 : `Send invitations to ${rows.filter((r) => r.employee.email).length} employees at once. Adjust roles before sending.`}
             </DialogDescription>
           </DialogHeader>
@@ -496,6 +497,7 @@ export function UserSettings() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = React.useState<TenantUserRow[]>([]);
   const [invites, setInvites] = React.useState<InviteRow[]>([]);
+  const [uninvitableIds, setUninvitableIds] = React.useState<Set<string>>(new Set());
   const [loading, setLoading] = React.useState(true);
   const [removingUser, setRemovingUser] = React.useState<TenantUserRow | null>(null);
   const [removeConfirming, setRemoveConfirming] = React.useState(false);
@@ -510,33 +512,24 @@ export function UserSettings() {
   const [sending, setSending] = React.useState(false);
   const [manualLink, setManualLink] = React.useState<string | null>(null);
 
-  const linkedEmployeeIds = React.useMemo(
-    () => new Set(users.map((u) => u.employeeId).filter(Boolean)),
-    [users]
-  );
-  const linkedEmails = React.useMemo(
-    () => new Set(users.map((u) => u.email).filter(Boolean)),
-    [users]
-  );
   const invitableEmployees = React.useMemo(
     () =>
       state.employees.filter(
-        (e) =>
-          !linkedEmployeeIds.has(e.id) &&
-          !(e.email && linkedEmails.has(e.email)) &&
-          e.status !== "terminated"
+        (e) => !uninvitableIds.has(e.id) && e.status !== "terminated"
       ),
-    [state.employees, linkedEmployeeIds, linkedEmails]
+    [state.employees, uninvitableIds]
   );
 
   const refresh = React.useCallback(async () => {
     try {
-      const [userRows, inviteRows] = await Promise.all([
+      const [userRows, inviteRows, uninvitableIdList] = await Promise.all([
         listTenantUsersAction(),
         listInvitesAction(),
+        getUninvitableEmployeeIdsAction(),
       ]);
       setUsers(userRows);
       setInvites(inviteRows);
+      setUninvitableIds(new Set(uninvitableIdList));
     } catch {
       toast.error("Couldn't load users", { description: "Please refresh the page." });
     } finally {
@@ -911,13 +904,9 @@ export function UserSettings() {
           <DialogHeader>
             <DialogTitle>Remove access?</DialogTitle>
             <DialogDescription>
-              {removingUser ? (
-                <>
-                  <span className="font-medium text-foreground">{removingUser.name}</span> will immediately
-                  lose access to this workspace. Their employee record and payroll data are preserved.
-                  You can re-invite them at any time.
-                </>
-              ) : null}
+              <span className="font-medium text-foreground">{removingUser?.name ?? "This user"}</span> will
+              immediately lose access to this workspace. Their employee record and payroll data are
+              preserved. You can re-invite them at any time.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
