@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { toast } from "sonner";
 import {
   Card,
@@ -16,6 +16,7 @@ import { useApp } from "@/lib/store/app-provider";
 import { useEmployees, useLeaveRequests } from "@/lib/store/hooks";
 import { formatDate, getInitials, leaveTypeLabel } from "@/lib/format";
 import { LeaveDocumentLink } from "@/components/leave/leave-document-link";
+import { RejectLeaveDialog } from "@/components/leave/reject-leave-dialog";
 
 export function LeaveApprovals() {
   const leaveRequests = useLeaveRequests();
@@ -25,12 +26,12 @@ export function LeaveApprovals() {
 
   const pending = leaveRequests.filter((r) => r.status === "pending").slice(0, 4);
 
-  async function handleDecision(id: string, status: "approved" | "rejected", name: string) {
+  async function handleDecision(id: string, status: "approved" | "rejected", name: string, note?: string) {
     setDecidingId(id);
     try {
-      await decideLeaveRequest(id, status);
-      toast(status === "approved" ? "Leave request approved" : "Leave request rejected", {
-        description: `${name}'s leave request has been ${status}.`,
+      await decideLeaveRequest(id, status, note);
+      toast(status === "approved" ? "Leave request approved" : "Leave request declined", {
+        description: `${name}'s leave request has been ${status === "approved" ? "approved" : "declined"}.`,
       });
     } catch {
       toast.error("Couldn't update leave request", {
@@ -102,18 +103,13 @@ export function LeaveApprovals() {
                       <Check className="size-3.5" />
                       <span className="sr-only">{decidingId === request.id ? "Approving..." : "Approve"}</span>
                     </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="outline"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    <RejectLeaveDialog
+                      employeeName={`${employee.firstName} ${employee.lastName}`}
                       disabled={decidingId === request.id}
-                      onClick={() =>
-                        handleDecision(request.id, "rejected", `${employee.firstName} ${employee.lastName}`)
+                      onReject={(note) =>
+                        handleDecision(request.id, "rejected", `${employee.firstName} ${employee.lastName}`, note)
                       }
-                    >
-                      <X className="size-3.5" />
-                      <span className="sr-only">{decidingId === request.id ? "Rejecting..." : "Reject"}</span>
-                    </Button>
+                    />
                   </div>
                 </div>
               );

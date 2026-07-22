@@ -44,7 +44,11 @@ interface AvatarUploadProps {
 export function AvatarUpload({ employee, size = 64 }: AvatarUploadProps) {
   const { updateEmployeePhoto } = useApp();
   const [uploading, setUploading] = React.useState(false);
+  const [imgFailed, setImgFailed] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // Reset failure state when the employee's photoUrl changes (e.g. after a new upload).
+  React.useEffect(() => { setImgFailed(false); }, [employee.photoUrl]);
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -89,7 +93,7 @@ export function AvatarUpload({ employee, size = 64 }: AvatarUploadProps) {
       onClick={() => !uploading && inputRef.current?.click()}
       aria-label="Upload profile photo"
     >
-      {employee.photoUrl ? (
+      {employee.photoUrl && !imgFailed ? (
         <Image
           src={employee.photoUrl}
           alt={`${employee.firstName} ${employee.lastName}`}
@@ -97,6 +101,7 @@ export function AvatarUpload({ employee, size = 64 }: AvatarUploadProps) {
           height={size}
           className="h-full w-full object-cover"
           unoptimized
+          onError={() => setImgFailed(true)}
         />
       ) : (
         <span

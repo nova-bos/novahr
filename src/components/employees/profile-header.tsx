@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Mail, MapPin, Pencil, Phone } from "lucide-react";
@@ -22,6 +23,8 @@ export function ProfileHeader({
   const { user } = useAuth();
   const isSelf = user?.employeeId === employee.id;
   const canEdit = user?.role === "hr";
+  const [imgFailed, setImgFailed] = React.useState(false);
+  React.useEffect(() => { setImgFailed(false); }, [employee.photoUrl]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,7 +39,7 @@ export function ProfileHeader({
         <div className="flex items-start gap-4">
           {canEdit ? (
             <AvatarUpload employee={employee} size={64} />
-          ) : employee.photoUrl ? (
+          ) : employee.photoUrl && !imgFailed ? (
             <span className="relative size-16 shrink-0 overflow-hidden rounded-full">
               <Image
                 src={employee.photoUrl}
@@ -45,6 +48,7 @@ export function ProfileHeader({
                 height={64}
                 className="h-full w-full object-cover"
                 unoptimized
+                onError={() => setImgFailed(true)}
               />
             </span>
           ) : (
