@@ -3,8 +3,9 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { isSaPublicHoliday, isWeekend, SA_PUBLIC_HOLIDAYS } from "@/lib/leave/business-days";
+import { useCustomHolidays } from "@/lib/store/hooks";
 import { cn } from "@/lib/utils";
-import type { DaySelection } from "@/lib/types";
+import type { CustomHoliday, DaySelection } from "@/lib/types";
 
 interface LeaveDayPickerProps {
   value: DaySelection[];
@@ -49,22 +50,38 @@ function buildCells(year: number, month: number): (string | null)[] {
   return cells;
 }
 
-function buildHolidayMap(year: number): Map<string, string> {
-  return new Map(
-    SA_PUBLIC_HOLIDAYS.filter((h) => {
-      const y = parseInt(h.date.slice(0, 4), 10);
-      return y === year || y === year + 1;
-    }).map((h) => [h.date, h.name])
-  );
+function buildHolidayMap(
+  year: number,
+  customHolidays: CustomHoliday[]
+): Map<string, { name: string; custom: boolean }> {
+  const map = new Map<string, { name: string; custom: boolean }>();
+  for (const h of SA_PUBLIC_HOLIDAYS) {
+    const y = parseInt(h.date.slice(0, 4), 10);
+    if (y === year || y === year + 1) {
+      map.set(h.date, { name: h.name, custom: false });
+    }
+  }
+  for (const h of customHolidays) {
+    const y = parseInt(h.date.slice(0, 4), 10);
+    const monthDay = h.date.slice(5);
+    const effectiveDate = h.recurring ? `${year}-${monthDay}` : h.date;
+    if (h.recurring || y === year || y === year + 1) {
+      if (!map.has(effectiveDate)) {
+        map.set(effectiveDate, { name: h.name, custom: true });
+      }
+    }
+  }
+  return map;
 }
 
 export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
   const today = todayIso();
   const [viewYear, setViewYear] = React.useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = React.useState(() => new Date().getMonth());
+  const customHolidays = useCustomHolidays();
 
   const selectedMap = new Map(value.map((d) => [d.date, d.type]));
-  const holidayMap = buildHolidayMap(viewYear);
+  const holidayMap = buildHolidayMap(viewYear, customHolidays);
   const cells = buildCells(viewYear, viewMonth);
 
   function prevMonth() {
@@ -158,11 +175,12 @@ export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
             }
 
             const weekend = isWeekend(date);
-            const holiday = isSaPublicHoliday(date);
-            const disabled = weekend || holiday;
+            const holidayEntry = holidayMap.get(date);
+            const disabled = weekend || !!holidayEntry;
             const selected = selectedMap.has(date);
             const isToday = date === today;
-            const holidayName = holidayMap.get(date);
+            const holidayName = holidayEntry?.name;
+            const isCustomHoliday = holidayEntry?.custom ?? false;
 
             return (
               <button
@@ -184,8 +202,13 @@ export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
                 )}
               >
                 <span>{date.slice(8)}</span>
-                {holiday && (
-                  <span className="absolute bottom-0.5 size-1 rounded-full bg-current opacity-50" />
+                {holidayEntry && (
+                  <span
+                    className={cn(
+                      "absolute bottom-0.5 size-1 rounded-full opacity-70",
+                      isCustomHoliday ? "bg-amber-500" : "bg-current"
+                    )}
+                  />
                 )}
               </button>
             );
@@ -207,6 +230,12 @@ export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
           <span className="inline-flex size-1.5 rounded-full bg-muted-foreground/60" />
           Public holiday
         </span>
+        {customHolidays.length > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="inline-flex size-1.5 rounded-full bg-amber-500" />
+            Company holiday
+          </span>
+        )}
       </div>
 
       {/* Selected days list */}

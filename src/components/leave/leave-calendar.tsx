@@ -10,9 +10,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
+import { useCustomHolidays } from "@/lib/store/hooks";
+import { SA_PUBLIC_HOLIDAYS } from "@/lib/leave/business-days";
 import { getInitials, leaveTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Employee, LeaveRequest, LeaveType } from "@/lib/types";
+import type { CustomHoliday, Employee, LeaveRequest, LeaveType } from "@/lib/types";
 
 // Colour per leave type. No shared helper exists yet, so the calendar owns this
 // palette. Values are plain hex so they can be applied through inline styles.
@@ -100,11 +102,13 @@ function DayCell({
   inMonth,
   isToday,
   entries,
+  holiday,
 }: {
   date: Date;
   inMonth: boolean;
   isToday: boolean;
   entries: DayEntry[];
+  holiday?: { name: string; custom: boolean };
 }) {
   const visible = entries.slice(0, MAX_VISIBLE_PER_DAY);
   const overflow = entries.slice(MAX_VISIBLE_PER_DAY);
@@ -113,19 +117,31 @@ function DayCell({
     <div
       className={cn(
         "flex min-h-24 flex-col gap-1 border-t border-l border-border p-1.5",
-        !inMonth && "bg-muted/40"
+        !inMonth && "bg-muted/40",
+        holiday && "bg-muted/20"
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-1">
         <span
           className={cn(
-            "flex size-6 items-center justify-center rounded-full text-xs font-medium",
+            "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-medium",
             inMonth ? "text-foreground" : "text-muted-foreground/60",
             isToday && "bg-primary text-primary-foreground"
           )}
         >
           {date.getDate()}
         </span>
+        {holiday && (
+          <span
+            title={holiday.name}
+            className={cn(
+              "truncate text-[9px] leading-tight",
+              holiday.custom ? "text-amber-600" : "text-muted-foreground"
+            )}
+          >
+            {holiday.name}
+          </span>
+        )}
       </div>
       <div className="flex flex-col gap-1">
         {visible.map((entry) => (
@@ -184,9 +200,35 @@ function DayCell({
   );
 }
 
+function buildCalendarHolidayMap(
+  year: number,
+  customHolidays: CustomHoliday[]
+): Map<string, { name: string; custom: boolean }> {
+  const map = new Map<string, { name: string; custom: boolean }>();
+  for (const h of SA_PUBLIC_HOLIDAYS) {
+    const y = parseInt(h.date.slice(0, 4), 10);
+    if (y === year) map.set(h.date, { name: h.name, custom: false });
+  }
+  for (const h of customHolidays) {
+    const y = parseInt(h.date.slice(0, 4), 10);
+    const effectiveDate = h.recurring ? `${year}-${h.date.slice(5)}` : h.date;
+    if (h.recurring || y === year) {
+      if (!map.has(effectiveDate)) {
+        map.set(effectiveDate, { name: h.name, custom: true });
+      }
+    }
+  }
+  return map;
+}
+
+function toIsoDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export function LeaveCalendar() {
   const requests = useScopedLeaveRequests();
   const employees = useScopedEmployees();
+  const customHolidays = useCustomHolidays();
 
   const today = React.useMemo(() => new Date(), []);
   const [cursor, setCursor] = React.useState(
@@ -245,6 +287,11 @@ export function LeaveCalendar() {
     }
     return map;
   }, [visibleRequests, employeeById]);
+
+  const holidayMap = React.useMemo(
+    () => buildCalendarHolidayMap(cursor.getFullYear(), customHolidays),
+    [cursor, customHolidays]
+  );
 
   const monthHasLeave = React.useMemo(() => {
     return gridDays.some((date) => {
@@ -322,6 +369,7 @@ export function LeaveCalendar() {
                   inMonth={date.getMonth() === cursor.getMonth()}
                   isToday={isSameDay(date, today)}
                   entries={entriesByDay.get(toDayNumber(date)) ?? []}
+                  holiday={holidayMap.get(toIsoDate(date))}
                 />
               ))}
             </div>
@@ -359,6 +407,16 @@ export function LeaveCalendar() {
               <span className="size-3 rounded-full border border-dashed border-foreground bg-transparent" />
               <span className="text-muted-foreground">Pending</span>
             </div>
+            <div className="flex items-center gap-1.5">
+              <span className="size-3 rounded-sm bg-muted-foreground/20 ring-1 ring-muted-foreground/30" />
+              <span className="text-muted-foreground">Public holiday</span>
+            </div>
+            {customHolidays.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                <span className="size-3 rounded-sm bg-amber-500/10 ring-1 ring-amber-500/40" />
+                <span className="text-muted-foreground">Company holiday</span>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

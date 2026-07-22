@@ -3,7 +3,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { runAsTenant } from "@/lib/db-context";
-import { requireEmployeeScope, requireRole } from "@/lib/auth/require";
+import { requireEmployeeScope, requireRole, requireUser } from "@/lib/auth/require";
 import { leaveTypeLabel } from "@/lib/format";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 import { sendLeaveRequestEmail, sendLeaveDecisionEmail } from "@/lib/email";
@@ -112,7 +112,7 @@ export async function decideLeaveRequestRecord(
   leaveBalance?: { employeeId: string; type: LeaveType; used: number };
   activity: ActivityItem;
 }> {
-  const session = await requireRole("hr", "manager");
+  const session = await requireUser();
   const tenantId = session.tenantId;
   const decidedBy = session.name;
 
@@ -126,14 +126,37 @@ export async function decideLeaveRequestRecord(
       where: { id: target.employeeId, tenantId },
     });
 
-    // Managers may only decide requests from their direct reports, never
-    // their own. HR can decide any request in the tenant.
-    if (session.role === "manager") {
+    const isPrivileged = session.role === "hr" || session.role === "exco";
+    const isManager = session.role === "manager";
+
+    if (!isPrivileged) {
       if (target.employeeId === session.employeeId) {
         throw new Error("You cannot decide your own leave request.");
       }
-      if (employee.managerId !== session.employeeId) {
-        throw new Error("You can only decide requests from your direct reports.");
+
+      if (isManager) {
+        if (employee.managerId !== session.employeeId) {
+          throw new Error("You can only decide requests from your direct reports.");
+        }
+      } else {
+        // Check if user is a configured leave reviewer covering this request
+        const reviewer = session.employeeId
+          ? await tx.leaveReviewer.findFirst({
+              where: {
+                tenantId,
+                reviewerEmployeeId: session.employeeId,
+                OR: [
+                  { scope: "all" },
+                  { scope: "employee", scopeId: target.employeeId },
+                  { scope: "department", scopeId: employee.department },
+                ],
+              },
+            })
+          : null;
+
+        if (!reviewer) {
+          throw new Error("You are not authorised to decide this leave request.");
+        }
       }
     }
 

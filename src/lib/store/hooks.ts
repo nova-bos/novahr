@@ -6,9 +6,11 @@ import { leavePolicies } from "@/lib/config/leave";
 import { getPayrollConfig } from "@/lib/config/payroll";
 import type {
   ActivityItem,
+  CustomHoliday,
   Department,
   Employee,
   LeaveRequest,
+  LeaveReviewer,
   NotificationItem,
   PayrollRun,
   Payslip,
@@ -122,4 +124,12 @@ export function useLeavePolicies() {
 
 export function usePayrollConfig() {
   return getPayrollConfig(useTenantId());
+}
+
+export function useCustomHolidays(): CustomHoliday[] {
+  return useApp().state.customHolidays;
+}
+
+export function useLeaveReviewers(): LeaveReviewer[] {
+  return useApp().state.leaveReviewers;
 }

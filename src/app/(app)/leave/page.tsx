@@ -8,6 +8,7 @@ import { LeaveCalendar } from "@/components/leave/leave-calendar";
 import { LeaveBalancesTable } from "@/components/leave/leave-balances-table";
 import { LeavePolicies } from "@/components/leave/leave-policies";
 import { PublicHolidaysCard } from "@/components/leave/public-holidays-card";
+import { LeaveReviewersCard } from "@/components/leave/leave-reviewers-card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
@@ -50,7 +51,10 @@ export default function LeavePage() {
             <TabsTrigger value="calendar">Calendar</TabsTrigger>
             <TabsTrigger value="balances">Balances</TabsTrigger>
             <TabsTrigger value="policies">Policies</TabsTrigger>
-            <TabsTrigger value="holidays">Public holidays</TabsTrigger>
+            <TabsTrigger value="holidays">Holidays</TabsTrigger>
+            {user?.role === "hr" && (
+              <TabsTrigger value="reviewers">Reviewers</TabsTrigger>
+            )}
           </TabsList>
         </div>
         <TabsContent value="requests" className="mt-4">
@@ -68,6 +72,11 @@ export default function LeavePage() {
         <TabsContent value="holidays" className="mt-4">
           <PublicHolidaysCard />
         </TabsContent>
+        {user?.role === "hr" && (
+          <TabsContent value="reviewers" className="mt-4">
+            <LeaveReviewersCard />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

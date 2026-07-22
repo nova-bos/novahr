@@ -193,6 +193,8 @@ model Tenant {
   invites            Invite[]
   employeeNumberConfig  EmployeeNumberConfig?
   leavePolicy           TenantLeavePolicy?
+  customHolidays        CustomHoliday[]
+  leaveReviewers        LeaveReviewer[]
 }
 
 model User {
@@ -738,6 +740,33 @@ enum OccupationalLevel {
   skilled_technical
   semi_skilled
   unskilled
+}
+
+model CustomHoliday {
+  id        String  @id @default(cuid())
+  tenantId  String
+  tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  date      String  // YYYY-MM-DD
+  recurring Boolean @default(false)
+
+  @@index([tenantId])
+}
+
+// Configures who can approve leave requests, beyond the default HR/manager roles.
+// HR admin sets this up; any matching reviewer can approve/reject.
+// scope: "all" = whole tenant, "department" = one department, "employee" = one employee.
+model LeaveReviewer {
+  id                 String  @id @default(cuid())
+  tenantId           String
+  tenant             Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reviewerEmployeeId String  // employee who is authorised to approve leave
+  scope              String  @default("all") // "all" | "department" | "employee"
+  scopeId            String? // departmentId or employeeId when scope != "all"
+  label              String? // optional display label, e.g. "Engineering backup approver"
+
+  @@index([tenantId])
+  @@index([tenantId, reviewerEmployeeId])
 }
 
 model EtiClaim {

@@ -4,9 +4,11 @@ import { runAsTenant } from "@/lib/db-context";
 import { requireUser } from "@/lib/auth/require";
 import type {
   ActivityItem,
+  CustomHoliday,
   Department,
   Employee,
   LeaveRequest,
+  LeaveReviewer,
   NotificationItem,
   PayrollRun,
   Payslip,
@@ -32,6 +34,8 @@ export interface TenantWorkspace {
   payslips: Payslip[];
   activity: ActivityItem[];
   notifications: NotificationItem[];
+  customHolidays: CustomHoliday[];
+  leaveReviewers: LeaveReviewer[];
 }
 
 /**
@@ -88,7 +92,7 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
   const tenantId = session.tenantId;
 
   return runAsTenant(tenantId, async (tx) => {
-    const [tenant, payrollSettings, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows] =
+    const [tenant, payrollSettings, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows, customHolidayRows, leaveReviewerRows] =
       await Promise.all([
         tx.tenant.findUnique({ where: { id: tenantId } }),
         tx.payrollSettings.findUnique({ where: { tenantId }, select: { payslipLogoUrl: true } }),
@@ -99,6 +103,8 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
         tx.payslip.findMany({ where: { tenantId } }),
         tx.activityItem.findMany({ where: { tenantId }, orderBy: { timestamp: "desc" }, take: 100 }),
         tx.notificationItem.findMany({ where: { tenantId }, orderBy: { timestamp: "desc" }, take: 100 }),
+        tx.customHoliday.findMany({ where: { tenantId }, orderBy: { date: "asc" } }),
+        tx.leaveReviewer.findMany({ where: { tenantId } }),
       ]);
 
     if (!tenant) return null;
@@ -143,6 +149,23 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
       }));
     }
 
+    const customHolidays: CustomHoliday[] = customHolidayRows.map((r) => ({
+      id: r.id,
+      tenantId: r.tenantId,
+      name: r.name,
+      date: r.date,
+      recurring: r.recurring,
+    }));
+
+    const leaveReviewers: LeaveReviewer[] = leaveReviewerRows.map((r) => ({
+      id: r.id,
+      tenantId: r.tenantId,
+      reviewerEmployeeId: r.reviewerEmployeeId,
+      scope: r.scope as "all" | "department" | "employee",
+      scopeId: r.scopeId ?? undefined,
+      label: r.label ?? undefined,
+    }));
+
     return {
       currentTenant: mapTenant(tenant, payrollSettings?.payslipLogoUrl),
       employees,
@@ -152,6 +175,8 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
       payslips,
       activity: activityRows.map(mapActivityItem),
       notifications: notificationRows.map(mapNotificationItem),
+      customHolidays,
+      leaveReviewers,
     };
   });
 }

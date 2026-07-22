@@ -165,6 +165,8 @@ function makeWorkspace(overrides: Partial<TenantWorkspace> = {}): TenantWorkspac
     payslips: [],
     activity: [],
     notifications: [],
+    customHolidays: [],
+    leaveReviewers: [],
     ...overrides,
   };
 }

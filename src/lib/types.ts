@@ -337,6 +337,23 @@ export interface NotificationItem {
   type: "info" | "success" | "warning";
 }
 
+export interface CustomHoliday {
+  id: string;
+  tenantId: string;
+  name: string;
+  date: string;
+  recurring: boolean;
+}
+
+export interface LeaveReviewer {
+  id: string;
+  tenantId: string;
+  reviewerEmployeeId: string;
+  scope: "all" | "department" | "employee";
+  scopeId?: string;
+  label?: string;
+}
+
 export interface LeavePolicy {
   type: LeaveType;
   label: string;

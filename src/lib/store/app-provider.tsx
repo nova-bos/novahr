@@ -3,9 +3,11 @@
 import * as React from "react";
 import type {
   ActivityItem,
+  CustomHoliday,
   Department,
   Employee,
   LeaveRequest,
+  LeaveReviewer,
   LeaveStatus,
   LeaveType,
   NotificationItem,
@@ -28,6 +30,8 @@ import {
 import { completePayrollRunRecord, startPayrollRunRecord } from "../payroll/actions";
 import { markAllNotificationsReadRecord, markNotificationReadRecord, markNotificationUnreadRecord } from "../notifications/actions";
 import { getTenantWorkspace, type TenantWorkspace } from "../workspace/actions";
+import { createCustomHolidayAction, deleteCustomHolidayAction } from "../leave/custom-holiday-actions";
+import { createLeaveReviewerAction, deleteLeaveReviewerAction } from "../leave/leave-reviewer-actions";
 import {
   updateTenantProfile as updateTenantProfileAction,
   updateTenantPayrollSettings as updateTenantPayrollSettingsAction,
@@ -44,6 +48,8 @@ export interface AppState {
   payslips: Payslip[];
   activity: ActivityItem[];
   notifications: NotificationItem[];
+  customHolidays: CustomHoliday[];
+  leaveReviewers: LeaveReviewer[];
 }
 
 export type Action =
@@ -79,7 +85,11 @@ export type Action =
   | { type: "TENANT_UPDATED"; tenant: Tenant }
   | { type: "DEPARTMENT_ADDED"; department: Department }
   | { type: "DEPARTMENT_UPDATED"; department: Department }
-  | { type: "DEPARTMENT_DELETED"; id: string };
+  | { type: "DEPARTMENT_DELETED"; id: string }
+  | { type: "CUSTOM_HOLIDAY_ADDED"; holiday: CustomHoliday }
+  | { type: "CUSTOM_HOLIDAY_DELETED"; id: string }
+  | { type: "LEAVE_REVIEWER_ADDED"; reviewer: LeaveReviewer }
+  | { type: "LEAVE_REVIEWER_DELETED"; id: string };
 
 export const initialState: AppState = {
   tenantId: "",
@@ -91,6 +101,8 @@ export const initialState: AppState = {
   payslips: [],
   activity: [],
   notifications: [],
+  customHolidays: [],
+  leaveReviewers: [],
 };
 
 export function reducer(state: AppState, action: Action): AppState {
@@ -107,6 +119,8 @@ export function reducer(state: AppState, action: Action): AppState {
         payslips: [],
         activity: [],
         notifications: [],
+        customHolidays: [],
+        leaveReviewers: [],
       };
 
     case "SET_WORKSPACE":
@@ -234,6 +248,23 @@ export function reducer(state: AppState, action: Action): AppState {
     case "DEPARTMENT_DELETED":
       return { ...state, departments: state.departments.filter((d) => d.id !== action.id) };
 
+    case "CUSTOM_HOLIDAY_ADDED":
+      return {
+        ...state,
+        customHolidays: [...state.customHolidays, action.holiday].sort((a, b) =>
+          a.date.localeCompare(b.date)
+        ),
+      };
+
+    case "CUSTOM_HOLIDAY_DELETED":
+      return { ...state, customHolidays: state.customHolidays.filter((h) => h.id !== action.id) };
+
+    case "LEAVE_REVIEWER_ADDED":
+      return { ...state, leaveReviewers: [...state.leaveReviewers, action.reviewer] };
+
+    case "LEAVE_REVIEWER_DELETED":
+      return { ...state, leaveReviewers: state.leaveReviewers.filter((r) => r.id !== action.id) };
+
     default:
       return state;
   }
@@ -266,6 +297,15 @@ interface AppContextValue {
     data: { name?: string; description?: string; headId?: string | null }
   ) => Promise<void>;
   deleteDepartment: (id: string) => Promise<void>;
+  addCustomHoliday: (data: { name: string; date: string; recurring: boolean }) => Promise<void>;
+  deleteCustomHoliday: (id: string) => Promise<void>;
+  addLeaveReviewer: (data: {
+    reviewerEmployeeId: string;
+    scope: "all" | "department" | "employee";
+    scopeId?: string;
+    label?: string;
+  }) => Promise<void>;
+  deleteLeaveReviewer: (id: string) => Promise<void>;
 }
 
 const AppContext = React.createContext<AppContextValue | null>(null);
@@ -387,6 +427,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       deleteDepartment: async (id) => {
         await deleteDepartmentRecord(id);
         dispatch({ type: "DEPARTMENT_DELETED", id });
+      },
+      addCustomHoliday: async (data) => {
+        const result = await createCustomHolidayAction(data);
+        if (result.success) dispatch({ type: "CUSTOM_HOLIDAY_ADDED", holiday: result.holiday });
+        else throw new Error(result.error);
+      },
+      deleteCustomHoliday: async (id) => {
+        const result = await deleteCustomHolidayAction(id);
+        if (result.success) dispatch({ type: "CUSTOM_HOLIDAY_DELETED", id });
+        else throw new Error(result.error);
+      },
+      addLeaveReviewer: async (data) => {
+        const result = await createLeaveReviewerAction(data);
+        if (result.success) dispatch({ type: "LEAVE_REVIEWER_ADDED", reviewer: result.reviewer });
+        else throw new Error(result.error);
+      },
+      deleteLeaveReviewer: async (id) => {
+        const result = await deleteLeaveReviewerAction(id);
+        if (result.success) dispatch({ type: "LEAVE_REVIEWER_DELETED", id });
+        else throw new Error(result.error);
       },
     }),
     [state]
