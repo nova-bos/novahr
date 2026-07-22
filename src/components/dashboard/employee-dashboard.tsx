@@ -101,7 +101,7 @@ export function EmployeeDashboard() {
   return (
     <div className="flex flex-col gap-6">
       <DashboardHeader subtitle={`Here's your overview for today, ${formatDateLong(new Date())}.`} />
-      <StatCardGrid stats={stats} revealed={revealed} onReveal={() => setRevealed(true)} />
+      <StatCardGrid stats={stats} revealed={revealed} onToggle={() => setRevealed((v) => !v)} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">

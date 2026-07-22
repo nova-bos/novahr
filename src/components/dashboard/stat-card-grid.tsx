@@ -1,4 +1,4 @@
-import { Eye } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -15,11 +15,11 @@ export interface StatItem {
 export function StatCardGrid({
   stats,
   revealed = true,
-  onReveal,
+  onToggle,
 }: {
   stats: StatItem[];
   revealed?: boolean;
-  onReveal?: () => void;
+  onToggle?: () => void;
 }) {
   return (
     <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -30,17 +30,26 @@ export function StatCardGrid({
             <CardContent className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 flex-col gap-1">
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
-                {blurred ? (
+                {stat.sensitive ? (
                   <button
                     type="button"
-                    onClick={onReveal}
+                    onClick={onToggle}
                     className="flex items-center gap-1.5 text-left"
-                    aria-label={`Reveal ${stat.label}`}
+                    aria-label={blurred ? `Reveal ${stat.label}` : `Hide ${stat.label}`}
                   >
-                    <span className="text-2xl font-semibold tracking-widest text-muted-foreground/60 select-none">
-                      ••••••
+                    <span
+                      className={cn(
+                        "text-2xl font-semibold tracking-tight tabular-nums transition-all duration-200",
+                        blurred && "blur-sm select-none"
+                      )}
+                    >
+                      {stat.value}
                     </span>
-                    <Eye className="size-4 shrink-0 text-muted-foreground" />
+                    {blurred ? (
+                      <Eye className="size-4 shrink-0 text-muted-foreground" />
+                    ) : (
+                      <EyeOff className="size-4 shrink-0 text-muted-foreground/50" />
+                    )}
                   </button>
                 ) : (
                   <p className="truncate text-2xl font-semibold tracking-tight tabular-nums">

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CalendarClock, ClipboardList, Eye, ShieldCheck, Users, Wallet } from "lucide-react";
+import { CalendarClock, ClipboardList, Eye, EyeOff, ShieldCheck, Users, Wallet } from "lucide-react";
 
 import {
   Card,
@@ -18,6 +18,7 @@ import {
 } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatCurrencyCompact, formatDateLong, formatMonthYear } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { DashboardHeader } from "./dashboard-header";
 import { StatCardGrid, type StatItem } from "./stat-card-grid";
 import { PayrollTrendChart } from "./payroll-trend-chart";
@@ -87,7 +88,7 @@ export function ExcoDashboard() {
       <DashboardHeader
         subtitle={`A read-only executive view of ${tenant.name}, ${formatDateLong(new Date())}.`}
       />
-      <StatCardGrid stats={stats} revealed={revealed} onReveal={() => setRevealed(true)} />
+      <StatCardGrid stats={stats} revealed={revealed} onToggle={() => setRevealed((v) => !v)} />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <PayrollTrendChart />
@@ -123,21 +124,21 @@ export function ExcoDashboard() {
                 </div>
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <span className="truncate text-muted-foreground">Projected gross</span>
-                  {revealed ? (
-                    <span className="shrink-0 font-medium tabular-nums">
+                  <button
+                    type="button"
+                    onClick={() => setRevealed((v) => !v)}
+                    className="flex shrink-0 items-center gap-1"
+                    aria-label={revealed ? "Hide projected gross" : "Reveal projected gross"}
+                  >
+                    <span className={cn("font-medium tabular-nums transition-all duration-200", !revealed && "blur-sm select-none")}>
                       {formatCurrency(projectedGross)}
                     </span>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setRevealed(true)}
-                      className="flex shrink-0 items-center gap-1"
-                      aria-label="Reveal projected gross"
-                    >
-                      <span className="font-medium tracking-widest text-muted-foreground/60 select-none">••••••</span>
+                    {revealed ? (
+                      <EyeOff className="size-3.5 text-muted-foreground/50" />
+                    ) : (
                       <Eye className="size-3.5 text-muted-foreground" />
-                    </button>
-                  )}
+                    )}
+                  </button>
                 </div>
               </>
             ) : (

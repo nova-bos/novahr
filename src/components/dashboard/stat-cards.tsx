@@ -61,5 +61,5 @@ export function StatCards() {
     },
   ];
 
-  return <StatCardGrid stats={stats} revealed={revealed} onReveal={() => setRevealed(true)} />;
+  return <StatCardGrid stats={stats} revealed={revealed} onToggle={() => setRevealed((v) => !v)} />;
 }

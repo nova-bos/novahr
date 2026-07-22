@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarClock, Eye } from "lucide-react";
+import { ArrowRight, CalendarClock, Eye, EyeOff } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useEmployees, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatDateLong, formatMonthYear } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export function UpcomingPayrollCard() {
   const runs = usePayrollRuns();
@@ -53,19 +54,21 @@ export function UpcomingPayrollCard() {
         </div>
         <div className="flex items-center justify-between gap-2 text-sm">
           <span className="truncate text-muted-foreground">Projected gross</span>
-          {revealed ? (
-            <span className="shrink-0 font-medium tabular-nums">{formatCurrency(projectedGross)}</span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setRevealed(true)}
-              className="flex shrink-0 items-center gap-1"
-              aria-label="Reveal projected gross"
-            >
-              <span className="font-medium tracking-widest text-muted-foreground/60 select-none">••••••</span>
+          <button
+            type="button"
+            onClick={() => setRevealed((v) => !v)}
+            className="flex shrink-0 items-center gap-1"
+            aria-label={revealed ? "Hide projected gross" : "Reveal projected gross"}
+          >
+            <span className={cn("font-medium tabular-nums transition-all duration-200", !revealed && "blur-sm select-none")}>
+              {formatCurrency(projectedGross)}
+            </span>
+            {revealed ? (
+              <EyeOff className="size-3.5 text-muted-foreground/50" />
+            ) : (
               <Eye className="size-3.5 text-muted-foreground" />
-            </button>
-          )}
+            )}
+          </button>
         </div>
       </CardContent>
       <CardFooter className="border-t-0 bg-transparent p-(--card-spacing) pt-0">
