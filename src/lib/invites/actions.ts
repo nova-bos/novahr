@@ -247,6 +247,23 @@ export async function listTenantUsersAction(): Promise<TenantUserRow[]> {
     where: { tenantId: session.tenantId },
     orderBy: { createdAt: "asc" },
   });
+
+  // For users without an explicit employeeId, resolve by email match so the
+  // client can correctly exclude them from the bulk-invite list.
+  const unlinkedEmails = rows.filter((u) => !u.employeeId).map((u) => u.email);
+  const emailMatched =
+    unlinkedEmails.length > 0
+      ? await prisma.employee.findMany({
+          where: {
+            tenantId: session.tenantId,
+            email: { in: unlinkedEmails, mode: "insensitive" },
+          },
+          select: { id: true, email: true },
+        })
+      : [];
+
+  const emailToEmployeeId = new Map(emailMatched.map((e) => [e.email.toLowerCase(), e.id]));
+
   return rows.map((u) => ({
     id: u.id,
     name: u.name,
@@ -255,7 +272,7 @@ export async function listTenantUsersAction(): Promise<TenantUserRow[]> {
     role: u.role,
     initials: u.initials,
     avatarColor: u.avatarColor,
-    employeeId: u.employeeId ?? undefined,
+    employeeId: u.employeeId ?? emailToEmployeeId.get(u.email.toLowerCase()) ?? undefined,
   }));
 }
 
