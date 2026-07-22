@@ -6,6 +6,16 @@ import { checkRateLimit, clientKey } from "@/lib/security/rate-limit";
 import type { AppUser } from "./types";
 
 /**
+ * Signs out the current session server-side so the auth cookie is cleared in
+ * the server action response before the client navigates away. This prevents
+ * the middleware from redirecting a stale cookie back to /dashboard.
+ */
+export async function signOutAction(): Promise<void> {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+}
+
+/**
  * Server-side throttle for password sign-in, called before Supabase Auth is
  * hit so brute-force guessing is slowed even though sign-in runs client-side.
  * Keyed by client IP when available, otherwise the submitted email. Returns a

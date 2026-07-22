@@ -3,7 +3,7 @@
 import * as React from "react";
 import { createClient } from "@/lib/supabase/client";
 import { friendlyAuthError } from "@/lib/errors";
-import { getCurrentUserProfile, throttleLogin } from "./actions";
+import { getCurrentUserProfile, signOutAction, throttleLogin } from "./actions";
 import type { AppUser } from "./types";
 
 interface AuthContextValue {
@@ -62,8 +62,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = React.useCallback(async () => {
-    await createClient().auth.signOut();
-    setUser(null);
+    // Sign out server-side first so the auth cookie is cleared in the response
+    // headers before the browser sends the next request. Client-side signOut
+    // alone can race with the middleware's cookie check.
+    await signOutAction();
+    window.location.replace("/login");
   }, []);
 
   const refresh = React.useCallback(async () => {
