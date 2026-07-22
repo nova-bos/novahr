@@ -34,7 +34,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "all", label: "All statuses" },
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
+  { value: "rejected", label: "Declined" },
 ];
 
 const TYPE_OPTIONS: { value: string; label: string }[] = [
@@ -140,7 +140,7 @@ export function LeaveRequestsTable() {
                 <TableHead>Dates</TableHead>
                 <TableHead className="text-right">Days</TableHead>
                 <TableHead>Reason</TableHead>
-                <TableHead className="w-10">Doc</TableHead>
+                <TableHead className="w-10"><span className="sr-only">Document</span></TableHead>
                 <TableHead>Status</TableHead>
                 {showActions && <TableHead className="w-28 text-right">Actions</TableHead>}
               </TableRow>

@@ -14,7 +14,7 @@ const STATUS_STYLES: Record<LeaveStatus, string> = {
 const STATUS_LABELS: Record<LeaveStatus, string> = {
   pending: "Pending",
   approved: "Approved",
-  rejected: "Rejected",
+  rejected: "Declined",
 };
 
 export function ProfileLeave({ employee }: { employee: Employee }) {
