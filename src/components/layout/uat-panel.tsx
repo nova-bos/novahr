@@ -124,7 +124,10 @@ function Section({
 
 export function UATPanel() {
   if (!SHOW) return null;
+  return <UATPanel_Inner />;
+}
 
+function UATPanel_Inner() {
   const [open, setOpen] = React.useState(false);
 
   const employeesByTenant = React.useMemo(

@@ -859,7 +859,7 @@ export function UserSettings() {
                     onCheckedChange={(checked) => {
                       setSelectedInviteIds((prev) => {
                         const s = new Set(prev);
-                        checked ? s.add(invite.id) : s.delete(invite.id);
+                        if (checked) { s.add(invite.id); } else { s.delete(invite.id); }
                         return s;
                       });
                     }}
