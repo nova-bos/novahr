@@ -69,6 +69,7 @@ export type Action =
       leaveRequest: LeaveRequest;
       leaveBalance?: { employeeId: string; type: LeaveType; used: number };
       activity: ActivityItem;
+      notification: NotificationItem;
     }
   | { type: "PAYROLL_RUN_STARTED"; payrollRun: PayrollRun }
   | {
@@ -181,6 +182,7 @@ export function reducer(state: AppState, action: Action): AppState {
         leaveRequests,
         employees,
         activity: [action.activity, ...state.activity],
+        notifications: [action.notification, ...state.notifications],
       };
     }
 
@@ -374,6 +376,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           leaveRequest: result.leaveRequest,
           leaveBalance: result.leaveBalance,
           activity: result.activity,
+          notification: result.notification,
         });
       },
       startPayrollRun: async (runId) => {

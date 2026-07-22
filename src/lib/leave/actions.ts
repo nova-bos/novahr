@@ -111,6 +111,7 @@ export async function decideLeaveRequestRecord(
   leaveRequest: LeaveRequest;
   leaveBalance?: { employeeId: string; type: LeaveType; used: number };
   activity: ActivityItem;
+  notification: NotificationItem;
 }> {
   const session = await requireUser();
   const tenantId = session.tenantId;
@@ -194,10 +195,23 @@ export async function decideLeaveRequestRecord(
       },
     });
 
+    const notification = await tx.notificationItem.create({
+      data: {
+        tenantId,
+        title: status === "approved" ? "Leave request approved" : "Leave request declined",
+        description:
+          status === "approved"
+            ? `${actor}'s ${label} request has been approved.`
+            : `${actor}'s ${label} request was not approved.`,
+        type: status === "approved" ? "success" : "warning",
+      },
+    });
+
     return {
       leaveRequest,
       leaveBalance,
       activity,
+      notification,
       recipientEmail: employee.email,
       employeeName: actor,
       leaveType: target.type as LeaveType,
@@ -228,5 +242,6 @@ export async function decideLeaveRequestRecord(
       ? { employeeId: inner.employeeId, type: inner.leaveType, used: inner.leaveBalance.used }
       : undefined,
     activity: mapActivityItem(inner.activity),
+    notification: mapNotificationItem(inner.notification),
   };
 }

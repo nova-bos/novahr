@@ -311,10 +311,12 @@ describe("LEAVE_REQUEST_DECIDED", () => {
     const decided = makeLeaveRequest({ status: "approved", decidedBy: "Lerato Dlamini", decidedOn: "2026-06-16" });
     const activity = makeActivity({ type: "leave_approved", message: "annual leave request was approved" });
 
+    const notification = makeNotification({ title: "Leave request approved" });
     const next = reducer(state, {
       type: "LEAVE_REQUEST_DECIDED",
       leaveRequest: decided,
       activity,
+      notification,
     });
 
     expect(next.leaveRequests).toEqual([decided]);
@@ -344,6 +346,7 @@ describe("LEAVE_REQUEST_DECIDED", () => {
       leaveRequest: decided,
       leaveBalance: { employeeId: "emp-1", type: "annual", used: 5 },
       activity,
+      notification: makeNotification({ title: "Leave request approved" }),
     });
 
     expect(next.employees[0].leaveBalances).toEqual([
