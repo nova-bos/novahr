@@ -94,7 +94,6 @@ function BulkInviteDialog({
 }) {
   const [rows, setRows] = React.useState<BulkRow[]>([]);
   const [sending, setSending] = React.useState(false);
-  const [finished, setFinished] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -107,14 +106,11 @@ function BulkInviteDialog({
         }))
       );
       setSending(false);
-      setFinished(false);
     }
   }, [open, employees]);
 
   const idleSelected = rows.filter((r) => r.selected && r.status === "idle");
   const allSelected = rows.length > 0 && rows.every((r) => r.selected || !r.employee.email);
-  const sentCount = rows.filter((r) => r.status === "sent").length;
-  const failedCount = rows.filter((r) => r.status === "failed").length;
 
   function toggleAll() {
     const next = !allSelected;
@@ -140,6 +136,8 @@ function BulkInviteDialog({
   async function handleSend() {
     if (!idleSelected.length) return;
     setSending(true);
+    let sentCount = 0;
+    let failedCount = 0;
     for (const row of idleSelected) {
       updateStatus(row.employee.id, "sending");
       try {
@@ -149,14 +147,32 @@ function BulkInviteDialog({
           role: row.role,
           employeeId: row.employee.id,
         });
-        updateStatus(row.employee.id, result.error ? "failed" : "sent");
+        if (result.error) {
+          failedCount++;
+          updateStatus(row.employee.id, "failed");
+        } else {
+          sentCount++;
+          updateStatus(row.employee.id, "sent");
+        }
       } catch {
+        failedCount++;
         updateStatus(row.employee.id, "failed");
       }
     }
     setSending(false);
-    setFinished(true);
     await onDone();
+    if (failedCount > 0) {
+      toast.warning(
+        `${sentCount} sent, ${failedCount} failed`,
+        { description: "Check the failed rows and retry individually from the invitations list." }
+      );
+    } else {
+      toast.success(
+        `${sentCount} invitation${sentCount === 1 ? "" : "s"} sent`,
+        { description: "Each person will receive a link to set up their account." }
+      );
+    }
+    onOpenChange(false);
   }
 
   return (
@@ -166,14 +182,11 @@ function BulkInviteDialog({
           <DialogHeader className="shrink-0 border-b px-6 py-4">
             <DialogTitle>Invite everyone</DialogTitle>
             <DialogDescription>
-              {finished
-                ? `${sentCount} invitation${sentCount === 1 ? "" : "s"} sent${failedCount > 0 ? `. ${failedCount} failed: check those rows and retry.` : "."}`
-                : `Send invitations to ${rows.filter((r) => r.employee.email).length} employees at once. Adjust roles before sending.`}
+              Send invitations to {rows.filter((r) => r.employee.email).length} employees at once. Adjust roles before sending.
             </DialogDescription>
           </DialogHeader>
 
-          {!finished && (
-            <div className="shrink-0 flex flex-wrap items-center gap-3 border-b bg-muted/30 px-6 py-3">
+          <div className="shrink-0 flex flex-wrap items-center gap-3 border-b bg-muted/30 px-6 py-3">
               <Checkbox
                 id="select-all-bulk"
                 checked={allSelected}
@@ -201,8 +214,7 @@ function BulkInviteDialog({
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-          )}
+          </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
             {rows.map((row) => {
@@ -229,7 +241,7 @@ function BulkInviteDialog({
                       <Checkbox
                         checked={row.selected}
                         onCheckedChange={() => toggleRow(row.employee.id)}
-                        disabled={sending || noEmail || finished}
+                        disabled={sending || noEmail}
                       />
                     )}
                   </div>
@@ -256,7 +268,7 @@ function BulkInviteDialog({
                     <Select
                       value={row.role}
                       onValueChange={(v) => setRowRole(row.employee.id, v as UserRole)}
-                      disabled={!row.selected || sending || noEmail || finished}
+                      disabled={!row.selected || sending || noEmail}
                     >
                       <SelectTrigger className="h-7 w-28 shrink-0 text-xs">
                         <SelectValue />
@@ -286,24 +298,22 @@ function BulkInviteDialog({
               disabled={sending}
               onClick={() => onOpenChange(false)}
             >
-              {finished ? "Close" : "Cancel"}
+              Cancel
             </Button>
-            {!finished && (
-              <Button
-                type="button"
-                disabled={sending || idleSelected.length === 0}
-                onClick={() => void handleSend()}
-              >
-                {sending ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  `Send ${idleSelected.length} invitation${idleSelected.length === 1 ? "" : "s"}`
-                )}
-              </Button>
-            )}
+            <Button
+              type="button"
+              disabled={sending || idleSelected.length === 0}
+              onClick={() => void handleSend()}
+            >
+              {sending ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Inviting...
+                </>
+              ) : (
+                `Send ${idleSelected.length} invitation${idleSelected.length === 1 ? "" : "s"}`
+              )}
+            </Button>
           </div>
         </div>
       </DialogContent>

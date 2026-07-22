@@ -1,21 +1,22 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useApp } from "@/lib/store/app-provider";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const { user, isLoading } = useAuth();
   const { state, setTenant } = useApp();
 
   React.useEffect(() => {
     if (!isLoading && !user) {
-      router.replace("/login");
+      // Hard navigation so the browser sends a fresh request after signOut()
+      // clears the session cookie. A soft router.replace can race with cookie
+      // propagation and leave the loading screen stuck.
+      window.location.replace("/login");
     }
-  }, [isLoading, user, router]);
+  }, [isLoading, user]);
 
   React.useEffect(() => {
     if (user && state.tenantId !== user.tenantId) {
