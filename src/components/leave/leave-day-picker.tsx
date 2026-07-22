@@ -7,9 +7,15 @@ import { useCustomHolidays } from "@/lib/store/hooks";
 import { cn } from "@/lib/utils";
 import type { CustomHoliday, DaySelection } from "@/lib/types";
 
+export interface BookedDate {
+  status: "approved" | "pending";
+  label: string;
+}
+
 interface LeaveDayPickerProps {
   value: DaySelection[];
   onChange: (selections: DaySelection[]) => void;
+  bookedDates?: Map<string, BookedDate>;
 }
 
 const DAY_HEADERS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -74,7 +80,7 @@ function buildHolidayMap(
   return map;
 }
 
-export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
+export function LeaveDayPicker({ value, onChange, bookedDates }: LeaveDayPickerProps) {
   const today = todayIso();
   const [viewYear, setViewYear] = React.useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = React.useState(() => new Date().getMonth());
@@ -176,11 +182,14 @@ export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
 
             const weekend = isWeekend(date);
             const holidayEntry = holidayMap.get(date);
-            const disabled = weekend || !!holidayEntry;
+            const bookedEntry = bookedDates?.get(date);
+            const disabled = weekend || !!holidayEntry || !!bookedEntry;
             const selected = selectedMap.has(date);
             const isToday = date === today;
-            const holidayName = holidayEntry?.name;
             const isCustomHoliday = holidayEntry?.custom ?? false;
+            const title = bookedEntry
+              ? `${bookedEntry.label} (${bookedEntry.status})`
+              : holidayEntry?.name;
 
             return (
               <button
@@ -188,13 +197,15 @@ export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
                 type="button"
                 disabled={disabled}
                 onClick={() => toggleDay(date)}
-                title={holidayName}
-                aria-label={`${date}${selected ? " (selected)" : ""}${holidayName ? ` - ${holidayName}` : ""}`}
+                title={title}
+                aria-label={`${date}${selected ? " (selected)" : ""}${title ? ` - ${title}` : ""}`}
                 aria-pressed={selected}
                 className={cn(
                   "aspect-square flex flex-col items-center justify-center text-xs transition-colors relative select-none",
                   disabled
-                    ? "cursor-not-allowed opacity-30"
+                    ? bookedEntry
+                      ? "cursor-not-allowed opacity-50"
+                      : "cursor-not-allowed opacity-30"
                     : selected
                     ? "bg-primary text-primary-foreground font-medium cursor-pointer"
                     : "hover:bg-muted cursor-pointer",
@@ -210,6 +221,14 @@ export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
                     )}
                   />
                 )}
+                {bookedEntry && !holidayEntry && (
+                  <span
+                    className={cn(
+                      "absolute bottom-0.5 size-1 rounded-full",
+                      bookedEntry.status === "approved" ? "bg-emerald-500" : "bg-sky-400"
+                    )}
+                  />
+                )}
               </button>
             );
           })}
@@ -217,26 +236,44 @@ export function LeaveDayPicker({ value, onChange }: LeaveDayPickerProps) {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-flex size-3 rounded-sm bg-primary opacity-90" />
-          Selected
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-flex size-3 rounded-sm ring-1 ring-inset ring-primary/40" />
-          Today
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-flex size-1.5 rounded-full bg-muted-foreground/60" />
-          Public holiday
-        </span>
-        {customHolidays.length > 0 && (
-          <span className="flex items-center gap-1.5">
-            <span className="inline-flex size-1.5 rounded-full bg-amber-500" />
-            Company holiday
-          </span>
-        )}
-      </div>
+      {(() => {
+        const hasApproved = bookedDates && [...bookedDates.values()].some((v) => v.status === "approved");
+        const hasPending = bookedDates && [...bookedDates.values()].some((v) => v.status === "pending");
+        return (
+          <div className="flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-flex size-3 rounded-sm bg-primary opacity-90" />
+              Selected
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-flex size-3 rounded-sm ring-1 ring-inset ring-primary/40" />
+              Today
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-flex size-1.5 rounded-full bg-muted-foreground/60" />
+              Public holiday
+            </span>
+            {customHolidays.length > 0 && (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-flex size-1.5 rounded-full bg-amber-500" />
+                Company holiday
+              </span>
+            )}
+            {hasApproved && (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-flex size-1.5 rounded-full bg-emerald-500" />
+                Approved leave
+              </span>
+            )}
+            {hasPending && (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-flex size-1.5 rounded-full bg-sky-400" />
+                Pending leave
+              </span>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Selected days list */}
       {value.length > 0 && (

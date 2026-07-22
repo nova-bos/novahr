@@ -35,10 +35,11 @@ import { useTenantId } from "@/lib/store/hooks";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
 import { leaveTypeLabel } from "@/lib/format";
+import { isWeekend } from "@/lib/leave/business-days";
 import { cn } from "@/lib/utils";
 import type { DaySelection, LeaveType } from "@/lib/types";
 import { LeaveDocumentUpload } from "./leave-document-upload";
-import { LeaveDayPicker } from "./leave-day-picker";
+import { LeaveDayPicker, type BookedDate } from "./leave-day-picker";
 
 const LEAVE_DOC_BUCKET = "leave-documents";
 
@@ -98,6 +99,31 @@ export function NewLeaveRequestDialog() {
   const pendingDays = leaveRequests
     .filter((r) => r.employeeId === employeeId && r.type === type && r.status === "pending")
     .reduce((sum, r) => sum + r.days, 0);
+
+  const bookedDates = React.useMemo<Map<string, BookedDate>>(() => {
+    if (!employeeId) return new Map();
+    const map = new Map<string, BookedDate>();
+    for (const r of leaveRequests) {
+      if (r.employeeId !== employeeId) continue;
+      if (r.status !== "approved" && r.status !== "pending") continue;
+      const label = leaveTypeLabel(r.type);
+      const status = r.status as "approved" | "pending";
+      if (r.daySelections && r.daySelections.length > 0) {
+        for (const ds of r.daySelections) {
+          if (!map.has(ds.date)) map.set(ds.date, { status, label });
+        }
+      } else {
+        // Fallback for requests that predate day-level selection storage
+        const start = new Date(r.startDate + "T00:00:00Z");
+        const end = new Date(r.endDate + "T00:00:00Z");
+        for (const d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
+          const iso = d.toISOString().slice(0, 10);
+          if (!isWeekend(iso) && !map.has(iso)) map.set(iso, { status, label });
+        }
+      }
+    }
+    return map;
+  }, [employeeId, leaveRequests]);
   const available = balance ? balance.total - balance.used - pendingDays : 0;
   const remainingAfter = available - requestedDays;
   const isOverLimit = Boolean(balance) && daySelections.length > 0 && remainingAfter < 0;
@@ -225,7 +251,7 @@ export function NewLeaveRequestDialog() {
 
             <div className="space-y-1.5">
               <Label>Select days</Label>
-              <LeaveDayPicker value={daySelections} onChange={setDaySelections} />
+              <LeaveDayPicker value={daySelections} onChange={setDaySelections} bookedDates={bookedDates} />
               {fieldErrors.daySelections ? (
                 <p className="text-xs text-destructive">{fieldErrors.daySelections}</p>
               ) : null}
