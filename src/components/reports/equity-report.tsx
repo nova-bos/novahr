@@ -106,7 +106,8 @@ export function EquityReport() {
           )}
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto rounded-xl border border-border">
+          <Table className="min-w-[640px] w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Occupational level</TableHead>
@@ -134,6 +135,7 @@ export function EquityReport() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -151,7 +153,8 @@ export function EquityReport() {
           )}
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto rounded-xl border border-border">
+          <Table className="min-w-[520px] w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Race group</TableHead>
@@ -173,6 +176,7 @@ export function EquityReport() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

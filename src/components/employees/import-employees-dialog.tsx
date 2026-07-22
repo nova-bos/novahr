@@ -207,8 +207,8 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
               </Button>
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-border">
-              <Table>
+            <div className="overflow-x-auto rounded-lg border border-border">
+              <Table className="min-w-[520px]">
                 <TableHeader>
                   <TableRow>
                     {PREVIEW_COLUMNS.map((col) => (

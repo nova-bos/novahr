@@ -209,7 +209,8 @@ export function Emp501Panel({ tenantId }: { tenantId: string }) {
               No certificates yet. Complete payroll runs in this tax year first.
             </p>
           ) : (
-            <Table>
+            <div className="overflow-x-auto rounded-xl border border-border">
+            <Table className="min-w-[560px] w-full">
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
@@ -243,6 +244,7 @@ export function Emp501Panel({ tenantId }: { tenantId: string }) {
                 ))}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

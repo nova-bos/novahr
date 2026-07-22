@@ -199,14 +199,14 @@ export function NetcashSettings() {
               Connect to Netcash to submit salary batches and validate employee bank accounts. Keys are encrypted and never shown again after saving.
             </CardDescription>
           </div>
-          <Badge variant={environment === "uat" ? "outline" : "default"} className={environment === "uat" ? "border-amber-300 text-amber-700 bg-amber-50" : ""}>
+          <Badge variant={environment === "uat" ? "outline" : "default"} className={environment === "uat" ? "border-amber-500/40 text-amber-700 dark:text-amber-400 bg-amber-500/10" : ""}>
             {environment === "uat" ? "Testing (UAT)" : "Live"}
           </Badge>
         </div>
       </CardHeader>
 
       {environment === "uat" && (
-        <div className="mx-6 mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="mx-6 mb-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-300">
           You are in the Netcash testing environment. Payments will not be processed.
         </div>
       )}

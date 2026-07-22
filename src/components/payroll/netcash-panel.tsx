@@ -53,7 +53,7 @@ export function NetcashPanel() {
             {summary && (
               <Badge
                 variant="outline"
-                className={isUat ? "border-amber-300 text-amber-700 bg-amber-50 text-[10px]" : "text-[10px]"}
+                className={isUat ? "border-amber-500/40 text-amber-700 dark:text-amber-400 bg-amber-500/10 text-[10px]" : "text-[10px]"}
               >
                 {isUat ? "Testing (UAT)" : "Live"}
               </Badge>
