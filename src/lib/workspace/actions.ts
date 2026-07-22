@@ -25,6 +25,7 @@ import {
   mapPayslip,
   mapTenant,
 } from "./mappers";
+import { projectEmployees } from "./employee-projection";
 
 export interface TenantWorkspace {
   currentTenant: Tenant;
@@ -52,37 +53,6 @@ export async function getAllTenants(): Promise<Tenant[]> {
     ])
   );
   return row ? [mapTenant(row, settings?.payslipLogoUrl)] : [];
-}
-
-/**
- * Strips compensation, banking, tax and personal identifiers from an
- * employee record. Non-privileged users get this shape for everyone except
- * themselves (and, for managers, their direct reports).
- */
-function sanitizeEmployee(employee: Employee): Employee {
-  return {
-    ...employee,
-    salary: {
-      annualGross: 0,
-      currency: employee.salary.currency,
-      payFrequency: employee.salary.payFrequency,
-    },
-    bankDetails: { bank: "", accountNumber: "", branchCode: "", accountType: "Cheque", validated: false, validatedAt: null },
-    taxNumber: "",
-    idNumber: "",
-    dateOfBirth: undefined,
-    address: "",
-    emergencyContact: { name: "", relationship: "", phone: "" },
-    leaveBalances: [],
-    onboarding: undefined,
-    // Employment-equity data is special personal information under POPIA and must
-    // not be sent to colleagues who cannot view this employee's full record.
-    equityRace: undefined,
-    equityGender: undefined,
-    occupationalLevel: undefined,
-    hasDisability: undefined,
-    foreignNational: undefined,
-  };
 }
 
 /**
@@ -161,16 +131,11 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
     let payslips = payslipRows.map(mapPayslip);
 
     if (!isPrivileged) {
-      const visibleIds = new Set<string>();
-      if (session.employeeId) visibleIds.add(session.employeeId);
-      if (session.role === "manager" && session.employeeId) {
-        for (const e of employees) {
-          if (e.managerId === session.employeeId) visibleIds.add(e.id);
-        }
-      }
-
-      employees = employees.map((e) => (visibleIds.has(e.id) ? e : sanitizeEmployee(e)));
-      leaveRequests = leaveRequests.filter((r) => visibleIds.has(r.employeeId));
+      // Role-based projection: strip each colleague's record down to what this
+      // viewer may see before it leaves the server (see employee-projection.ts).
+      const projection = projectEmployees(employees, session);
+      employees = projection.employees;
+      leaveRequests = leaveRequests.filter((r) => projection.visibleEmployeeIds.has(r.employeeId));
       payslips = payslips.filter((p) => p.employeeId === session.employeeId);
     }
 
