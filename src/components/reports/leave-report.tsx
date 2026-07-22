@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useEmployees, useLeaveRequests } from "@/lib/store/hooks";
-import { leaveTypeLabel } from "@/lib/format";
+import { leaveTypeLabel, plural } from "@/lib/format";
 import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import type { LeaveType } from "@/lib/types";
@@ -70,7 +70,7 @@ export function LeaveReport() {
     {
       label: "Approved leave days",
       value: approvedDays.toString(),
-      detail: `${approved.length} requests approved`,
+      detail: `${approved.length} ${plural(approved.length, "request")} approved`,
       icon: CalendarCheck,
       iconClassName: "bg-success/10 text-success",
     },

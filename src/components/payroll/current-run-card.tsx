@@ -24,7 +24,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant, useEmployees, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrency, formatDateLong, formatMonthYear } from "@/lib/format";
+import { formatCurrency, formatDateLong, formatMonthYear, plural } from "@/lib/format";
 import { PayrollStatusBadge } from "./payroll-status-badge";
 import { acceptPayrollDisclaimer } from "@/lib/payroll/disclaimer-actions";
 
@@ -76,7 +76,7 @@ export function CurrentRunCard() {
         await completePayrollRun(run.id);
         setConfirmOpen(false);
         toast.success("Payroll completed", {
-          description: `Payslips for ${formatMonthYear(run.period)} have been published to ${eligible.length} employees.`,
+          description: `Payslips for ${formatMonthYear(run.period)} have been published to ${eligible.length} ${plural(eligible.length, "employee")}.`,
         });
       } catch {
         toast.error("Couldn't complete payroll run", {

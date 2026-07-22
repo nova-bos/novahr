@@ -2,7 +2,7 @@ import { Calendar, CalendarClock, Mail, Phone, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { formatCurrency, formatDate, leaveTypeLabel } from "@/lib/format";
+import { formatCurrency, formatDate, leaveTypeLabel, plural } from "@/lib/format";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { useLeaveRequests } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
@@ -95,7 +95,7 @@ export function ProfileSidebar({ employee }: { employee: Employee }) {
           <CardContent>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {annualLeave.total - annualLeave.used - annualPendingDays} days remaining
+                {annualLeave.total - annualLeave.used - annualPendingDays} {plural(annualLeave.total - annualLeave.used - annualPendingDays, "day")} remaining
               </span>
               <span className="font-medium">
                 {annualLeave.used + annualPendingDays}/{annualLeave.total}

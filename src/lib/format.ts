@@ -134,6 +134,11 @@ export function maskAccountNumber(accountNumber: string): string {
   return `•••• ${accountNumber.slice(-4)}`;
 }
 
+/** Returns the singular or plural form of a word based on count. */
+export function plural(n: number, one: string, many = `${one}s`): string {
+  return n === 1 ? one : many;
+}
+
 export function formatOrdinal(n: number): string {
   const remainder = n % 100;
   if (remainder >= 11 && remainder <= 13) return `${n}th`;

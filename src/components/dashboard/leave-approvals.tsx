@@ -46,7 +46,7 @@ export function LeaveApprovals() {
       <CardHeader>
         <CardTitle>Leave approvals</CardTitle>
         <CardDescription>
-          {pending.length === 0 ? "Nothing pending" : `${pending.length} request${pending.length > 1 ? "s" : ""} need your review`}
+          {pending.length === 0 ? "Nothing pending" : `${pending.length} request${pending.length === 1 ? "" : "s"} need${pending.length === 1 ? "s" : ""} your review`}
         </CardDescription>
       </CardHeader>
       <CardContent>

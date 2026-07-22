@@ -3,6 +3,7 @@
 import * as React from "react";
 import { ChevronDown, ChevronRight, Copy, FlaskConical, X } from "lucide-react";
 import { toast } from "sonner";
+import { plural } from "@/lib/format";
 import { tenants } from "@/demo/tenants";
 import { getEmployeesByTenant } from "@/demo/employees";
 import { demoUsers } from "@/lib/auth/demo-users";
@@ -122,6 +123,143 @@ function Section({
   );
 }
 
+const UAT_ITEMS: { group: string; items: string[] }[] = [
+  {
+    group: "Leave day picker",
+    items: [
+      "SA public holidays appear with a grey dot and cannot be selected",
+      "Weekends are disabled",
+      "Today is highlighted with a ring",
+      "Clicking a day selects it (full by default)",
+      "Toggle between Full and Half day updates the total count",
+      "Removing a day via X updates the count",
+      "Custom holidays appear with an amber dot and cannot be selected",
+    ],
+  },
+  {
+    group: "Custom holidays",
+    items: [
+      "HR admin sees company holiday manager in Holidays tab",
+      "Add a one-time holiday: appears in picker and calendar immediately",
+      "Add a recurring holiday: appears every year in the picker",
+      "Recurring holiday shows the repeat icon in the list",
+      "Non-HR users do not see the add form",
+      "Custom holidays are disabled in leave requests (cannot select)",
+      "Custom holidays show with amber colour in leave calendar",
+    ],
+  },
+  {
+    group: "Leave reviewers",
+    items: [
+      "HR admin sees Reviewers tab on leave page",
+      "Add reviewer with scope All: reviewer can approve any request",
+      "Add reviewer with scope Department: only approves that department",
+      "Add reviewer with scope Employee: only approves that person",
+      "Reviewer cannot approve their own leave",
+      "Deleting a reviewer removes them from the list",
+      "Non-HR users do not see the Reviewers tab",
+    ],
+  },
+  {
+    group: "Leave balances",
+    items: [
+      "Pending leave is subtracted from available balance everywhere",
+      "HR leave balances table shows pending in amber",
+      "Employee dashboard leave card shows pending count",
+      "Employee profile sidebar shows pending in leave widget",
+      "Profile leave tab shows approved and pending correctly",
+      "Approving a request removes it from pending and adds to approved",
+    ],
+  },
+  {
+    group: "Sign-out",
+    items: [
+      "Signing out navigates to /login without manual refresh",
+      "Refreshing /login after sign-out does not redirect back to app",
+    ],
+  },
+  {
+    group: "Pluralisation",
+    items: [
+      "1 request needs your review (not need)",
+      "1 day selected (not days)",
+      "1 employee in stat cards (not employees)",
+      "1 day remaining in leave balance (not days)",
+    ],
+  },
+];
+
+function UATChecklist() {
+  const [checked, setChecked] = React.useState<Set<string>>(() => new Set());
+
+  function toggle(key: string) {
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
+
+  const total = UAT_ITEMS.reduce((sum, g) => sum + g.items.length, 0);
+  const done = checked.size;
+
+  return (
+    <div className="pt-1 space-y-3">
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+        <span>{done}/{total} checked</span>
+        {done > 0 && (
+          <button
+            type="button"
+            className="hover:text-foreground"
+            onClick={() => setChecked(new Set())}
+          >
+            Reset
+          </button>
+        )}
+      </div>
+      {UAT_ITEMS.map((group) => (
+        <div key={group.group} className="space-y-1">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+            {group.group}
+          </p>
+          {group.items.map((item) => {
+            const key = `${group.group}:${item}`;
+            const isChecked = checked.has(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggle(key)}
+                className={cn(
+                  "flex w-full items-start gap-2 rounded-md px-2 py-1 text-left text-[10px] transition-colors hover:bg-muted/60",
+                  isChecked ? "text-muted-foreground/50 line-through" : "text-foreground"
+                )}
+              >
+                <span
+                  className={cn(
+                    "mt-0.5 flex size-3 shrink-0 items-center justify-center rounded border",
+                    isChecked
+                      ? "border-success bg-success/20 text-success"
+                      : "border-border"
+                  )}
+                >
+                  {isChecked && (
+                    <svg viewBox="0 0 10 10" className="size-2 stroke-current" strokeWidth={2}>
+                      <path d="M2 5l2.5 2.5L8 3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                </span>
+                {item}
+              </button>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function UATPanel() {
   if (!SHOW) return null;
   return <UATPanel_Inner />;
@@ -195,6 +333,11 @@ function UATPanel_Inner() {
         {/* Scrollable body */}
         <div className="min-h-0 flex-1 overflow-y-auto">
 
+          {/* UAT checklist */}
+          <Section title="UAT checklist" subtitle="Click to mark done">
+            <UATChecklist />
+          </Section>
+
           {/* Login credentials */}
           <Section title="Login credentials" subtitle={`${demoUsers.length} accounts`} defaultOpen>
             <div className="flex flex-col gap-1.5 pt-1">
@@ -259,7 +402,7 @@ function UATPanel_Inner() {
             <Section
               key={tenant.id}
               title={tenant.name}
-              subtitle={`${employees.length} employees · ${tenant.city}`}
+              subtitle={`${employees.length} ${plural(employees.length, "employee")} · ${tenant.city}`}
               defaultOpen={tenant.id === "novatech"}
             >
               <div className="flex flex-col divide-y divide-border rounded-lg border border-border mt-1 overflow-hidden">

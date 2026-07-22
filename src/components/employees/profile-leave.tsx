@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { formatDate, leaveTypeLabel } from "@/lib/format";
+import { formatDate, leaveTypeLabel, plural } from "@/lib/format";
 import { useLeaveRequests } from "@/lib/store/hooks";
 import type { Employee, LeaveStatus } from "@/lib/types";
 
@@ -41,12 +41,12 @@ export function ProfileLeave({ employee }: { employee: Employee }) {
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">{leaveTypeLabel(balance.type)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {remaining} of {balance.total} days left
+                      {remaining} of {balance.total} {plural(balance.total, "day")} left
                     </p>
                   </div>
                   <Progress value={percentage} className="mt-3" />
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {balance.used} days approved
+                    {balance.used} {plural(balance.used, "day")} approved
                     {pendingDays > 0 ? ` · ${pendingDays} pending` : ""}
                   </p>
                 </div>

@@ -164,7 +164,7 @@ export function ManagerDashboard() {
             <CardDescription>
               {pendingRequests.length === 0
                 ? "Nothing pending"
-                : `${pendingRequests.length} request${pendingRequests.length > 1 ? "s" : ""} need your review`}
+                : `${pendingRequests.length} request${pendingRequests.length === 1 ? "" : "s"} need${pendingRequests.length === 1 ? "s" : ""} your review`}
             </CardDescription>
           </CardHeader>
           <CardContent>

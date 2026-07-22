@@ -4,7 +4,7 @@ import * as React from "react";
 import { CalendarClock, ClipboardList, Users, Wallet } from "lucide-react";
 import { useEmployees, useLeaveRequests, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrencyCompact, formatDate } from "@/lib/format";
+import { formatCurrencyCompact, formatDate, plural } from "@/lib/format";
 import { StatCardGrid, type StatItem } from "./stat-card-grid";
 
 export function StatCards() {
@@ -55,7 +55,7 @@ export function StatCards() {
     {
       label: "Next payroll run",
       value: upcomingRun ? formatDate(upcomingRun.payDate, { day: "numeric", month: "short" }) : "-",
-      detail: upcomingRun ? `${upcomingRun.employeeCount} employees` : "No run scheduled",
+      detail: upcomingRun ? `${upcomingRun.employeeCount} ${plural(upcomingRun.employeeCount, "employee")}` : "No run scheduled",
       icon: CalendarClock,
       iconClassName: "bg-success/10 text-success",
     },

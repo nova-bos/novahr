@@ -2,6 +2,7 @@
 
 import { CalendarCheck, CalendarClock, CalendarX, ClipboardList } from "lucide-react";
 import { useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
+import { plural } from "@/lib/format";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 
 export function LeaveStats() {
@@ -34,14 +35,14 @@ export function LeaveStats() {
     {
       label: "On leave today",
       value: onLeaveToday.length.toString(),
-      detail: `Out of ${employees.length} employees`,
+      detail: `Out of ${employees.length} ${plural(employees.length, "employee")}`,
       icon: CalendarClock,
       iconClassName: "bg-info/10 text-info",
     },
     {
       label: "Approved this period",
       value: approved.length.toString(),
-      detail: `${totalDaysApproved} days total`,
+      detail: `${totalDaysApproved} ${plural(totalDaysApproved, "day")} total`,
       icon: CalendarCheck,
       iconClassName: "bg-success/10 text-success",
     },

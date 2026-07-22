@@ -30,6 +30,7 @@ import {
   formatDate,
   formatDateLong,
   formatMonthYear,
+  plural,
 } from "@/lib/format";
 import type { LeaveType } from "@/lib/types";
 import { DashboardHeader } from "./dashboard-header";
@@ -74,8 +75,8 @@ export function EmployeeDashboard() {
   const stats: StatItem[] = [
     {
       label: "Annual leave left",
-      value: `${annualRemaining} days`,
-      detail: `of ${annualBalance?.total ?? 0} days this year`,
+      value: `${annualRemaining} ${plural(annualRemaining, "day")}`,
+      detail: `of ${annualBalance?.total ?? 0} ${plural(annualBalance?.total ?? 0, "day")} this year`,
       icon: CalendarRange,
       iconClassName: "bg-info/10 text-info",
     },

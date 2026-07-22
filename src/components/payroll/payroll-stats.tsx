@@ -3,7 +3,7 @@
 import { Banknote, CalendarClock, ReceiptText, Users } from "lucide-react";
 import { useEmployees, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
-import { formatCurrencyCompact, formatDate } from "@/lib/format";
+import { formatCurrencyCompact, formatDate, plural } from "@/lib/format";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 
 export function PayrollStats() {
@@ -29,7 +29,7 @@ export function PayrollStats() {
     {
       label: "Next pay date",
       value: upcomingRun ? formatDate(upcomingRun.payDate, { day: "numeric", month: "short" }) : "-",
-      detail: upcomingRun ? `${upcomingRun.employeeCount} employees` : "No run scheduled",
+      detail: upcomingRun ? `${upcomingRun.employeeCount} ${plural(upcomingRun.employeeCount, "employee")}` : "No run scheduled",
       icon: CalendarClock,
       iconClassName: "bg-info/10 text-info",
     },
