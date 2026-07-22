@@ -28,7 +28,7 @@ export function ProfileLeave({ employee }: { employee: Employee }) {
           <CardTitle>Leave balances</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="flex flex-col gap-4">
             {employee.leaveBalances.map((balance) => {
               const pendingDays = requests
                 .filter((r) => r.type === balance.type && r.status === "pending")
