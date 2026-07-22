@@ -1,11 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { Check, FileText, Paperclip } from "lucide-react";
+import { Check, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Sheet,
   SheetContent,
@@ -32,16 +39,23 @@ export function LeaveDetailSheet({ requestId, onClose }: LeaveDetailSheetProps) 
   const leaveRequests = useLeaveRequests();
   const employees = useEmployees();
   const { user } = useAuth();
-  const { decideLeaveRequest } = useApp();
+  const { cancelLeaveRequest, decideLeaveRequest } = useApp();
   const canDecide = useCanDecideRequest();
   const [acting, setActing] = React.useState(false);
   const [requestingDocs, setRequestingDocs] = React.useState(false);
+  const [cancelOpen, setCancelOpen] = React.useState(false);
 
   const request = leaveRequests.find((r) => r.id === requestId) ?? null;
   const employee = request ? (employees.find((e) => e.id === request.employeeId) ?? null) : null;
 
   const isReviewer =
     user?.role === "hr" || user?.role === "manager" || user?.role === "exco";
+  const isOwnRequest = request?.employeeId === user?.employeeId;
+  const canCancel = Boolean(
+    isOwnRequest &&
+    request?.status === "pending" &&
+    request.startDate > new Date().toISOString().slice(0, 10)
+  );
 
   async function handleDecision(status: "approved" | "rejected", note?: string) {
     if (!request) return;
@@ -76,7 +90,44 @@ export function LeaveDetailSheet({ requestId, onClose }: LeaveDetailSheetProps) 
     }
   }
 
+  async function handleCancel() {
+    if (!request) return;
+    setActing(true);
+    try {
+      await cancelLeaveRequest(request.id);
+      setCancelOpen(false);
+      toast.success("Leave request cancelled", {
+        description: "Your pending leave request has been cancelled.",
+      });
+    } catch (err) {
+      toast.error("Could not cancel leave request", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setActing(false);
+    }
+  }
+
   return (
+    <>
+    <Dialog open={cancelOpen} onOpenChange={(open) => { if (!acting) setCancelOpen(open); }}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Cancel leave request</DialogTitle>
+          <DialogDescription>
+            This will withdraw your pending request. Your leave balance will remain unchanged.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setCancelOpen(false)} disabled={acting}>
+            Keep request
+          </Button>
+          <Button variant="destructive" onClick={handleCancel} disabled={acting}>
+            {acting ? "Cancelling..." : "Cancel request"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     <Sheet open={!!requestId} onOpenChange={(open) => { if (!open) onClose(); }}>
       <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-y-auto p-0 sm:max-w-md">
         {request && employee ? (
@@ -165,14 +216,24 @@ export function LeaveDetailSheet({ requestId, onClose }: LeaveDetailSheetProps) 
               ) : null}
 
               {/* Decision info (shown when leave is not pending) */}
-              {request.status !== "pending" && (request.decidedBy || request.decisionNote) ? (
+              {request.status !== "pending" && (
+                request.decidedBy || request.decisionNote || request.cancelledBy || request.cancelledOn
+              ) ? (
                 <>
                   <Separator />
                   <div className="flex flex-col gap-3">
                     <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Decision record
                     </span>
-                    {request.decidedBy ? (
+                    {request.status === "cancelled" ? request.cancelledBy ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs text-muted-foreground">Cancelled by</span>
+                        <span className="text-sm font-medium">
+                          {request.cancelledBy}
+                          {request.cancelledOn ? `, ${formatDate(request.cancelledOn)}` : ""}
+                        </span>
+                      </div>
+                    ) : null : request.decidedBy ? (
                       <div className="flex flex-col gap-0.5">
                         <span className="text-xs text-muted-foreground">
                           {request.status === "approved" ? "Approved" : "Declined"} by
@@ -195,8 +256,33 @@ export function LeaveDetailSheet({ requestId, onClose }: LeaveDetailSheetProps) 
                 </>
               ) : null}
 
+              {canCancel ? (
+                <>
+                  <Separator />
+                  <div className="flex flex-col gap-2.5">
+                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      Your request
+                    </span>
+                    <div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        disabled={acting}
+                        onClick={() => setCancelOpen(true)}
+                      >
+                        Cancel request
+                      </Button>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Available until this leave request is approved or starts.
+                      </p>
+                    </div>
+                  </div>
+                </>
+              ) : null}
+
               {/* Actions (reviewers only) */}
-              {isReviewer && canDecide(employee.id) ? (
+              {isReviewer && canDecide(employee.id) && request.status !== "cancelled" ? (
                 <>
                   <Separator />
                   <div className="flex flex-col gap-2.5">
@@ -266,5 +352,6 @@ export function LeaveDetailSheet({ requestId, onClose }: LeaveDetailSheetProps) 
         )}
       </SheetContent>
     </Sheet>
+    </>
   );
 }

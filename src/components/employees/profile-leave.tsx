@@ -9,12 +9,14 @@ const STATUS_STYLES: Record<LeaveStatus, string> = {
   pending: "bg-warning/10 text-warning",
   approved: "bg-success/10 text-success",
   rejected: "bg-destructive/10 text-destructive",
+  cancelled: "bg-muted text-muted-foreground",
 };
 
 const STATUS_LABELS: Record<LeaveStatus, string> = {
   pending: "Pending",
   approved: "Approved",
   rejected: "Declined",
+  cancelled: "Cancelled",
 };
 
 export function ProfileLeave({ employee }: { employee: Employee }) {

@@ -270,6 +270,8 @@ describe("mapLeaveRequest", () => {
     decisionNote: null,
     decidedBy: null,
     decidedOn: null,
+    cancelledBy: null,
+    cancelledOn: null,
   };
 
   it("maps a pending request with no decision fields", () => {

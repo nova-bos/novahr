@@ -20,13 +20,14 @@ export type LeaveType =
   | "adoption"
   | "commissioning"
   | "study";
-export type LeaveStatus = "pending" | "approved" | "rejected";
+export type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled";
 export type PayrollRunStatus = "scheduled" | "processing" | "awaiting_approval" | "completed";
 export type ActivityType =
   | "hire"
   | "leave_request"
   | "leave_approved"
   | "leave_rejected"
+  | "leave_cancelled"
   | "payroll_run"
   | "promotion"
   | "document"
@@ -144,6 +145,8 @@ export interface LeaveRequest {
   decisionNote?: string;
   decidedBy?: string;
   decidedOn?: string;
+  cancelledBy?: string;
+  cancelledOn?: string;
 }
 
 export interface PayslipLineItem {

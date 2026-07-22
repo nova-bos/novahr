@@ -35,6 +35,7 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Declined" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 const TYPE_OPTIONS: { value: string; label: string }[] = [

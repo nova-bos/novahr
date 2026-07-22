@@ -41,10 +41,18 @@ vi.mock("@/lib/auth/require", () => ({
   requireTenant: vi.fn(async () => mockSession.current),
 }));
 
-import { createLeaveRequestRecord, decideLeaveRequestRecord } from "./actions";
+import { cancelLeaveRequestRecord, createLeaveRequestRecord, decideLeaveRequestRecord } from "./actions";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockSession.current = {
+    id: "user-1",
+    tenantId: "novatech",
+    role: "hr",
+    name: "Lerato Dlamini",
+    email: "hr@novatech.co.za",
+    employeeId: undefined,
+  };
 });
 
 function makeEmployeeRowMinimal(overrides: Record<string, unknown> = {}) {
@@ -178,6 +186,17 @@ describe("createLeaveRequestRecord validation", () => {
 });
 
 describe("decideLeaveRequestRecord", () => {
+  it("does not allow a cancelled request to be decided", async () => {
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(
+      makeLeaveRequestRow({ status: "cancelled" })
+    );
+
+    await expect(decideLeaveRequestRecord("leave-1", "approved")).rejects.toThrow(
+      "Cancelled leave requests cannot be decided."
+    );
+    expect(mockPrisma.leaveRequest.updateMany).not.toHaveBeenCalled();
+  });
+
   it("approves a request, increments the leave balance, and records activity", async () => {
     // First findFirstOrThrow reads the pending target; the second reads the row
     // back after the compare-and-swap status transition.
@@ -287,5 +306,101 @@ describe("decideLeaveRequestRecord", () => {
         decisionNote: "Team is short-staffed that week",
       },
     });
+  });
+});
+
+describe("cancelLeaveRequestRecord", () => {
+  function signInAsRequestingEmployee() {
+    mockSession.current = {
+      id: "user-1",
+      tenantId: "novatech",
+      role: "employee",
+      name: "Aisha Patel",
+      email: "aisha@novatech.co.za",
+      employeeId: "emp-1",
+    };
+  }
+
+  it("cancels an employee's future pending request without changing their leave balance", async () => {
+    signInAsRequestingEmployee();
+    mockPrisma.leaveRequest.findFirstOrThrow
+      .mockResolvedValueOnce(makeLeaveRequestRow({ startDate: new Date("2030-08-01T00:00:00Z") }))
+      .mockResolvedValueOnce(
+        makeLeaveRequestRow({
+          startDate: new Date("2030-08-01T00:00:00Z"),
+          status: "cancelled",
+          cancelledBy: "Aisha Patel",
+          cancelledOn: new Date("2030-07-01T00:00:00Z"),
+        })
+      );
+    mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
+    mockPrisma.leaveRequest.updateMany.mockResolvedValue({ count: 1 });
+    mockPrisma.activityItem.create.mockResolvedValue(
+      makeActivityRow({ type: "leave_cancelled", message: "cancelled their annual leave request" })
+    );
+    mockPrisma.notificationItem.create
+      .mockResolvedValueOnce(makeNotificationRow({ audienceRole: "manager" }))
+      .mockResolvedValueOnce(
+        makeNotificationRow({ recipientEmployeeId: "emp-1", title: "Leave request cancelled" })
+      );
+
+    const result = await cancelLeaveRequestRecord("leave-1");
+
+    expect(result.leaveRequest.status).toBe("cancelled");
+    expect(result.activity.type).toBe("leave_cancelled");
+    expect(result.notification.recipientEmployeeId).toBe("emp-1");
+    expect(mockPrisma.leaveRequest.updateMany).toHaveBeenCalledWith({
+      where: { id: "leave-1", tenantId: "novatech", employeeId: "emp-1", status: "pending" },
+      data: {
+        status: "cancelled",
+        cancelledBy: "Aisha Patel",
+        cancelledOn: expect.any(Date),
+      },
+    });
+    expect(mockPrisma.leaveBalance.upsert).not.toHaveBeenCalled();
+    expect(mockPrisma.leaveBalance.update).not.toHaveBeenCalled();
+  });
+
+  it("does not let an employee cancel somebody else's request", async () => {
+    signInAsRequestingEmployee();
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(
+      makeLeaveRequestRow({ employeeId: "emp-2", startDate: new Date("2030-08-01T00:00:00Z") })
+    );
+
+    await expect(cancelLeaveRequestRecord("leave-1")).rejects.toThrow(
+      "You can only cancel your own leave requests."
+    );
+    expect(mockPrisma.leaveRequest.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("does not cancel an already-started or already-decided request", async () => {
+    signInAsRequestingEmployee();
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValueOnce(
+      makeLeaveRequestRow({ startDate: new Date("2020-07-01T00:00:00Z") })
+    );
+
+    await expect(cancelLeaveRequestRecord("leave-1")).rejects.toThrow(
+      "Leave can only be cancelled before its start date."
+    );
+
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValueOnce(
+      makeLeaveRequestRow({ startDate: new Date("2030-08-01T00:00:00Z"), status: "approved" })
+    );
+    await expect(cancelLeaveRequestRecord("leave-1")).rejects.toThrow(
+      "Only pending leave requests can be cancelled."
+    );
+    expect(mockPrisma.leaveRequest.updateMany).not.toHaveBeenCalled();
+  });
+
+  it("reports a concurrent approval instead of overwriting it", async () => {
+    signInAsRequestingEmployee();
+    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValue(
+      makeLeaveRequestRow({ startDate: new Date("2030-08-01T00:00:00Z") })
+    );
+    mockPrisma.leaveRequest.updateMany.mockResolvedValue({ count: 0 });
+
+    await expect(cancelLeaveRequestRecord("leave-1")).rejects.toThrow(
+      "This request was already updated by someone else."
+    );
   });
 });

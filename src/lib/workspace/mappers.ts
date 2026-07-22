@@ -178,6 +178,8 @@ export function mapLeaveRequest(row: PrismaLeaveRequest): LeaveRequest {
     decisionNote: row.decisionNote ?? undefined,
     decidedBy: row.decidedBy ?? undefined,
     decidedOn: row.decidedOn ? toDateOnly(row.decidedOn) : undefined,
+    cancelledBy: row.cancelledBy ?? undefined,
+    cancelledOn: row.cancelledOn ? toDateOnly(row.cancelledOn) : undefined,
   };
 }
 

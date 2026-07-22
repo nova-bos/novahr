@@ -6,6 +6,7 @@ const STATUS_CONFIG: Record<LeaveStatus, { label: string; className: string }> =
   pending: { label: "Pending", className: "bg-warning/10 text-warning" },
   approved: { label: "Approved", className: "bg-success/10 text-success" },
   rejected: { label: "Declined", className: "bg-destructive/10 text-destructive" },
+  cancelled: { label: "Cancelled", className: "bg-muted text-muted-foreground" },
 };
 
 export function LeaveStatusBadge({

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { isSaPublicHoliday, isWeekend, SA_PUBLIC_HOLIDAYS } from "@/lib/leave/business-days";
+import { isWeekend, SA_PUBLIC_HOLIDAYS } from "@/lib/leave/business-days";
 import { useCustomHolidays } from "@/lib/store/hooks";
 import { cn } from "@/lib/utils";
 import type { CustomHoliday, DaySelection } from "@/lib/types";

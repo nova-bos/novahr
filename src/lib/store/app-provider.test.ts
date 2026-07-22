@@ -358,6 +358,34 @@ describe("LEAVE_REQUEST_DECIDED", () => {
   });
 });
 
+describe("LEAVE_REQUEST_CANCELLED", () => {
+  it("updates the request and prepends the employee-scoped notification and activity", () => {
+    const pending = makeLeaveRequest({ status: "pending" });
+    const cancelled = makeLeaveRequest({
+      status: "cancelled",
+      cancelledBy: "Aisha Patel",
+      cancelledOn: "2026-06-16",
+    });
+    const activity = makeActivity({ type: "leave_cancelled", message: "cancelled their annual leave request" });
+    const notification = makeNotification({
+      title: "Leave request cancelled",
+      recipientEmployeeId: "emp-1",
+    });
+    const state = withState({ leaveRequests: [pending], activity: [], notifications: [] });
+
+    const next = reducer(state, {
+      type: "LEAVE_REQUEST_CANCELLED",
+      leaveRequest: cancelled,
+      activity,
+      notification,
+    });
+
+    expect(next.leaveRequests).toEqual([cancelled]);
+    expect(next.activity).toEqual([activity]);
+    expect(next.notifications).toEqual([notification]);
+  });
+});
+
 describe("PAYROLL_RUN_STARTED", () => {
   it("replaces the matching payroll run", () => {
     const state = withState({ payrollRuns: [makePayrollRun({ id: "run-1", status: "scheduled" })] });

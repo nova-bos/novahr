@@ -3,7 +3,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { runAsTenant } from "@/lib/db-context";
-import { requireEmployeeScope, requireRole, requireUser } from "@/lib/auth/require";
+import { requireEmployeeScope, requireUser } from "@/lib/auth/require";
 import { leaveTypeLabel } from "@/lib/format";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 import { sendLeaveRequestEmail, sendLeaveDecisionEmail } from "@/lib/email";
@@ -121,6 +121,10 @@ export async function decideLeaveRequestRecord(
 
   const inner = await runAsTenant(tenantId, async (tx) => {
     const target = await tx.leaveRequest.findFirstOrThrow({ where: { id, tenantId } });
+
+    if (target.status === "cancelled") {
+      throw new Error("Cancelled leave requests cannot be decided.");
+    }
 
     if (target.status === status) {
       throw new Error(`This leave request is already ${status}.`);
@@ -307,6 +311,99 @@ export async function decideLeaveRequestRecord(
       : undefined,
     activity: mapActivityItem(inner.activity),
     notification: mapNotificationItem(inner.notification),
+  };
+}
+
+/**
+ * Lets an employee withdraw their own future leave request while it is still
+ * pending. Withdrawal is intentionally a terminal state, preserving the
+ * request and its audit trail instead of deleting it.
+ */
+export async function cancelLeaveRequestRecord(id: string): Promise<{
+  leaveRequest: LeaveRequest;
+  activity: ActivityItem;
+  notification: NotificationItem;
+}> {
+  const session = await requireUser();
+  const tenantId = session.tenantId;
+
+  if (!session.employeeId) {
+    throw new Error("Only the employee who submitted this request can cancel it.");
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const result = await runAsTenant(tenantId, async (tx) => {
+    const target = await tx.leaveRequest.findFirstOrThrow({ where: { id, tenantId } });
+
+    if (target.employeeId !== session.employeeId) {
+      throw new Error("You can only cancel your own leave requests.");
+    }
+
+    if (target.status !== "pending") {
+      throw new Error("Only pending leave requests can be cancelled.");
+    }
+
+    if (target.startDate.toISOString().slice(0, 10) <= today) {
+      throw new Error("Leave can only be cancelled before its start date.");
+    }
+
+    // The status guard makes this safe if a reviewer approves at the same time.
+    const cancelledOn = new Date();
+    const cas = await tx.leaveRequest.updateMany({
+      where: { id, tenantId, employeeId: session.employeeId, status: "pending" },
+      data: { status: "cancelled", cancelledBy: session.name, cancelledOn },
+    });
+    if (cas.count === 0) {
+      throw new Error("This request was already updated by someone else.");
+    }
+
+    const [leaveRequest, employee] = await Promise.all([
+      tx.leaveRequest.findFirstOrThrow({ where: { id, tenantId } }),
+      tx.employee.findFirstOrThrow({ where: { id: target.employeeId, tenantId } }),
+    ]);
+    const employeeName = `${employee.firstName} ${employee.lastName}`;
+    const label = leaveTypeLabel(target.type as LeaveType).toLowerCase();
+
+    const activity = await tx.activityItem.create({
+      data: {
+        tenantId,
+        type: "leave_cancelled",
+        message: `cancelled their ${label} leave request`,
+        actor: employeeName,
+        employeeId: target.employeeId,
+      },
+    });
+
+    // Reviewers who were waiting to decide no longer need to act.
+    await tx.notificationItem.create({
+      data: {
+        tenantId,
+        title: "Leave request cancelled",
+        description: `${employeeName} cancelled their pending ${label} leave request.`,
+        type: "info",
+        audienceRole: "manager",
+      },
+    });
+
+    // Return the requester's notification so the client state stays correctly scoped.
+    const notification = await tx.notificationItem.create({
+      data: {
+        tenantId,
+        title: "Leave request cancelled",
+        description: `Your pending ${label} leave request has been cancelled.`,
+        type: "info",
+        recipientEmployeeId: target.employeeId,
+      },
+    });
+
+    return { leaveRequest, activity, notification };
+  });
+
+  return {
+    leaveRequest: mapLeaveRequest(result.leaveRequest),
+    activity: mapActivityItem(result.activity),
+    notification: mapNotificationItem(result.notification),
   };
 }
 

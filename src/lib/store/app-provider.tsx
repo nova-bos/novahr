@@ -21,7 +21,12 @@ import {
   updateEmployeeRecord,
   updateEmployeePhotoRecord,
 } from "../employees/actions";
-import { createLeaveRequestRecord, decideLeaveRequestRecord, type CreateLeaveRequestInput } from "../leave/actions";
+import {
+  cancelLeaveRequestRecord,
+  createLeaveRequestRecord,
+  decideLeaveRequestRecord,
+  type CreateLeaveRequestInput,
+} from "../leave/actions";
 import {
   createDepartmentRecord,
   deleteDepartmentRecord,
@@ -73,6 +78,12 @@ export type Action =
       type: "LEAVE_REQUEST_DECIDED";
       leaveRequest: LeaveRequest;
       leaveBalance?: { employeeId: string; type: LeaveType; used: number };
+      activity: ActivityItem;
+      notification: NotificationItem;
+    }
+  | {
+      type: "LEAVE_REQUEST_CANCELLED";
+      leaveRequest: LeaveRequest;
       activity: ActivityItem;
       notification: NotificationItem;
     }
@@ -198,6 +209,16 @@ export function reducer(state: AppState, action: Action): AppState {
       };
     }
 
+    case "LEAVE_REQUEST_CANCELLED":
+      return {
+        ...state,
+        leaveRequests: state.leaveRequests.map((request) =>
+          request.id === action.leaveRequest.id ? action.leaveRequest : request
+        ),
+        activity: [action.activity, ...state.activity],
+        notifications: [action.notification, ...state.notifications],
+      };
+
     case "PAYROLL_RUN_STARTED":
       return {
         ...state,
@@ -298,6 +319,7 @@ interface AppContextValue {
     status: Extract<LeaveStatus, "approved" | "rejected">,
     decisionNote?: string
   ) => Promise<void>;
+  cancelLeaveRequest: (id: string) => Promise<void>;
   startPayrollRun: (runId: string) => Promise<void>;
   completePayrollRun: (runId: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
@@ -392,6 +414,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           type: "LEAVE_REQUEST_DECIDED",
           leaveRequest: result.leaveRequest,
           leaveBalance: result.leaveBalance,
+          activity: result.activity,
+          notification: result.notification,
+        });
+      },
+      cancelLeaveRequest: async (id) => {
+        const result = await cancelLeaveRequestRecord(id);
+        dispatch({
+          type: "LEAVE_REQUEST_CANCELLED",
+          leaveRequest: result.leaveRequest,
           activity: result.activity,
           notification: result.notification,
         });

@@ -48,6 +48,7 @@ enum LeaveStatus {
   pending
   approved
   rejected
+  cancelled
 }
 
 enum PayrollRunStatus {
@@ -75,6 +76,7 @@ enum ActivityType {
   leave_request
   leave_approved
   leave_rejected
+  leave_cancelled
   payroll_run
   promotion
   document
@@ -325,6 +327,8 @@ model LeaveRequest {
   decisionNote  String?
   decidedBy     String?
   decidedOn     DateTime?
+  cancelledBy   String?
+  cancelledOn   DateTime?
 
   @@index([tenantId])
   @@index([employeeId])
