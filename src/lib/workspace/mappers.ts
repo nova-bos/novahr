@@ -11,6 +11,7 @@ import type {
 import type {
   ActivityItem,
   BankDetails,
+  DaySelection,
   Department,
   Employee,
   LeaveRequest,
@@ -169,6 +170,7 @@ export function mapLeaveRequest(row: PrismaLeaveRequest): LeaveRequest {
     startDate: toDateOnly(row.startDate),
     endDate: toDateOnly(row.endDate),
     days: row.days,
+    daySelections: Array.isArray(row.daySelections) ? (row.daySelections as unknown as DaySelection[]) : undefined,
     reason: row.reason,
     documentPath: row.documentUrl ?? undefined,
     status: row.status,

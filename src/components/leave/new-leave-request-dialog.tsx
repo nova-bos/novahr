@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
@@ -24,7 +24,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/client";
 import { validateLeaveRequest } from "@/lib/schemas/leave";
-import { workingDaysBetween } from "@/lib/leave/business-days";
 import {
   CORE_LEAVE_TYPES,
   FAMILY_LEAVE_TYPES,
@@ -37,8 +36,9 @@ import { useAuth } from "@/lib/auth/auth-provider";
 import { useScopedEmployees } from "@/lib/auth/scope";
 import { leaveTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { LeaveType } from "@/lib/types";
+import type { DaySelection, LeaveType } from "@/lib/types";
 import { LeaveDocumentUpload } from "./leave-document-upload";
+import { LeaveDayPicker } from "./leave-day-picker";
 
 const LEAVE_DOC_BUCKET = "leave-documents";
 
@@ -47,10 +47,6 @@ const LEAVE_TYPE_GROUPS: { label: string; types: LeaveType[] }[] = [
   { label: "Family and parental", types: [...FAMILY_LEAVE_TYPES] },
   { label: "Other", types: [...OTHER_LEAVE_TYPES] },
 ];
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export function NewLeaveRequestDialog() {
   const { addLeaveRequest } = useApp();
@@ -62,8 +58,7 @@ export function NewLeaveRequestDialog() {
   const [open, setOpen] = React.useState(false);
   const [employeeId, setEmployeeId] = React.useState(lockToSelf ? user?.employeeId ?? "" : "");
   const [type, setType] = React.useState<LeaveType>("annual");
-  const [startDate, setStartDate] = React.useState(todayIso());
-  const [endDate, setEndDate] = React.useState(todayIso());
+  const [daySelections, setDaySelections] = React.useState<DaySelection[]>([]);
   const [reason, setReason] = React.useState("");
   const [document, setDocument] = React.useState<File | null>(null);
   const [docError, setDocError] = React.useState("");
@@ -73,8 +68,7 @@ export function NewLeaveRequestDialog() {
   function resetForm() {
     setEmployeeId(lockToSelf ? user?.employeeId ?? "" : "");
     setType("annual");
-    setStartDate(todayIso());
-    setEndDate(todayIso());
+    setDaySelections([]);
     setReason("");
     setDocument(null);
     setDocError("");
@@ -92,11 +86,15 @@ export function NewLeaveRequestDialog() {
 
   const selectedEmployee = employees.find((e) => e.id === employeeId);
   const balance = selectedEmployee?.leaveBalances.find((b) => b.type === type);
-  const requestedDays = workingDaysBetween(startDate, endDate);
   const selectedPolicy = getLeavePolicy(type);
+
+  const requestedDays = daySelections.reduce(
+    (sum, d) => sum + (d.type === "full" ? 1 : 0.5),
+    0
+  );
   const available = balance ? balance.total - balance.used : 0;
   const remainingAfter = available - requestedDays;
-  const isOverLimit = Boolean(balance) && remainingAfter < 0;
+  const isOverLimit = Boolean(balance) && daySelections.length > 0 && remainingAfter < 0;
   const usagePct =
     balance && balance.total > 0
       ? Math.min(100, ((balance.used + requestedDays) / balance.total) * 100)
@@ -105,10 +103,7 @@ export function NewLeaveRequestDialog() {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
-    const errors = validateLeaveRequest({ employeeId, type, startDate, endDate, reason });
-    if (requestedDays <= 0 && !errors.endDate) {
-      errors.endDate = "The selected dates contain no working days.";
-    }
+    const errors = validateLeaveRequest({ employeeId, type, daySelections, reason });
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
       return;
@@ -130,16 +125,13 @@ export function NewLeaveRequestDialog() {
           .from(LEAVE_DOC_BUCKET)
           .upload(path, document, { contentType: document.type });
         if (uploadError) throw uploadError;
-        // Store only the object path. The bucket is private, so the document
-        // is read later through a short-lived signed URL, not a public URL.
         documentPath = path;
       }
 
       await addLeaveRequest({
         employeeId: employee.id,
         type,
-        startDate,
-        endDate,
+        daySelections,
         reason: reason.trim(),
         documentPath,
       });
@@ -172,10 +164,13 @@ export function NewLeaveRequestDialog() {
           Request leave
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md" noInnerPad>
+      <DialogContent className="sm:max-w-lg" noInnerPad>
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <DialogHeader className="shrink-0 border-b px-6 py-4">
             <DialogTitle>Request leave</DialogTitle>
+            <DialogDescription className="sr-only">
+              Select an employee, leave type, days, and optional reason.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-4">
@@ -222,35 +217,15 @@ export function NewLeaveRequestDialog() {
               <p className="text-xs text-muted-foreground">{selectedPolicy.description}</p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="startDate">Start date</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => {
-                    setStartDate(e.target.value);
-                    if (e.target.value > endDate) setEndDate(e.target.value);
-                  }}
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="endDate">End date</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  min={startDate}
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-                {fieldErrors.endDate ? (
-                  <p className="text-xs text-destructive">{fieldErrors.endDate}</p>
-                ) : null}
-              </div>
+            <div className="space-y-1.5">
+              <Label>Select days</Label>
+              <LeaveDayPicker value={daySelections} onChange={setDaySelections} />
+              {fieldErrors.daySelections ? (
+                <p className="text-xs text-destructive">{fieldErrors.daySelections}</p>
+              ) : null}
             </div>
 
-            {balance ? (
+            {balance && daySelections.length > 0 ? (
               <div className="rounded-xl border border-border/70 p-3">
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <span className="truncate text-muted-foreground">
@@ -281,15 +256,12 @@ export function NewLeaveRequestDialog() {
                   </p>
                 ) : null}
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                {requestedDays} working {requestedDays === 1 ? "day" : "days"} requested
-                (weekends and public holidays excluded)
-              </p>
-            )}
+            ) : null}
 
             <div className="space-y-1.5">
-              <Label htmlFor="reason">Reason <OptionalTag /></Label>
+              <Label htmlFor="reason">
+                Reason <OptionalTag />
+              </Label>
               <Textarea
                 id="reason"
                 rows={3}

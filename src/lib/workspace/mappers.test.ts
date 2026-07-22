@@ -262,6 +262,7 @@ describe("mapLeaveRequest", () => {
     startDate: new Date("2026-07-01T00:00:00Z"),
     endDate: new Date("2026-07-05T00:00:00Z"),
     days: 5,
+    daySelections: null,
     reason: "Family vacation",
     documentUrl: null,
     status: "pending",

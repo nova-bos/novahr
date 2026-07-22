@@ -13,9 +13,13 @@ export function LeaveStats() {
   const rejected = requests.filter((r) => r.status === "rejected");
 
   const today = new Date().toISOString().slice(0, 10);
-  const onLeaveToday = requests.filter(
-    (r) => r.status === "approved" && r.startDate <= today && today <= r.endDate
-  );
+  const onLeaveToday = requests.filter((r) => {
+    if (r.status !== "approved") return false;
+    if (r.daySelections && r.daySelections.length > 0) {
+      return r.daySelections.some((d) => d.date === today);
+    }
+    return r.startDate <= today && today <= r.endDate;
+  });
 
   const totalDaysApproved = approved.reduce((sum, r) => sum + r.days, 0);
 

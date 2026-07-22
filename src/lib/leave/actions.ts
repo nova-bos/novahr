@@ -1,20 +1,19 @@
 "use server";
 
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { runAsTenant } from "@/lib/db-context";
 import { requireEmployeeScope, requireRole } from "@/lib/auth/require";
 import { leaveTypeLabel } from "@/lib/format";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
-import { workingDaysBetween } from "./business-days";
 import { sendLeaveRequestEmail, sendLeaveDecisionEmail } from "@/lib/email";
-import type { ActivityItem, LeaveRequest, LeaveStatus, LeaveType, NotificationItem } from "@/lib/types";
+import type { ActivityItem, DaySelection, LeaveRequest, LeaveStatus, LeaveType, NotificationItem } from "@/lib/types";
 import { mapActivityItem, mapLeaveRequest, mapNotificationItem } from "../workspace/mappers";
 
 export interface CreateLeaveRequestInput {
   employeeId: string;
   type: LeaveType;
-  startDate: string;
-  endDate: string;
+  daySelections: DaySelection[];
   reason: string;
   // Storage object path in the private "leave-documents" bucket, not a URL.
   documentPath?: string;
@@ -26,12 +25,14 @@ export async function createLeaveRequestRecord(
   const session = await requireEmployeeScope(input.employeeId);
   const tenantId = session.tenantId;
 
-  // Never trust a client-calculated day count: recompute working days
-  // (weekends and SA public holidays excluded) from the date range.
-  const days = workingDaysBetween(input.startDate, input.endDate);
-  if (days <= 0) {
-    throw new Error("The selected dates contain no working days.");
+  if (input.daySelections.length === 0) {
+    throw new Error("Please select at least one day.");
   }
+
+  const sorted = [...input.daySelections].sort((a, b) => a.date.localeCompare(b.date));
+  const startDate = sorted[0].date;
+  const endDate = sorted[sorted.length - 1].date;
+  const days = input.daySelections.reduce((sum, d) => sum + (d.type === "full" ? 1.0 : 0.5), 0);
 
   const dayWord = days > 1 ? "days" : "day";
 
@@ -47,9 +48,10 @@ export async function createLeaveRequestRecord(
         tenantId,
         employeeId: input.employeeId,
         type: input.type,
-        startDate: new Date(input.startDate),
-        endDate: new Date(input.endDate),
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
         days,
+        daySelections: input.daySelections as unknown as Prisma.InputJsonValue,
         reason: input.reason,
         documentUrl: input.documentPath,
       },
@@ -88,8 +90,8 @@ export async function createLeaveRequestRecord(
     employeeName: result.actor,
     leaveType: input.type,
     days,
-    startDate: input.startDate,
-    endDate: input.endDate,
+    startDate,
+    endDate,
     reason: input.reason,
     appUrl,
   });

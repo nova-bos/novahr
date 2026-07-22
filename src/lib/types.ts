@@ -121,6 +121,11 @@ export interface Employee {
   onboarding?: Onboarding;
 }
 
+export interface DaySelection {
+  date: string;
+  type: "full" | "partial";
+}
+
 export interface LeaveRequest {
   id: string;
   tenantId: string;
@@ -129,6 +134,7 @@ export interface LeaveRequest {
   startDate: string;
   endDate: string;
   days: number;
+  daySelections?: DaySelection[];
   reason: string;
   // Storage object path in the private "leave-documents" bucket, not a URL.
   // Read through getLeaveDocumentUrl to obtain a short-lived signed URL.

@@ -298,22 +298,25 @@ model LeaveBalance {
 }
 
 model LeaveRequest {
-  id           String      @id @default(cuid())
-  tenantId     String
-  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  employeeId   String
-  employee     Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  type         LeaveType
-  startDate    DateTime
-  endDate      DateTime
-  days         Float
-  reason       String
-  documentUrl  String?
-  status       LeaveStatus @default(pending)
-  appliedOn    DateTime    @default(now())
-  decisionNote String?
-  decidedBy    String?
-  decidedOn    DateTime?
+  id            String      @id @default(cuid())
+  tenantId      String
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId    String
+  employee      Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  type          LeaveType
+  startDate     DateTime
+  endDate       DateTime
+  days          Float
+  /// JSON array of { date: string (ISO), type: "full" | "partial" }.
+  /// Null for requests created before the day-picker feature.
+  daySelections Json?
+  reason        String
+  documentUrl   String?
+  status        LeaveStatus @default(pending)
+  appliedOn     DateTime    @default(now())
+  decisionNote  String?
+  decidedBy     String?
+  decidedOn     DateTime?
 
   @@index([tenantId])
   @@index([employeeId])

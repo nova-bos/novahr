@@ -64,8 +64,9 @@ function makeLeaveRequestRow(overrides: Record<string, unknown> = {}) {
     employeeId: "emp-1",
     type: "annual",
     startDate: new Date("2026-07-01T00:00:00Z"),
-    endDate: new Date("2026-07-05T00:00:00Z"),
+    endDate: new Date("2026-07-07T00:00:00Z"),
     days: 5,
+    daySelections: null,
     reason: "Family vacation",
     status: "pending",
     appliedOn: new Date("2026-06-15T00:00:00Z"),
@@ -112,8 +113,13 @@ describe("createLeaveRequestRecord", () => {
     const result = await createLeaveRequestRecord({
       employeeId: "emp-1",
       type: "annual",
-      startDate: "2026-07-01",
-      endDate: "2026-07-07",
+      daySelections: [
+        { date: "2026-07-01", type: "full" },
+        { date: "2026-07-02", type: "full" },
+        { date: "2026-07-03", type: "full" },
+        { date: "2026-07-06", type: "full" },
+        { date: "2026-07-07", type: "full" },
+      ],
       reason: "Family vacation",
     });
 
@@ -146,8 +152,7 @@ describe("createLeaveRequestRecord", () => {
     const result = await createLeaveRequestRecord({
       employeeId: "emp-1",
       type: "annual",
-      startDate: "2026-07-01",
-      endDate: "2026-07-01",
+      daySelections: [{ date: "2026-07-01", type: "full" }],
       reason: "Doctor's appointment",
     });
 
@@ -159,16 +164,15 @@ describe("createLeaveRequestRecord", () => {
 });
 
 describe("createLeaveRequestRecord validation", () => {
-  it("rejects a range that contains no working days", async () => {
+  it("rejects an empty daySelections array", async () => {
     await expect(
       createLeaveRequestRecord({
         employeeId: "emp-1",
         type: "annual",
-        startDate: "2026-07-04", // Saturday
-        endDate: "2026-07-05", // Sunday
-        reason: "Weekend away",
+        daySelections: [],
+        reason: "Forgot to select days",
       })
-    ).rejects.toThrow("no working days");
+    ).rejects.toThrow("Please select at least one day.");
     expect(mockPrisma.leaveRequest.create).not.toHaveBeenCalled();
   });
 });
