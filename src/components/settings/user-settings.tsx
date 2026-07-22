@@ -126,10 +126,13 @@ function EmployeePicker({
           <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-        <Command>
+      <PopoverContent
+        className="w-[--radix-popover-trigger-width] max-h-[min(360px,var(--radix-popover-available-height))] overflow-hidden p-0"
+        align="start"
+      >
+        <Command className="flex h-full flex-col">
           <CommandInput placeholder="Search by name or job title..." />
-          <CommandList>
+          <CommandList className="flex-1 overflow-y-auto">
             <CommandEmpty>
               <div className="flex flex-col items-center gap-3 py-4">
                 <p className="text-sm text-muted-foreground">No employee found.</p>
