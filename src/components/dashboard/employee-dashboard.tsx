@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { NewLeaveRequestDialog } from "@/components/leave/new-leave-request-dialog";
-import { useCurrentEmployee } from "@/lib/auth/scope";
+import { useCurrentEmployee, useScopedLeaveRequests } from "@/lib/auth/scope";
 import { useEmployee, usePayslipsByEmployee } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import {
@@ -57,11 +57,17 @@ export function EmployeeDashboard() {
   const payslips = usePayslipsByEmployee(employee?.id);
   const latestPayslip = payslips[0];
   const [revealed, setRevealed] = React.useState(false);
+  const myLeaveRequests = useScopedLeaveRequests();
 
   if (!employee) return null;
 
   const annualBalance = employee.leaveBalances.find((b) => b.type === "annual");
-  const annualRemaining = annualBalance ? annualBalance.total - annualBalance.used : 0;
+  const annualPending = myLeaveRequests
+    .filter((r) => r.employeeId === employee.id && r.type === "annual" && r.status === "pending")
+    .reduce((sum, r) => sum + r.days, 0);
+  const annualRemaining = annualBalance
+    ? annualBalance.total - annualBalance.used - annualPending
+    : 0;
   const tenureYears = new Date().getFullYear() - new Date(employee.startDate).getFullYear();
   const monthly = calculateMonthlyPayroll(employee);
 
@@ -141,8 +147,12 @@ export function EmployeeDashboard() {
             {LEAVE_COLUMNS.map((col) => {
               const balance = employee.leaveBalances.find((b) => b.type === col.type);
               if (!balance) return null;
-              const remaining = balance.total - balance.used;
-              const pct = balance.total > 0 ? (balance.used / balance.total) * 100 : 0;
+              const pending = myLeaveRequests
+                .filter((r) => r.employeeId === employee.id && r.type === col.type && r.status === "pending")
+                .reduce((sum, r) => sum + r.days, 0);
+              const effectiveUsed = balance.used + pending;
+              const remaining = balance.total - effectiveUsed;
+              const pct = balance.total > 0 ? (effectiveUsed / balance.total) * 100 : 0;
               return (
                 <div key={col.type} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between gap-2 text-sm">

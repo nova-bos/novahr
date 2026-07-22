@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useScopedEmployees } from "@/lib/auth/scope";
+import { useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
 import { getInitials } from "@/lib/format";
 import type { LeaveType } from "@/lib/types";
 
@@ -29,7 +30,20 @@ const COLUMNS: { type: LeaveType; label: string }[] = [
 
 export function LeaveBalancesTable() {
   const employees = useScopedEmployees();
+  const leaveRequests = useScopedLeaveRequests();
   const active = employees.filter((e) => e.status !== "terminated");
+
+  // Pre-build a pending-days lookup keyed by "employeeId:type" so each cell
+  // can subtract pending without scanning the full request list each time.
+  const pendingMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    for (const r of leaveRequests) {
+      if (r.status !== "pending") continue;
+      const key = `${r.employeeId}:${r.type}`;
+      map.set(key, (map.get(key) ?? 0) + r.days);
+    }
+    return map;
+  }, [leaveRequests]);
 
   return (
     <Card>
@@ -78,16 +92,21 @@ export function LeaveBalancesTable() {
                 {COLUMNS.map((col) => {
                   const balance = employee.leaveBalances.find((b) => b.type === col.type);
                   if (!balance) return <TableCell key={col.type} />;
-                  const remaining = balance.total - balance.used;
+                  const pendingDays = pendingMap.get(`${employee.id}:${col.type}`) ?? 0;
+                  const effectiveUsed = balance.used + pendingDays;
+                  const remaining = balance.total - effectiveUsed;
                   const percentage =
-                    balance.total > 0 ? (balance.used / balance.total) * 100 : 0;
+                    balance.total > 0 ? (effectiveUsed / balance.total) * 100 : 0;
                   return (
                     <TableCell key={col.type}>
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between text-xs">
                           <span className="font-medium">{remaining} left</span>
                           <span className="text-muted-foreground">
-                            {balance.used}/{balance.total}
+                            {effectiveUsed}/{balance.total}
+                            {pendingDays > 0 && (
+                              <span className="ml-1 text-warning">({pendingDays} pending)</span>
+                            )}
                           </span>
                         </div>
                         <Progress value={percentage} className="h-1.5" />
