@@ -1,7 +1,9 @@
 "use server";
 
+import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole } from "@/lib/auth/require";
+import { prisma } from "@/lib/prisma";
 
 export interface TerminationInput {
   employeeId: string;
@@ -16,7 +18,13 @@ export async function terminateEmployeeAction(
   input: TerminationInput
 ): Promise<{ success: boolean; error?: string }> {
   const session = await requireRole("hr");
-  return runAsTenant(session.tenantId, async (tx) => {
+
+  const linkedUser = await prisma.user.findFirst({
+    where: { employeeId: input.employeeId, tenantId: session.tenantId },
+    select: { id: true },
+  });
+
+  await runAsTenant(session.tenantId, async (tx) => {
     const employee = await tx.employee.findFirstOrThrow({
       where: { id: input.employeeId, tenantId: session.tenantId },
       include: { leaveBalances: true },
@@ -79,6 +87,23 @@ export async function terminateEmployeeAction(
       },
     });
 
-    return { success: true };
+    // Revoke portal access if the employee had a user account
+    if (linkedUser) {
+      await tx.user.delete({ where: { id: linkedUser.id } });
+    }
   });
+
+  // Revoke Supabase auth after the transaction commits (best-effort)
+  if (linkedUser) {
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (serviceKey && supabaseUrl) {
+      const admin = createSupabaseAdminClient(supabaseUrl, serviceKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      await admin.auth.admin.deleteUser(linkedUser.id);
+    }
+  }
+
+  return { success: true };
 }

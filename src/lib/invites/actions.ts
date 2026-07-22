@@ -199,6 +199,48 @@ export async function revokeInviteAction(id: string): Promise<{ success: boolean
   return { success: true };
 }
 
+export async function removeUserAccessAction(
+  userId: string
+): Promise<{ success: boolean; error?: string }> {
+  const session = await requireRole("hr");
+
+  if (userId === session.id) return { success: false, error: "You cannot remove your own access." };
+
+  const existing = await prisma.user.findFirst({
+    where: { id: userId, tenantId: session.tenantId },
+  });
+  if (!existing) return { success: false, error: "User not found." };
+
+  await prisma.user.delete({ where: { id: userId } });
+
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (serviceKey && supabaseUrl) {
+    const admin = createSupabaseAdminClient(supabaseUrl, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    await admin.auth.admin.deleteUser(userId);
+  }
+
+  return { success: true };
+}
+
+export async function updateUserRoleAction(
+  userId: string,
+  role: UserRole
+): Promise<{ success: boolean; error?: string }> {
+  const session = await requireRole("hr");
+
+  if (userId === session.id) return { success: false, error: "You cannot change your own role." };
+
+  const updated = await runAsTenant(session.tenantId, (tx) =>
+    tx.user.updateMany({ where: { id: userId, tenantId: session.tenantId }, data: { role } })
+  );
+
+  if (updated.count === 0) return { success: false, error: "User not found." };
+  return { success: true };
+}
+
 export async function listTenantUsersAction(): Promise<TenantUserRow[]> {
   const session = await requireRole("hr");
   const rows = await prisma.user.findMany({

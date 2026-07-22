@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, ChevronsUpDown, Copy, Loader2, Mail, Plus, UserPlus, UserRound, X } from "lucide-react";
+import { Check, ChevronsUpDown, ChevronRight, Copy, Loader2, Mail, MoreHorizontal, Plus, UserPlus, UserRound, X } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -37,11 +37,24 @@ import {
   getInviteLinkAction,
   listInvitesAction,
   listTenantUsersAction,
+  removeUserAccessAction,
   revokeInviteAction,
+  updateUserRoleAction,
   type InviteRow,
   type TenantUserRow,
 } from "@/lib/invites/actions";
+import { useAuth } from "@/lib/auth/auth-provider";
 import { useApp } from "@/lib/store/app-provider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { Employee } from "@/lib/types";
 import type { UserRole } from "@/lib/auth/types";
@@ -480,9 +493,13 @@ function EmployeePicker({
 
 export function UserSettings() {
   const { state } = useApp();
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = React.useState<TenantUserRow[]>([]);
   const [invites, setInvites] = React.useState<InviteRow[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [removingUser, setRemovingUser] = React.useState<TenantUserRow | null>(null);
+  const [removeConfirming, setRemoveConfirming] = React.useState(false);
+  const [updatingRoleId, setUpdatingRoleId] = React.useState<string | null>(null);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [bulkDialogOpen, setBulkDialogOpen] = React.useState(false);
@@ -631,6 +648,44 @@ export function UserSettings() {
     void navigator.clipboard.writeText(link).then(() => toast.success("Invite link copied"));
   }
 
+  async function handleUpdateRole(userId: string, role: UserRole) {
+    setUpdatingRoleId(userId);
+    try {
+      const result = await updateUserRoleAction(userId, role);
+      if (result.error) {
+        toast.error("Couldn't update role", { description: result.error });
+      } else {
+        toast.success("Role updated");
+        await refresh();
+      }
+    } catch {
+      toast.error("Couldn't update role");
+    } finally {
+      setUpdatingRoleId(null);
+    }
+  }
+
+  async function handleRemoveAccess() {
+    if (!removingUser) return;
+    setRemoveConfirming(true);
+    try {
+      const result = await removeUserAccessAction(removingUser.id);
+      if (result.error) {
+        toast.error("Couldn't remove access", { description: result.error });
+      } else {
+        toast.success(`${removingUser.name}'s access has been removed`, {
+          description: "They can be re-invited at any time.",
+        });
+        setRemovingUser(null);
+        await refresh();
+      }
+    } catch {
+      toast.error("Couldn't remove access");
+    } finally {
+      setRemoveConfirming(false);
+    }
+  }
+
   const pendingInvites = invites.filter((i) => i.status === "pending");
 
   return (
@@ -673,22 +728,79 @@ export function UserSettings() {
           {loading ? (
             <div className="p-6 text-center text-sm text-muted-foreground">Loading users...</div>
           ) : (
-            users.map((user) => (
-              <div key={user.id} className="flex items-center gap-3 px-4 py-3">
-                <Avatar size="sm">
-                  <AvatarFallback className="text-white" style={{ backgroundColor: user.avatarColor }}>
-                    {user.initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{user.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+            users.map((user) => {
+              const isSelf = user.id === currentUser?.id;
+              const isUpdating = updatingRoleId === user.id;
+              return (
+                <div key={user.id} className="flex items-center gap-3 px-4 py-3">
+                  <Avatar size="sm">
+                    <AvatarFallback className="text-white" style={{ backgroundColor: user.avatarColor }}>
+                      {user.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {user.name}
+                      {isSelf && (
+                        <span className="ml-1.5 text-xs font-normal text-muted-foreground">(you)</span>
+                      )}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                  {isUpdating ? (
+                    <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
+                  ) : (
+                    <Badge variant="outline" className="shrink-0 font-normal">
+                      {ROLE_BADGE[user.role] ?? user.role}
+                    </Badge>
+                  )}
+                  {!isSelf && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="shrink-0 text-muted-foreground hover:text-foreground"
+                          aria-label={`Manage ${user.name}`}
+                          disabled={isUpdating}
+                        >
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            <ChevronRight className="size-3.5" />
+                            Change role
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent>
+                            {ROLE_OPTIONS.map((opt) => (
+                              <DropdownMenuItem
+                                key={opt.value}
+                                disabled={user.role === opt.value}
+                                onSelect={() => void handleUpdateRole(user.id, opt.value)}
+                              >
+                                {opt.label}
+                                {user.role === opt.value && (
+                                  <Check className="ml-auto size-3.5 text-primary" />
+                                )}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onSelect={() => setRemovingUser(user)}
+                        >
+                          Remove access
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
-                <Badge variant="outline" className="shrink-0 font-normal">
-                  {ROLE_BADGE[user.role] ?? user.role}
-                </Badge>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -783,6 +895,45 @@ export function UserSettings() {
         onOpenChange={setBulkDialogOpen}
         onDone={refresh}
       />
+
+      <Dialog open={!!removingUser} onOpenChange={(open) => { if (!open && !removeConfirming) setRemovingUser(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remove access?</DialogTitle>
+            <DialogDescription>
+              {removingUser ? (
+                <>
+                  <span className="font-medium text-foreground">{removingUser.name}</span> will immediately
+                  lose access to this workspace. Their employee record and payroll data are preserved.
+                  You can re-invite them at any time.
+                </>
+              ) : null}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={removeConfirming}
+              onClick={() => setRemovingUser(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={removeConfirming}
+              onClick={() => void handleRemoveAccess()}
+            >
+              {removeConfirming ? (
+                <><Loader2 className="size-4 animate-spin" /> Removing...</>
+              ) : (
+                "Remove access"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={dialogOpen}
