@@ -75,6 +75,13 @@ function sanitizeEmployee(employee: Employee): Employee {
     emergencyContact: { name: "", relationship: "", phone: "" },
     leaveBalances: [],
     onboarding: undefined,
+    // Employment-equity data is special personal information under POPIA and must
+    // not be sent to colleagues who cannot view this employee's full record.
+    equityRace: undefined,
+    equityGender: undefined,
+    occupationalLevel: undefined,
+    hasDisability: undefined,
+    foreignNational: undefined,
   };
 }
 
