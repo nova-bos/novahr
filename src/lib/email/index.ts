@@ -238,14 +238,19 @@ export async function sendInviteEmail(args: InviteEmailArgs): Promise<boolean> {
   `;
 
   try {
-    await client.emails.send({
+    const { error } = await client.emails.send({
       from: FROM,
       to: args.recipientEmail,
       subject: `${args.inviterName} invited you to join ${args.companyName} on NovaHR`,
       html: baseLayout(`Invitation to ${esc(args.companyName)}`, body),
     });
+    if (error) {
+      console.error("[email] sendInviteEmail rejected by Resend:", error);
+      return false;
+    }
     return true;
-  } catch {
+  } catch (err) {
+    console.error("[email] sendInviteEmail threw:", err);
     return false;
   }
 }

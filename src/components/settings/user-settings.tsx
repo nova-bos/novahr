@@ -279,12 +279,17 @@ export function UserSettings() {
         toast.error("Couldn't send invite", { description: result.error });
         return;
       }
-      if (result.emailSent) {
+      // Always show the invite URL so HR has a guaranteed fallback link.
+      // When email is configured the link is a backup; when it isn't, it's the primary.
+      if (result.inviteUrl) {
+        setManualLink(result.inviteUrl);
+        if (result.emailSent) {
+          toast.success("Invitation sent", { description: `Email sent to ${email.trim()}. Link also shown below as a backup.` });
+        }
+      } else if (result.emailSent) {
         toast.success("Invitation sent", { description: `${email.trim()} will receive an email link.` });
         setDialogOpen(false);
         resetDialog();
-      } else if (result.inviteUrl) {
-        setManualLink(result.inviteUrl);
       }
       await refresh();
     } finally {
@@ -465,11 +470,12 @@ export function UserSettings() {
 
             {manualLink ? (
               <div className="space-y-2 rounded-xl border border-border bg-muted/40 p-3">
+                <p className="text-xs font-medium">Invite link</p>
                 <p className="text-xs text-muted-foreground">
-                  Email sending is not configured. Share this link directly. It expires in 7 days.
+                  Share this link with {name || "the invitee"} directly. It expires in 7 days.
                 </p>
                 <div className="flex items-center gap-2">
-                  <Input readOnly value={manualLink} className="text-xs" />
+                  <Input readOnly value={manualLink} className="font-mono text-xs" />
                   <Button
                     type="button"
                     variant="outline"

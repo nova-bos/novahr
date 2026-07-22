@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { HelpCircle, LogOut, Settings, User } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { ROLE_LABELS } from "@/lib/auth/types";
-import { getNavItems } from "./nav-config";
 import { TenantSwitcher } from "./tenant-switcher";
 import { NotificationsMenu } from "./notifications-menu";
 import { SupportHub } from "./support-hub";
@@ -97,7 +96,6 @@ function MobileProfileMenu() {
 
 export function Topbar() {
   const { user } = useAuth();
-  const navItems = getNavItems(user);
   const canSwitchTenant = user?.role === "hr" || user?.role === "exco";
 
   return (
@@ -107,8 +105,8 @@ export function Topbar() {
         <LogoIcon size={28} />
       </Link>
 
-      {/* Search bar - takes remaining space on mobile, fixed width on desktop */}
-      <div className="flex-1 min-w-0 lg:flex-none">
+      {/* Search bar - flex-1 so right icons stay pinned to the right edge */}
+      <div className="flex-1 min-w-0">
         <CommandMenu />
       </div>
 
