@@ -45,6 +45,14 @@ export function StatCardGrid({
 
               {stat.sensitive ? (
                 <div className="flex shrink-0 flex-col items-end justify-between self-stretch gap-2">
+                  <div
+                    className={cn(
+                      "flex size-9 items-center justify-center rounded-lg",
+                      stat.iconClassName
+                    )}
+                  >
+                    <stat.icon className="size-4" />
+                  </div>
                   <button
                     type="button"
                     onClick={onToggle}
@@ -57,14 +65,6 @@ export function StatCardGrid({
                       <EyeOff className="size-4" />
                     )}
                   </button>
-                  <div
-                    className={cn(
-                      "flex size-9 items-center justify-center rounded-lg",
-                      stat.iconClassName
-                    )}
-                  >
-                    <stat.icon className="size-4" />
-                  </div>
                 </div>
               ) : (
                 <div
