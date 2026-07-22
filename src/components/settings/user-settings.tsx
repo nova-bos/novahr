@@ -575,6 +575,8 @@ export function UserSettings() {
   }
 
   const [copyingId, setCopyingId] = React.useState<string | null>(null);
+  const [selectedInviteIds, setSelectedInviteIds] = React.useState<Set<string>>(new Set());
+  const [bulkRevoking, setBulkRevoking] = React.useState(false);
 
   async function handleCopyLink(invite: InviteRow) {
     setCopyingId(invite.id);
@@ -598,10 +600,30 @@ export function UserSettings() {
   async function handleRevoke(invite: InviteRow) {
     try {
       await revokeInviteAction(invite.id);
+      setSelectedInviteIds((prev) => { const s = new Set(prev); s.delete(invite.id); return s; });
       toast.success("Invitation revoked");
       await refresh();
     } catch {
       toast.error("Couldn't revoke invitation");
+    }
+  }
+
+  async function handleBulkRevoke() {
+    if (!selectedInviteIds.size) return;
+    setBulkRevoking(true);
+    try {
+      await Promise.all([...selectedInviteIds].map((id) => revokeInviteAction(id)));
+      toast.success(
+        selectedInviteIds.size === 1
+          ? "Invitation revoked"
+          : `${selectedInviteIds.size} invitations revoked`
+      );
+      setSelectedInviteIds(new Set());
+      await refresh();
+    } catch {
+      toast.error("Couldn't revoke some invitations");
+    } finally {
+      setBulkRevoking(false);
     }
   }
 
@@ -672,10 +694,51 @@ export function UserSettings() {
 
         {pendingInvites.length > 0 ? (
           <div className="space-y-2">
-            <p className="text-sm font-medium">Pending invitations</p>
+            <div className="flex items-center gap-3">
+              <Checkbox
+                id="select-all-invites"
+                checked={
+                  pendingInvites.length > 0 &&
+                  pendingInvites.every((i) => selectedInviteIds.has(i.id))
+                }
+                onCheckedChange={(checked) => {
+                  setSelectedInviteIds(
+                    checked ? new Set(pendingInvites.map((i) => i.id)) : new Set()
+                  );
+                }}
+              />
+              <label htmlFor="select-all-invites" className="flex-1 cursor-pointer text-sm font-medium">
+                Pending invitations
+              </label>
+              {selectedInviteIds.size > 0 && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={bulkRevoking}
+                  onClick={() => void handleBulkRevoke()}
+                >
+                  {bulkRevoking ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <X className="size-3.5" />
+                  )}
+                  Revoke {selectedInviteIds.size === pendingInvites.length ? "all" : selectedInviteIds.size}
+                </Button>
+              )}
+            </div>
             <div className="flex flex-col divide-y divide-border rounded-xl border border-border">
               {pendingInvites.map((invite) => (
                 <div key={invite.id} className="flex items-center gap-3 px-4 py-3">
+                  <Checkbox
+                    checked={selectedInviteIds.has(invite.id)}
+                    onCheckedChange={(checked) => {
+                      setSelectedInviteIds((prev) => {
+                        const s = new Set(prev);
+                        checked ? s.add(invite.id) : s.delete(invite.id);
+                        return s;
+                      });
+                    }}
+                  />
                   <Mail className="size-4 shrink-0 text-muted-foreground" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{invite.name}</p>
