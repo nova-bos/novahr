@@ -3,7 +3,8 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, ChevronsUpDown, Copy, Mail, Plus, UserPlus, UserRound, X } from "lucide-react";
+import { Check, ChevronsUpDown, Copy, Loader2, Mail, Plus, UserPlus, UserRound, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -57,6 +58,243 @@ const ROLE_BADGE: Record<string, string> = {
   employee: "Employee",
   exco: "Executive",
 };
+
+type BulkRow = {
+  employee: Employee;
+  selected: boolean;
+  role: UserRole;
+  status: "idle" | "sending" | "sent" | "failed";
+};
+
+function BulkInviteDialog({
+  employees,
+  open,
+  onOpenChange,
+  onDone,
+}: {
+  employees: Employee[];
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onDone: () => Promise<void>;
+}) {
+  const [rows, setRows] = React.useState<BulkRow[]>([]);
+  const [sending, setSending] = React.useState(false);
+  const [finished, setFinished] = React.useState(false);
+
+  React.useEffect(() => {
+    if (open) {
+      setRows(
+        employees.map((e) => ({
+          employee: e,
+          selected: Boolean(e.email),
+          role: "employee" as UserRole,
+          status: "idle" as const,
+        }))
+      );
+      setSending(false);
+      setFinished(false);
+    }
+  }, [open, employees]);
+
+  const idleSelected = rows.filter((r) => r.selected && r.status === "idle");
+  const allSelected = rows.length > 0 && rows.every((r) => r.selected || !r.employee.email);
+  const sentCount = rows.filter((r) => r.status === "sent").length;
+  const failedCount = rows.filter((r) => r.status === "failed").length;
+
+  function toggleAll() {
+    const next = !allSelected;
+    setRows((prev) => prev.map((r) => ({ ...r, selected: r.employee.email ? next : false })));
+  }
+
+  function toggleRow(id: string) {
+    setRows((prev) => prev.map((r) => (r.employee.id === id ? { ...r, selected: !r.selected } : r)));
+  }
+
+  function setAllRoles(role: UserRole) {
+    setRows((prev) => prev.map((r) => (r.selected && r.status === "idle" ? { ...r, role } : r)));
+  }
+
+  function setRowRole(id: string, role: UserRole) {
+    setRows((prev) => prev.map((r) => (r.employee.id === id ? { ...r, role } : r)));
+  }
+
+  function updateStatus(id: string, status: BulkRow["status"]) {
+    setRows((prev) => prev.map((r) => (r.employee.id === id ? { ...r, status } : r)));
+  }
+
+  async function handleSend() {
+    if (!idleSelected.length) return;
+    setSending(true);
+    for (const row of idleSelected) {
+      updateStatus(row.employee.id, "sending");
+      try {
+        const result = await createInviteAction({
+          email: row.employee.email!,
+          name: `${row.employee.firstName} ${row.employee.lastName}`,
+          role: row.role,
+          employeeId: row.employee.id,
+        });
+        updateStatus(row.employee.id, result.error ? "failed" : "sent");
+      } catch {
+        updateStatus(row.employee.id, "failed");
+      }
+    }
+    setSending(false);
+    setFinished(true);
+    await onDone();
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => { if (!sending) onOpenChange(v); }}>
+      <DialogContent className="sm:max-w-xl" noInnerPad>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <DialogHeader className="shrink-0 border-b px-6 py-4">
+            <DialogTitle>Invite everyone</DialogTitle>
+            <DialogDescription>
+              {finished
+                ? `${sentCount} invitation${sentCount === 1 ? "" : "s"} sent${failedCount > 0 ? `, ${failedCount} failed — check those rows and retry` : "."}`
+                : `Send invitations to ${rows.filter((r) => r.employee.email).length} employees at once. Adjust roles before sending.`}
+            </DialogDescription>
+          </DialogHeader>
+
+          {!finished && (
+            <div className="shrink-0 flex flex-wrap items-center gap-3 border-b bg-muted/30 px-6 py-3">
+              <Checkbox
+                id="select-all-bulk"
+                checked={allSelected}
+                onCheckedChange={toggleAll}
+                disabled={sending}
+              />
+              <label
+                htmlFor="select-all-bulk"
+                className="flex-1 cursor-pointer text-sm font-medium"
+              >
+                {allSelected ? "Deselect all" : "Select all"}
+              </label>
+              <div className="flex items-center gap-2">
+                <span className="shrink-0 text-xs text-muted-foreground">Set selected to:</span>
+                <Select onValueChange={(v) => setAllRoles(v as UserRole)} disabled={sending}>
+                  <SelectTrigger className="h-7 w-32 text-xs">
+                    <SelectValue placeholder="Role..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {rows.map((row) => {
+              const noEmail = !row.employee.email;
+              const isActive = row.status === "idle";
+              return (
+                <div
+                  key={row.employee.id}
+                  className={cn(
+                    "flex items-center gap-3 border-b border-border/60 px-6 py-3 last:border-b-0",
+                    row.status === "sent" && "opacity-50",
+                    row.status === "failed" && "bg-destructive/5",
+                    noEmail && "opacity-40"
+                  )}
+                >
+                  <div className="flex size-4 shrink-0 items-center justify-center">
+                    {row.status === "sending" ? (
+                      <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                    ) : row.status === "sent" ? (
+                      <Check className="size-4 text-success" />
+                    ) : row.status === "failed" ? (
+                      <X className="size-4 text-destructive" />
+                    ) : (
+                      <Checkbox
+                        checked={row.selected}
+                        onCheckedChange={() => toggleRow(row.employee.id)}
+                        disabled={sending || noEmail || finished}
+                      />
+                    )}
+                  </div>
+
+                  <Avatar className="size-7 shrink-0">
+                    <AvatarFallback
+                      className="text-[10px] font-semibold text-white"
+                      style={{ backgroundColor: row.employee.avatarColor }}
+                    >
+                      {row.employee.initials}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">
+                      {row.employee.firstName} {row.employee.lastName}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {noEmail ? "No email on record" : row.employee.email}
+                    </p>
+                  </div>
+
+                  {isActive ? (
+                    <Select
+                      value={row.role}
+                      onValueChange={(v) => setRowRole(row.employee.id, v as UserRole)}
+                      disabled={!row.selected || sending || noEmail || finished}
+                    >
+                      <SelectTrigger className="h-7 w-28 shrink-0 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {ROLE_OPTIONS.find((r) => r.value === row.role)?.label}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="shrink-0 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 px-6 py-4 sm:flex-row sm:justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={sending}
+              onClick={() => onOpenChange(false)}
+            >
+              {finished ? "Close" : "Cancel"}
+            </Button>
+            {!finished && (
+              <Button
+                type="button"
+                disabled={sending || idleSelected.length === 0}
+                onClick={() => void handleSend()}
+              >
+                {sending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  `Send ${idleSelected.length} invitation${idleSelected.length === 1 ? "" : "s"}`
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 function groupByDepartment(employees: Employee[]): Record<string, Employee[]> {
   return employees.reduce<Record<string, Employee[]>>((acc, emp) => {
@@ -246,6 +484,7 @@ export function UserSettings() {
   const [loading, setLoading] = React.useState(true);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [bulkDialogOpen, setBulkDialogOpen] = React.useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [name, setName] = React.useState("");
@@ -364,10 +603,25 @@ export function UserSettings() {
               by email.
             </CardDescription>
           </div>
-          <Button size="sm" onClick={() => setDialogOpen(true)}>
-            <Plus />
-            Invite user
-          </Button>
+          <div className="flex items-center gap-2">
+            {invitableEmployees.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setBulkDialogOpen(true)}
+              >
+                <UserPlus />
+                Invite all
+                <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs font-medium">
+                  {invitableEmployees.length}
+                </Badge>
+              </Button>
+            )}
+            <Button size="sm" onClick={() => setDialogOpen(true)}>
+              <Plus />
+              Invite user
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -423,6 +677,13 @@ export function UserSettings() {
           </div>
         ) : null}
       </CardContent>
+
+      <BulkInviteDialog
+        employees={invitableEmployees}
+        open={bulkDialogOpen}
+        onOpenChange={setBulkDialogOpen}
+        onDone={refresh}
+      />
 
       <Dialog
         open={dialogOpen}
