@@ -1,8 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Copy, Mail, Plus, UserRound, X } from "lucide-react";
+import { Check, ChevronsUpDown, Copy, Mail, Plus, UserPlus, UserRound, X } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,7 +23,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label, OptionalTag } from "@/components/ui/label";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
@@ -39,6 +54,8 @@ import {
   type TenantUserRow,
 } from "@/lib/invites/actions";
 import { useApp } from "@/lib/store/app-provider";
+import { cn } from "@/lib/utils";
+import type { Employee } from "@/lib/types";
 import type { UserRole } from "@/lib/auth/types";
 
 const ROLE_OPTIONS: { value: UserRole; label: string; description: string }[] = [
@@ -55,6 +72,136 @@ const ROLE_BADGE: Record<string, string> = {
   exco: "Executive",
 };
 
+function groupByDepartment(employees: Employee[]): Record<string, Employee[]> {
+  return employees.reduce<Record<string, Employee[]>>((acc, emp) => {
+    const dept = emp.department || "Other";
+    if (!acc[dept]) acc[dept] = [];
+    acc[dept].push(emp);
+    return acc;
+  }, {});
+}
+
+function EmployeePicker({
+  employees,
+  value,
+  onChange,
+}: {
+  employees: Employee[];
+  value: string;
+  onChange: (emp: Employee | null) => void;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const selected = employees.find((e) => e.id === value);
+  const grouped = groupByDepartment(employees);
+  const departments = Object.keys(grouped).sort();
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between font-normal text-left"
+        >
+          {selected ? (
+            <span className="flex items-center gap-2 min-w-0">
+              <Avatar className="size-5 shrink-0">
+                <AvatarFallback
+                  className="text-[10px] font-semibold text-white"
+                  style={{ backgroundColor: selected.avatarColor }}
+                >
+                  {selected.initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="truncate">
+                {selected.firstName} {selected.lastName}
+                {selected.jobTitle ? <span className="text-muted-foreground"> · {selected.jobTitle}</span> : null}
+              </span>
+            </span>
+          ) : (
+            <span className="text-muted-foreground">Search employees...</span>
+          )}
+          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search by name or job title..." />
+          <CommandList>
+            <CommandEmpty>
+              <div className="flex flex-col items-center gap-3 py-4">
+                <p className="text-sm text-muted-foreground">No employee found.</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setOpen(false);
+                    router.push("/employees/new");
+                  }}
+                >
+                  <UserPlus className="size-3.5" />
+                  Add new employee
+                </Button>
+              </div>
+            </CommandEmpty>
+            {departments.map((dept, i) => (
+              <React.Fragment key={dept}>
+                {i > 0 && <CommandSeparator />}
+                <CommandGroup heading={dept}>
+                  {grouped[dept].map((emp) => (
+                    <CommandItem
+                      key={emp.id}
+                      value={`${emp.firstName} ${emp.lastName} ${emp.jobTitle} ${dept}`}
+                      onSelect={() => {
+                        onChange(emp.id === value ? null : emp);
+                        setOpen(false);
+                      }}
+                    >
+                      <Avatar className="size-5 shrink-0">
+                        <AvatarFallback
+                          className="text-[10px] font-semibold text-white"
+                          style={{ backgroundColor: emp.avatarColor }}
+                        >
+                          {emp.initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium">{emp.firstName} {emp.lastName}</span>
+                        {emp.jobTitle ? (
+                          <span className="ml-1 text-xs text-muted-foreground">{emp.jobTitle}</span>
+                        ) : null}
+                      </div>
+                      <Check
+                        className={cn("ml-auto size-3.5 shrink-0", emp.id === value ? "opacity-100" : "opacity-0")}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </React.Fragment>
+            ))}
+          </CommandList>
+          <div className="border-t p-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-2 text-muted-foreground"
+              onClick={() => {
+                setOpen(false);
+                router.push("/employees/new");
+              }}
+            >
+              <UserPlus className="size-3.5" />
+              Employee not in the list? Add them first
+            </Button>
+          </div>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function UserSettings() {
   const { state } = useApp();
   const [users, setUsers] = React.useState<TenantUserRow[]>([]);
@@ -62,10 +209,10 @@ export function UserSettings() {
   const [loading, setLoading] = React.useState(true);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [name, setName] = React.useState("");
   const [role, setRole] = React.useState<UserRole>("employee");
-  const [employeeId, setEmployeeId] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const [manualLink, setManualLink] = React.useState<string | null>(null);
 
@@ -73,7 +220,7 @@ export function UserSettings() {
     () => new Set(users.map((u) => u.employeeId).filter(Boolean)),
     [users]
   );
-  const unlinkableEmployees = React.useMemo(
+  const invitableEmployees = React.useMemo(
     () => state.employees.filter((e) => !linkedEmployeeIds.has(e.id) && e.status !== "terminated"),
     [state.employees, linkedEmployeeIds]
   );
@@ -97,6 +244,26 @@ export function UserSettings() {
     void refresh();
   }, [refresh]);
 
+  function handleEmployeeSelect(emp: Employee | null) {
+    if (!emp) {
+      setSelectedEmployeeId("");
+      setName("");
+      setEmail("");
+      return;
+    }
+    setSelectedEmployeeId(emp.id);
+    setName(`${emp.firstName} ${emp.lastName}`);
+    setEmail(emp.email ?? "");
+  }
+
+  function resetDialog() {
+    setSelectedEmployeeId("");
+    setName("");
+    setEmail("");
+    setRole("employee");
+    setManualLink(null);
+  }
+
   async function handleInvite(event: React.FormEvent) {
     event.preventDefault();
     setSending(true);
@@ -106,7 +273,7 @@ export function UserSettings() {
         email: email.trim(),
         name: name.trim(),
         role,
-        employeeId: (role === "employee" || role === "manager") && employeeId ? employeeId : undefined,
+        employeeId: selectedEmployeeId || undefined,
       });
       if (result.error) {
         toast.error("Couldn't send invite", { description: result.error });
@@ -115,12 +282,8 @@ export function UserSettings() {
       if (result.emailSent) {
         toast.success("Invitation sent", { description: `${email.trim()} will receive an email link.` });
         setDialogOpen(false);
-        setEmail("");
-        setName("");
-        setRole("employee");
-        setEmployeeId("");
+        resetDialog();
       } else if (result.inviteUrl) {
-        // Email isn't configured: keep the dialog open and let HR copy the link.
         setManualLink(result.inviteUrl);
       }
       await refresh();
@@ -223,13 +386,7 @@ export function UserSettings() {
         open={dialogOpen}
         onOpenChange={(open) => {
           setDialogOpen(open);
-          if (!open) {
-            setManualLink(null);
-            setEmail("");
-            setName("");
-            setRole("employee");
-            setEmployeeId("");
-          }
+          if (!open) resetDialog();
         }}
       >
         <DialogContent className="sm:max-w-md">
@@ -237,10 +394,25 @@ export function UserSettings() {
             <DialogHeader>
               <DialogTitle>Invite a user</DialogTitle>
               <DialogDescription>
-                They&apos;ll receive a secure link to set their password. Links expire after 7
-                days.
+                Select an employee to pre-fill their details, then confirm the role and email.
+                Links expire after 7 days.
               </DialogDescription>
             </DialogHeader>
+
+            {/* Step 1: employee picker */}
+            <div className="space-y-1.5">
+              <Label>Employee</Label>
+              <EmployeePicker
+                employees={invitableEmployees}
+                value={selectedEmployeeId}
+                onChange={handleEmployeeSelect}
+              />
+              <p className="text-xs text-muted-foreground">
+                Only active, unlinked employees are shown.
+              </p>
+            </div>
+
+            {/* Step 2: name (pre-filled, editable) */}
             <div className="space-y-1.5">
               <Label htmlFor="invite-name">Full name</Label>
               <Input
@@ -252,6 +424,8 @@ export function UserSettings() {
                 required
               />
             </div>
+
+            {/* Step 3: email (pre-filled from employee record, editable) */}
             <div className="space-y-1.5">
               <Label htmlFor="invite-email">Email</Label>
               <Input
@@ -259,10 +433,17 @@ export function UserSettings() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. john.smith@company.co.za"
+                placeholder="e.g. sipho@company.co.za"
                 required
               />
+              {selectedEmployeeId && (
+                <p className="text-xs text-muted-foreground">
+                  Pre-filled from the employee record. Change it to use a different address.
+                </p>
+              )}
             </div>
+
+            {/* Step 4: role */}
             <div className="space-y-1.5">
               <Label htmlFor="invite-role">Role</Label>
               <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
@@ -282,34 +463,10 @@ export function UserSettings() {
               </Select>
             </div>
 
-            {(role === "employee" || role === "manager") && unlinkableEmployees.length > 0 ? (
-              <div className="space-y-1.5">
-                <Label htmlFor="invite-employee">Link to employee record <OptionalTag /></Label>
-                <Select value={employeeId || "none"} onValueChange={(v) => setEmployeeId(v === "none" ? "" : v)}>
-                  <SelectTrigger id="invite-employee" className="w-full">
-                    <SelectValue placeholder="Select employee" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Not linked</SelectItem>
-                    {unlinkableEmployees.map((emp) => (
-                      <SelectItem key={emp.id} value={emp.id}>
-                        {emp.firstName} {emp.lastName}
-                        {emp.jobTitle ? `, ${emp.jobTitle}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Linking lets this user see their own profile and payslips. Only unlinked active employees are shown.
-                </p>
-              </div>
-            ) : null}
-
             {manualLink ? (
               <div className="space-y-2 rounded-xl border border-border bg-muted/40 p-3">
                 <p className="text-xs text-muted-foreground">
-                  Email sending isn&apos;t configured, so share this link with them directly. It
-                  expires in 7 days.
+                  Email sending is not configured. Share this link directly. It expires in 7 days.
                 </p>
                 <div className="flex items-center gap-2">
                   <Input readOnly value={manualLink} className="text-xs" />
