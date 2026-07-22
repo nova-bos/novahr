@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import {
   createInviteAction,
+  getInviteLinkAction,
   listInvitesAction,
   listTenantUsersAction,
   revokeInviteAction,
@@ -573,6 +574,27 @@ export function UserSettings() {
     }
   }
 
+  const [copyingId, setCopyingId] = React.useState<string | null>(null);
+
+  async function handleCopyLink(invite: InviteRow) {
+    setCopyingId(invite.id);
+    try {
+      const result = await getInviteLinkAction(invite.id);
+      if (result.error || !result.inviteUrl) {
+        toast.error("Couldn't get invite link", { description: result.error });
+        return;
+      }
+      await navigator.clipboard.writeText(result.inviteUrl);
+      toast.success("Invite link copied", {
+        description: `Share this link with ${invite.name} directly.`,
+      });
+    } catch {
+      toast.error("Couldn't copy link");
+    } finally {
+      setCopyingId(null);
+    }
+  }
+
   async function handleRevoke(invite: InviteRow) {
     try {
       await revokeInviteAction(invite.id);
@@ -662,6 +684,20 @@ export function UserSettings() {
                   <Badge variant="outline" className="shrink-0 font-normal">
                     {ROLE_BADGE[invite.role] ?? invite.role}
                   </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="text-muted-foreground hover:text-foreground"
+                    aria-label={`Copy invite link for ${invite.name}`}
+                    disabled={copyingId === invite.id}
+                    onClick={() => void handleCopyLink(invite)}
+                  >
+                    {copyingId === invite.id ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Copy className="size-3.5" />
+                    )}
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon-sm"

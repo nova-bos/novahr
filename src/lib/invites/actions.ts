@@ -160,6 +160,33 @@ export async function listInvitesAction(): Promise<InviteRow[]> {
   return rows.map(mapInvite);
 }
 
+/**
+ * Regenerates the invite link for an existing pending invite and returns the
+ * new URL. The old token is invalidated. Used when HR needs to copy the link
+ * manually because email delivery is unavailable.
+ */
+export async function getInviteLinkAction(
+  id: string
+): Promise<{ inviteUrl?: string; error?: string }> {
+  const session = await requireRole("hr");
+
+  const token = randomBytes(32).toString("base64url");
+  const tokenHash = hashToken(token);
+  const expiresAt = new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000);
+
+  const updated = await runAsTenant(session.tenantId, (tx) =>
+    tx.invite.updateMany({
+      where: { id, tenantId: session.tenantId, status: "pending" },
+      data: { tokenHash, expiresAt },
+    })
+  );
+
+  if (updated.count === 0) return { error: "Invite not found or already used." };
+
+  const appUrl = await getAppUrl();
+  return { inviteUrl: `${appUrl}/accept-invite/${token}` };
+}
+
 export async function revokeInviteAction(id: string): Promise<{ success: boolean }> {
   const session = await requireRole("hr");
   const revoked = await runAsTenant(session.tenantId, (tx) =>
