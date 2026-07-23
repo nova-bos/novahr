@@ -107,15 +107,14 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   async function handleBulkDownload() {
     setBulkDownloading(true);
     try {
-      const [{ pdf }, { PayslipDocument }, JSZip, { resolveLogoDataUrl }] = await Promise.all([
+      const [{ pdf }, { PayslipDocument }, JSZip] = await Promise.all([
         import("@react-pdf/renderer"),
         import("@/lib/payroll/pdf"),
         import("jszip").then((m) => m.default),
-        import("@/lib/payroll/logo"),
       ]);
       const zip = new JSZip();
       const settings = await getPayslipSettingsAction(tenantId);
-      const logoSrc = await resolveLogoDataUrl(settings.logoUrl);
+      const logoSrc = settings.logoDataUrl ?? undefined;
       const { computePayslipYtd } = await import("@/lib/payroll/ytd");
       for (let i = 0; i < payslips.length; i++) {
         const ps = payslips[i];

@@ -211,9 +211,30 @@ export async function updateStatutoryReferencesAction(
   }
 }
 
+/**
+ * Fetches an image URL server-side and returns it as a base64 data URL. Done on
+ * the server because @react-pdf/renderer's browser image loader (and a browser
+ * fetch) fail on the storage URL's CORS, so the logo never embedded in the PDF.
+ */
+async function fetchLogoDataUrl(url: string | null | undefined): Promise<string | null> {
+  if (!url) return null;
+  if (url.startsWith("data:")) return url;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const contentType = res.headers.get("content-type") || "image/png";
+    return `data:${contentType};base64,${buffer.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 export interface PayslipSettingsResult {
   template: string;
   logoUrl: string | null;
+  /** The logo pre-fetched as a base64 data URL, ready for PDF embedding. */
+  logoDataUrl: string | null;
   logoAlignment: "left" | "center" | "right";
   companyName: string | null;
   accentColor: string;
@@ -229,12 +250,15 @@ export interface PayslipSettingsResult {
 export async function getPayslipSettingsAction(
   tenantId: string
 ): Promise<PayslipSettingsResult> {
-  await requireTenant(tenantId, "hr");
+  // Any tenant member may read the payslip display settings: employees generate
+  // their own payslip PDF, which needs the tenant's template, logo and branding.
+  await requireTenant(tenantId);
   return runAsTenant(tenantId, async (tx) => {
     const s = await tx.payrollSettings.findUnique({ where: { tenantId } });
     return {
       template: s?.payslipTemplate ?? "classic",
       logoUrl: s?.payslipLogoUrl ?? null,
+      logoDataUrl: await fetchLogoDataUrl(s?.payslipLogoUrl),
       logoAlignment: (s?.payslipLogoAlignment ?? "left") as "left" | "center" | "right",
       companyName: s?.payslipCompanyName ?? null,
       accentColor: s?.payslipAccentColor ?? "#6366f1",

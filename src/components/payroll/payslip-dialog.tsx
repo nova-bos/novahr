@@ -26,7 +26,7 @@ async function downloadPayslipPdf(
   companyName: string,
   settings: {
     template: string;
-    logoUrl: string | null;
+    logoDataUrl: string | null;
     logoAlignment: "left" | "center" | "right";
     accentColor: string;
     footerNote: string | null;
@@ -40,18 +40,16 @@ async function downloadPayslipPdf(
     ytd?: PayslipYtd;
   }
 ): Promise<void> {
-  const [{ pdf }, { PayslipDocument }, { resolveLogoDataUrl }] = await Promise.all([
+  const [{ pdf }, { PayslipDocument }] = await Promise.all([
     import("@react-pdf/renderer"),
     import("@/lib/payroll/pdf"),
-    import("@/lib/payroll/logo"),
   ]);
-  const logoSrc = await resolveLogoDataUrl(settings.logoUrl);
   const blob = await pdf(
     <PayslipDocument
       employee={employee}
       payslip={payslip}
       companyName={companyName}
-      logoUrl={logoSrc}
+      logoUrl={settings.logoDataUrl ?? undefined}
       logoAlignment={settings.logoAlignment}
       accentColor={settings.accentColor}
       template={settings.template}
@@ -93,10 +91,12 @@ export function PayslipDialog({
   const [payslipSettings, setPayslipSettings] = React.useState<PayslipSettingsResult | null>(null);
 
   React.useEffect(() => {
-    if (open && !payslipSettings) {
+    // Re-fetch each time the dialog opens so a template/branding change made in
+    // Settings is reflected without a full reload.
+    if (open) {
       getPayslipSettingsAction(tenant.id).then(setPayslipSettings).catch(() => {});
     }
-  }, [open, tenant.id, payslipSettings]);
+  }, [open, tenant.id]);
 
   if (!payslip) return null;
 
@@ -107,6 +107,7 @@ export function PayslipDialog({
       const settings: PayslipSettingsResult = payslipSettings ?? {
         template: "classic",
         logoUrl: null,
+        logoDataUrl: null,
         logoAlignment: "left",
         accentColor: "#6366f1",
         footerNote: null,
@@ -123,7 +124,7 @@ export function PayslipDialog({
         : undefined;
       await downloadPayslipPdf(employee, payslip, settings.companyName ?? tenant.name, {
         template: settings.template,
-        logoUrl: settings.logoUrl,
+        logoDataUrl: settings.logoDataUrl,
         logoAlignment: settings.logoAlignment,
         accentColor: settings.accentColor,
         footerNote: settings.footerNote,
