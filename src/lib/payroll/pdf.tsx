@@ -55,6 +55,16 @@ function taxYearLabel(period: string): string {
   return `${start}/${String((start + 1) % 100).padStart(2, "0")}`;
 }
 
+// Plain-language explanation of how PAYE was derived, shown on every template.
+// Returns null for payslips generated before the tax basis was captured.
+function payeNoteText(payslip: Payslip): string | null {
+  if (payslip.taxableIncomeAnnual == null) return null;
+  const rebate = payslip.taxRebateAnnual
+    ? `, less a tax rebate of ${formatCurrency(payslip.taxRebateAnnual)}`
+    : "";
+  return `How your PAYE was calculated: the SARS ${taxYearLabel(payslip.period)} tax tables were applied to an annual taxable income of ${formatCurrency(payslip.taxableIncomeAnnual)}${rebate}, then apportioned to this pay period.`;
+}
+
 // Leave balances worth surfacing on a payslip, in display order.
 const PAYSLIP_LEAVE_TYPES = ["annual", "sick", "family"] as const;
 
@@ -116,6 +126,7 @@ function ClassicPayslipDocument(props: PayslipDocumentProps) {
     netLabel: { fontSize: 11, fontFamily: "Helvetica-Bold", textTransform: "uppercase", letterSpacing: 1 },
     netYtd: { fontSize: 7.5, color: "#666", marginTop: 3 },
     netValue: { fontSize: 16, fontFamily: "Helvetica-Bold", color: accentColor },
+    payeNote: { fontSize: 7.5, color: "#666", marginBottom: 20, lineHeight: 1.4 },
     footer: { position: "absolute", bottom: 26, left: 46, right: 46, textAlign: "center", fontSize: 7, color: "#999", borderTopWidth: 0.5, borderTopColor: "#e0e0e0", paddingTop: 8 },
   });
 
@@ -199,6 +210,8 @@ function ClassicPayslipDocument(props: PayslipDocumentProps) {
           <Text style={s.netValue}>{formatCurrency(payslip.netPay)}</Text>
         </View>
 
+        {payeNoteText(payslip) ? <Text style={s.payeNote}>{payeNoteText(payslip)}</Text> : null}
+
         {showBanking ? (
           <View style={s.section}>
             <Text style={s.sectionTitle}>Banking details</Text>
@@ -265,6 +278,7 @@ function ModernPayslipDocument(props: PayslipDocumentProps) {
     netLabel: { fontSize: 11, fontFamily: "Helvetica-Bold", color: "#fff" },
     netSub: { fontSize: 7.5, color: "rgba(255,255,255,0.8)", marginTop: 2 },
     netValue: { fontSize: 20, fontFamily: "Helvetica-Bold", color: "#fff" },
+    payeNote: { fontSize: 7.5, color: "#6b6b6b", marginTop: 14, lineHeight: 1.4 },
     bankWrap: { marginTop: 18 },
     footer: { position: "absolute", bottom: 24, left: 40, right: 40, textAlign: "center", fontSize: 7, color: "#aaa", paddingTop: 8 },
   });
@@ -336,6 +350,8 @@ function ModernPayslipDocument(props: PayslipDocumentProps) {
             </View>
             <Text style={s.netValue}>{formatCurrency(payslip.netPay)}</Text>
           </View>
+
+          {payeNoteText(payslip) ? <Text style={s.payeNote}>{payeNoteText(payslip)}</Text> : null}
 
           {showBanking ? (
             <View style={s.bankWrap}>
@@ -415,8 +431,9 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
     idLabel: { fontSize: 6.5, color: "#888", textTransform: "uppercase", letterSpacing: 0.4 },
     idValue: { fontSize: 8.5, fontFamily: "Helvetica-Bold", marginTop: 1 },
     twoCol: { flexDirection: "row", gap: 14 },
+    blockGap: { marginBottom: 18 },
     col: { flex: 1 },
-    sectionTitle: { fontSize: 7.5, fontFamily: "Helvetica-Bold", textTransform: "uppercase", letterSpacing: 0.6, color: "#444", marginBottom: 5 },
+    sectionTitle: { fontSize: 7.5, fontFamily: "Helvetica-Bold", textTransform: "uppercase", letterSpacing: 0.6, color: "#444", marginBottom: 6 },
     tHead: { flexDirection: "row", backgroundColor: "#ececef", paddingVertical: 3.5, paddingHorizontal: 5, borderWidth: 0.5, borderColor: "#ccc" },
     tHeadCell: { flex: 2, fontSize: 6.5, fontFamily: "Helvetica-Bold", color: "#333" },
     tHeadCellR: { flex: 1, fontSize: 6.5, fontFamily: "Helvetica-Bold", color: "#333", textAlign: "right" },
@@ -431,7 +448,7 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
     netLabel: { fontSize: 10, fontFamily: "Helvetica-Bold" },
     netSub: { fontSize: 7, color: "#6b6b6b", marginTop: 1 },
     netValue: { fontSize: 16, fontFamily: "Helvetica-Bold", color: accentColor },
-    payeNote: { fontSize: 7, color: "#6b6b6b", marginTop: -8, marginBottom: 14, lineHeight: 1.4 },
+    payeNote: { fontSize: 7, color: "#6b6b6b", marginTop: -4, marginBottom: 16, lineHeight: 1.4 },
     footer: { position: "absolute", bottom: 26, left: 40, right: 40, textAlign: "center", fontSize: 6.5, color: "#999", borderTopWidth: 0.5, borderTopColor: "#e0e0e0", paddingTop: 7 },
   });
 
@@ -508,14 +525,9 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
             <Text style={s.netValue}>{formatCurrency(payslip.netPay)}</Text>
           </View>
 
-          {payslip.taxableIncomeAnnual != null ? (
-            <Text style={s.payeNote}>
-              How your PAYE was calculated: the SARS {taxYearLabel(payslip.period)} tax tables were applied to an annual taxable income of {formatCurrency(payslip.taxableIncomeAnnual)}
-              {payslip.taxRebateAnnual ? `, less a tax rebate of ${formatCurrency(payslip.taxRebateAnnual)}` : ""}, then apportioned to this pay period.
-            </Text>
-          ) : null}
+          {payeNoteText(payslip) ? <Text style={s.payeNote}>{payeNoteText(payslip)}</Text> : null}
 
-          <View style={s.twoCol}>
+          <View style={[s.twoCol, s.blockGap]}>
             <View style={s.col}>
               <Text style={s.sectionTitle}>Employer contributions</Text>
               <View style={s.tHead}><Text style={s.tHeadCell}>Description</Text><Text style={s.tHeadCellR}>Month</Text>{withYtd ? <Text style={s.tHeadCellR}>YTD</Text> : null}</View>
@@ -537,7 +549,7 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
           </View>
 
           {benefits.length > 0 || closingBalances.length > 0 ? (
-            <View style={s.twoCol}>
+            <View style={[s.twoCol, s.blockGap]}>
               <View style={s.col}>
                 {benefits.length > 0 ? (
                   <>
@@ -633,6 +645,7 @@ function BrandedPayslipDocument(props: PayslipDocumentProps) {
     metaItem: { alignItems: "center" },
     metaLabel: { fontSize: 6.5, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5 },
     metaValue: { fontSize: 9, fontFamily: "Helvetica-Bold", marginTop: 1 },
+    payeNote: { fontSize: 7.5, color: "#6b6b6b", textAlign: "center", marginTop: 4, marginBottom: 4, lineHeight: 1.4 },
     footer: { position: "absolute", bottom: 24, left: 44, right: 44, textAlign: "center", fontSize: 7.5, color: accentColor, paddingTop: 8 },
   });
 
@@ -688,6 +701,8 @@ function BrandedPayslipDocument(props: PayslipDocumentProps) {
               <View style={s.row}><Text style={s.label}>Account number</Text><Text style={s.amt}>{maskAccount(employee.bankDetails.accountNumber)}</Text></View>
             </View>
           ) : null}
+
+          {payeNoteText(payslip) ? <Text style={s.payeNote}>{payeNoteText(payslip)}</Text> : null}
         </View>
 
         <Text style={s.footer}>
