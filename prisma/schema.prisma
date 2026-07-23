@@ -398,6 +398,9 @@ model Payslip {
   employerBenefits Json?
   /// Snapshot JSON array of { label, balance } of outstanding loan/garnishee balances.
   closingBalances Json?
+  /// PAYE basis for transparency: annual taxable income and annual rebate applied.
+  taxableIncomeAnnual Decimal? @db.Decimal(15, 2)
+  taxRebateAnnual     Decimal? @db.Decimal(15, 2)
   payrollItems    PayrollItem[]
 
   @@index([tenantId])

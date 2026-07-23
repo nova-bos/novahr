@@ -444,6 +444,9 @@ describe("buildPayslip", () => {
     expect(b.employerSdl).toBeCloseTo(669.85, 2);
     expect(b.netPay).toBeCloseTo(48_762.65, 2);
     expect(b.employerBenefits).toEqual([{ label: "Income Protection Policy", amount: 585, taxable: true }]);
+    // PAYE basis exposed for the transparency note: (66,400 + 585) * 12.
+    expect(b.taxableIncomeAnnual).toBe(803_820);
+    expect(b.taxRebateAnnual).toBe(17_820);
   });
 
   it("ignores a non-taxable employer benefit for PAYE and SDL", () => {

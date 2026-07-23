@@ -194,6 +194,11 @@ export interface Payslip {
   // Outstanding balances (e.g. employer loans, garnishees) remaining after this
   // run's instalment, snapshotted so the payslip shows a closing balance.
   closingBalances?: { label: string; balance: number }[];
+  // Basis for the PAYE figure, surfaced so employees can see how their tax was
+  // derived: the annual taxable income the SARS tables were applied to, and the
+  // annual rebate subtracted.
+  taxableIncomeAnnual?: number;
+  taxRebateAnnual?: number;
 }
 
 export interface PayrollRun {

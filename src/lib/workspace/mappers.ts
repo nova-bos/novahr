@@ -206,6 +206,8 @@ export function mapPayslip(row: PrismaPayslip): Payslip {
     employerBenefits: (row.employerBenefits as unknown as EmployerBenefit[] | null) ?? undefined,
     closingBalances:
       (row.closingBalances as unknown as { label: string; balance: number }[] | null) ?? undefined,
+    taxableIncomeAnnual: row.taxableIncomeAnnual != null ? decToNumber(row.taxableIncomeAnnual) : undefined,
+    taxRebateAnnual: row.taxRebateAnnual != null ? decToNumber(row.taxRebateAnnual) : undefined,
   };
 }
 

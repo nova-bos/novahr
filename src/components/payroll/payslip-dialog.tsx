@@ -40,16 +40,18 @@ async function downloadPayslipPdf(
     ytd?: PayslipYtd;
   }
 ): Promise<void> {
-  const [{ pdf }, { PayslipDocument }] = await Promise.all([
+  const [{ pdf }, { PayslipDocument }, { resolveLogoDataUrl }] = await Promise.all([
     import("@react-pdf/renderer"),
     import("@/lib/payroll/pdf"),
+    import("@/lib/payroll/logo"),
   ]);
+  const logoSrc = await resolveLogoDataUrl(settings.logoUrl);
   const blob = await pdf(
     <PayslipDocument
       employee={employee}
       payslip={payslip}
       companyName={companyName}
-      logoUrl={settings.logoUrl ?? undefined}
+      logoUrl={logoSrc}
       logoAlignment={settings.logoAlignment}
       accentColor={settings.accentColor}
       template={settings.template}

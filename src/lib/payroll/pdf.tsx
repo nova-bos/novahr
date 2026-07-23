@@ -48,6 +48,13 @@ function textAlignFor(a: LogoAlignment): "left" | "center" | "right" {
   return a;
 }
 
+// SARS tax year label for a "YYYY-MM" period (tax year starts in March).
+function taxYearLabel(period: string): string {
+  const [y, m] = period.split("-").map(Number);
+  const start = m >= 3 ? y : y - 1;
+  return `${start}/${String((start + 1) % 100).padStart(2, "0")}`;
+}
+
 // Leave balances worth surfacing on a payslip, in display order.
 const PAYSLIP_LEAVE_TYPES = ["annual", "sick", "family"] as const;
 
@@ -424,6 +431,7 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
     netLabel: { fontSize: 10, fontFamily: "Helvetica-Bold" },
     netSub: { fontSize: 7, color: "#6b6b6b", marginTop: 1 },
     netValue: { fontSize: 16, fontFamily: "Helvetica-Bold", color: accentColor },
+    payeNote: { fontSize: 7, color: "#6b6b6b", marginTop: -8, marginBottom: 14, lineHeight: 1.4 },
     footer: { position: "absolute", bottom: 26, left: 40, right: 40, textAlign: "center", fontSize: 6.5, color: "#999", borderTopWidth: 0.5, borderTopColor: "#e0e0e0", paddingTop: 7 },
   });
 
@@ -499,6 +507,13 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
             </View>
             <Text style={s.netValue}>{formatCurrency(payslip.netPay)}</Text>
           </View>
+
+          {payslip.taxableIncomeAnnual != null ? (
+            <Text style={s.payeNote}>
+              How your PAYE was calculated: the SARS {taxYearLabel(payslip.period)} tax tables were applied to an annual taxable income of {formatCurrency(payslip.taxableIncomeAnnual)}
+              {payslip.taxRebateAnnual ? `, less a tax rebate of ${formatCurrency(payslip.taxRebateAnnual)}` : ""}, then apportioned to this pay period.
+            </Text>
+          ) : null}
 
           <View style={s.twoCol}>
             <View style={s.col}>

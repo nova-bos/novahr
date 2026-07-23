@@ -108,13 +108,15 @@ export function SubmitNetcashCta() {
     if (!run || payslips.length === 0) return;
     setBulkDownloading(true);
     try {
-      const [{ pdf }, { PayslipDocument }, JSZip] = await Promise.all([
+      const [{ pdf }, { PayslipDocument }, JSZip, { resolveLogoDataUrl }] = await Promise.all([
         import("@react-pdf/renderer"),
         import("@/lib/payroll/pdf"),
         import("jszip").then((m) => m.default),
+        import("@/lib/payroll/logo"),
       ]);
       const zip = new JSZip();
       const settings = await getPayslipSettingsAction(tenantId);
+      const logoSrc = await resolveLogoDataUrl(settings.logoUrl);
       const { computePayslipYtd } = await import("@/lib/payroll/ytd");
       for (const ps of payslips) {
         const emp = employees.find((e) => e.id === ps.employeeId);
@@ -127,7 +129,7 @@ export function SubmitNetcashCta() {
             employee={emp}
             payslip={ps}
             companyName={settings.companyName ?? tenant.name}
-            logoUrl={settings.logoUrl ?? undefined}
+            logoUrl={logoSrc}
             logoAlignment={settings.logoAlignment}
             accentColor={settings.accentColor}
             template={settings.template}

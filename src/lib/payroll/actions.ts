@@ -266,6 +266,8 @@ export async function completePayrollRunRecord(
           closingBalances: p.closingBalances
             ? (p.closingBalances as unknown as Prisma.InputJsonValue)
             : undefined,
+          taxableIncomeAnnual: p.taxableIncomeAnnual,
+          taxRebateAnnual: p.taxRebateAnnual,
         })),
       });
 

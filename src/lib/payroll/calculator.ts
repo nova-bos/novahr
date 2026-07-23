@@ -103,6 +103,10 @@ export interface PayrollBreakdown {
   employerUif: number;
   employerSdl: number;
   employerBenefits: EmployerBenefit[];
+  /** Annual taxable income the PAYE tables were applied to. */
+  taxableIncomeAnnual: number;
+  /** Annual tax rebate (age-based) subtracted before arriving at PAYE. */
+  taxRebateAnnual: number;
 }
 
 export interface PayrollOptions {
@@ -188,6 +192,8 @@ export function calculateMonthlyPayroll(
     : new Decimal(0);
 
   const annualTaxable = annualRemuneration.minus(pensionS11fDeduction).toDecimalPlaces(0);
+  // Exposed so payslips can show employees how their PAYE was derived.
+  const taxRebateAnnual = totalRebate(employee.dateOfBirth);
 
   // PAYE after bracket tax, rebates, and Medical Aid Tax Credit
   const annualPAYE = annualPaye(annualTaxable, employee.dateOfBirth);
@@ -261,6 +267,8 @@ export function calculateMonthlyPayroll(
     employerUif: employerUif.toNumber(),
     employerSdl: employerSdl.toNumber(),
     employerBenefits: benefits,
+    taxableIncomeAnnual: annualTaxable.toNumber(),
+    taxRebateAnnual: taxRebateAnnual.toNumber(),
   };
 }
 

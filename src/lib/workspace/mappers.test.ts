@@ -325,6 +325,8 @@ describe("mapPayslip", () => {
       employerSdl: new Prisma.Decimal(530),
       employerBenefits: null,
       closingBalances: null,
+      taxableIncomeAnnual: null,
+      taxRebateAnnual: null,
     };
 
     expect(mapPayslip(row)).toEqual({
