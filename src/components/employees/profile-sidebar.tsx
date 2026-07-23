@@ -93,18 +93,26 @@ export function ProfileSidebar({ employee }: { employee: Employee }) {
             <CardTitle>Annual leave</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                {annualLeave.total - annualLeave.used - annualPendingDays} {plural(annualLeave.total - annualLeave.used - annualPendingDays, "day")} remaining
-              </span>
-              <span className="font-medium">
-                {annualLeave.used + annualPendingDays}/{annualLeave.total}
-              </span>
-            </div>
-            <Progress
-              value={((annualLeave.used + annualPendingDays) / annualLeave.total) * 100}
-              className="mt-3"
-            />
+            {(() => {
+              const entitlement = annualLeave.accrued ?? annualLeave.total;
+              const remaining = entitlement - annualLeave.used - annualPendingDays;
+              return (
+                <>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className={remaining < 0 ? "text-destructive" : "text-muted-foreground"}>
+                      {remaining} {plural(remaining, "day")} remaining
+                    </span>
+                    <span className="font-medium">
+                      {annualLeave.used + annualPendingDays}/{entitlement}
+                    </span>
+                  </div>
+                  <Progress
+                    value={entitlement > 0 ? Math.min(100, ((annualLeave.used + annualPendingDays) / entitlement) * 100) : 0}
+                    className="mt-3"
+                  />
+                </>
+              );
+            })()}
             <p className="mt-2 text-xs text-muted-foreground">
               {annualLeave.used} approved
               {annualPendingDays > 0 ? ` · ${annualPendingDays} pending` : ""}

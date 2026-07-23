@@ -124,12 +124,15 @@ export function NewLeaveRequestDialog() {
     }
     return map;
   }, [employeeId, leaveRequests]);
-  const available = balance ? balance.total - balance.used - pendingDays : 0;
+  // Entitlement earned to date (accrual) or the full total (upfront); see the
+  // server-computed `accrued` on the balance.
+  const entitlement = balance ? balance.accrued ?? balance.total : 0;
+  const available = balance ? entitlement - balance.used - pendingDays : 0;
   const remainingAfter = available - requestedDays;
   const isOverLimit = Boolean(balance) && daySelections.length > 0 && remainingAfter < 0;
   const usagePct =
-    balance && balance.total > 0
-      ? Math.min(100, ((balance.used + pendingDays + requestedDays) / balance.total) * 100)
+    balance && entitlement > 0
+      ? Math.min(100, ((balance.used + pendingDays + requestedDays) / entitlement) * 100)
       : 0;
 
   async function handleSubmit(event: React.FormEvent) {

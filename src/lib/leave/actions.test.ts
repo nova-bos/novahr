@@ -250,15 +250,31 @@ describe("decideLeaveRequestRecord", () => {
     });
   });
 
-  it("blocks approval that would exceed the leave entitlement", async () => {
-    mockPrisma.leaveRequest.findFirstOrThrow.mockResolvedValueOnce(makeLeaveRequestRow({ status: "pending", days: 5 }));
+  it("allows approval beyond the entitlement (negative balance), without blocking", async () => {
+    // The hard cap was removed: a reviewer may advance leave past the balance,
+    // which the UI surfaces as a negative. Here 16 of 18 used, approving 5 more.
+    mockPrisma.leaveRequest.findFirstOrThrow
+      .mockResolvedValueOnce(makeLeaveRequestRow({ status: "pending", days: 5 }))
+      .mockResolvedValueOnce(
+        makeLeaveRequestRow({ status: "approved", days: 5, decidedBy: "Lerato Dlamini", decidedOn: new Date("2026-06-16T00:00:00Z") })
+      );
     mockPrisma.employee.findFirstOrThrow.mockResolvedValue(makeEmployeeRowMinimal());
-    // 16 of 18 used, approving 5 more would exceed the entitlement.
     mockPrisma.leaveBalance.findUnique.mockResolvedValue({ id: "lb-1", employeeId: "emp-1", type: "annual", total: 18, used: 16 });
+    mockPrisma.leaveRequest.updateMany.mockResolvedValue({ count: 1 });
+    mockPrisma.leaveBalance.upsert.mockResolvedValue({ id: "lb-1", employeeId: "emp-1", type: "annual", total: 18, used: 21 });
+    mockPrisma.activityItem.create.mockResolvedValue(
+      makeActivityRow({ type: "leave_approved", message: "annual leave request was approved" })
+    );
 
-    await expect(decideLeaveRequestRecord("leave-1", "approved")).rejects.toThrow(/exceed the employee's annual leave entitlement/);
-    expect(mockPrisma.leaveRequest.updateMany).not.toHaveBeenCalled();
-    expect(mockPrisma.leaveBalance.upsert).not.toHaveBeenCalled();
+    const result = await decideLeaveRequestRecord("leave-1", "approved");
+
+    expect(result.leaveRequest.status).toBe("approved");
+    expect(mockPrisma.leaveRequest.updateMany).toHaveBeenCalled();
+    expect(mockPrisma.leaveBalance.upsert).toHaveBeenCalledWith({
+      where: { employeeId_type: { employeeId: "emp-1", type: "annual" } },
+      update: { used: { increment: 5 } },
+      create: { employeeId: "emp-1", type: "annual", total: 18, used: 5 },
+    });
   });
 
   it("rejects a request without touching the leave balance", async () => {

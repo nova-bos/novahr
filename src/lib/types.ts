@@ -98,6 +98,13 @@ export interface LeaveBalance {
   total: number;
   used: number;
   cycleStartDate?: string;
+  /**
+   * Entitlement earned to date. Equals `total` under the upfront method (and for
+   * non-accruing leave types); under accrual it is the annual leave earned so far
+   * this year. Computed on the server from the tenant's leave-accrual method and
+   * the employee's start date. Falls back to `total` when absent.
+   */
+  accrued?: number;
 }
 
 export interface Employee {

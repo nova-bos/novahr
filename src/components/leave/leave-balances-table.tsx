@@ -65,17 +65,23 @@ export function LeaveBalancesTable() {
               if (!balance) return null;
               const pendingDays = pendingMap.get(`${selfEmployee.id}:${col.type}`) ?? 0;
               const effectiveUsed = balance.used + pendingDays;
-              const remaining = balance.total - effectiveUsed;
-              const percentage = balance.total > 0 ? (effectiveUsed / balance.total) * 100 : 0;
+              const entitlement = balance.accrued ?? balance.total;
+              const remaining = entitlement - effectiveUsed;
+              const percentage =
+                entitlement > 0 ? Math.min(100, (effectiveUsed / entitlement) * 100) : 0;
               return (
                 <div key={col.type} className="rounded-xl border border-border p-3">
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <span className="text-muted-foreground">{col.label}</span>
-                    <span className="font-medium tabular-nums">{remaining} left</span>
+                    <span
+                      className={`font-medium tabular-nums ${remaining < 0 ? "text-destructive" : ""}`}
+                    >
+                      {remaining} left
+                    </span>
                   </div>
                   <Progress value={percentage} className="mt-2.5 h-1.5" />
                   <p className="mt-2 text-xs text-muted-foreground tabular-nums">
-                    {effectiveUsed}/{balance.total} used
+                    {effectiveUsed}/{entitlement} used
                     {pendingDays > 0 ? `, ${pendingDays} pending` : ""}
                   </p>
                 </div>
@@ -136,16 +142,19 @@ export function LeaveBalancesTable() {
                   if (!balance) return <TableCell key={col.type} />;
                   const pendingDays = pendingMap.get(`${employee.id}:${col.type}`) ?? 0;
                   const effectiveUsed = balance.used + pendingDays;
-                  const remaining = balance.total - effectiveUsed;
+                  const entitlement = balance.accrued ?? balance.total;
+                  const remaining = entitlement - effectiveUsed;
                   const percentage =
-                    balance.total > 0 ? (effectiveUsed / balance.total) * 100 : 0;
+                    entitlement > 0 ? Math.min(100, (effectiveUsed / entitlement) * 100) : 0;
                   return (
                     <TableCell key={col.type}>
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-medium">{remaining} left</span>
+                          <span className={`font-medium ${remaining < 0 ? "text-destructive" : ""}`}>
+                            {remaining} left
+                          </span>
                           <span className="text-muted-foreground">
-                            {effectiveUsed}/{balance.total}
+                            {effectiveUsed}/{entitlement}
                             {pendingDays > 0 && (
                               <span className="ml-1 text-warning">({pendingDays} pending)</span>
                             )}

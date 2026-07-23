@@ -177,20 +177,14 @@ export async function decideLeaveRequestRecord(
     const existingBalance = await tx.leaveBalance.findUnique({
       where: { employeeId_type: { employeeId: target.employeeId, type: target.type } },
     });
-    const balanceTotal = existingBalance?.total ?? DEFAULT_LEAVE_TOTALS[target.type as LeaveType] ?? 0;
     const balanceUsed = existingBalance?.used ?? 0;
 
-    // Server-side balance guard: approving must not push used past the entitlement
-    // for capped leave types (unpaid and other zero-total types are not capped).
-    if (status === "approved" && balanceTotal > 0 && balanceUsed + target.days > balanceTotal) {
-      const remaining = Math.max(0, balanceTotal - balanceUsed);
-      throw new Error(
-        `Approving this request would exceed the employee's ${label} entitlement. ${remaining} of ${balanceTotal} days remain.`
-      );
-    }
+    // No hard balance cap on approval: a reviewer may approve leave that exceeds
+    // the available balance (e.g. advancing annual leave), which shows as a
+    // negative balance. The approver is warned in the UI before confirming.
 
     // Compare-and-swap the status transition so two approvers (or a double click)
-    // cannot both pass the guard above and both adjust the balance.
+    // cannot both adjust the balance.
     const cas = await tx.leaveRequest.updateMany({
       where: { id, tenantId, status: previousStatus },
       data: { status, decidedBy, decidedOn: new Date(), decisionNote },

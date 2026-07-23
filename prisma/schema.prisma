@@ -661,11 +661,19 @@ model EmployeeNumberConfig {
   updatedAt  DateTime @updatedAt
 }
 
+enum LeaveAccrualMethod {
+  upfront
+  accrual
+}
+
 model TenantLeavePolicy {
   id                      String   @id @default(cuid())
   tenantId                String   @unique
   tenant                  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   annualDays              Float    @default(15)
+  // How annual leave is made available: earned monthly over 12 months (accrual,
+  // the default) or the full entitlement upfront.
+  leaveAccrualMethod      LeaveAccrualMethod @default(accrual)
   sickDays                Float    @default(30)
   familyDays              Float    @default(3)
   maternityDays           Float    @default(88)

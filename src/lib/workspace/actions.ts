@@ -26,6 +26,7 @@ import {
   mapTenant,
 } from "./mappers";
 import { projectEmployees } from "./employee-projection";
+import { accruedEntitlement } from "@/lib/leave/accrual";
 
 export interface TenantWorkspace {
   currentTenant: Tenant;
@@ -104,10 +105,11 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
         : { tenantId, id: "__never__" };
     }
 
-    const [tenant, payrollSettings, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows, customHolidayRows, leaveReviewerRows] =
+    const [tenant, payrollSettings, leavePolicy, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows, customHolidayRows, leaveReviewerRows] =
       await Promise.all([
         tx.tenant.findUnique({ where: { id: tenantId } }),
         tx.payrollSettings.findUnique({ where: { tenantId }, select: { payslipLogoUrl: true } }),
+        tx.tenantLeavePolicy.findUnique({ where: { tenantId }, select: { leaveAccrualMethod: true } }),
         tx.employee.findMany({ where: { tenantId }, include: { leaveBalances: true } }),
         tx.department.findMany({ where: { tenantId } }),
         tx.leaveRequest.findMany({ where: { tenantId } }),
@@ -126,7 +128,21 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
 
     const isPrivileged = isPrivilegedEarly;
 
-    let employees = employeeRows.map(mapEmployee);
+    const accrualMethod = leavePolicy?.leaveAccrualMethod ?? "accrual";
+    const asOf = new Date();
+    let employees: Employee[] = employeeRows.map(mapEmployee).map((employee) => ({
+      ...employee,
+      leaveBalances: employee.leaveBalances.map((b) => ({
+        ...b,
+        accrued: accruedEntitlement({
+          type: b.type,
+          total: b.total,
+          method: accrualMethod,
+          startDate: employee.startDate,
+          asOf,
+        }),
+      })),
+    }));
     let leaveRequests = leaveRequestRows.map(mapLeaveRequest);
     let payslips = payslipRows.map(mapPayslip);
 

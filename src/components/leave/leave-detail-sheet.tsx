@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, FileText } from "lucide-react";
+import { AlertTriangle, Check, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -56,6 +56,20 @@ export function LeaveDetailSheet({ requestId, onClose }: LeaveDetailSheetProps) 
     request?.status === "pending" &&
     request.startDate > new Date().toISOString().slice(0, 10)
   );
+
+  // Warn the reviewer when approving this request would push the employee past
+  // their available (earned-to-date) balance, into a negative.
+  const reviewBalance =
+    request && employee ? employee.leaveBalances.find((b) => b.type === request.type) : undefined;
+  const reviewEntitlement = reviewBalance ? reviewBalance.accrued ?? reviewBalance.total : 0;
+  const projectedRemaining = reviewBalance
+    ? reviewEntitlement - reviewBalance.used - (request?.days ?? 0)
+    : 0;
+  const wouldGoNegative =
+    Boolean(reviewBalance) &&
+    reviewEntitlement > 0 &&
+    request?.status !== "approved" &&
+    projectedRemaining < 0;
 
   async function handleDecision(status: "approved" | "rejected", note?: string) {
     if (!request) return;
@@ -289,6 +303,18 @@ export function LeaveDetailSheet({ requestId, onClose }: LeaveDetailSheetProps) 
                     <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       Actions
                     </span>
+
+                    {wouldGoNegative ? (
+                      <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                        <AlertTriangle className="mt-0.5 size-3.5 shrink-0" />
+                        <span>
+                          Approving leaves a negative {leaveTypeLabel(request.type).toLowerCase()} balance:{" "}
+                          {Math.abs(projectedRemaining)}{" "}
+                          {Math.abs(projectedRemaining) === 1 ? "day" : "days"} over the{" "}
+                          {reviewEntitlement} available. You can still approve to advance their leave.
+                        </span>
+                      </div>
+                    ) : null}
 
                     <div className="flex flex-wrap gap-2">
                       {request.status !== "approved" ? (
