@@ -6,6 +6,7 @@ import { mapPayrollRun } from "@/lib/workspace/mappers";
 import { sendPayslipEmail } from "@/lib/email";
 import { mapEmployee } from "@/lib/workspace/mappers";
 import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
+import { reverseRunCompletion } from "./run-reversal";
 import type { PayrollRun } from "@/lib/types";
 
 export async function approvePayrollRunAction(
@@ -89,14 +90,29 @@ export async function rejectPayrollApprovalAction(
   return runAsTenant(session.tenantId, async (tx) => {
     const owned = await tx.payrollRun.findFirst({
       where: { id: runId, tenantId: session.tenantId },
-      select: { id: true },
+      select: { id: true, status: true },
     });
     if (!owned) throw new Error("Payroll run not found.");
+    if (owned.status !== "awaiting_approval") {
+      throw new Error("Only a run awaiting approval can be sent back.");
+    }
+    // Reverse the completed run so re-running does not double-apply loan and
+    // garnishee instalments, then return it to an editable processing state.
+    await reverseRunCompletion(tx, runId, session.tenantId);
     const updated = await tx.payrollRun.update({
       where: { id: runId },
-      data: { status: "processing", approvalNote: note },
+      data: {
+        status: "processing",
+        approvalNote: note,
+        totalGross: 0,
+        totalDeductions: 0,
+        totalNet: 0,
+        totalPaye: 0,
+        totalUif: 0,
+        employeeCount: 0,
+        processedOn: null,
+      },
     });
-    const payslips = await tx.payslip.findMany({ where: { runId } });
-    return { payrollRun: mapPayrollRun(updated, payslips.map((p) => p.id)) };
+    return { payrollRun: mapPayrollRun(updated, []) };
   });
 }

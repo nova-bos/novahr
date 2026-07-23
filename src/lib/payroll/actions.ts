@@ -7,6 +7,7 @@ import { formatMonthYear } from "@/lib/format";
 import { sendPayslipEmail } from "@/lib/email";
 import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
 import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator";
+import { reverseRunCompletion } from "./run-reversal";
 import { workingDaysBetween } from "@/lib/leave/business-days";
 import { applyRecurringDeductions } from "./recurring-deductions";
 import type { ActivityItem, DaySelection, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
@@ -444,4 +445,67 @@ export async function completePayrollRunRecord(
     activity: mapActivityItem(activity),
     notification: mapNotificationItem(notification),
   };
+}
+
+export async function cancelPayrollRunRecord(runId: string): Promise<{
+  payrollRun: PayrollRun;
+  cancelledPayslipIds: string[];
+  activity: ActivityItem;
+}> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
+  return runAsTenant(tenantId, async (tx) => {
+    const run = await tx.payrollRun.findFirst({ where: { id: runId, tenantId } });
+    if (!run) throw new Error("Payroll run not found.");
+    if (run.status !== "completed" && run.status !== "awaiting_approval") {
+      throw new Error("Only a completed or awaiting-approval run can be cancelled.");
+    }
+    // Once the batch is with Netcash the money has moved: block cancellation.
+    const exported = await tx.bankExport.findFirst({
+      where: { payrollRunId: runId, status: "exported" },
+      select: { id: true },
+    });
+    if (exported) {
+      throw new Error(
+        "This run was already submitted to Netcash and cannot be cancelled. Reverse the payment with Netcash first."
+      );
+    }
+
+    const existing = await tx.payslip.findMany({ where: { runId, tenantId }, select: { id: true } });
+    const cancelledPayslipIds = existing.map((p) => p.id);
+
+    await reverseRunCompletion(tx, runId, tenantId);
+
+    const updated = await tx.payrollRun.update({
+      where: { id: runId },
+      data: {
+        status: "scheduled",
+        totalGross: 0,
+        totalDeductions: 0,
+        totalNet: 0,
+        totalPaye: 0,
+        totalUif: 0,
+        employeeCount: 0,
+        processedOn: null,
+        approvedBy: null,
+        approvedAt: null,
+        approvalNote: null,
+      },
+    });
+
+    const activity = await tx.activityItem.create({
+      data: {
+        tenantId,
+        type: "payroll_run",
+        message: `cancelled the ${formatMonthYear(run.period)} payroll run`,
+        actor: session.name,
+      },
+    });
+
+    return {
+      payrollRun: mapPayrollRun(updated, []),
+      cancelledPayslipIds,
+      activity: mapActivityItem(activity),
+    };
+  });
 }

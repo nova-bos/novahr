@@ -31,6 +31,8 @@ import { usePlan } from "@/lib/plan/use-plan";
 import { generateBankExportCsvAction, generateNetcashNifAction, submitNetcashBatchAction } from "@/lib/bank-exports/actions";
 import { getPayslipSettingsAction } from "@/lib/settings/actions";
 import { approvePayrollRunAction, rejectPayrollApprovalAction } from "@/lib/payroll/approval-actions";
+import { cancelPayrollRunRecord } from "@/lib/payroll/actions";
+import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant } from "@/lib/store/hooks";
 import { PayrollStatusBadge } from "./payroll-status-badge";
 import { PayslipDialog } from "./payslip-dialog";
@@ -50,14 +52,18 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const [bulkProgress, setBulkProgress] = React.useState<string | null>(null);
   const [isApproving, startApproveTransition] = React.useTransition();
   const [isRejecting, startRejectTransition] = React.useTransition();
+  const [isCancelling, startCancelTransition] = React.useTransition();
   const [confirmApproveOpen, setConfirmApproveOpen] = React.useState(false);
   const [confirmSubmitOpen, setConfirmSubmitOpen] = React.useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = React.useState(false);
+  const { reloadWorkspace } = useApp();
 
   function handleApprove() {
     startApproveTransition(async () => {
       try {
         await approvePayrollRunAction(run.id);
         setConfirmApproveOpen(false);
+        reloadWorkspace();
         toast.success("Payroll approved. Payslip emails will be sent shortly.");
       } catch (err) {
         toast.error("Could not approve payroll", {
@@ -71,9 +77,27 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
     startRejectTransition(async () => {
       try {
         await rejectPayrollApprovalAction(run.id, "Sent back for review.");
-        toast.info("Payroll sent back for review.");
+        reloadWorkspace();
+        toast.info("Payroll sent back for review. Payslips were cleared so you can re-run it.");
       } catch (err) {
         toast.error("Could not reject payroll", {
+          description: err instanceof Error ? err.message : "Please try again.",
+        });
+      }
+    });
+  }
+
+  function handleCancel() {
+    startCancelTransition(async () => {
+      try {
+        await cancelPayrollRunRecord(run.id);
+        setConfirmCancelOpen(false);
+        reloadWorkspace();
+        toast.success("Payroll run cancelled", {
+          description: "Payslips were removed and any loan deductions reversed. The run is back to scheduled.",
+        });
+      } catch (err) {
+        toast.error("Could not cancel run", {
           description: err instanceof Error ? err.message : "Please try again.",
         });
       }
@@ -373,6 +397,45 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
                 </Button>
                 <Button onClick={handleApprove} disabled={isApproving}>
                   {isApproving ? "Approving..." : "Approve and send payslips"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      ) : null}
+
+      {run.status === "completed" || run.status === "awaiting_approval" ? (
+        <div className="flex items-start justify-between gap-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
+          <div>
+            <p className="text-sm font-semibold text-destructive">Made a mistake, or need to add or remove someone?</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Cancel this run to remove its payslips and reverse any loan or garnishee deductions it applied, returning it to scheduled so you can make changes and run it again. Not available once the batch has been submitted to Netcash.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setConfirmCancelOpen(true)}
+            disabled={isCancelling}
+            className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/10"
+          >
+            {isCancelling ? "Cancelling..." : "Cancel run"}
+          </Button>
+
+          <Dialog open={confirmCancelOpen} onOpenChange={(o) => !isCancelling && setConfirmCancelOpen(o)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Cancel this payroll run?</DialogTitle>
+                <DialogDescription>
+                  This removes all {payslips.length} payslip{payslips.length === 1 ? "" : "s"} for this run and reverses any loan or garnishee instalments it applied, restoring those balances. The run returns to scheduled so you can amend it and run again. This cannot be done once the batch has been submitted to Netcash.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setConfirmCancelOpen(false)} disabled={isCancelling}>
+                  Keep run
+                </Button>
+                <Button variant="destructive" onClick={handleCancel} disabled={isCancelling}>
+                  {isCancelling ? "Cancelling..." : "Cancel run"}
                 </Button>
               </DialogFooter>
             </DialogContent>
