@@ -94,6 +94,9 @@ export async function createEmployeeRecord(
         salaryPensionContributionPct: employee.salary.pensionContributionPct,
         salaryMedicalAid: employee.salary.medicalAid,
         salaryRetirementAnnuity: employee.salary.retirementAnnuity,
+        salaryEmployerBenefits: employee.salary.employerBenefits
+          ? (employee.salary.employerBenefits as unknown as Prisma.InputJsonValue)
+          : undefined,
         bankName: employee.bankDetails.bank,
         bankAccountNumber: employee.bankDetails.accountNumber,
         bankBranchCode: employee.bankDetails.branchCode,
@@ -175,6 +178,8 @@ export async function updateEmployeeRecord(
     if (salary.medicalAid !== undefined) data.salaryMedicalAid = salary.medicalAid;
     if (salary.retirementAnnuity !== undefined)
       data.salaryRetirementAnnuity = salary.retirementAnnuity;
+    if (salary.employerBenefits !== undefined)
+      data.salaryEmployerBenefits = salary.employerBenefits as unknown as Prisma.InputJsonValue;
   }
 
   const bankFieldsChanged =

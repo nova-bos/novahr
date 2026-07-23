@@ -9,7 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label, OptionalTag } from "@/components/ui/label";
 import {
@@ -27,7 +29,7 @@ import {
 import { useApp } from "@/lib/store/app-provider";
 import { useDepartments, useEmployees, useTenantId } from "@/lib/store/hooks";
 import { getPayrollSettingsAction } from "@/lib/settings/actions";
-import type { Employee, EmploymentStatus, EmploymentType } from "@/lib/types";
+import type { Employee, EmployerBenefit, EmploymentStatus, EmploymentType } from "@/lib/types";
 
 const EMPLOYMENT_TYPES: { value: EmploymentType; label: string }[] = [
   { value: "full_time", label: "Full-time" },
@@ -127,6 +129,13 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
             : undefined,
           medicalAid: form.medicalAid ? Number(form.medicalAid) : undefined,
           retirementAnnuity: form.retirementAnnuity ? Number(form.retirementAnnuity) : undefined,
+          employerBenefits: form.employerBenefits
+            .map((b): EmployerBenefit => ({
+              label: b.label.trim(),
+              amount: Number(b.amount) || 0,
+              taxable: b.taxable,
+            }))
+            .filter((b) => b.label !== "" && b.amount > 0),
         },
         emergencyContact: {
           name: form.emergencyName,
@@ -146,6 +155,27 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
     } finally {
       setSaving(false);
     }
+  }
+
+  function addBenefit() {
+    setForm((f) => ({
+      ...f,
+      employerBenefits: [...f.employerBenefits, { label: "", amount: "", taxable: true }],
+    }));
+  }
+
+  function updateBenefit(index: number, patch: Partial<{ label: string; amount: string; taxable: boolean }>) {
+    setForm((f) => ({
+      ...f,
+      employerBenefits: f.employerBenefits.map((b, i) => (i === index ? { ...b, ...patch } : b)),
+    }));
+  }
+
+  function removeBenefit(index: number) {
+    setForm((f) => ({
+      ...f,
+      employerBenefits: f.employerBenefits.filter((_, i) => i !== index),
+    }));
   }
 
   return (
@@ -419,6 +449,67 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                   </div>
                 ) : null}
               </div>
+
+              <div className="space-y-2 border-t border-border pt-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <Label>Employer-paid benefits <OptionalTag /></Label>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Employer-funded benefits, such as an income protection policy. Mark a benefit taxable to include it as a fringe benefit in the PAYE, SDL and UIF calculation.
+                    </p>
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={addBenefit}>
+                    <Plus /> Add benefit
+                  </Button>
+                </div>
+
+                {form.employerBenefits.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No employer benefits added.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {form.employerBenefits.map((b, i) => (
+                      <div key={i} className="flex items-end gap-2">
+                        <div className="flex-1 space-y-1">
+                          {i === 0 ? <Label className="text-xs">Description</Label> : null}
+                          <Input
+                            aria-label="Benefit description"
+                            placeholder="e.g. Income protection policy"
+                            value={b.label}
+                            onChange={(e) => updateBenefit(i, { label: e.target.value })}
+                          />
+                        </div>
+                        <div className="w-28 space-y-1">
+                          {i === 0 ? <Label className="text-xs">R / month</Label> : null}
+                          <Input
+                            aria-label="Benefit amount per month"
+                            type="number"
+                            min={0}
+                            value={b.amount}
+                            onChange={(e) => updateBenefit(i, { amount: e.target.value })}
+                          />
+                        </div>
+                        <label className="flex items-center gap-1.5 whitespace-nowrap pb-2.5 text-xs">
+                          <Checkbox
+                            checked={b.taxable}
+                            onCheckedChange={(v) => updateBenefit(i, { taxable: v === true })}
+                          />
+                          Taxable
+                        </label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="mb-1"
+                          aria-label="Remove benefit"
+                          onClick={() => removeBenefit(i)}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="emergency" className="mt-4 space-y-4">
@@ -496,6 +587,11 @@ function buildFormState(employee: Employee) {
     retirementAnnuity: employee.salary.retirementAnnuity
       ? String(employee.salary.retirementAnnuity)
       : "",
+    employerBenefits: (employee.salary.employerBenefits ?? []).map((b) => ({
+      label: b.label,
+      amount: String(b.amount),
+      taxable: b.taxable,
+    })),
     emergencyName: employee.emergencyContact.name,
     emergencyRelationship: employee.emergencyContact.relationship,
     emergencyPhone: employee.emergencyContact.phone,
