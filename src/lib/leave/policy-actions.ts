@@ -16,7 +16,6 @@ export interface LeavePolicyData {
   annualCarryover: boolean;
   annualMaxCarryoverDays: number;
   sickRequireDocDays: number;
-  leaveAccrualMethod: "upfront" | "accrual";
 }
 
 // SA statutory minimums
@@ -48,7 +47,6 @@ const DEFAULTS: LeavePolicyData = {
   annualCarryover: true,
   annualMaxCarryoverDays: 10,
   sickRequireDocDays: 2,
-  leaveAccrualMethod: "accrual",
 };
 
 export async function getLeavePolicyAction(tenantId: string): Promise<LeavePolicyData> {

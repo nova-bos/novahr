@@ -105,11 +105,10 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
         : { tenantId, id: "__never__" };
     }
 
-    const [tenant, payrollSettings, leavePolicy, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows, customHolidayRows, leaveReviewerRows] =
+    const [tenant, payrollSettings, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows, customHolidayRows, leaveReviewerRows] =
       await Promise.all([
         tx.tenant.findUnique({ where: { id: tenantId } }),
         tx.payrollSettings.findUnique({ where: { tenantId }, select: { payslipLogoUrl: true } }),
-        tx.tenantLeavePolicy.findUnique({ where: { tenantId }, select: { leaveAccrualMethod: true } }),
         tx.employee.findMany({ where: { tenantId }, include: { leaveBalances: true } }),
         tx.department.findMany({ where: { tenantId } }),
         tx.leaveRequest.findMany({ where: { tenantId } }),
@@ -128,7 +127,9 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
 
     const isPrivileged = isPrivilegedEarly;
 
-    const accrualMethod = leavePolicy?.leaveAccrualMethod ?? "accrual";
+    // BCEA section 20: annual leave accrues over the cycle; there is no upfront
+    // grant. Advance leave is handled per-request via the approver override.
+    const accrualMethod = "accrual" as const;
     const asOf = new Date();
     let employees: Employee[] = employeeRows.map(mapEmployee).map((employee) => ({
       ...employee,

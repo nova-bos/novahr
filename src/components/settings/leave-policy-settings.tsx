@@ -65,8 +65,6 @@ export function LeavePolicySettings() {
   const [annualCarryover, setAnnualCarryover] = React.useState(true);
   const [annualMaxCarryoverDays, setAnnualMaxCarryoverDays] = React.useState("10");
   const [sickRequireDocDays, setSickRequireDocDays] = React.useState("2");
-  const [leaveAccrualMethod, setLeaveAccrualMethod] =
-    React.useState<"upfront" | "accrual">("accrual");
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -83,7 +81,6 @@ export function LeavePolicySettings() {
       setAnnualCarryover(p.annualCarryover);
       setAnnualMaxCarryoverDays(numericState(p.annualMaxCarryoverDays));
       setSickRequireDocDays(numericState(p.sickRequireDocDays));
-      setLeaveAccrualMethod(p.leaveAccrualMethod);
     });
   }, [tenant.id]);
 
@@ -100,7 +97,6 @@ export function LeavePolicySettings() {
     setAnnualCarryover(POLICY_DEFAULTS.annualCarryover);
     setAnnualMaxCarryoverDays(POLICY_DEFAULTS.annualMaxCarryoverDays);
     setSickRequireDocDays(POLICY_DEFAULTS.sickRequireDocDays);
-    setLeaveAccrualMethod("accrual");
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -119,7 +115,6 @@ export function LeavePolicySettings() {
       annualCarryover,
       annualMaxCarryoverDays: Number(annualMaxCarryoverDays),
       sickRequireDocDays: Number(sickRequireDocDays),
-      leaveAccrualMethod,
     });
     setSaving(false);
     if (result.success) {
@@ -194,40 +189,13 @@ export function LeavePolicySettings() {
           <CardHeader>
             <CardTitle>How annual leave is granted</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <button
-              type="button"
-              onClick={() => setLeaveAccrualMethod("accrual")}
-              disabled={saving}
-              className={`w-full rounded-xl border px-4 py-3 text-left transition-colors ${
-                leaveAccrualMethod === "accrual"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:bg-muted/40"
-              }`}
-            >
-              <p className="text-sm font-medium">Accrue monthly (earned over the year)</p>
+          <CardContent>
+            <div className="rounded-xl border border-border bg-muted/30 px-4 py-3">
+              <p className="text-sm font-medium">Accrues monthly</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Annual leave is earned each month, building up to the full entitlement over twelve months. New employees start at zero and earn as they go. Recommended.
+                Annual leave is earned each month, building up to the full entitlement over twelve months, as required by the BCEA (section 20). New employees start at zero and earn as they go. To let an employee take leave before it is accrued, approve the request and confirm the negative-balance warning.
               </p>
-            </button>
-            <button
-              type="button"
-              onClick={() => setLeaveAccrualMethod("upfront")}
-              disabled={saving}
-              className={`w-full rounded-xl border px-4 py-3 text-left transition-colors ${
-                leaveAccrualMethod === "upfront"
-                  ? "border-primary bg-primary/5"
-                  : "border-border hover:bg-muted/40"
-              }`}
-            >
-              <p className="text-sm font-medium">Grant upfront (available immediately)</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                The full annual entitlement is available from day one and can be taken at any time.
-              </p>
-            </button>
-            <p className="text-xs text-muted-foreground">
-              Applies to annual leave. Sick, family and other statutory leave are always allocated in full.
-            </p>
+            </div>
           </CardContent>
         </Card>
 

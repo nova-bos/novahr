@@ -35,17 +35,13 @@ export async function terminateEmployeeAction(
     const noticeDaysOwed = 14;
     const noticePay = Math.max(0, (noticeDaysOwed - input.noticeDaysServed) * dailyRate);
     const annualBalance = employee.leaveBalances.find((b) => b.type === "annual");
-    // Pay out earned-but-unused annual leave. Under accrual the earned amount is
-    // the accrued entitlement to date, not the full annual allowance.
-    const policy = await tx.tenantLeavePolicy.findUnique({
-      where: { tenantId: session.tenantId },
-      select: { leaveAccrualMethod: true },
-    });
+    // Pay out earned-but-unused annual leave: the accrued entitlement to date
+    // (BCEA section 20), not the full annual allowance.
     const annualEntitlement = annualBalance
       ? accruedEntitlement({
           type: "annual",
           total: annualBalance.total,
-          method: policy?.leaveAccrualMethod ?? "accrual",
+          method: "accrual",
           startDate: employee.startDate.toISOString(),
         })
       : 0;
