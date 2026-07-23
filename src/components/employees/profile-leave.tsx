@@ -36,14 +36,15 @@ export function ProfileLeave({ employee }: { employee: Employee }) {
                 .filter((r) => r.type === balance.type && r.status === "pending")
                 .reduce((sum, r) => sum + r.days, 0);
               const effectiveUsed = balance.used + pendingDays;
-              const remaining = balance.total - effectiveUsed;
-              const percentage = balance.total > 0 ? (effectiveUsed / balance.total) * 100 : 0;
+              const entitlement = balance.accrued ?? balance.total;
+              const remaining = entitlement - effectiveUsed;
+              const percentage = entitlement > 0 ? Math.min(100, (effectiveUsed / entitlement) * 100) : 0;
               return (
                 <div key={balance.type} className="rounded-xl border border-border/70 p-4">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-medium">{leaveTypeLabel(balance.type)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {remaining} of {balance.total} {plural(balance.total, "day")} left
+                    <p className={`text-sm ${remaining < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                      {remaining} of {entitlement} {plural(entitlement, "day")} left
                     </p>
                   </div>
                   <Progress value={percentage} className="mt-3" />

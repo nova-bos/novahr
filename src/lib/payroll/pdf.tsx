@@ -78,7 +78,8 @@ function summariseLeave(balances: LeaveBalance[]): LeaveSummaryRow[] {
   return PAYSLIP_LEAVE_TYPES.map((type) => {
     const b = balances.find((x) => x.type === type);
     if (!b) return null;
-    return { label: leaveTypeLabel(type), balance: Math.max(0, b.total - b.used), taken: b.used };
+    const entitlement = b.accrued ?? b.total;
+    return { label: leaveTypeLabel(type), balance: Math.max(0, entitlement - b.used), taken: b.used };
   }).filter((x): x is LeaveSummaryRow => x !== null);
 }
 

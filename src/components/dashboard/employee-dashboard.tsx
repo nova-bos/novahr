@@ -66,8 +66,10 @@ export function EmployeeDashboard() {
   const annualPending = myLeaveRequests
     .filter((r) => r.employeeId === employee.id && r.type === "annual" && r.status === "pending")
     .reduce((sum, r) => sum + r.days, 0);
+  // Entitlement earned to date (accrual) or the full total (upfront).
+  const annualEntitlement = annualBalance ? annualBalance.accrued ?? annualBalance.total : 0;
   const annualRemaining = annualBalance
-    ? annualBalance.total - annualBalance.used - annualPending
+    ? annualEntitlement - annualBalance.used - annualPending
     : 0;
   const tenureYears = new Date().getFullYear() - new Date(employee.startDate).getFullYear();
   const monthly = calculateMonthlyPayroll(employee);
@@ -76,7 +78,7 @@ export function EmployeeDashboard() {
     {
       label: "Annual leave left",
       value: `${annualRemaining} ${plural(annualRemaining, "day")}`,
-      detail: `of ${annualBalance?.total ?? 0} ${plural(annualBalance?.total ?? 0, "day")} this year`,
+      detail: `of ${annualEntitlement} ${plural(annualEntitlement, "day")} available`,
       icon: CalendarRange,
       iconClassName: "bg-info/10 text-info",
     },
@@ -152,14 +154,17 @@ export function EmployeeDashboard() {
                 .filter((r) => r.employeeId === employee.id && r.type === col.type && r.status === "pending")
                 .reduce((sum, r) => sum + r.days, 0);
               const effectiveUsed = balance.used + pending;
-              const remaining = balance.total - effectiveUsed;
-              const pct = balance.total > 0 ? (effectiveUsed / balance.total) * 100 : 0;
+              const entitlement = balance.accrued ?? balance.total;
+              const remaining = entitlement - effectiveUsed;
+              const pct = entitlement > 0 ? Math.min(100, (effectiveUsed / entitlement) * 100) : 0;
               return (
                 <div key={col.type} className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <span className="truncate">{col.label}</span>
-                    <span className="shrink-0 font-medium tabular-nums">
-                      {remaining}/{balance.total}
+                    <span
+                      className={`shrink-0 font-medium tabular-nums ${remaining < 0 ? "text-destructive" : ""}`}
+                    >
+                      {remaining}/{entitlement}
                     </span>
                   </div>
                   <Progress value={pct} className="h-1.5" />

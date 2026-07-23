@@ -4,6 +4,7 @@ import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole } from "@/lib/auth/require";
 import { prisma } from "@/lib/prisma";
+import { accruedEntitlement } from "@/lib/leave/accrual";
 
 export interface TerminationInput {
   employeeId: string;
@@ -34,7 +35,21 @@ export async function terminateEmployeeAction(
     const noticeDaysOwed = 14;
     const noticePay = Math.max(0, (noticeDaysOwed - input.noticeDaysServed) * dailyRate);
     const annualBalance = employee.leaveBalances.find((b) => b.type === "annual");
-    const remainingAnnual = annualBalance ? annualBalance.total - annualBalance.used : 0;
+    // Pay out earned-but-unused annual leave. Under accrual the earned amount is
+    // the accrued entitlement to date, not the full annual allowance.
+    const policy = await tx.tenantLeavePolicy.findUnique({
+      where: { tenantId: session.tenantId },
+      select: { leaveAccrualMethod: true },
+    });
+    const annualEntitlement = annualBalance
+      ? accruedEntitlement({
+          type: "annual",
+          total: annualBalance.total,
+          method: policy?.leaveAccrualMethod ?? "accrual",
+          startDate: employee.startDate.toISOString(),
+        })
+      : 0;
+    const remainingAnnual = annualBalance ? Math.max(0, annualEntitlement - annualBalance.used) : 0;
     const leavePayout = remainingAnnual * dailyRate;
 
     // Set terminated status

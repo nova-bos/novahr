@@ -59,7 +59,11 @@ export function TerminateEmployeeDialog({
   const noticeDaysOwed = 14;
   const noticePay = Math.max(0, (noticeDaysOwed - Number(noticeDaysServed)) * dailyRate);
   const annualBalance = employee.leaveBalances.find((b) => b.type === "annual");
-  const remainingAnnual = annualBalance ? annualBalance.total - annualBalance.used : 0;
+  // Pay out earned-but-unused leave: under accrual that is the accrued amount,
+  // not the full annual entitlement (floored so a negative balance is not a
+  // deduction from the payout).
+  const annualEntitlement = annualBalance ? annualBalance.accrued ?? annualBalance.total : 0;
+  const remainingAnnual = annualBalance ? Math.max(0, annualEntitlement - annualBalance.used) : 0;
   const leavePayout = remainingAnnual * dailyRate;
 
   async function handleSubmit(e: React.FormEvent) {
