@@ -26,7 +26,6 @@ import {
   mapTenant,
 } from "./mappers";
 import { projectEmployees } from "./employee-projection";
-import { accruedEntitlement } from "@/lib/leave/accrual";
 
 export interface TenantWorkspace {
   currentTenant: Tenant;
@@ -127,23 +126,9 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
 
     const isPrivileged = isPrivilegedEarly;
 
-    // BCEA section 20: annual leave accrues over the cycle; there is no upfront
-    // grant. Advance leave is handled per-request via the approver override.
-    const accrualMethod = "accrual" as const;
-    const asOf = new Date();
-    let employees: Employee[] = employeeRows.map(mapEmployee).map((employee) => ({
-      ...employee,
-      leaveBalances: employee.leaveBalances.map((b) => ({
-        ...b,
-        accrued: accruedEntitlement({
-          type: b.type,
-          total: b.total,
-          method: accrualMethod,
-          startDate: employee.startDate,
-          asOf,
-        }),
-      })),
-    }));
+    // Leave accrual (BCEA section 20) is computed inside mapEmployee, so every
+    // mapped employee — here and after edits — carries the same accrued figure.
+    let employees: Employee[] = employeeRows.map(mapEmployee);
     let leaveRequests = leaveRequestRows.map(mapLeaveRequest);
     let payslips = payslipRows.map(mapPayslip);
 

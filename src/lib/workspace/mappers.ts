@@ -1,3 +1,4 @@
+import { accruedEntitlement } from "@/lib/leave/accrual";
 import type {
   ActivityItem as PrismaActivityItem,
   Department as PrismaDepartment,
@@ -146,6 +147,16 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
       type: balance.type,
       total: balance.total,
       used: balance.used,
+      // Entitlement earned to date. Annual leave accrues over the cycle from the
+      // employee's start date (BCEA section 20); other types are always full.
+      // Computed here so every consumer of a mapped employee (workspace load,
+      // post-edit store updates) sees the same accrued figure.
+      accrued: accruedEntitlement({
+        type: balance.type,
+        total: balance.total,
+        method: "accrual",
+        startDate: row.startDate.toISOString(),
+      }),
     })),
     onboarding: (row.onboarding as unknown as Onboarding | null) ?? undefined,
   };

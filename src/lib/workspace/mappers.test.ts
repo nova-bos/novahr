@@ -209,9 +209,11 @@ describe("mapEmployee", () => {
       validatedAt: null,
     });
     expect(employee.onboarding).toEqual({ progress: 50, startDate: "2024-01-15", steps: [] });
+    // Start date 2024-01-15 is over a year ago, so annual leave has fully
+    // accrued (accrued === total); sick leave never accrues.
     expect(employee.leaveBalances).toEqual([
-      { type: "annual", total: 18, used: 4 },
-      { type: "sick", total: 10, used: 0 },
+      { type: "annual", total: 18, used: 4, accrued: 18 },
+      { type: "sick", total: 10, used: 0, accrued: 10 },
     ]);
   });
 });
