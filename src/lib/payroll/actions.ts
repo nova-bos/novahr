@@ -216,9 +216,15 @@ export async function completePayrollRunRecord(
         p.deductions = [...p.deductions, ...result.lines];
         p.totalDeductions = round2(p.totalDeductions + result.total);
         p.netPay = round2(p.netPay - result.total);
+        const descriptionById = new Map(empDeductions.map((d) => [d.id, d.description]));
+        const closing: { label: string; balance: number }[] = [];
         for (const a of result.applied) {
           deductionUpdates.push({ id: a.id, newBalance: a.newBalance, settled: a.settled });
+          if (a.newBalance > 0) {
+            closing.push({ label: descriptionById.get(a.id) ?? "Loan", balance: a.newBalance });
+          }
         }
+        if (closing.length > 0) p.closingBalances = closing;
       }
 
       const totalGross = round2(sum(newPayslips, (p) => p.grossPay));
@@ -252,6 +258,14 @@ export async function completePayrollRunRecord(
           netPay: p.netPay,
           paye: p.paye,
           uif: p.uif,
+          employerUif: p.employerUif,
+          employerSdl: p.employerSdl,
+          employerBenefits: p.employerBenefits
+            ? (p.employerBenefits as unknown as Prisma.InputJsonValue)
+            : undefined,
+          closingBalances: p.closingBalances
+            ? (p.closingBalances as unknown as Prisma.InputJsonValue)
+            : undefined,
         })),
       });
 

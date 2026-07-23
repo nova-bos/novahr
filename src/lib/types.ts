@@ -63,6 +63,18 @@ export interface EmergencyContact {
   phone: string;
 }
 
+/**
+ * An employer-paid benefit (e.g. an employer-owned income protection policy).
+ * It is not cash paid to the employee, so it never appears in gross earnings or
+ * as a deduction. When `taxable` is true it is a fringe benefit: its value is
+ * added to remuneration for PAYE, SDL, and UIF, so the employee pays tax on it.
+ */
+export interface EmployerBenefit {
+  label: string;
+  amount: number;
+  taxable: boolean;
+}
+
 export interface SalaryInfo {
   annualGross: number;
   currency: string;
@@ -74,6 +86,7 @@ export interface SalaryInfo {
   retirementAnnuity?: number;
   hasLogbook?: boolean;
   medicalAidDependants?: number;
+  employerBenefits?: EmployerBenefit[];
   // True when the employee belongs to a medical scheme, even if they pay for it
   // privately (no payroll contribution). Lets the SARS medical tax credit apply
   // on assessment terms.
@@ -169,6 +182,18 @@ export interface Payslip {
   netPay: number;
   paye: number;
   uif: number;
+  // Employer-side contributions. Informational only (not deducted from net
+  // pay), surfaced on statutory payslip templates and used for EMP201
+  // reconciliation. Optional so payslips created before these were persisted
+  // still map cleanly.
+  employerUif?: number;
+  employerSdl?: number;
+  // Snapshot of employer-paid benefits at run time, so a historical payslip
+  // stays accurate even if the employee's benefit configuration later changes.
+  employerBenefits?: EmployerBenefit[];
+  // Outstanding balances (e.g. employer loans, garnishees) remaining after this
+  // run's instalment, snapshotted so the payslip shows a closing balance.
+  closingBalances?: { label: string; balance: number }[];
 }
 
 export interface PayrollRun {

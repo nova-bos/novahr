@@ -14,6 +14,7 @@ import type {
   DaySelection,
   Department,
   Employee,
+  EmployerBenefit,
   LeaveRequest,
   NotificationItem,
   Onboarding,
@@ -117,6 +118,7 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
       pensionContributionPct: row.salaryPensionContributionPct ?? undefined,
       medicalAid: row.salaryMedicalAid != null ? decToNumber(row.salaryMedicalAid) : undefined,
       retirementAnnuity: row.salaryRetirementAnnuity != null ? decToNumber(row.salaryRetirementAnnuity) : undefined,
+      employerBenefits: (row.salaryEmployerBenefits as unknown as EmployerBenefit[] | null) ?? undefined,
     },
     bankDetails: {
       bank: row.bankName,
@@ -199,6 +201,11 @@ export function mapPayslip(row: PrismaPayslip): Payslip {
     netPay: decToNumber(row.netPay),
     paye: decToNumber(row.paye),
     uif: decToNumber(row.uif),
+    employerUif: row.employerUif != null ? decToNumber(row.employerUif) : undefined,
+    employerSdl: row.employerSdl != null ? decToNumber(row.employerSdl) : undefined,
+    employerBenefits: (row.employerBenefits as unknown as EmployerBenefit[] | null) ?? undefined,
+    closingBalances:
+      (row.closingBalances as unknown as { label: string; balance: number }[] | null) ?? undefined,
   };
 }
 

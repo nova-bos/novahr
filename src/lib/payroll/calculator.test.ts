@@ -427,12 +427,50 @@ describe("buildPayslip", () => {
     expect(payslip.grossPay).toBe(calculateMonthlyPayroll(employee).grossPay);
   });
 
-  it("does not expose employer SDL or employer UIF on the payslip", () => {
+  it("treats a taxable employer benefit as a fringe benefit (raises PAYE and SDL, not cash)", () => {
+    // Reconciles against a real SA payslip: basic R66,400/month plus a R585
+    // employer-owned income protection benefit gives PAYE R17,460.23, SDL
+    // R669.85 (1% of R66,985), and the benefit is neither paid nor deducted.
+    const employee = makeEmployee({
+      annualGross: 796_800, // R66,400 per month
+      currency: "ZAR",
+      payFrequency: "monthly",
+      employerBenefits: [{ label: "Income Protection Policy", amount: 585, taxable: true }],
+    });
+    const b = calculateMonthlyPayroll(employee, { isSDLLiable: true });
+
+    expect(b.grossPay).toBe(66_400); // benefit is not cash, stays out of gross
+    expect(b.paye).toBeCloseTo(17_460.23, 2);
+    expect(b.employerSdl).toBeCloseTo(669.85, 2);
+    expect(b.netPay).toBeCloseTo(48_762.65, 2);
+    expect(b.employerBenefits).toEqual([{ label: "Income Protection Policy", amount: 585, taxable: true }]);
+  });
+
+  it("ignores a non-taxable employer benefit for PAYE and SDL", () => {
+    const taxable = makeEmployee({
+      annualGross: 796_800,
+      currency: "ZAR",
+      payFrequency: "monthly",
+      employerBenefits: [{ label: "Gym", amount: 585, taxable: false }],
+    });
+    const plain = makeEmployee({ annualGross: 796_800, currency: "ZAR", payFrequency: "monthly" });
+    const withBenefit = calculateMonthlyPayroll(taxable, { isSDLLiable: true });
+    const without = calculateMonthlyPayroll(plain, { isSDLLiable: true });
+
+    expect(withBenefit.paye).toBe(without.paye);
+    expect(withBenefit.employerSdl).toBe(without.employerSdl);
+  });
+
+  it("carries employer SDL and employer UIF onto the payslip for statutory templates", () => {
     const employee = makeEmployee({ annualGross: 600_000, currency: "ZAR", payFrequency: "monthly" });
+    const breakdown = calculateMonthlyPayroll(employee, { isSDLLiable: true });
     const payslip = buildPayslip(employee, "run-2026-01", "2026-01", "2026-01-25", { isSDLLiable: true });
 
-    expect((payslip as unknown as Record<string, unknown>)["employerSdl"]).toBeUndefined();
-    expect((payslip as unknown as Record<string, unknown>)["employerUif"]).toBeUndefined();
+    // Informational employer figures ride along but are not part of net pay.
+    expect(payslip.employerSdl).toBe(breakdown.employerSdl);
+    expect(payslip.employerUif).toBe(breakdown.employerUif);
+    expect(payslip.employerSdl).toBeGreaterThan(0);
+    expect(payslip.netPay).toBe(breakdown.netPay);
   });
 });
 

@@ -1,5 +1,5 @@
 import Decimal from "decimal.js";
-import type { Employee, Payslip, PayslipLineItem } from "@/lib/types";
+import type { Employee, EmployerBenefit, Payslip, PayslipLineItem } from "@/lib/types";
 
 Decimal.set({ rounding: Decimal.ROUND_HALF_UP });
 
@@ -102,6 +102,7 @@ export interface PayrollBreakdown {
   uif: number;
   employerUif: number;
   employerSdl: number;
+  employerBenefits: EmployerBenefit[];
 }
 
 export interface PayrollOptions {
@@ -147,10 +148,24 @@ export function calculateMonthlyPayroll(
   const adjustedBasic = basicSalary.minus(unpaidDeduction);
   const adjustedGross = adjustedBasic.plus(travelMonthly).plus(housingMonthly);
 
-  // Taxable income: 80% of travel (or 20% with SARS logbook), 100% of housing, minus s11F pension
+  // Employer-paid benefits. A taxable benefit is a fringe benefit: its value is
+  // added to remuneration (PAYE, SDL, UIF) even though it is not cash and never
+  // touches gross earnings or net pay. Non-taxable benefits are informational.
+  const benefits = salary.employerBenefits ?? [];
+  const taxableBenefitsMonthly = benefits.reduce(
+    (sum, b) => (b.taxable ? sum.plus(b.amount) : sum),
+    new Decimal(0)
+  );
+
+  // Taxable income: 80% of travel (or 20% with SARS logbook), 100% of housing,
+  // plus taxable fringe benefits, minus s11F pension
   const travelInclusion = salary.hasLogbook ? new Decimal("0.20") : new Decimal("0.80");
   const travelTaxable = travelMonthly.times(travelInclusion);
-  const annualRemuneration = adjustedBasic.plus(travelTaxable).plus(housingMonthly).times(divisor);
+  const annualRemuneration = adjustedBasic
+    .plus(travelTaxable)
+    .plus(housingMonthly)
+    .plus(taxableBenefitsMonthly)
+    .times(divisor);
 
   const pensionMonthly = salary.pensionContributionPct
     ? adjustedBasic.times(salary.pensionContributionPct).toDecimalPlaces(2)
@@ -185,21 +200,24 @@ export function calculateMonthlyPayroll(
       : new Decimal(0);
   const paye = Decimal.max(annualPAYE.minus(matcAnnual), 0).dividedBy(divisor).toDecimalPlaces(2);
 
+  // Leviable remuneration for UIF and SDL includes taxable fringe benefits.
+  const leviableGross = adjustedGross.plus(taxableBenefitsMonthly);
+
   // UIF: employee and employer each contribute at the configured rate on
   // remuneration up to the monthly ceiling; both scale with pay frequency.
   const uifEmployeeRate = new Decimal(statutory.uifEmployeeRate);
   const uifEmployerRate = new Decimal(statutory.uifEmployerRate);
   const uifCapBase = new Decimal(statutory.uifCeiling).times(12).dividedBy(divisor);
   const uif = statutory.uifEnabled
-    ? Decimal.min(adjustedGross.times(uifEmployeeRate), uifCapBase.times(uifEmployeeRate)).toDecimalPlaces(2)
+    ? Decimal.min(leviableGross.times(uifEmployeeRate), uifCapBase.times(uifEmployeeRate)).toDecimalPlaces(2)
     : new Decimal(0);
   const employerUif = statutory.uifEnabled
-    ? Decimal.min(adjustedGross.times(uifEmployerRate), uifCapBase.times(uifEmployerRate)).toDecimalPlaces(2)
+    ? Decimal.min(leviableGross.times(uifEmployerRate), uifCapBase.times(uifEmployerRate)).toDecimalPlaces(2)
     : new Decimal(0);
 
   // SDL: employer cost only, not deducted from employee net pay
   const employerSdl = isSDLLiable && statutory.sdlEnabled
-    ? adjustedGross.times(statutory.sdlRate).toDecimalPlaces(2)
+    ? leviableGross.times(statutory.sdlRate).toDecimalPlaces(2)
     : new Decimal(0);
 
   const deductions: PayslipLineItem[] = [
@@ -242,6 +260,7 @@ export function calculateMonthlyPayroll(
     uif: uif.toNumber(),
     employerUif: employerUif.toNumber(),
     employerSdl: employerSdl.toNumber(),
+    employerBenefits: benefits,
   };
 }
 
@@ -252,7 +271,6 @@ export function buildPayslip(
   payDate: string,
   options: PayrollOptions = {}
 ): Payslip {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { employerSdl, employerUif, ...payslipData } = calculateMonthlyPayroll(employee, options);
   return {
     id: `${runId}-${employee.id}`,
@@ -262,6 +280,8 @@ export function buildPayslip(
     period,
     payDate,
     ...payslipData,
+    employerUif,
+    employerSdl,
   };
 }
 

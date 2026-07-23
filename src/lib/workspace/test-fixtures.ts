@@ -31,6 +31,7 @@ export function makeEmployeeRow(overrides: Partial<EmployeeWithBalances> = {}): 
     salaryPensionContributionPct: null,
     salaryMedicalAid: null,
     salaryRetirementAnnuity: null,
+    salaryEmployerBenefits: null,
     bankName: "Standard Bank",
     bankAccountNumber: "1234567890",
     bankBranchCode: "051001",

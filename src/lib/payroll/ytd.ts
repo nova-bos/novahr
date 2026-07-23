@@ -7,6 +7,8 @@ export interface PayslipYtd {
   netPay: number;
   paye: number;
   uif: number;
+  employerUif: number;
+  employerSdl: number;
   /** Year-to-date total per earning line-item label. */
   earnings: Record<string, number>;
   /** Year-to-date total per deduction line-item label. */
@@ -55,6 +57,8 @@ export function computePayslipYtd(
     netPay: 0,
     paye: 0,
     uif: 0,
+    employerUif: 0,
+    employerSdl: 0,
     earnings: {},
     deductions: {},
   };
@@ -66,6 +70,8 @@ export function computePayslipYtd(
     ytd.netPay += p.netPay;
     ytd.paye += p.paye;
     ytd.uif += p.uif;
+    ytd.employerUif += p.employerUif ?? 0;
+    ytd.employerSdl += p.employerSdl ?? 0;
     for (const e of p.earnings) {
       ytd.earnings[e.label] = (ytd.earnings[e.label] ?? 0) + e.amount;
     }

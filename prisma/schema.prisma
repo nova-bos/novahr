@@ -252,6 +252,8 @@ model Employee {
   salaryPensionContributionPct     Float?
   salaryMedicalAid                  Decimal? @db.Decimal(15, 2)
   salaryRetirementAnnuity          Decimal? @db.Decimal(15, 2)
+  /// JSON array of { label: string, amount: number, taxable: boolean }.
+  salaryEmployerBenefits           Json?
 
   bankName              String
   bankAccountNumber     String
@@ -390,6 +392,12 @@ model Payslip {
   netPay          Decimal @db.Decimal(15, 2)
   paye            Decimal @db.Decimal(15, 2)
   uif             Decimal @db.Decimal(15, 2)
+  employerUif     Decimal? @db.Decimal(15, 2)
+  employerSdl     Decimal? @db.Decimal(15, 2)
+  /// Snapshot JSON array of { label, amount, taxable } at run time.
+  employerBenefits Json?
+  /// Snapshot JSON array of { label, balance } of outstanding loan/garnishee balances.
+  closingBalances Json?
   payrollItems    PayrollItem[]
 
   @@index([tenantId])

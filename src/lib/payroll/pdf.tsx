@@ -51,12 +51,18 @@ function textAlignFor(a: LogoAlignment): "left" | "center" | "right" {
 // Leave balances worth surfacing on a payslip, in display order.
 const PAYSLIP_LEAVE_TYPES = ["annual", "sick", "family"] as const;
 
-function summariseLeave(balances: LeaveBalance[]): { label: string; remaining: number }[] {
+interface LeaveSummaryRow {
+  label: string;
+  balance: number;
+  taken: number;
+}
+
+function summariseLeave(balances: LeaveBalance[]): LeaveSummaryRow[] {
   return PAYSLIP_LEAVE_TYPES.map((type) => {
     const b = balances.find((x) => x.type === type);
     if (!b) return null;
-    return { label: leaveTypeLabel(type), remaining: Math.max(0, b.total - b.used) };
-  }).filter((x): x is { label: string; remaining: number } => x !== null);
+    return { label: leaveTypeLabel(type), balance: Math.max(0, b.total - b.used), taken: b.used };
+  }).filter((x): x is LeaveSummaryRow => x !== null);
 }
 
 // ─── CLASSIC TEMPLATE · "The Ledger" ─────────────────────────────────────────
@@ -101,6 +107,7 @@ function ClassicPayslipDocument(props: PayslipDocumentProps) {
     colHeadAmt: { flex: 2, fontSize: 7, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, textAlign: "right" },
     netRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderTopWidth: 2, borderBottomWidth: 2, borderColor: "#1a1a1a", paddingVertical: 9, marginBottom: 20 },
     netLabel: { fontSize: 11, fontFamily: "Helvetica-Bold", textTransform: "uppercase", letterSpacing: 1 },
+    netYtd: { fontSize: 7.5, color: "#666", marginTop: 3 },
     netValue: { fontSize: 16, fontFamily: "Helvetica-Bold", color: accentColor },
     footer: { position: "absolute", bottom: 26, left: 46, right: 46, textAlign: "center", fontSize: 7, color: "#999", borderTopWidth: 0.5, borderTopColor: "#e0e0e0", paddingTop: 8 },
   });
@@ -169,13 +176,19 @@ function ClassicPayslipDocument(props: PayslipDocumentProps) {
           <View style={s.idCell}><Text style={s.idLabel}>Department</Text><Text style={s.idValue}>{employee.department}</Text></View>
           <View style={s.idCell}><Text style={s.idLabel}>Identity number</Text><Text style={s.idValue}>{maskId(employee.idNumber)}</Text></View>
           <View style={s.idCell}><Text style={s.idLabel}>Engagement date</Text><Text style={s.idValue}>{formatDate(employee.startDate)}</Text></View>
+          {employee.address ? (
+            <View style={[s.idCell, { width: "100%" }]}><Text style={s.idLabel}>Residential address</Text><Text style={s.idValue}>{employee.address}</Text></View>
+          ) : null}
         </View>
 
         <LedgerTable title="Earnings" kind="earnings" />
         <LedgerTable title="Deductions" kind="deductions" />
 
         <View style={s.netRow}>
-          <Text style={s.netLabel}>Net pay</Text>
+          <View>
+            <Text style={s.netLabel}>Net pay</Text>
+            {withYtd ? <Text style={s.netYtd}>Year to date: {formatCurrency(ytd!.netPay)}</Text> : null}
+          </View>
           <Text style={s.netValue}>{formatCurrency(payslip.netPay)}</Text>
         </View>
 
@@ -348,17 +361,36 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
   const payslipNumber = `${payslip.period}-${employee.employeeNumber}`;
   const withYtd = !!(showYtd && ytd);
   const leave = summariseLeave(employee.leaveBalances ?? []);
+  const benefits = payslip.employerBenefits ?? [];
+  const closingBalances = payslip.closingBalances ?? [];
   const payFrequency = employee.salary.payFrequency;
 
   // Employer contributions (informational, not deducted from the employee).
-  const uifEmployer = payslip.uif; // employer matches employee UIF 1:1 in SA
-  const employerContribs: { label: string; amount: number }[] = [
-    { label: "UIF (employer)", amount: uifEmployer },
-  ];
+  // Uses the persisted employer figures from the run; falls back to the 1:1 UIF
+  // match for payslips created before those were stored. ytd is null where we do
+  // not track a running total for that line.
+  const employerContribs: { label: string; amount: number; ytd: number | null }[] = [];
+  const employerUifAmt = payslip.employerUif ?? payslip.uif; // employer matches employee UIF 1:1 in SA
+  employerContribs.push({
+    label: "UIF (employer)",
+    amount: employerUifAmt,
+    ytd: withYtd ? ytd!.employerUif || employerUifAmt : null,
+  });
+  if ((payslip.employerSdl ?? 0) > 0) {
+    employerContribs.push({
+      label: "SDL (employer)",
+      amount: payslip.employerSdl!,
+      ytd: withYtd ? ytd!.employerSdl : null,
+    });
+  }
   // pensionContributionPct is stored as a fraction (e.g. 0.075), so multiply directly.
   const pensionPct = employee.salary.pensionContributionPct;
   if (pensionPct && pensionPct > 0) {
-    employerContribs.push({ label: "Pension (employer)", amount: Math.round(payslip.basicSalary * pensionPct * 100) / 100 });
+    employerContribs.push({
+      label: "Pension (employer)",
+      amount: Math.round(payslip.basicSalary * pensionPct * 100) / 100,
+      ytd: null,
+    });
   }
 
   const s = StyleSheet.create({
@@ -392,11 +424,6 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
     netLabel: { fontSize: 10, fontFamily: "Helvetica-Bold" },
     netSub: { fontSize: 7, color: "#6b6b6b", marginTop: 1 },
     netValue: { fontSize: 16, fontFamily: "Helvetica-Bold", color: accentColor },
-    leaveRow: { flexDirection: "row", gap: 8, marginBottom: 14 },
-    leaveChip: { flex: 1, borderWidth: 0.5, borderColor: "#d5d5d8", borderRadius: 3, padding: 8 },
-    leaveLabel: { fontSize: 6.5, color: "#888", textTransform: "uppercase", letterSpacing: 0.4 },
-    leaveValue: { fontSize: 11, fontFamily: "Helvetica-Bold", marginTop: 2 },
-    leaveUnit: { fontSize: 6.5, color: "#888" },
     footer: { position: "absolute", bottom: 26, left: 40, right: 40, textAlign: "center", fontSize: 6.5, color: "#999", borderTopWidth: 0.5, borderTopColor: "#e0e0e0", paddingTop: 7 },
   });
 
@@ -455,6 +482,9 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
             <View style={s.idCell}><Text style={s.idLabel}>Engagement date</Text><Text style={s.idValue}>{formatDate(employee.startDate)}</Text></View>
             <View style={s.idCell}><Text style={s.idLabel}>Location</Text><Text style={s.idValue}>{employee.location || "-"}</Text></View>
             <View style={s.idCell}><Text style={s.idLabel}>Employment type</Text><Text style={s.idValue}>{employee.employmentType === "full_time" ? "Full time" : employee.employmentType === "part_time" ? "Part time" : "Contract"}</Text></View>
+            {employee.address ? (
+              <View style={[s.idCell, { width: "100%" }]}><Text style={s.idLabel}>Residential address</Text><Text style={s.idValue}>{employee.address}</Text></View>
+            ) : null}
           </View>
 
           <View style={s.twoCol}>
@@ -465,7 +495,7 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
           <View style={s.netBlock}>
             <View>
               <Text style={s.netLabel}>Net pay</Text>
-              <Text style={s.netSub}>Amount paid into bank account</Text>
+              <Text style={s.netSub}>{withYtd ? `Amount paid into bank account · Year to date ${formatCurrency(ytd!.netPay)}` : "Amount paid into bank account"}</Text>
             </View>
             <Text style={s.netValue}>{formatCurrency(payslip.netPay)}</Text>
           </View>
@@ -473,9 +503,9 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
           <View style={s.twoCol}>
             <View style={s.col}>
               <Text style={s.sectionTitle}>Employer contributions</Text>
-              <View style={s.tHead}><Text style={s.tHeadCell}>Description</Text><Text style={s.tHeadCellR}>Month</Text></View>
+              <View style={s.tHead}><Text style={s.tHeadCell}>Description</Text><Text style={s.tHeadCellR}>Month</Text>{withYtd ? <Text style={s.tHeadCellR}>YTD</Text> : null}</View>
               {employerContribs.map((c) => (
-                <View key={c.label} style={s.row}><Text style={s.cell}>{c.label}</Text><Text style={s.cellR}>{formatCurrency(c.amount)}</Text></View>
+                <View key={c.label} style={s.row}><Text style={s.cell}>{c.label}</Text><Text style={s.cellR}>{formatCurrency(c.amount)}</Text>{withYtd ? <Text style={s.cellR}>{c.ytd != null ? formatCurrency(c.ytd) : "-"}</Text> : null}</View>
               ))}
             </View>
             <View style={s.col}>
@@ -491,12 +521,45 @@ function CorporatePayslipDocument(props: PayslipDocumentProps) {
             </View>
           </View>
 
+          {benefits.length > 0 || closingBalances.length > 0 ? (
+            <View style={s.twoCol}>
+              <View style={s.col}>
+                {benefits.length > 0 ? (
+                  <>
+                    <Text style={s.sectionTitle}>Benefits</Text>
+                    <View style={s.tHead}><Text style={s.tHeadCell}>Description</Text><Text style={s.tHeadCellR}>Month</Text></View>
+                    {benefits.map((b) => (
+                      <View key={b.label} style={s.row}>
+                        <Text style={s.cell}>{b.label}{b.taxable ? " (taxable)" : ""}</Text>
+                        <Text style={s.cellR}>{formatCurrency(b.amount)}</Text>
+                      </View>
+                    ))}
+                  </>
+                ) : null}
+              </View>
+              <View style={s.col}>
+                {closingBalances.length > 0 ? (
+                  <>
+                    <Text style={s.sectionTitle}>Closing balances</Text>
+                    <View style={s.tHead}><Text style={s.tHeadCell}>Description</Text><Text style={s.tHeadCellR}>Balance</Text></View>
+                    {closingBalances.map((c) => (
+                      <View key={c.label} style={s.row}><Text style={s.cell}>{c.label}</Text><Text style={s.cellR}>{formatCurrency(c.balance)}</Text></View>
+                    ))}
+                  </>
+                ) : null}
+              </View>
+            </View>
+          ) : null}
+
           {leave.length > 0 ? (
-            <View style={s.leaveRow}>
+            <View style={s.section}>
+              <Text style={s.sectionTitle}>Leave balances (days)</Text>
+              <View style={s.tHead}><Text style={s.tHeadCell}>Leave type</Text><Text style={s.tHeadCellR}>Balance</Text><Text style={s.tHeadCellR}>Taken</Text></View>
               {leave.map((l) => (
-                <View key={l.label} style={s.leaveChip}>
-                  <Text style={s.leaveLabel}>{l.label} remaining</Text>
-                  <Text style={s.leaveValue}>{l.remaining} <Text style={s.leaveUnit}>days</Text></Text>
+                <View key={l.label} style={s.row}>
+                  <Text style={s.cell}>{l.label}</Text>
+                  <Text style={s.cellR}>{l.balance.toFixed(2)}</Text>
+                  <Text style={s.cellR}>{l.taken.toFixed(2)}</Text>
                 </View>
               ))}
             </View>
@@ -573,6 +636,7 @@ function BrandedPayslipDocument(props: PayslipDocumentProps) {
             <Text style={s.statementName}>{employee.firstName} {employee.lastName}</Text>
             <Text style={s.statementNet}>{formatCurrency(payslip.netPay)}</Text>
             <Text style={s.statementSub}>{employee.jobTitle} · {employee.department} · Paid {payDate}</Text>
+            {withYtd ? <Text style={s.statementSub}>Year to date net {formatCurrency(ytd!.netPay)}</Text> : null}
           </View>
 
           <View style={s.metaRow}>

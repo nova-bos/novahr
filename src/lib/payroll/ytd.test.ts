@@ -16,6 +16,8 @@ function makePayslip(overrides: Partial<Payslip> & { period: string; employeeId:
     netPay: 9400,
     paye: 1500,
     uif: 100,
+    employerUif: 100,
+    employerSdl: 110,
     ...overrides,
   };
 }
@@ -33,6 +35,18 @@ describe("computePayslipYtd", () => {
     expect(ytd.earnings["Travel allowance"]).toBe(3000);
     expect(ytd.deductions["PAYE"]).toBe(4500);
     expect(ytd.basicSalary).toBe(30000);
+    expect(ytd.employerUif).toBe(300);
+    expect(ytd.employerSdl).toBe(330);
+  });
+
+  it("treats missing employer contributions on legacy payslips as zero", () => {
+    const payslips = [
+      makePayslip({ period: "2026-04", employeeId: "e1", employerUif: undefined, employerSdl: undefined }),
+      makePayslip({ period: "2026-05", employeeId: "e1" }),
+    ];
+    const ytd = computePayslipYtd(payslips, "e1", "2026-05", 3);
+    expect(ytd.employerUif).toBe(100);
+    expect(ytd.employerSdl).toBe(110);
   });
 
   it("excludes payslips after the current period", () => {

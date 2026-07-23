@@ -133,6 +133,7 @@ describe("mapEmployee", () => {
     salaryPensionContributionPct: null,
     salaryMedicalAid: null,
     salaryRetirementAnnuity: null,
+    salaryEmployerBenefits: null,
     bankName: "Standard Bank",
     bankAccountNumber: "1234567890",
     bankBranchCode: "051001",
@@ -320,6 +321,10 @@ describe("mapPayslip", () => {
       netPay: new Prisma.Decimal(41_697.33),
       paye: new Prisma.Decimal(11_302.67),
       uif: new Prisma.Decimal(177.12),
+      employerUif: new Prisma.Decimal(177.12),
+      employerSdl: new Prisma.Decimal(530),
+      employerBenefits: null,
+      closingBalances: null,
     };
 
     expect(mapPayslip(row)).toEqual({
@@ -337,6 +342,8 @@ describe("mapPayslip", () => {
       netPay: 41_697.33,
       paye: 11_302.67,
       uif: 177.12,
+      employerUif: 177.12,
+      employerSdl: 530,
     });
   });
 });
