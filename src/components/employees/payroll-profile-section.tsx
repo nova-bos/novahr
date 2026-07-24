@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label, OptionalTag } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePlan } from "@/lib/plan/use-plan";
+import { useAuth } from "@/lib/auth/auth-provider";
 import { useTenantId } from "@/lib/store/hooks";
 import {
   getPayrollProfileAction,
@@ -29,6 +30,12 @@ interface PayrollProfileSectionProps {
 
 export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps) {
   const { can } = usePlan();
+  const { user } = useAuth();
+  // The payroll profile (tax, UIF, medical aid, retirement fund) is HR-managed
+  // data; the server action requires the HR role. `can("payrollProfiles")` only
+  // checks the plan capability, so a non-HR user on a capable plan would pass it
+  // and then trigger a "Not authorized" throw. Gate on the role too.
+  const canView = user?.role === "hr" && can("payrollProfiles");
   const tenantId = useTenantId();
   const [profile, setProfile] = React.useState<PayrollProfileResult | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -45,7 +52,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
   const [formNotes, setFormNotes] = React.useState("");
 
   React.useEffect(() => {
-    if (!can("payrollProfiles")) {
+    if (!canView) {
       setLoading(false);
       return;
     }
@@ -54,7 +61,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
       setProfile(p);
       setLoading(false);
     });
-  }, [tenantId, employeeId, can]);
+  }, [tenantId, employeeId, canView]);
 
   function openEdit() {
     setFormTaxNumber(profile?.taxNumber ?? "");
@@ -93,7 +100,7 @@ export function PayrollProfileSection({ employeeId }: PayrollProfileSectionProps
     });
   }
 
-  if (!can("payrollProfiles")) return null;
+  if (!canView) return null;
   if (loading) return null;
 
   return (
