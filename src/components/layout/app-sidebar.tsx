@@ -141,7 +141,7 @@ export function AppSidebar() {
                   <ChevronsUpDown className="ml-auto size-4 text-sidebar-foreground/55" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" side="top" align="start" sideOffset={8}>
+              <DropdownMenuContent className="w-56" side="top" align="start" sideOffset={8} collisionPadding={12}>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{user?.name}</p>
