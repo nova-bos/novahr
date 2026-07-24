@@ -7,10 +7,13 @@ const base = {
   commission: 0,
   travelAllowance: 0,
   otherAllowances: 0,
+  fringeBenefits: 0,
   pension: 0,
   medicalAid: 0,
   paye: 0,
   uif: 0,
+  employerUif: 0,
+  sdl: 0,
 };
 
 describe("buildIrp5", () => {
@@ -43,6 +46,24 @@ describe("buildIrp5", () => {
     expect(cert.type).toBe("IT3(a)");
     expect(cert.paye).toBe(0);
     expect(cert.grossRemuneration).toBe(60_000);
+  });
+
+  it("includes fringe benefits (3801), total UIF (4141), SDL (4142) and total (4149)", () => {
+    const cert = buildIrp5({
+      ...base,
+      income: 390_000,
+      otherAllowances: 7_800,
+      fringeBenefits: 3_560,
+      paye: 106_251.68,
+      uif: 1_062.72,
+      employerUif: 1_062.72,
+      sdl: 4_013.58,
+    });
+    expect(cert.grossRemuneration).toBe(401_360); // 390,000 + 7,800 + 3,560
+    expect(cert.incomeLines.find((l) => l.code === SARS_SOURCE_CODES.fringeBenefits)?.amount).toBe(3_560);
+    expect(cert.totalUif).toBe(2_125.44); // employer + employee (code 4141)
+    expect(cert.sdl).toBe(4_013.58); // code 4142
+    expect(cert.totalTaxSdlUif).toBe(112_390.7); // code 4149 = PAYE + total UIF + SDL
   });
 
   it("omits zero-value lines", () => {

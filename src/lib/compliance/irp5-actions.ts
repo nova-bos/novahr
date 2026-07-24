@@ -4,6 +4,7 @@ import { ComplianceType } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant } from "@/lib/auth/require";
 import { buildIrp5, taxYearPeriods, type Irp5Certificate, type Irp5Input } from "./irp5";
+import { dateOfBirthFromIdNumber } from "@/lib/workspace/mappers";
 
 /** The interim reconciliation half (1 March to 31 August). */
 function interimPeriods(taxYear: string): string[] {
@@ -40,10 +41,13 @@ function emptyInput(): Irp5Input {
     commission: 0,
     travelAllowance: 0,
     otherAllowances: 0,
+    fringeBenefits: 0,
     pension: 0,
     medicalAid: 0,
     paye: 0,
     uif: 0,
+    employerUif: 0,
+    sdl: 0,
   };
 }
 
@@ -132,6 +136,187 @@ export async function getTaxYearCertificatesAction(
     }
     certificates.sort((a, b) => a.name.localeCompare(b.name));
     return certificates;
+  });
+}
+
+export interface Irp5FullCertificate {
+  employeeId: string;
+  certificateNumber: string;
+  taxYear: string;
+  yearOfAssessment: number;
+  periodOfReconciliation: string;
+  employee: {
+    surname: string;
+    firstNames: string;
+    initials: string;
+    idNumber: string;
+    dateOfBirth: string; // CCYYMMDD, blank if not derivable
+    taxNumber: string;
+    employeeNumber: string;
+    natureOfPerson: string;
+    residentialAddress: string;
+    bank: { name: string; accountNumber: string; branchCode: string; accountType: string; holderName: string };
+  };
+  employer: { name: string; address: string; payeRef: string; uifRef: string; sdlRef: string };
+  payPeriods: { periodsInYear: number; periodsWorked: number; employedFrom: string; employedTo: string };
+  certificate: Irp5Certificate;
+}
+
+function initialsFrom(firstNames: string): string {
+  return firstNames
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+/** CCYYMMDD from a "YYYY-MM-DD"/ISO date, or "" when absent. */
+function ccyymmdd(date: string | undefined | null): string {
+  if (!date) return "";
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+}
+
+/**
+ * Full IRP5/IT3(a) certificate data per employee for the printable certificate,
+ * including employee, employer and pay-period metadata plus every source-coded
+ * line. Source codes and the generated certificate number MUST be verified
+ * against the current SARS PAYE BRS before real issuing or filing.
+ */
+export async function getIrp5CertificateDataAction(
+  tenantId: string,
+  taxYear: string
+): Promise<Irp5FullCertificate[]> {
+  await requireTenant(tenantId, "hr");
+  const periods = taxYearPeriods(taxYear);
+  const yearOfAssessment = Number(taxYear.split("/")[1]);
+  const periodOfReconciliation = `${yearOfAssessment}02`;
+  const taxYearEnd = `${yearOfAssessment}-02-${yearOfAssessment % 4 === 0 ? "29" : "28"}`;
+  const taxYearStart = `${Number(taxYear.split("/")[0])}-03-01`;
+
+  return runAsTenant(tenantId, async (tx) => {
+    const [tenant, settings, payslips] = await Promise.all([
+      tx.tenant.findUnique({ where: { id: tenantId }, select: { name: true, address: true, city: true } }),
+      tx.payrollSettings.findUnique({
+        where: { tenantId },
+        select: { payeReferenceNumber: true, uifReferenceNumber: true, sdlReferenceNumber: true },
+      }),
+      tx.payslip.findMany({
+        where: { tenantId, period: { in: periods } },
+        select: {
+          employeeId: true,
+          period: true,
+          basicSalary: true,
+          earnings: true,
+          deductions: true,
+          employerUif: true,
+          employerSdl: true,
+          employerBenefits: true,
+          employee: {
+            select: {
+              employeeNumber: true,
+              firstName: true,
+              lastName: true,
+              idNumber: true,
+              taxNumber: true,
+              address: true,
+              startDate: true,
+              bankName: true,
+              bankAccountNumber: true,
+              bankBranchCode: true,
+              bankAccountType: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const asLines = (v: unknown): { label: string; amount: number }[] =>
+      Array.isArray(v) ? (v as { label: string; amount: number }[]) : [];
+    const asBenefits = (v: unknown): { amount: number; taxable: boolean }[] =>
+      Array.isArray(v) ? (v as { amount: number; taxable: boolean }[]) : [];
+
+    const byEmployee = new Map<
+      string,
+      { input: Irp5Input; meta: (typeof payslips)[number]["employee"]; periods: Set<string> }
+    >();
+
+    for (const slip of payslips) {
+      let entry = byEmployee.get(slip.employeeId);
+      if (!entry) {
+        entry = { input: emptyInput(), meta: slip.employee, periods: new Set() };
+        byEmployee.set(slip.employeeId, entry);
+      }
+      entry.periods.add(slip.period);
+      entry.input.income += slip.basicSalary.toNumber();
+      for (const line of asLines(slip.earnings)) {
+        const bucket = bucketForItem("earning", line.label);
+        if (bucket) entry.input[bucket] += line.amount;
+      }
+      for (const line of asLines(slip.deductions)) {
+        const bucket = bucketForItem("deduction", line.label);
+        if (bucket) entry.input[bucket] += line.amount;
+      }
+      for (const b of asBenefits(slip.employerBenefits)) {
+        if (b.taxable) entry.input.fringeBenefits += b.amount;
+      }
+      entry.input.employerUif += slip.employerUif != null ? slip.employerUif.toNumber() : 0;
+      entry.input.sdl += slip.employerSdl != null ? slip.employerSdl.toNumber() : 0;
+    }
+
+    const payeRef = settings?.payeReferenceNumber ?? "";
+    const employer = {
+      name: tenant?.name ?? "",
+      address: [tenant?.address, tenant?.city].filter(Boolean).join(", "),
+      payeRef,
+      uifRef: settings?.uifReferenceNumber ?? "",
+      sdlRef: settings?.sdlReferenceNumber ?? "",
+    };
+
+    const results: Irp5FullCertificate[] = [];
+    let seq = 1;
+    for (const [employeeId, { input, meta, periods: workedPeriods }] of byEmployee) {
+      const certificate = buildIrp5(input);
+      const employedFrom = ccyymmdd(meta.startDate.toISOString()) || "";
+      const startIso = meta.startDate.toISOString().slice(0, 10);
+      results.push({
+        employeeId,
+        certificateNumber: `${payeRef}${yearOfAssessment}02${String(seq).padStart(14, "0")}`,
+        taxYear,
+        yearOfAssessment,
+        periodOfReconciliation,
+        employee: {
+          surname: meta.lastName,
+          firstNames: meta.firstName,
+          initials: initialsFrom(meta.firstName),
+          idNumber: meta.idNumber,
+          dateOfBirth: ccyymmdd(dateOfBirthFromIdNumber(meta.idNumber)),
+          taxNumber: meta.taxNumber,
+          employeeNumber: meta.employeeNumber,
+          natureOfPerson: "A",
+          residentialAddress: meta.address,
+          bank: {
+            name: meta.bankName,
+            accountNumber: meta.bankAccountNumber,
+            branchCode: meta.bankBranchCode,
+            accountType: meta.bankAccountType,
+            holderName: `${meta.firstName} ${meta.lastName}`,
+          },
+        },
+        employer,
+        payPeriods: {
+          periodsInYear: 12,
+          periodsWorked: workedPeriods.size,
+          employedFrom: ccyymmdd(startIso > taxYearStart ? startIso : taxYearStart) || employedFrom,
+          employedTo: ccyymmdd(taxYearEnd),
+        },
+        certificate,
+      });
+      seq++;
+    }
+    results.sort((a, b) => a.employee.surname.localeCompare(b.employee.surname));
+    return results;
   });
 }
 

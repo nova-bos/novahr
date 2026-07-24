@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Download } from "lucide-react";
+import { Download, FileText } from "lucide-react";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ import { getCurrentTaxYear } from "@/lib/compliance/utils";
 import {
   getEmp501ReconciliationAction,
   getTaxYearCertificatesAction,
+  getIrp5CertificateDataAction,
   type Emp501Reconciliation,
   type EmployeeCertificate,
 } from "@/lib/compliance/irp5-actions";
@@ -58,6 +59,53 @@ export function Emp501Panel({ tenantId }: { tenantId: string }) {
   const [certs, setCerts] = useState<EmployeeCertificate[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<EmployeeCertificate | null>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+
+  async function downloadIrp5Pdfs(employeeId?: string) {
+    setDownloadingPdf(true);
+    try {
+      const [{ pdf }, { Irp5Document }, JSZip, full] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/lib/compliance/irp5-pdf"),
+        import("jszip").then((m) => m.default),
+        getIrp5CertificateDataAction(tenantId, taxYear),
+      ]);
+      const list = employeeId ? full.filter((f) => f.employeeId === employeeId) : full;
+      if (list.length === 0) {
+        toast.error("No certificate data to download.");
+        return;
+      }
+      if (list.length === 1) {
+        const blob = await pdf(<Irp5Document cert={list[0]} />).toBlob();
+        triggerDownload(blob, `${list[0].certificate.type}-${list[0].employee.surname}-${fileYear}.pdf`);
+      } else {
+        const zip = new JSZip();
+        for (const cert of list) {
+          const blob = await pdf(<Irp5Document cert={cert} />).toBlob();
+          zip.file(`${cert.certificate.type}-${cert.employee.surname}-${cert.employee.employeeNumber}.pdf`, await blob.arrayBuffer());
+        }
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        triggerDownload(zipBlob, `irp5-certificates-${fileYear}.zip`);
+      }
+    } catch (err) {
+      toast.error("Could not generate certificates", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
+
+  function triggerDownload(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
 
   useEffect(() => {
     let active = true;
@@ -193,10 +241,14 @@ export function Emp501Panel({ tenantId }: { tenantId: string }) {
           <CardTitle>Tax certificates</CardTitle>
           <CardDescription>IRP5 and IT3(a) certificates for {taxYear}. Select one to view its source codes.</CardDescription>
           {certs.length > 0 && (
-            <CardAction>
+            <CardAction className="flex gap-2">
               <Button variant="outline" size="sm" onClick={handleExportCertificates}>
                 <Download className="size-4" />
                 Export CSV
+              </Button>
+              <Button size="sm" onClick={() => downloadIrp5Pdfs()} disabled={downloadingPdf}>
+                <FileText className="size-4" />
+                {downloadingPdf ? "Generating..." : "Download IRP5 PDFs"}
               </Button>
             </CardAction>
           )}
@@ -307,6 +359,16 @@ export function Emp501Panel({ tenantId }: { tenantId: string }) {
                     <span className="tabular-nums">{formatCurrency(selected.certificate.uif)}</span>
                   </div>
                 </div>
+
+                <Button
+                  variant="outline"
+                  className="mt-1"
+                  onClick={() => downloadIrp5Pdfs(selected.employeeId)}
+                  disabled={downloadingPdf}
+                >
+                  <FileText className="size-4" />
+                  {downloadingPdf ? "Generating..." : `Download ${selected.certificate.type} PDF`}
+                </Button>
               </div>
             </>
           )}

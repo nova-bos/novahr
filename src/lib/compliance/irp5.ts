@@ -21,11 +21,14 @@ export const SARS_SOURCE_CODES = {
   commission: "3606",
   travelAllowance: "3701",
   otherAllowances: "3713",
+  fringeBenefits: "3801", // general taxable fringe benefits (employer-paid)
   grossRemuneration: "3699", // total of the income codes
   pension: "4001", // employee pension fund contributions
   medicalAid: "4005", // medical aid contributions
   paye: "4102", // PAYE deducted
-  uif: "4141", // UIF contribution
+  uif: "4141", // UIF contribution (employer + employee)
+  sdl: "4142", // SDL contribution (employer)
+  totalTaxSdlUif: "4149", // total of PAYE, UIF and SDL
   totalDeductions: "4103", // total of the deduction codes (excl. PAYE/UIF)
 } as const;
 
@@ -48,10 +51,13 @@ export interface Irp5Input {
   commission: number; // -> 3606
   travelAllowance: number; // -> 3701
   otherAllowances: number; // -> 3713
+  fringeBenefits: number; // taxable employer benefits -> 3801
   pension: number; // -> 4001
   medicalAid: number; // -> 4005
   paye: number; // -> 4102
-  uif: number; // -> 4141
+  uif: number; // employee UIF -> component of 4141
+  employerUif: number; // employer UIF -> component of 4141
+  sdl: number; // -> 4142
 }
 
 export interface Irp5Line {
@@ -67,7 +73,10 @@ export interface Irp5Certificate {
   grossRemuneration: number; // code 3699
   totalDeductions: number; // code 4103 (pension + medical)
   paye: number; // code 4102
-  uif: number; // code 4141
+  uif: number; // employee UIF (used by the EMP501 reconciliation)
+  totalUif: number; // code 4141: employer + employee UIF
+  sdl: number; // code 4142
+  totalTaxSdlUif: number; // code 4149: PAYE + total UIF + SDL
 }
 
 function n(v: number): number {
@@ -85,7 +94,8 @@ export function buildIrp5(input: Irp5Input): Irp5Certificate {
     { code: SARS_SOURCE_CODES.annualPayment, label: "Annual payment", amount: n(input.annualPayment) },
     { code: SARS_SOURCE_CODES.commission, label: "Commission", amount: n(input.commission) },
     { code: SARS_SOURCE_CODES.travelAllowance, label: "Travel allowance", amount: n(input.travelAllowance) },
-    { code: SARS_SOURCE_CODES.otherAllowances, label: "Other allowances", amount: n(input.otherAllowances) },
+    { code: SARS_SOURCE_CODES.otherAllowances, label: "Other allowances (taxable)", amount: n(input.otherAllowances) },
+    { code: SARS_SOURCE_CODES.fringeBenefits, label: "General fringe benefits", amount: n(input.fringeBenefits) },
   ];
   const deductionCandidates: Irp5Line[] = [
     { code: SARS_SOURCE_CODES.pension, label: "Pension fund", amount: n(input.pension) },
@@ -105,6 +115,10 @@ export function buildIrp5(input: Irp5Input): Irp5Certificate {
     .toNumber();
 
   const paye = n(input.paye);
+  const uif = n(input.uif);
+  const totalUif = n(input.uif + input.employerUif);
+  const sdl = n(input.sdl);
+  const totalTaxSdlUif = n(paye + totalUif + sdl);
 
   return {
     type: paye > 0 ? "IRP5" : "IT3(a)",
@@ -113,6 +127,9 @@ export function buildIrp5(input: Irp5Input): Irp5Certificate {
     grossRemuneration,
     totalDeductions,
     paye,
-    uif: n(input.uif),
+    uif,
+    totalUif,
+    sdl,
+    totalTaxSdlUif,
   };
 }
