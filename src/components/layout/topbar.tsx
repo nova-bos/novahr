@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { HelpCircle, LogOut, Settings, User, UserRound } from "lucide-react";
+import { Building2, HelpCircle, LogOut, Settings, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { ROLE_LABELS } from "@/lib/auth/types";
 import { TenantSwitcher } from "./tenant-switcher";
@@ -71,15 +71,15 @@ function MobileProfileMenu() {
         )}
         <DropdownMenuItem asChild>
           <Link href="/account">
-            <User className="size-4" />
-            My account
+            <Settings className="size-4" />
+            Settings
           </Link>
         </DropdownMenuItem>
         {user.role === "hr" && (
           <DropdownMenuItem asChild>
             <Link href="/settings">
-              <Settings className="size-4" />
-              Settings
+              <Building2 className="size-4" />
+              Company settings
             </Link>
           </DropdownMenuItem>
         )}

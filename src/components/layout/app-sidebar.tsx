@@ -6,10 +6,10 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ChevronsUpDown,
+  Building2,
   HelpCircle,
   LogOut,
   Settings,
-  User,
   UserRound,
   X,
 } from "lucide-react";
@@ -159,15 +159,15 @@ export function AppSidebar() {
                 )}
                 <DropdownMenuItem asChild>
                   <Link href="/account">
-                    <User />
-                    My account
+                    <Settings />
+                    Settings
                   </Link>
                 </DropdownMenuItem>
                 {user?.role === "hr" && (
                   <DropdownMenuItem asChild>
                     <Link href="/settings">
-                      <Settings />
-                      Settings
+                      <Building2 />
+                      Company settings
                     </Link>
                   </DropdownMenuItem>
                 )}
