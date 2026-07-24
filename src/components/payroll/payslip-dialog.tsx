@@ -88,15 +88,6 @@ export function PayslipDialog({
   const tenant = useCurrentTenant();
   const allPayslips = useAllPayslips();
   const [downloading, setDownloading] = React.useState(false);
-  const [payslipSettings, setPayslipSettings] = React.useState<PayslipSettingsResult | null>(null);
-
-  React.useEffect(() => {
-    // Re-fetch each time the dialog opens so a template/branding change made in
-    // Settings is reflected without a full reload.
-    if (open) {
-      getPayslipSettingsAction(tenant.id).then(setPayslipSettings).catch(() => {});
-    }
-  }, [open, tenant.id]);
 
   if (!payslip) return null;
 
@@ -104,21 +95,24 @@ export function PayslipDialog({
     if (!payslip) return;
     setDownloading(true);
     try {
-      const settings: PayslipSettingsResult = payslipSettings ?? {
-        template: "classic",
-        logoUrl: null,
-        logoDataUrl: null,
-        logoAlignment: "left",
-        accentColor: "#6366f1",
-        footerNote: null,
-        showBanking: false,
-        showYtd: true,
-        companyName: null,
-        payeReference: null,
-        uifReference: null,
-        sdlReference: null,
-        taxYearStartMonth: 3,
-      };
+      // Fetch the current branding fresh at download time so the selected
+      // template and logo always apply, with no dependence on cached state.
+      const settings: PayslipSettingsResult =
+        (await getPayslipSettingsAction(tenant.id).catch(() => null)) ?? {
+          template: "classic",
+          logoUrl: null,
+          logoDataUrl: null,
+          logoAlignment: "left",
+          accentColor: "#6366f1",
+          footerNote: null,
+          showBanking: false,
+          showYtd: true,
+          companyName: null,
+          payeReference: null,
+          uifReference: null,
+          sdlReference: null,
+          taxYearStartMonth: 3,
+        };
       const ytd = settings.showYtd
         ? computePayslipYtd(allPayslips, employee.id, payslip.period, settings.taxYearStartMonth)
         : undefined;
