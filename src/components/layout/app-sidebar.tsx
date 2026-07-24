@@ -10,6 +10,7 @@ import {
   LogOut,
   Settings,
   User,
+  UserRound,
   X,
 } from "lucide-react";
 
@@ -148,6 +149,14 @@ export function AppSidebar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                {user?.employeeId && (
+                  <DropdownMenuItem asChild>
+                    <Link href={`/employees/${user.employeeId}`}>
+                      <UserRound />
+                      My profile
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem asChild>
                   <Link href="/account">
                     <User />

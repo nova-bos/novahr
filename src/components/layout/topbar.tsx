@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { HelpCircle, LogOut, Settings, User } from "lucide-react";
+import { HelpCircle, LogOut, Settings, User, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { ROLE_LABELS } from "@/lib/auth/types";
 import { TenantSwitcher } from "./tenant-switcher";
@@ -61,6 +61,14 @@ function MobileProfileMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {user.employeeId && (
+          <DropdownMenuItem asChild>
+            <Link href={`/employees/${user.employeeId}`}>
+              <UserRound className="size-4" />
+              My profile
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/account">
             <User className="size-4" />
@@ -99,7 +107,7 @@ export function Topbar() {
   const canSwitchTenant = user?.role === "hr" || user?.role === "exco";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 overflow-x-hidden border-b border-border/70 bg-background/80 px-4 backdrop-blur-sm sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center gap-3 overflow-x-hidden border-b border-border/70 bg-background/80 px-4 backdrop-blur-sm sm:px-6">
       {/* Logo visible on mobile only; sidebar carries it on desktop */}
       <Link href="/dashboard" className="flex md:hidden shrink-0 items-center" aria-label="Home">
         <LogoIcon size={28} />

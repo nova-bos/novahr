@@ -5,7 +5,6 @@ import {
   CalendarRange,
   BarChart3,
   Settings,
-  UserRound,
   ShieldCheck,
   BanknoteArrowDown,
   CreditCard,
@@ -48,17 +47,11 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { title: "My Team", href: "/employees", icon: Users },
         { title: "My Payslips", href: "/payroll", icon: Wallet },
-        ...(user.employeeId
-          ? [{ title: "My Profile", href: `/employees/${user.employeeId}`, icon: UserRound }]
-          : []),
         { title: "Leave", href: "/leave", icon: CalendarRange },
       ];
     case "employee":
       return [
         { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-        ...(user.employeeId
-          ? [{ title: "My Profile", href: `/employees/${user.employeeId}`, icon: UserRound }]
-          : []),
         { title: "My Payslips", href: "/payroll", icon: Wallet },
         { title: "Leave", href: "/leave", icon: CalendarRange },
       ];

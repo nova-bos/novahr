@@ -13,7 +13,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <SidebarInset>
           <Topbar />
-          <main className="flex min-w-0 flex-1 flex-col gap-6 p-4 pb-24 sm:p-6 sm:pb-6">
+          <main className="flex min-w-0 max-w-full flex-1 flex-col gap-6 overflow-x-hidden p-4 pb-24 sm:p-6 sm:pb-6">
             <TrialGate>
               <PageTransition>{children}</PageTransition>
             </TrialGate>
