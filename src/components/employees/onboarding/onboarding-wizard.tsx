@@ -88,8 +88,8 @@ function InvitePrompt({
         {!invited ? (
           <>
             <div className="rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm">
-              <p className="font-medium">{employee.firstName} {employee.lastName}</p>
-              <p className="text-muted-foreground">{employee.email}</p>
+              <p className="truncate font-medium">{employee.firstName} {employee.lastName}</p>
+              <p className="truncate text-muted-foreground">{employee.email}</p>
             </div>
 
             <div className="space-y-1.5">

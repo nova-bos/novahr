@@ -36,7 +36,7 @@ export function ProfileHeader({
         {isSelf ? "Back to dashboard" : "Back to employees"}
       </Link>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-4">
+        <div className="flex min-w-0 items-start gap-4">
           {canEdit ? (
             <AvatarUpload employee={employee} size={64} />
           ) : employee.photoUrl && !imgFailed ? (
@@ -61,27 +61,27 @@ export function ProfileHeader({
               </AvatarFallback>
             </Avatar>
           )}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex min-w-0 flex-col gap-1.5">
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-xl font-semibold tracking-tight">
                 {employee.firstName} {employee.lastName}
               </h2>
               <StatusBadge status={employee.status} />
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="truncate text-sm text-muted-foreground">
               {employee.jobTitle} · {employee.department}
             </p>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Mail className="size-3" />
-                {employee.email}
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              <span className="flex min-w-0 items-center gap-1">
+                <Mail className="size-3 shrink-0" />
+                <span className="truncate">{employee.email}</span>
               </span>
               <span className="flex items-center gap-1">
-                <Phone className="size-3" />
+                <Phone className="size-3 shrink-0" />
                 {employee.phone}
               </span>
               <span className="flex items-center gap-1">
-                <MapPin className="size-3" />
+                <MapPin className="size-3 shrink-0" />
                 {employee.location}
               </span>
             </div>

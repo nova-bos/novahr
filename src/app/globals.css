@@ -161,6 +161,13 @@ html {
   .glass-panel {
     @apply bg-background/80 backdrop-blur-xl border border-border/40 dark:bg-background/10 dark:border-border/10;
   }
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
