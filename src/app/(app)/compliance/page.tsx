@@ -36,6 +36,11 @@ let _cache: ComplianceCache | null = null;
 
 export default function CompliancePage() {
   const allowed = useRoleGuard(["hr", "exco"]);
+  if (!allowed) return null;
+  return <ComplianceContent />;
+}
+
+function ComplianceContent() {
   const { user } = useAuth();
 
   const period = getCurrentPeriod();
@@ -92,8 +97,6 @@ export default function CompliancePage() {
       return next;
     });
   }
-
-  if (!allowed) return null;
 
   return (
     <PlanGate feature="compliance">

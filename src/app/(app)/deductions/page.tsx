@@ -329,6 +329,11 @@ function DeductionTypeDialog({ open, onOpenChange, initial, onSaved, tenantId }:
 // ---- Main page ----
 export default function DeductionsPage() {
   const allowed = useRoleGuard(["hr", "exco"]);
+  if (!allowed) return null;
+  return <DeductionsContent />;
+}
+
+function DeductionsContent() {
   const tenantId = useTenantId();
 
   const [earningTypes, setEarningTypes] = React.useState<EarningTypeRow[]>([]);
@@ -344,7 +349,7 @@ export default function DeductionsPage() {
   const [, startTransition] = React.useTransition();
 
   React.useEffect(() => {
-    if (!allowed || !tenantId) return;
+    if (!tenantId) return;
     ensureDefaultEarningTypes(tenantId).then(() =>
       getEarningTypesAction(tenantId).then((rows) => {
         setEarningTypes(rows);
@@ -357,7 +362,7 @@ export default function DeductionsPage() {
         setLoadingDeductions(false);
       })
     );
-  }, [allowed, tenantId]);
+  }, [tenantId]);
 
   function refreshEarnings() {
     getEarningTypesAction(tenantId).then(setEarningTypes);
@@ -412,8 +417,6 @@ export default function DeductionsPage() {
       toast.success("Deduction type deleted");
     });
   }
-
-  if (!allowed) return null;
 
   return (
     <PlanGate feature="deductionTypes">
