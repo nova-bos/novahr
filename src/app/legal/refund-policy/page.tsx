@@ -17,7 +17,7 @@ export default function RefundPolicyPage() {
         {
           heading: "Cancelling Your Subscription",
           paragraphs: [
-            "1.1 You may cancel at any time from Billing settings in the app or by emailing billing@novabos.co.za from your registered account email.",
+            "1.1 You may cancel at any time from Billing settings in the app or by emailing sales@novabos.co.za from your registered account email.",
             "1.2 Monthly plans: Cancellation takes effect at the end of the current billing month. You retain full access until then. No further invoices are raised.",
             "1.3 Annual plans: Cancellation takes effect at the end of the current annual term unless clause 3 applies. We will send a renewal reminder at least 30 days before each annual renewal.",
             "1.4 Cancellation of the subscription does not, by itself, delete your data. See clause 4.",
@@ -68,7 +68,7 @@ export default function RefundPolicyPage() {
         },
         {
           heading: "Contact",
-          paragraphs: ["Billing and cancellation queries: billing@novabos.co.za."],
+          paragraphs: ["Billing and cancellation queries: sales@novabos.co.za."],
         },
       ]}
     />

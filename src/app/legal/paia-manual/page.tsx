@@ -28,7 +28,7 @@ export default function PaiaManualPage() {
               ["Postal address", "[to be confirmed]"],
               ["Physical address", "[to be confirmed]"],
               ["Telephone", "[to be confirmed]"],
-              ["Email", "admin@novabos.co.za"],
+              ["Email", "sales@novabos.co.za"],
               ["Website", "novabos.co.za"],
             ],
           },

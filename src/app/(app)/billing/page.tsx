@@ -19,7 +19,6 @@ import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { formatDate } from "@/lib/format";
 
 const SALES_EMAIL = "sales@novabos.co.za";
-const BILLING_EMAIL = "billing@novabos.co.za";
 
 export default function BillingPage() {
   const allowed = useRoleGuard(["hr"]);
@@ -97,8 +96,8 @@ export default function BillingPage() {
           <CardDescription>
             Subscriptions are activated within one business day. We will send an invoice with EFT
             payment details. Email{" "}
-            <a href={`mailto:${BILLING_EMAIL}`} className="text-primary hover:underline">
-              {BILLING_EMAIL}
+            <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline">
+              {SALES_EMAIL}
             </a>{" "}
             with any billing questions.
           </CardDescription>

@@ -57,7 +57,7 @@ export default function AcceptableUsePage() {
         {
           heading: "Reporting Violations",
           paragraphs: [
-            'Report suspected violations or abuse to admin@novabos.co.za with the subject line "AUP Report". Reports are treated confidentially.',
+            'Report suspected violations or abuse to support@novabos.co.za with the subject line "AUP Report". Reports are treated confidentially.',
           ],
         },
       ]}

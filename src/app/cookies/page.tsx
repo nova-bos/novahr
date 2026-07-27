@@ -62,7 +62,7 @@ export default function CookiePolicyPage() {
         },
         {
           heading: "Contact",
-          paragraphs: ["admin@novabos.co.za"],
+          paragraphs: ["sales@novabos.co.za"],
         },
       ]}
     />

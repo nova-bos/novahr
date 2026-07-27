@@ -21,7 +21,7 @@ export default function PrivacyPage() {
           ],
           bullets: [
             "Responsible Party: [NOVA BUSINESS OS (PTY) LTD], [registered address]",
-            "Information Officer: [Name], admin@novabos.co.za",
+            "Information Officer: [Name], sales@novabos.co.za",
             "Website: novabos.co.za",
           ],
         },
@@ -151,7 +151,7 @@ export default function PrivacyPage() {
             "Complain to the Information Regulator.",
           ],
           paragraphsAfterTable: [
-            'To exercise a right, use the request forms in our PAIA Manual or email admin@novabos.co.za with "Data Subject Request" in the subject. We respond within a reasonable time and in any event within the periods PAIA prescribes.',
+            'To exercise a right, use the request forms in our PAIA Manual or email sales@novabos.co.za with "Data Subject Request" in the subject. We respond within a reasonable time and in any event within the periods PAIA prescribes.',
             "Information Regulator (South Africa): JD House, 27 Stiemens Street, Braamfontein, Johannesburg; enquiries@inforegulator.org.za; inforegulator.org.za.",
           ],
         },
@@ -176,7 +176,7 @@ export default function PrivacyPage() {
         {
           heading: "Contact",
           paragraphs: [
-            "Privacy questions and requests: admin@novabos.co.za (attention: Information Officer), or write to [postal address].",
+            "Privacy questions and requests: sales@novabos.co.za (attention: Information Officer), or write to [postal address].",
           ],
         },
       ]}
