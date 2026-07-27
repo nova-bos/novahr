@@ -84,7 +84,7 @@ function MobileProfileMenu() {
           </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
-          <a href="mailto:hello@novahr.co.za">
+          <a href="mailto:support@novabos.co.za">
             <HelpCircle className="size-4" />
             Help &amp; support
           </a>

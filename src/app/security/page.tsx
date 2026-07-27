@@ -72,13 +72,13 @@ export default function SecurityPage() {
               >
                 Vulnerability Disclosure Policy
               </Link>{" "}
-              and email hello@novahr.co.za with subject &quot;SECURITY REPORT&quot;. We respond
+              and email admin@novabos.co.za with subject &quot;SECURITY REPORT&quot;. We respond
               within 3 business days and will not pursue good-faith researchers.
             </p>
 
             <p className="text-sm leading-relaxed text-muted-foreground">
               Questions from your IT or security team? Request our security pack:
-              hello@novahr.co.za.
+              admin@novabos.co.za.
             </p>
           </div>
         </article>

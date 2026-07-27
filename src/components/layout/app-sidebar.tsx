@@ -172,7 +172,7 @@ export function AppSidebar() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem asChild>
-                  <a href="mailto:hello@novahr.co.za">
+                  <a href="mailto:support@novabos.co.za">
                     <HelpCircle />
                     Help &amp; support
                   </a>

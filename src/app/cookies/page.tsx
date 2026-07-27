@@ -62,7 +62,7 @@ export default function CookiePolicyPage() {
         },
         {
           heading: "Contact",
-          paragraphs: ["hello@novahr.co.za"],
+          paragraphs: ["admin@novabos.co.za"],
         },
       ]}
     />

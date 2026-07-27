@@ -17,7 +17,7 @@ function esc(value: string): string {
     .replace(/'/g, "&#39;");
 }
 
-const FROM = process.env.EMAIL_FROM ?? "NovaHR <noreply@novahr.co.za>";
+const FROM = process.env.EMAIL_FROM ?? "NovaHR <no-reply@novabos.co.za>";
 
 function baseLayout(title: string, body: string): string {
   return `<!DOCTYPE html>
@@ -76,7 +76,7 @@ export async function sendLeaveRequestEmail(args: LeaveRequestEmailArgs): Promis
 
   const label = leaveTypeLabel(args.leaveType);
   const dayWord = args.days === 1 ? "day" : "days";
-  const appUrl = args.appUrl ?? "https://novahr.co.za";
+  const appUrl = args.appUrl ?? "https://novabos.co.za";
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">New leave request</h2>
@@ -146,7 +146,7 @@ export async function sendLeaveDecisionEmail(args: LeaveDecisionEmailArgs): Prom
 
   const label = leaveTypeLabel(args.leaveType).toLowerCase();
   const dayWord = args.days === 1 ? "day" : "days";
-  const appUrl = args.appUrl ?? "https://novahr.co.za";
+  const appUrl = args.appUrl ?? "https://novabos.co.za";
 
   const isApproved = args.status === "approved";
   const statusColor = isApproved ? "#dcfce7" : "#fee2e2";
@@ -262,7 +262,7 @@ interface ContactFormEmailArgs {
   message: string;
 }
 
-const SUPPORT_INBOX = process.env.SUPPORT_EMAIL ?? "hello@novahr.co.za";
+const SUPPORT_INBOX = process.env.SUPPORT_EMAIL ?? "support@novabos.co.za";
 
 export async function sendContactFormEmail(args: ContactFormEmailArgs): Promise<void> {
   const client = getResend();
@@ -328,7 +328,7 @@ export async function sendPayslipEmail(args: PayslipEmailArgs): Promise<void> {
   if (!client) return;
 
   const periodLabel = formatMonthYear(args.period);
-  const appUrl = args.appUrl ?? "https://novahr.co.za";
+  const appUrl = args.appUrl ?? "https://novabos.co.za";
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Your ${periodLabel} payslip is ready</h2>

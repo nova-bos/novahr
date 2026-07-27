@@ -14,8 +14,8 @@ const CONTACTS = [
   {
     icon: Mail,
     label: "Email us",
-    value: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "hello@novahr.co.za",
-    href: `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "hello@novahr.co.za"}`,
+    value: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@novabos.co.za",
+    href: `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@novabos.co.za"}`,
   },
   {
     icon: Phone,

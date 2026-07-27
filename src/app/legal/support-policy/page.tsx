@@ -21,7 +21,7 @@ export default function SupportPolicyPage() {
             headers: ["Channel", "Availability", "Notes"],
             rows: [
               [
-                "Email: hello@novahr.co.za",
+                "Email: support@novabos.co.za",
                 "24/7 submission; responses in business hours",
                 "Primary channel; creates a ticket",
               ],
@@ -92,7 +92,7 @@ export default function SupportPolicyPage() {
         {
           heading: "Feature Requests",
           paragraphs: [
-            "Feature requests are welcome via hello@novahr.co.za and are logged, reviewed monthly, and prioritised on the product roadmap. Logging a request is not a commitment to build it.",
+            "Feature requests are welcome via support@novabos.co.za and are logged, reviewed monthly, and prioritised on the product roadmap. Logging a request is not a commitment to build it.",
           ],
         },
         {

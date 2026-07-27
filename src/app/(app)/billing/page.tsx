@@ -18,7 +18,8 @@ import { useEmployees } from "@/lib/store/hooks";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { formatDate } from "@/lib/format";
 
-const CONTACT_EMAIL = "mtshwenewesley@gmail.com";
+const SALES_EMAIL = "sales@novabos.co.za";
+const BILLING_EMAIL = "billing@novabos.co.za";
 
 export default function BillingPage() {
   const allowed = useRoleGuard(["hr"]);
@@ -79,7 +80,7 @@ export default function BillingPage() {
                   asChild
                 >
                   <a
-                    href={`mailto:${CONTACT_EMAIL}?subject=NovaHR%20${tier.name}%20plan&body=Hi,%20we%27d%20like%20to%20subscribe%20to%20the%20${tier.name}%20plan.`}
+                    href={`mailto:${SALES_EMAIL}?subject=NovaHR%20${tier.name}%20plan&body=Hi,%20we%27d%20like%20to%20subscribe%20to%20the%20${tier.name}%20plan.`}
                   >
                     Choose {tier.name}
                   </a>
@@ -96,8 +97,8 @@ export default function BillingPage() {
           <CardDescription>
             Subscriptions are activated within one business day. We will send an invoice with EFT
             payment details. Email{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary hover:underline">
-              {CONTACT_EMAIL}
+            <a href={`mailto:${BILLING_EMAIL}`} className="text-primary hover:underline">
+              {BILLING_EMAIL}
             </a>{" "}
             with any billing questions.
           </CardDescription>

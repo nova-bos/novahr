@@ -32,7 +32,7 @@ export async function sendPasswordResetAction(): Promise<{ success: boolean; err
   const { data: userData } = await supabase.auth.getUser();
   const email = userData.user?.email ?? session.email;
   if (!email) return { success: false, error: "Could not determine email." };
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novahr-five.vercel.app";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novabos.co.za";
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${appUrl}/reset-password`,
   });

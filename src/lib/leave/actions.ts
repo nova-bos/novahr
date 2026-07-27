@@ -428,8 +428,8 @@ export async function requestLeaveDocumentationRecord(leaveRequestId: string): P
         const key = process.env.RESEND_API_KEY;
         if (!key) return;
         const client = new Resend(key);
-        const from = process.env.RESEND_FROM ?? "NovaHR <noreply@novahr.co.za>";
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novahr-five.vercel.app";
+        const from = process.env.RESEND_FROM ?? "NovaHR <no-reply@novabos.co.za>";
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novabos.co.za";
         await client.emails.send({
           from,
           to: employee.email,

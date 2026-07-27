@@ -207,7 +207,7 @@ export default function CompliancePage() {
                 <h3 className="text-lg font-semibold tracking-tight">6. Data Subject Requests</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   Requests may be submitted using the forms referenced in our PAIA Manual to
-                  hello@novahr.co.za. Employees of NovaHR customers should contact their employer
+                  admin@novabos.co.za. Employees of NovaHR customers should contact their employer
                   first; we assist employers in fulfilling requests.
                 </p>
               </section>
@@ -234,7 +234,7 @@ export default function CompliancePage() {
               <section>
                 <h3 className="text-lg font-semibold tracking-tight">8. Contact</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  Information Officer, NOVA BUSINESS OS (PTY) LTD, hello@novahr.co.za.
+                  Information Officer, NOVA BUSINESS OS (PTY) LTD, admin@novabos.co.za.
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   Complaints may also be lodged with the Information Regulator:
