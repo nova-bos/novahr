@@ -12,10 +12,17 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=auth_failed`);
+  }
+
+  // Password recovery codes produce a session with AMR method "otp".
+  // Redirect to the reset form instead of logging the user in.
+  const amr = exchangeData?.session?.amr as Array<{ method: string }> | undefined;
+  if (Array.isArray(amr) && amr.some((a) => a.method === "otp")) {
+    return NextResponse.redirect(`${origin}/reset-password`);
   }
 
   const {
