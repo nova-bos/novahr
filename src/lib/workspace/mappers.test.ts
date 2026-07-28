@@ -75,7 +75,7 @@ describe("mapTenant", () => {
       payDay: 25,
       bankName: "Standard Bank",
       primaryContact: "hr@novatech.example",
-      plan: "hr_payroll",
+      plan: "subscribed",
       trialEndsAt: null,
       payrollDisclaimerAcceptedAt: null,
       paystackCustomerCode: null,
@@ -103,9 +103,13 @@ describe("mapTenant", () => {
       payDay: 25,
       bankName: "Standard Bank",
       primaryContact: "hr@novatech.example",
-      plan: "hr_payroll",
+      plan: "subscribed",
       trialEndsAt: undefined,
       payrollDisclaimerAcceptedAt: null,
+      subscriptionStatus: null,
+      currentPeriodEnd: null,
+      paystackCustomerCode: null,
+      paystackSubscriptionCode: null,
     });
   });
 });

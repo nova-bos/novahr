@@ -1,101 +1,40 @@
 import { describe, it, expect } from "vitest";
-import {
-  getMonthlyPrice,
-  getAnnualPrice,
-  tierFitsEmployeeCount,
-  suggestTier,
-} from "./pricing";
+import { PLATFORM_FEE, MEMBER_FEE, ENTERPRISE_THRESHOLD, PRICING_EXAMPLES } from "./pricing";
 
-describe("getMonthlyPrice", () => {
-  it("returns 499 for starter", () => {
-    expect(getMonthlyPrice("starter")).toBe(499);
-  });
-
-  it("returns 999 for growth", () => {
-    expect(getMonthlyPrice("growth")).toBe(999);
-  });
-
-  it("returns 2499 for scale", () => {
-    expect(getMonthlyPrice("scale")).toBe(2499);
-  });
-
-  it("throws on unknown tier id", () => {
-    expect(() => getMonthlyPrice("unknown" as "starter")).toThrow(
-      "Unknown tier id: unknown"
-    );
+describe("PLATFORM_FEE", () => {
+  it("is R349", () => {
+    expect(PLATFORM_FEE).toBe(349);
   });
 });
 
-describe("getAnnualPrice", () => {
-  it("returns 5988 for starter (499 * 12)", () => {
-    expect(getAnnualPrice("starter")).toBe(5988);
-  });
-
-  it("returns 11988 for growth (999 * 12)", () => {
-    expect(getAnnualPrice("growth")).toBe(11988);
-  });
-
-  it("returns 29988 for scale (2499 * 12)", () => {
-    expect(getAnnualPrice("scale")).toBe(29988);
+describe("MEMBER_FEE", () => {
+  it("is R30", () => {
+    expect(MEMBER_FEE).toBe(30);
   });
 });
 
-describe("tierFitsEmployeeCount", () => {
-  it("returns true for starter with exactly 10 employees", () => {
-    expect(tierFitsEmployeeCount("starter", 10)).toBe(true);
-  });
-
-  it("returns false for starter with 11 employees", () => {
-    expect(tierFitsEmployeeCount("starter", 11)).toBe(false);
-  });
-
-  it("returns true for growth with exactly 30 employees", () => {
-    expect(tierFitsEmployeeCount("growth", 30)).toBe(true);
-  });
-
-  it("returns false for growth with 31 employees", () => {
-    expect(tierFitsEmployeeCount("growth", 31)).toBe(false);
-  });
-
-  it("returns true for scale with 31 employees", () => {
-    expect(tierFitsEmployeeCount("scale", 31)).toBe(true);
-  });
-
-  it("returns true for scale with 100 employees", () => {
-    expect(tierFitsEmployeeCount("scale", 100)).toBe(true);
-  });
-
-  it("returns true for scale with 1000 employees", () => {
-    expect(tierFitsEmployeeCount("scale", 1000)).toBe(true);
+describe("ENTERPRISE_THRESHOLD", () => {
+  it("is 150", () => {
+    expect(ENTERPRISE_THRESHOLD).toBe(150);
   });
 });
 
-describe("suggestTier", () => {
-  it("suggests starter for 1 employee", () => {
-    expect(suggestTier(1)).toBe("starter");
+describe("PRICING_EXAMPLES", () => {
+  it("has correct totals for each example", () => {
+    for (const example of PRICING_EXAMPLES) {
+      expect(example.total).toBe(PLATFORM_FEE + example.members * MEMBER_FEE);
+    }
   });
 
-  it("suggests starter for 10 employees", () => {
-    expect(suggestTier(10)).toBe("starter");
+  it("includes an entry for 1 member", () => {
+    const one = PRICING_EXAMPLES.find((e) => e.members === 1);
+    expect(one).toBeDefined();
+    expect(one?.total).toBe(379);
   });
 
-  it("suggests growth for 11 employees", () => {
-    expect(suggestTier(11)).toBe("growth");
-  });
-
-  it("suggests growth for 30 employees", () => {
-    expect(suggestTier(30)).toBe("growth");
-  });
-
-  it("suggests scale for 31 employees", () => {
-    expect(suggestTier(31)).toBe("scale");
-  });
-
-  it("suggests scale for 50 employees", () => {
-    expect(suggestTier(50)).toBe("scale");
-  });
-
-  it("suggests scale for 100 employees", () => {
-    expect(suggestTier(100)).toBe("scale");
+  it("includes an entry for 100 members", () => {
+    const hundred = PRICING_EXAMPLES.find((e) => e.members === 100);
+    expect(hundred).toBeDefined();
+    expect(hundred?.total).toBe(3349);
   });
 });

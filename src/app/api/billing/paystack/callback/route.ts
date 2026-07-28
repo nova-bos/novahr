@@ -2,13 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyTransaction } from "@/lib/paystack";
 
-function planCodeToTier(code: string): "starter" | "growth" | "scale" | null {
-  if (code === process.env.PAYSTACK_PLAN_CODE_STARTER) return "starter";
-  if (code === process.env.PAYSTACK_PLAN_CODE_GROWTH) return "growth";
-  if (code === process.env.PAYSTACK_PLAN_CODE_SCALE) return "scale";
-  return null;
-}
-
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const reference =
     request.nextUrl.searchParams.get("reference") ??
@@ -38,16 +31,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       ((data.subscription as Record<string, string> | undefined)?.subscription_code);
 
     const customerCode = (data.customer as Record<string, string> | undefined)?.customer_code;
-    const planCode = (data.plan as Record<string, string> | undefined)?.plan_code;
-    const tier = planCode ? planCodeToTier(planCode) : null;
 
     await prisma.tenant.update({
       where: { id: tenantId },
       data: {
+        plan: "subscribed",
         subscriptionStatus: "active",
         ...(customerCode ? { paystackCustomerCode: customerCode } : {}),
         ...(subscriptionCode ? { paystackSubscriptionCode: subscriptionCode } : {}),
-        ...(tier ? { plan: tier } : {}),
       },
     });
 

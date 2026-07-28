@@ -3,7 +3,6 @@
 import { Lock } from "lucide-react";
 import { usePlan } from "@/lib/plan/use-plan";
 import type { PlanFeature } from "@/lib/plan";
-import { PLAN_DISPLAY } from "@/lib/config/plans";
 
 interface PlanGateProps {
   feature: PlanFeature;
@@ -17,9 +16,9 @@ function DefaultUpgradePrompt() {
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 mb-4">
         <Lock size={20} className="text-primary" />
       </div>
-      <h3 className="text-base font-semibold text-foreground">Plan upgrade required</h3>
+      <h3 className="text-base font-semibold text-foreground">Subscription required</h3>
       <p className="mt-1.5 text-sm text-muted-foreground max-w-xs">
-        This feature is included in the {PLAN_DISPLAY.hr_payroll} plan. Upgrade to unlock payroll runs, compliance tracking, and more.
+        This feature is included with your NovaHR subscription. Contact sales@novabos.co.za to activate your account.
       </p>
     </div>
   );

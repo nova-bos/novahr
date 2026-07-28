@@ -12,7 +12,7 @@ const CONTACT_EMAIL = "sales@novabos.co.za";
 /**
  * Enforces the 14-day trial: shows a countdown banner in the final week and
  * a full lock screen once the trial has expired. The billing page stays
- * reachable so the customer can see upgrade options.
+ * reachable so the customer can see their subscription info.
  */
 export function TrialGate({ children }: { children: React.ReactNode }) {
   const { isTrial, trialExpired, daysLeft, trialEndsAt } = usePlan();
@@ -28,16 +28,15 @@ export function TrialGate({ children }: { children: React.ReactNode }) {
         <div className="space-y-1.5">
           <h2 className="text-xl font-semibold tracking-tight">Your free trial has ended</h2>
           <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-            Your data is safe. Choose a plan to keep managing your team, payroll and leave with
-            NovaHR.
+            Your data is safe. Contact sales@novabos.co.za to activate your subscription and keep managing your team, payroll and leave with NovaHR.
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button asChild>
-            <Link href="/billing">View plans</Link>
+            <Link href="/billing">View billing</Link>
           </Button>
           <Button variant="outline" asChild>
-            <a href={`mailto:${CONTACT_EMAIL}?subject=NovaHR%20upgrade`}>Contact sales</a>
+            <a href={`mailto:${CONTACT_EMAIL}?subject=NovaHR%20subscription%20activation`}>Contact sales</a>
           </Button>
           <Button variant="ghost" onClick={() => void logout()}>
             Sign out
@@ -58,7 +57,7 @@ export function TrialGate({ children }: { children: React.ReactNode }) {
               : `Your trial ends in ${daysLeft} ${daysLeft === 1 ? "day" : "days"}.`}
           </span>
           <Button size="sm" variant="outline" asChild>
-            <Link href="/billing">Upgrade</Link>
+            <Link href="/billing">View billing</Link>
           </Button>
         </div>
       ) : null}

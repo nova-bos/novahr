@@ -4,13 +4,6 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
-function planCodeToTier(code: string): "starter" | "growth" | "scale" | null {
-  if (code === process.env.PAYSTACK_PLAN_CODE_STARTER) return "starter";
-  if (code === process.env.PAYSTACK_PLAN_CODE_GROWTH) return "growth";
-  if (code === process.env.PAYSTACK_PLAN_CODE_SCALE) return "scale";
-  return null;
-}
-
 async function findTenant(
   tenantId: string | undefined,
   subscriptionCode: string | undefined,
@@ -58,7 +51,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           (data.subscription_code as string | undefined) ??
           ((data.subscription as Record<string, string> | undefined)?.subscription_code);
         const customerCode = (data.customer as Record<string, string> | undefined)?.customer_code;
-        const tier = planCodeToTier(plan.plan_code);
 
         const tenant = await findTenant(tenantId, subscriptionCode);
         if (!tenant) break;
@@ -66,10 +58,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         await prisma.tenant.update({
           where: { id: tenant.id },
           data: {
+            plan: "subscribed",
             subscriptionStatus: "active",
             ...(customerCode ? { paystackCustomerCode: customerCode } : {}),
             ...(subscriptionCode ? { paystackSubscriptionCode: subscriptionCode } : {}),
-            ...(tier ? { plan: tier } : {}),
           },
         });
         break;
@@ -79,10 +71,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         const subData = data as Record<string, unknown>;
         const subscriptionCode = subData.subscription_code as string | undefined;
         const customerCode = (subData.customer as Record<string, string> | undefined)?.customer_code;
-        const planCode = (subData.plan as Record<string, string> | undefined)?.plan_code;
         const nextPaymentDate = subData.next_payment_date as string | undefined;
         const tenantId = (subData.metadata as Record<string, string> | undefined)?.tenantId;
-        const tier = planCode ? planCodeToTier(planCode) : null;
 
         const tenant = await findTenant(tenantId, subscriptionCode);
         if (!tenant) break;
@@ -90,10 +80,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         await prisma.tenant.update({
           where: { id: tenant.id },
           data: {
+            plan: "subscribed",
             subscriptionStatus: "active",
             ...(customerCode ? { paystackCustomerCode: customerCode } : {}),
             ...(subscriptionCode ? { paystackSubscriptionCode: subscriptionCode } : {}),
-            ...(tier ? { plan: tier } : {}),
             ...(nextPaymentDate ? { currentPeriodEnd: new Date(nextPaymentDate) } : {}),
           },
         });

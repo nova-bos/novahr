@@ -97,11 +97,8 @@ enum NotificationType {
 
 enum TenantPlan {
   trial
-  hr
-  hr_payroll
-  starter
-  growth
-  scale
+  subscribed
+  enterprise
 }
 
 enum PayrollProfileStatus {
