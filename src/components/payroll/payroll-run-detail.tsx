@@ -353,10 +353,10 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
       </div>
 
       {run.status === "awaiting_approval" ? (
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 flex items-start justify-between gap-4">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-4 flex items-start justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Payroll awaiting sign-off</p>
-            <p className="text-xs text-amber-700/90 dark:text-amber-400/90 mt-1">
+            <p className="text-sm font-semibold text-warning">Payroll awaiting sign-off</p>
+            <p className="text-xs text-warning/90 mt-1">
               This run has been processed and is waiting for approval before employees are paid.
             </p>
           </div>
@@ -366,7 +366,7 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
               variant="outline"
               onClick={handleReject}
               disabled={isRejecting || isApproving}
-              className="border-amber-500/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500/10"
+              className="border-warning/40 text-warning hover:bg-warning/10"
             >
               {isRejecting ? "Sending back..." : "Send back"}
             </Button>
@@ -374,7 +374,6 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
               size="sm"
               onClick={() => setConfirmApproveOpen(true)}
               disabled={isApproving || isRejecting}
-              className="bg-amber-600 hover:bg-amber-700 text-white"
             >
               {isApproving ? "Approving..." : "Approve"}
             </Button>

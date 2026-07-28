@@ -44,7 +44,7 @@ export function PasswordChecklist({
             key={rule.label}
             className={cn(
               "flex items-center gap-1.5 text-xs transition-colors",
-              met ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground",
+              met ? "text-success" : "text-muted-foreground",
             )}
           >
             {met ? (

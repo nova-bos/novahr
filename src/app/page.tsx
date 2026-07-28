@@ -26,16 +26,14 @@ export default async function LandingPage() {
     <div className="relative min-h-screen flex flex-col overflow-hidden">
       <MarketingNav />
       <main className="flex-1">
-        <section className="container mx-auto max-w-6xl px-4">
-          <Hero />
-        </section>
-        <section className="container mx-auto max-w-6xl px-4 py-24">
+        <Hero />
+        <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
           <FeaturesSection />
         </section>
-        <section className="container mx-auto max-w-6xl px-4 py-24 border-t">
+        <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24 border-t">
           <PricingSection />
         </section>
-        <section className="container mx-auto max-w-6xl px-4 py-24 border-t">
+        <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24 border-t">
           <ContactSection />
         </section>
       </main>

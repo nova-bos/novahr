@@ -42,7 +42,7 @@ const FEATURES: Feature[] = [
     icon: Building2,
     title: "Multi-Company",
     description:
-      "Manage multiple subsidiaries from a single Exco login with consolidated reporting.",
+      "Switch between companies from a single executive login, each with its own employees and payroll.",
   },
   {
     icon: FileText,

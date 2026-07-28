@@ -217,7 +217,7 @@ export function LeaveDayPicker({ value, onChange, bookedDates }: LeaveDayPickerP
                   <span
                     className={cn(
                       "absolute bottom-0.5 size-1 rounded-full opacity-70",
-                      isCustomHoliday ? "bg-amber-500" : "bg-current"
+                      isCustomHoliday ? "bg-warning" : "bg-current"
                     )}
                   />
                 )}
@@ -225,7 +225,7 @@ export function LeaveDayPicker({ value, onChange, bookedDates }: LeaveDayPickerP
                   <span
                     className={cn(
                       "absolute bottom-0.5 size-1 rounded-full",
-                      bookedEntry.status === "approved" ? "bg-emerald-500" : "bg-sky-400"
+                      bookedEntry.status === "approved" ? "bg-success" : "bg-info"
                     )}
                   />
                 )}
@@ -255,19 +255,19 @@ export function LeaveDayPicker({ value, onChange, bookedDates }: LeaveDayPickerP
             </span>
             {customHolidays.length > 0 && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-flex size-1.5 rounded-full bg-amber-500" />
+                <span className="inline-flex size-1.5 rounded-full bg-warning" />
                 Company holiday
               </span>
             )}
             {hasApproved && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-flex size-1.5 rounded-full bg-emerald-500" />
+                <span className="inline-flex size-1.5 rounded-full bg-success" />
                 Approved leave
               </span>
             )}
             {hasPending && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-flex size-1.5 rounded-full bg-sky-400" />
+                <span className="inline-flex size-1.5 rounded-full bg-info" />
                 Pending leave
               </span>
             )}

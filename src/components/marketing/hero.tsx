@@ -3,118 +3,78 @@ import { CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-const MOCK_ACTIVITY = [
-  { color: "bg-success", text: "Lerato approved 5 days annual leave" },
-  { color: "bg-info", text: "Thabo joined as Engineering Manager" },
-  { color: "bg-primary", text: "Payroll processed for June 2026" },
+const TRUST_POINTS = [
+  "SA payroll compliant",
+  "POPIA ready",
+  "Free 14-day trial",
 ];
+
+// A faint grid, masked to fade out at the edges, gives the hero quiet structure
+// without a photo. It uses the theme border colour, so it adapts to light/dark.
+const GRID_MASK = "radial-gradient(ellipse 60% 60% at 50% 42%, #000 25%, transparent 78%)";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden py-24 text-center lg:py-32">
-      {/* Background glows */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <div className="absolute left-1/2 top-1/4 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute left-1/4 top-1/2 h-[300px] w-[300px] rounded-full bg-primary/5 blur-[80px]" />
-        <div className="absolute right-1/4 top-1/3 h-[250px] w-[250px] rounded-full bg-primary/8 blur-[100px]" />
-      </div>
-      <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-6">
-        <Badge variant="secondary" className="text-xs px-3 py-1 h-auto">
-          South African HR &amp; Payroll Platform
-        </Badge>
-
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-          Modern HR &amp; payroll for growing South African businesses.
-        </h1>
-
-        <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-          NovaHR handles employee management, leave tracking, and payroll so
-          your HR team can focus on your people, not spreadsheets.
-        </p>
-
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button size="lg" asChild>
-            <Link href="/signup">Get started free</Link>
-          </Button>
-          <Button size="lg" variant="outline" asChild>
-            <Link href="/login">Sign in</Link>
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
-            SA payroll compliant
-          </span>
-          <span aria-hidden="true" className="hidden sm:inline">·</span>
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
-            POPIA ready
-          </span>
-          <span aria-hidden="true" className="hidden sm:inline">·</span>
-          <span className="flex items-center gap-1.5">
-            <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
-            Free to start
-          </span>
-        </div>
-
-        {/* Mock dashboard preview */}
+    <section className="relative isolate overflow-hidden">
+      {/* Background: brand wash + structural grid (no imagery) */}
+      <div className="absolute inset-0 -z-10" aria-hidden="true">
+        {/* Soft brand gradient, strongest at the top behind the headline */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.07] via-primary/[0.02] to-transparent" />
+        {/* Structural grid, faded toward the edges */}
         <div
-          className="w-full rounded-2xl border bg-card shadow-xl overflow-hidden max-w-3xl mx-auto mt-4 pointer-events-none select-none"
-          aria-hidden="true"
-        >
-          {/* Titlebar */}
-          <div className="flex items-center justify-between border-b bg-muted/40 px-4 py-2.5">
-            <div className="flex items-center gap-2">
-              <span className="flex size-6 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-primary-foreground">
-                NT
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)",
+            backgroundSize: "34px 34px",
+            maskImage: GRID_MASK,
+            WebkitMaskImage: GRID_MASK,
+            opacity: 0.5,
+          }}
+        />
+      </div>
+
+      <div className="container mx-auto max-w-6xl px-4">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 py-20 text-center lg:py-28">
+          <Badge variant="secondary" className="h-auto px-3 py-1 text-xs">
+            South African HR &amp; Payroll Platform
+          </Badge>
+
+          <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">
+            Modern HR &amp; payroll for growing South African businesses.
+          </h1>
+
+          <p className="mx-auto max-w-xl text-lg text-muted-foreground text-balance">
+            NovaHR handles employee management, leave tracking, and payroll so
+            your HR team can focus on your people, not spreadsheets.
+          </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button size="lg" asChild>
+              <Link href="/signup">Get started free</Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/login">Sign in</Link>
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            {TRUST_POINTS.map((point, i) => (
+              <span key={point} className="flex items-center gap-x-4">
+                {i > 0 && (
+                  <span aria-hidden="true" className="hidden text-border sm:inline">
+                    &middot;
+                  </span>
+                )}
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
+                  {point}
+                </span>
               </span>
-              <span className="text-xs font-medium text-foreground">NovaTech Solutions</span>
-            </div>
-            <span className="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success">
-              Live
-            </span>
-          </div>
-
-          {/* Stat cards */}
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
-            <div className="rounded-xl border bg-background p-3 text-left">
-              <p className="text-xs text-muted-foreground">Employees</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums">14</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">2 on leave today</p>
-            </div>
-            <div className="rounded-xl border bg-background p-3 text-left">
-              <p className="text-xs text-muted-foreground">On leave</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums">2</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">Awaiting review: 1</p>
-            </div>
-            <div className="rounded-xl border bg-background p-3 text-left">
-              <p className="text-xs text-muted-foreground">Monthly payroll</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums">R 2.4M</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">Gross, current roster</p>
-            </div>
-            <div className="rounded-xl border bg-background p-3 text-left">
-              <p className="text-xs text-muted-foreground">Next pay date</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums">Jul 25</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">14 employees</p>
-            </div>
-          </div>
-
-          {/* Recent activity */}
-          <div className="border-t px-4 pb-4 pt-3">
-            <p className="mb-2.5 text-xs font-semibold text-foreground">Recent Activity</p>
-            <ul className="flex flex-col gap-2">
-              {MOCK_ACTIVITY.map((item) => (
-                <li key={item.text} className="flex items-center gap-2.5">
-                  <span className={`size-1.5 shrink-0 rounded-full ${item.color}`} />
-                  <span className="text-xs text-muted-foreground">{item.text}</span>
-                </li>
-              ))}
-            </ul>
+            ))}
           </div>
         </div>
       </div>
     </section>
   );
 }
-

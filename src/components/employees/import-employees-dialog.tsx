@@ -252,9 +252,9 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
         {phase === "done" && result !== null && (
           <div className="flex flex-col gap-4">
             {result.imported > 0 && (
-              <div className="flex items-center gap-3 rounded-lg bg-emerald-50 p-3 dark:bg-emerald-950/30">
-                <CheckCircle className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                <p className="text-sm text-emerald-700 dark:text-emerald-300">
+              <div className="flex items-center gap-3 rounded-lg border border-success/20 bg-success/10 p-3">
+                <CheckCircle className="size-4 shrink-0 text-success" />
+                <p className="text-sm text-success">
                   {result.imported} {result.imported === 1 ? "employee" : "employees"} imported
                   successfully.
                 </p>

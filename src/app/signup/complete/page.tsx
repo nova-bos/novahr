@@ -49,12 +49,8 @@ export default function CompleteSetupPage() {
         <ThemeToggle />
       </div>
 
-      <div className="hidden md:flex md:w-[45%] relative flex-col justify-between p-10 overflow-hidden bg-sidebar">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-[100px]" />
-          <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-primary/10 blur-[80px]" />
-        </div>
-        <div className="relative">
+      <div className="hidden md:flex md:w-[45%] flex-col justify-between p-10 overflow-hidden bg-sidebar border-r border-sidebar-border">
+        <div>
           <Logo height={32} />
         </div>
         <div className="relative space-y-4">

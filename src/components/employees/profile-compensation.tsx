@@ -213,7 +213,7 @@ export function ProfileCompensation({ employee }: { employee: Employee }) {
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+                  <div className="flex items-center gap-1.5 text-xs text-warning font-medium">
                     <ShieldAlert className="size-3.5" />
                     Not verified
                   </div>

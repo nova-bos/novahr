@@ -92,7 +92,7 @@ export function ContactSection() {
       <div className="mx-auto max-w-2xl rounded-xl border bg-card p-8">
         <h3 className="text-lg font-semibold mb-6">Send us a message</h3>
         {result?.success ? (
-          <div className="rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-800">
+          <div className="rounded-lg border border-success/20 bg-success/10 px-4 py-3 text-sm text-success">
             Message sent. We will get back to you within one business day.
           </div>
         ) : (

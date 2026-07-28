@@ -5,6 +5,7 @@ import { Loader2, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useApp } from "@/lib/store/app-provider";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/layout/logo";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -50,10 +51,11 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading || !user || !tenantReady) {
     return (
-      <div className="flex min-h-svh items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
-          <Loader2 className="size-5 animate-spin" />
-          Loading NovaHR...
+      <div className="flex min-h-svh flex-col items-center justify-center gap-6">
+        <Logo height={30} />
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          Loading your workspace...
         </div>
       </div>
     );

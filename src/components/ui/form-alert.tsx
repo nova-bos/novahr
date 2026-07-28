@@ -13,19 +13,19 @@ export type FormAlertTone = "error" | "warning" | "info" | "success";
 const TONES: Record<FormAlertTone, { icon: LucideIcon; className: string }> = {
   error: {
     icon: AlertCircle,
-    className: "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400",
+    className: "border-destructive/20 bg-destructive/10 text-destructive",
   },
   warning: {
     icon: AlertTriangle,
-    className: "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    className: "border-warning/25 bg-warning/10 text-warning",
   },
   info: {
     icon: Info,
-    className: "border-primary/20 bg-primary/10 text-primary",
+    className: "border-info/20 bg-info/10 text-info",
   },
   success: {
     icon: CheckCircle2,
-    className: "border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+    className: "border-success/20 bg-success/10 text-success",
   },
 };
 

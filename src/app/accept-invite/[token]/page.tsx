@@ -182,7 +182,7 @@ export default function AcceptInvitePage() {
             required
           />
           {confirmPassword.length > 0 && password !== confirmPassword && (
-            <p className="text-xs text-amber-700 dark:text-amber-400">Passwords do not match yet.</p>
+            <p className="text-xs text-warning">Passwords do not match yet.</p>
           )}
         </div>
 

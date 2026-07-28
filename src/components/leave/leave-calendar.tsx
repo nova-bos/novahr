@@ -136,7 +136,7 @@ function DayCell({
             title={holiday.name}
             className={cn(
               "truncate text-[9px] leading-tight",
-              holiday.custom ? "text-amber-600" : "text-muted-foreground"
+              holiday.custom ? "text-warning" : "text-muted-foreground"
             )}
           >
             {holiday.name}
@@ -413,7 +413,7 @@ export function LeaveCalendar() {
             </div>
             {customHolidays.length > 0 && (
               <div className="flex items-center gap-1.5">
-                <span className="size-3 rounded-sm bg-amber-500/10 ring-1 ring-amber-500/40" />
+                <span className="size-3 rounded-sm bg-warning/10 ring-1 ring-warning/40" />
                 <span className="text-muted-foreground">Company holiday</span>
               </div>
             )}

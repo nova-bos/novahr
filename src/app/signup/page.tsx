@@ -85,13 +85,9 @@ export default function SignupPage() {
     return (
       <div className="min-h-screen flex bg-background">
         <div className="fixed top-4 right-4 z-10"><ThemeToggle /></div>
-        <div className="hidden md:flex md:w-[45%] relative flex-col justify-between p-10 overflow-hidden bg-sidebar">
-          <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-[100px]" />
-            <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-primary/10 blur-[80px]" />
-          </div>
-          <div className="relative"><Link href="/"><Logo height={32} /></Link></div>
-          <div className="relative">
+        <div className="hidden md:flex md:w-[45%] flex-col justify-between p-10 overflow-hidden bg-sidebar border-r border-sidebar-border">
+          <div><Link href="/"><Logo height={32} /></Link></div>
+          <div>
             <h2 className="text-2xl font-bold text-sidebar-foreground leading-snug">Almost there.</h2>
             <p className="mt-3 text-sm text-sidebar-foreground/70 leading-relaxed max-w-xs">
               We just need to confirm it is really you before your company workspace goes live.
@@ -121,13 +117,8 @@ export default function SignupPage() {
       <div className="fixed top-4 right-4 z-10"><ThemeToggle /></div>
 
       {/* Left branding panel */}
-      <div className="hidden md:flex md:w-[45%] relative flex-col justify-between p-10 overflow-hidden bg-sidebar">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-primary/20 blur-[100px]" />
-          <div className="absolute bottom-0 right-0 w-80 h-80 rounded-full bg-primary/10 blur-[80px]" />
-        </div>
-
-        <div className="relative">
+      <div className="hidden md:flex md:w-[45%] relative flex-col justify-between p-10 overflow-hidden bg-sidebar border-r border-sidebar-border">
+        <div>
           <Link href="/"><Logo height={32} /></Link>
         </div>
 
@@ -231,7 +222,7 @@ export default function SignupPage() {
                 className="h-10 rounded-lg border-border bg-muted/30 text-foreground placeholder:text-muted-foreground/50 focus:border-primary"
               />
               {confirmPassword.length > 0 && !passwordsMatch && (
-                <p className="text-xs text-amber-700 dark:text-amber-400">Passwords do not match yet.</p>
+                <p className="text-xs text-warning">Passwords do not match yet.</p>
               )}
             </div>
 
