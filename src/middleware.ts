@@ -29,6 +29,19 @@ const AUTH_PAGES = ["/login", "/signup"];
  * client-side complement for in-app session expiry.
  */
 export async function middleware(request: NextRequest) {
+  const { pathname, searchParams } = request.nextUrl;
+
+  // Supabase sometimes delivers the OAuth code to the Site URL instead of
+  // /auth/callback when the redirect URL isn't matched in the allow-list.
+  // Catch it here and forward to the callback route so the code exchange
+  // always runs, regardless of which path the code lands on.
+  const code = searchParams.get("code");
+  if (code && pathname !== "/auth/callback") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -56,8 +69,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   if (!user && PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     const url = request.nextUrl.clone();
