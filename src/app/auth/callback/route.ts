@@ -18,11 +18,24 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=auth_failed`);
   }
 
-  // Password recovery codes produce a session with AMR method "otp".
-  // Redirect to the reset form instead of logging the user in.
-  const amr = exchangeData?.session?.amr as Array<{ method: string }> | undefined;
-  if (Array.isArray(amr) && amr.some((a) => a.method === "otp")) {
-    return NextResponse.redirect(`${origin}/reset-password`);
+  // Password recovery codes produce a session whose JWT AMR claim contains
+  // method "otp". Decode the access token to detect this and redirect to
+  // the reset form instead of logging the user in normally.
+  const accessToken = exchangeData?.session?.access_token;
+  if (accessToken) {
+    try {
+      const payload = JSON.parse(
+        Buffer.from(accessToken.split(".")[1], "base64").toString("utf-8")
+      );
+      const isRecovery =
+        Array.isArray(payload.amr) &&
+        payload.amr.some((a: { method: string }) => a.method === "otp");
+      if (isRecovery) {
+        return NextResponse.redirect(`${origin}/reset-password`);
+      }
+    } catch {
+      // malformed JWT — fall through to normal login
+    }
   }
 
   const {
