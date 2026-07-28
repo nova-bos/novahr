@@ -261,6 +261,10 @@ export interface Tenant {
   trialEndsAt?: string;
   payrollDisclaimerAcceptedAt?: string | null;
   logoUrl?: string;
+  subscriptionStatus?: string | null;
+  currentPeriodEnd?: string | null;
+  paystackCustomerCode?: string | null;
+  paystackSubscriptionCode?: string | null;
 }
 
 // Payroll compliance types

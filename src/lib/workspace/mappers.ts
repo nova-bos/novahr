@@ -75,6 +75,10 @@ export function mapTenant(row: PrismaTenant, logoUrl?: string | null): Tenant {
     trialEndsAt: row.trialEndsAt?.toISOString(),
     payrollDisclaimerAcceptedAt: row.payrollDisclaimerAcceptedAt?.toISOString() ?? null,
     logoUrl: logoUrl ?? undefined,
+    subscriptionStatus: row.subscriptionStatus ?? null,
+    currentPeriodEnd: row.currentPeriodEnd?.toISOString() ?? null,
+    paystackCustomerCode: row.paystackCustomerCode ?? null,
+    paystackSubscriptionCode: row.paystackSubscriptionCode ?? null,
   };
 }
 
