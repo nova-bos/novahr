@@ -4,6 +4,9 @@ export const PLAN_DISPLAY: Record<TenantPlan, string> = {
   trial: "Free Trial",
   hr: "HR",
   hr_payroll: "HR + Payroll",
+  starter: "Starter",
+  growth: "Growth",
+  scale: "Scale",
 };
 
 export function getPlanDisplayName(plan: TenantPlan | undefined): string {

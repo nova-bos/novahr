@@ -21,6 +21,8 @@ export function canAccess(plan: TenantPlan | undefined, feature: PlanFeature): b
   if (!plan) return false;
   if (plan === "trial") return true;
   if (plan === "hr_payroll") return true;
+  // Paystack subscription plans have full access
+  if (plan === "starter" || plan === "growth" || plan === "scale") return true;
   // "hr" plan: everything except payroll features
   return !(PAYROLL_FEATURES as readonly string[]).includes(feature);
 }

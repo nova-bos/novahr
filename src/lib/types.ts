@@ -238,7 +238,7 @@ export interface Department {
   budget: number;
 }
 
-export type TenantPlan = "trial" | "hr" | "hr_payroll";
+export type TenantPlan = "trial" | "hr" | "hr_payroll" | "starter" | "growth" | "scale";
 
 export interface Tenant {
   id: string;
