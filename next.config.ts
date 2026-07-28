@@ -25,10 +25,7 @@ const nextConfig: NextConfig = {
     // arbitrary eval entirely. worker-src allows blob: because @react-pdf/renderer
     // spawns its layout worker from a blob URL; without it the browser falls back
     // to script-src and blocks the worker.
-    const scriptSrc =
-      process.env.NODE_ENV === "development"
-        ? "'self' 'unsafe-inline' 'unsafe-eval'"
-        : "'self' 'unsafe-inline' 'wasm-unsafe-eval'";
+    const scriptSrc = "'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'";
     return [
       {
         source: "/(.*)",
