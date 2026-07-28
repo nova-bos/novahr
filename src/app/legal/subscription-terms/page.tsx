@@ -16,41 +16,35 @@ export default function SubscriptionTermsPage() {
       sections={[
         {
           heading: "Plans and Pricing",
-          paragraphs: ["1.1 Current plans (excl. VAT):"],
+          paragraphs: [
+            "1.1 NovaHR uses a single per-member pricing model. The monthly subscription fee (excl. VAT) is calculated as follows:",
+            "Platform fee: R349 per month, plus R30 per active member per month.",
+            "Example: an organisation with 10 active members pays R349 + (10 x R30) = R649 per month.",
+          ],
           table: {
-            headers: ["Plan", "Monthly price", "Employee limit", "Key inclusions"],
+            headers: ["Active members", "Platform fee", "Member fee", "Monthly total"],
             rows: [
-              [
-                "Starter",
-                "R499",
-                "Up to 10",
-                "Employee management, leave, payroll and payslips, basic reports, email support",
-              ],
-              [
-                "Growth",
-                "R999",
-                "Up to 30",
-                "Everything in Starter, multi-department structure, advanced reports, priority support",
-              ],
-              [
-                "Scale",
-                "R2,499",
-                "Unlimited",
-                "Everything in Growth, dedicated onboarding, API access, custom integrations",
-              ],
+              ["1", "R349", "R30", "R379"],
+              ["5", "R349", "R150", "R499"],
+              ["10", "R349", "R300", "R649"],
+              ["20", "R349", "R600", "R949"],
+              ["50", "R349", "R1,500", "R1,849"],
+              ["100", "R349", "R3,000", "R3,349"],
+              ["150+", "Contact Sales", "Custom", "Custom"],
             ],
           },
           paragraphsAfterTable: [
-            "1.2 Annual billing is available at 12 x the monthly price [or with a discount of % where offered]. The authoritative pricing at any time is the published Pricing Schedule; customers on a signed Order keep their contracted pricing for the committed term.",
-            '1.3 "Employee" means an active (non-terminated) employee record in your tenant. Terminated employees retained for record-keeping do not count toward the limit.',
+            "1.2 The authoritative pricing at any time is the published Pricing Schedule on the NovaHR website. Customers who have received a written quote keep their contracted pricing for the stated period.",
+            '1.3 "Active member" means any individual with a non-terminated record in your NovaHR tenant on the billing date: employees, directors, partners, contractors, and any other person whose records are managed in the system. Terminated members retained for record-keeping do not count toward the billable member count.',
+            "1.4 Organisations with 150 or more active members are classified as Enterprise customers. Enterprise pricing is agreed separately with the NovaHR sales team.",
           ],
         },
         {
           heading: "Billing Cycle",
           paragraphs: [
-            "2.1 Subscriptions are billed in advance: monthly plans on the same calendar day each month; annual plans on the anniversary of the start date.",
-            "2.2 The first invoice is issued on subscription start (trial conversion or Order start date).",
-            "2.3 Mid-cycle upgrades are pro-rated; downgrades apply from the next cycle.",
+            "2.1 Subscriptions are billed monthly on the same calendar day each month (the renewal date).",
+            "2.2 The first invoice is issued on subscription start, covering the first billing month.",
+            "2.3 The billable member count is determined by a snapshot taken on the renewal date. Members added or removed during the cycle do not affect the current invoice. There is no pro-rating for mid-cycle member changes.",
           ],
         },
         {
