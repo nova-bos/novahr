@@ -21,8 +21,8 @@ export function MarketingNav() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full bg-background/80 backdrop-blur-md transition-all duration-200",
-        scrolled && "border-b shadow-sm"
+        "sticky top-0 z-50 w-full backdrop-blur-md transition-all duration-200",
+        scrolled ? "bg-background/70 border-b shadow-sm" : "bg-background/40"
       )}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
