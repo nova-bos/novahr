@@ -29,6 +29,15 @@ const AUTH_PAGES = ["/login", "/signup"];
  * client-side complement for in-app session expiry.
  */
 export async function middleware(request: NextRequest) {
+  const { pathname, hostname } = request.nextUrl;
+
+  // Canonicalise to non-www. Keeps session cookies on one domain.
+  if (hostname === "www.novabos.co.za") {
+    const url = request.nextUrl.clone();
+    url.hostname = "novabos.co.za";
+    return NextResponse.redirect(url, { status: 301 });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -66,7 +75,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && AUTH_PAGES.some((page) => pathname === page)) {
+  if (user && (AUTH_PAGES.some((page) => pathname === page) || pathname === "/")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     url.search = "";
