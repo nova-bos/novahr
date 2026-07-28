@@ -12,30 +12,10 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = await createClient();
-  const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(code);
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
     return NextResponse.redirect(`${origin}/login?error=auth_failed`);
-  }
-
-  // Password recovery codes produce a session whose JWT AMR claim contains
-  // method "otp". Decode the access token to detect this and redirect to
-  // the reset form instead of logging the user in normally.
-  const accessToken = exchangeData?.session?.access_token;
-  if (accessToken) {
-    try {
-      const payload = JSON.parse(
-        Buffer.from(accessToken.split(".")[1], "base64").toString("utf-8")
-      );
-      const isRecovery =
-        Array.isArray(payload.amr) &&
-        payload.amr.some((a: { method: string }) => a.method === "otp");
-      if (isRecovery) {
-        return NextResponse.redirect(`${origin}/reset-password`);
-      }
-    } catch {
-      // malformed JWT — fall through to normal login
-    }
   }
 
   const {
