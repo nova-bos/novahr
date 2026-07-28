@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ExternalLink, Loader2 } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
@@ -26,15 +26,25 @@ const SALES_EMAIL = "sales@novabos.co.za";
 
 export default function BillingPage() {
   const allowed = useRoleGuard(["hr"]);
-  const { plan, isTrial, trialExpired, daysLeft, trialEndsAt } = usePlan();
+  const {
+    plan,
+    isTrial,
+    isSubscribed,
+    subscriptionStatus,
+    currentPeriodEnd,
+    trialExpired,
+    daysLeft,
+    trialEndsAt,
+  } = usePlan();
+
   const employees = useEmployees();
   const activeCount = employees.filter((e) => e.status !== "terminated").length;
   const searchParams = useSearchParams();
 
   const [loadingTier, setLoadingTier] = React.useState<string | null>(null);
   const [portalLoading, setPortalLoading] = React.useState(false);
+  const [showChangePlan, setShowChangePlan] = React.useState(false);
 
-  // Show success/error toasts from the Paystack callback redirect
   React.useEffect(() => {
     if (searchParams.get("success") === "1") {
       toast.success("Subscription activated. Welcome to NovaHR!");
@@ -52,10 +62,8 @@ export default function BillingPage() {
 
   if (!allowed) return null;
 
-  const isActive = !isTrial;
-
-  const trialCopy = isActive
-    ? "Your subscription is active."
+  const headerDescription = isSubscribed
+    ? `Your subscription is active. Current plan: ${getPlanDisplayName(plan)}.`
     : trialExpired
       ? "Your free trial has ended. Choose a plan to continue."
       : trialEndsAt
@@ -90,100 +98,147 @@ export default function BillingPage() {
     }
   }
 
-  return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Billing"
-        description={`${trialCopy} Current plan: ${getPlanDisplayName(plan)}.`}
-      />
-
-      {isActive ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Manage your subscription</CardTitle>
-            <CardDescription>
-              Update your payment method, view invoices, or cancel your subscription via the
-              Paystack customer portal.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant="outline"
-              onClick={handleManageSubscription}
-              disabled={portalLoading}
-            >
-              {portalLoading ? (
-                <Loader2 className="mr-2 size-4 animate-spin" />
+  const pricingGrid = (
+    <div className="grid gap-4 lg:grid-cols-3">
+      {PRICING_TIERS.map((tier) => {
+        const fits = tier.maxEmployees === null || activeCount <= tier.maxEmployees;
+        const isLoading = loadingTier === tier.id;
+        const isCurrent = isSubscribed && plan === tier.id;
+        return (
+          <Card key={tier.id} className={tier.highlighted ? "border-primary/50" : undefined}>
+            <CardHeader>
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle>{tier.name}</CardTitle>
+                <div className="flex items-center gap-2">
+                  {isCurrent ? <Badge variant="secondary">Current plan</Badge> : null}
+                  {tier.highlighted && !isCurrent ? <Badge>Most popular</Badge> : null}
+                </div>
+              </div>
+              <CardDescription>{tier.tagline}</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <div>
+                <span className="text-3xl font-semibold tracking-tight">R{tier.monthlyPrice}</span>
+                <span className="text-sm text-muted-foreground"> / month</span>
+              </div>
+              <ul className="flex flex-col gap-2 text-sm">
+                {tier.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <Check className="mt-0.5 size-3.5 shrink-0 text-success" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              {!fits ? (
+                <p className="text-xs text-muted-foreground">
+                  You have {activeCount} active employees, above this plan&apos;s limit.
+                </p>
+              ) : null}
+              {isCurrent ? (
+                <Button
+                  className="mt-auto w-full"
+                  variant="outline"
+                  onClick={handleManageSubscription}
+                  disabled={portalLoading}
+                >
+                  {portalLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                  Manage subscription
+                </Button>
               ) : (
-                <ExternalLink className="mr-2 size-4" />
-              )}
-              Manage subscription
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        {PRICING_TIERS.map((tier) => {
-          const fits = tier.maxEmployees === null || activeCount <= tier.maxEmployees;
-          const isLoading = loadingTier === tier.id;
-          return (
-            <Card key={tier.id} className={tier.highlighted ? "border-primary/50" : undefined}>
-              <CardHeader>
-                <div className="flex items-center justify-between gap-2">
-                  <CardTitle>{tier.name}</CardTitle>
-                  {tier.highlighted ? <Badge>Most popular</Badge> : null}
-                </div>
-                <CardDescription>{tier.tagline}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                <div>
-                  <span className="text-3xl font-semibold tracking-tight">
-                    R{tier.monthlyPrice}
-                  </span>
-                  <span className="text-sm text-muted-foreground"> / month</span>
-                </div>
-                <ul className="flex flex-col gap-2 text-sm">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <Check className="mt-0.5 size-3.5 shrink-0 text-success" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                {!fits ? (
-                  <p className="text-xs text-muted-foreground">
-                    You have {activeCount} active employees, above this plan&apos;s limit.
-                  </p>
-                ) : null}
                 <Button
                   className="mt-auto w-full"
                   variant={tier.highlighted ? "default" : "outline"}
                   disabled={!fits || isLoading || loadingTier !== null}
                   onClick={() => handleChoosePlan(tier.id)}
                 >
-                  {isLoading ? (
-                    <Loader2 className="mr-2 size-4 animate-spin" />
-                  ) : null}
-                  Choose {tier.name}
+                  {isLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                  {isLoading ? "Redirecting..." : isCurrent ? "Current plan" : `Choose ${tier.name}`}
                 </Button>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title="Billing" description={headerDescription} />
+
+      {subscriptionStatus === "past_due" && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm">
+          <span className="flex items-center gap-2 text-destructive">
+            Your last payment failed. Update your billing details to restore full access.
+          </span>
+          <Button variant="destructive" size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
+            {portalLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+            Update payment
+          </Button>
+        </div>
+      )}
+
+      {isSubscribed ? (
+        <>
+          <Card>
+            <CardHeader>
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <ShieldCheck className="size-5 text-primary" />
+                  </div>
+                  <div>
+                    <CardTitle>{getPlanDisplayName(plan)} plan</CardTitle>
+                    <CardDescription>
+                      {currentPeriodEnd
+                        ? `Renews on ${formatDate(currentPeriodEnd)}`
+                        : "Active subscription"}
+                    </CardDescription>
+                  </div>
+                </div>
+                <Badge variant="default" className="shrink-0">Active</Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Button variant="outline" onClick={handleManageSubscription} disabled={portalLoading}>
+                {portalLoading ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <ExternalLink className="mr-2 size-4" />
+                )}
+                Manage subscription
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setShowChangePlan((v) => !v)}
+              >
+                {showChangePlan ? (
+                  <ChevronUp className="mr-2 size-4" />
+                ) : (
+                  <ChevronDown className="mr-2 size-4" />
+                )}
+                {showChangePlan ? "Hide plans" : "Change plan"}
+              </Button>
+            </CardContent>
+          </Card>
+
+          {showChangePlan ? pricingGrid : null}
+        </>
+      ) : (
+        pricingGrid
+      )}
 
       <Card>
         <CardHeader>
           <CardTitle>How billing works</CardTitle>
           <CardDescription>
-            Click a plan above to pay securely via Paystack. You will be redirected to the
-            Paystack hosted checkout and returned here once payment is confirmed. All amounts are
-            in South African Rand (ZAR) and billed monthly. Contact{" "}
+            {isSubscribed
+              ? `Your ${getPlanDisplayName(plan)} plan renews monthly in ZAR via Paystack. Use "Manage subscription" to update your card, view invoices, or cancel. Email `
+              : "Click a plan above to pay securely via Paystack. You will be redirected to the Paystack hosted checkout and returned here once payment is confirmed. All amounts are in South African Rand (ZAR) and billed monthly. Email "}
             <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline">
               {SALES_EMAIL}
-            </a>{" "}
-            with any billing questions.
+            </a>
+            {" "}with any billing questions.
           </CardDescription>
         </CardHeader>
       </Card>
