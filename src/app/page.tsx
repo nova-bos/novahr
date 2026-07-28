@@ -3,8 +3,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MarketingNav } from "@/components/marketing/marketing-nav";
 import { Hero } from "@/components/marketing/hero";
+import { ComplianceStrip } from "@/components/marketing/compliance-strip";
 import { FeaturesSection } from "@/components/marketing/features-section";
+import { HowItWorks } from "@/components/marketing/how-it-works";
 import { PricingSection } from "@/components/marketing/pricing-section";
+import { FaqSection } from "@/components/marketing/faq-section";
+import { CtaSection } from "@/components/marketing/cta-section";
 import { ContactSection } from "@/components/marketing/contact-section";
 import { MarketingFooter } from "@/components/marketing/marketing-footer";
 import { WhatsAppButton } from "@/components/layout/whatsapp-button";
@@ -12,7 +16,7 @@ import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 export const metadata: Metadata = {
   title: "NovaHR | Modern HR & Payroll for South African Businesses",
   description:
-    "Run South African payroll in minutes. Manage leave, employees, and payslips for growing SA businesses.",
+    "Run South African payroll in minutes. Manage employees, leave, payslips, and SARS compliance (PAYE, UIF, SDL, EMP201, IRP5) for growing SA businesses.",
 };
 
 export default async function LandingPage() {
@@ -23,16 +27,26 @@ export default async function LandingPage() {
   if (user) redirect("/dashboard");
 
   return (
-    <div className="relative min-h-screen flex flex-col overflow-hidden">
+    <div className="relative flex min-h-screen flex-col overflow-x-clip">
       <MarketingNav />
       <main className="flex-1">
         <Hero />
+        <ComplianceStrip />
         <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24">
           <FeaturesSection />
         </section>
         <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24 border-t">
+          <HowItWorks />
+        </section>
+        <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24 border-t">
           <PricingSection />
         </section>
+        <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24 border-t">
+          <FaqSection />
+        </section>
+        <div className="border-t">
+          <CtaSection />
+        </div>
         <section className="container mx-auto max-w-6xl px-4 py-16 sm:py-20 lg:py-24 border-t">
           <ContactSection />
         </section>

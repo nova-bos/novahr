@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 
+const NAV_LINKS = [
+  { href: "/#features", label: "Features" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#pricing", label: "Pricing" },
+  { href: "/#faq", label: "FAQ" },
+  { href: "/#contact", label: "Contact" },
+];
+
 export function MarketingNav() {
   const [scrolled, setScrolled] = useState(false);
 
@@ -25,23 +33,28 @@ export function MarketingNav() {
         scrolled ? "bg-background/70 border-b shadow-sm" : "bg-background/40"
       )}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+        <Link href="/" className="flex items-center" aria-label="NovaHR home">
           <Logo height={28} />
         </Link>
 
-        <nav className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-            <Link href="/#contact">Contact</Link>
-          </Button>
+        <nav className="hidden items-center gap-1 md:flex">
+          {NAV_LINKS.map((link) => (
+            <Button key={link.href} variant="ghost" size="sm" asChild>
+              <Link href={link.href}>{link.label}</Link>
+            </Button>
+          ))}
+        </nav>
+
+        <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="outline" size="sm" asChild>
+          <Button variant="ghost" size="sm" asChild>
             <Link href="/login">Sign in</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="/signup">Get started &rarr;</Link>
+            <Link href="/signup">Get started</Link>
           </Button>
-        </nav>
+        </div>
       </div>
     </header>
   );

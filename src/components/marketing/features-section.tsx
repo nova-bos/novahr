@@ -54,9 +54,9 @@ const FEATURES: Feature[] = [
 
 export function FeaturesSection() {
   return (
-    <section id="features">
+    <section id="features" className="scroll-mt-20">
       <div className="text-center">
-        <h2 className="text-3xl font-bold">Everything your HR team needs</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Everything your HR team needs</h2>
         <p className="mt-3 text-muted-foreground">
           NovaHR covers the full employee lifecycle, from onboarding to payslips.
         </p>
@@ -68,7 +68,7 @@ export function FeaturesSection() {
           return (
             <div
               key={feature.title}
-              className="rounded-xl border bg-card p-6"
+              className="rounded-xl border bg-card p-6 transition-colors hover:border-primary/30 hover:bg-accent/40"
             >
               <div className="mb-4 inline-flex size-10 items-center justify-center rounded-lg bg-primary/10">
                 <Icon className="size-5 text-primary" aria-hidden="true" />

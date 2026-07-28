@@ -55,7 +55,7 @@ export function ContactSection() {
   }
 
   return (
-    <section id="contact">
+    <section id="contact" className="scroll-mt-20">
       <div className="mb-12 text-center">
         <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           Get in touch

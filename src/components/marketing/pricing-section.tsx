@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function PricingSection() {
   return (
-    <section id="pricing">
+    <section id="pricing" className="scroll-mt-20">
       <div className="text-center">
         <h2 className="text-3xl font-bold">Simple, transparent pricing</h2>
         <p className="mt-3 text-muted-foreground">
