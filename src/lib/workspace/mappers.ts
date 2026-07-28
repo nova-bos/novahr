@@ -73,6 +73,10 @@ export function mapTenant(row: PrismaTenant, logoUrl?: string | null): Tenant {
     primaryContact: row.primaryContact,
     plan: (row.plan ?? "trial") as Tenant["plan"],
     trialEndsAt: row.trialEndsAt?.toISOString(),
+    stripeCustomerId: row.stripeCustomerId ?? null,
+    stripeSubscriptionId: row.stripeSubscriptionId ?? null,
+    subscriptionStatus: row.subscriptionStatus ?? null,
+    currentPeriodEnd: row.currentPeriodEnd?.toISOString() ?? null,
     payrollDisclaimerAcceptedAt: row.payrollDisclaimerAcceptedAt?.toISOString() ?? null,
     logoUrl: logoUrl ?? undefined,
   };

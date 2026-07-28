@@ -19,7 +19,7 @@ function DefaultUpgradePrompt() {
       </div>
       <h3 className="text-base font-semibold text-foreground">Plan upgrade required</h3>
       <p className="mt-1.5 text-sm text-muted-foreground max-w-xs">
-        This feature is included in the {PLAN_DISPLAY.hr_payroll} plan. Upgrade to unlock payroll runs, compliance tracking, and more.
+        This feature requires an active subscription. Upgrade to unlock payroll runs, compliance tracking, and more.
       </p>
     </div>
   );

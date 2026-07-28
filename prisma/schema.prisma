@@ -97,8 +97,9 @@ enum NotificationType {
 
 enum TenantPlan {
   trial
-  hr
-  hr_payroll
+  starter
+  growth
+  scale
 }
 
 enum PayrollProfileStatus {
@@ -173,6 +174,10 @@ model Tenant {
   primaryContact     String
   plan               TenantPlan   @default(trial)
   trialEndsAt        DateTime?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStatus   String?
+  currentPeriodEnd     DateTime?
   payrollDisclaimerAcceptedAt DateTime?
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt

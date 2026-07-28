@@ -33,7 +33,7 @@ function makeTenant(overrides: Partial<Tenant> = {}): Tenant {
     payDay: 25,
     bankName: "First National Bank",
     primaryContact: "Lerato Dlamini",
-    plan: "hr_payroll",
+    plan: "scale",
     payrollDisclaimerAcceptedAt: null,
     ...overrides,
   };

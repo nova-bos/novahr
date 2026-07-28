@@ -238,7 +238,7 @@ export interface Department {
   budget: number;
 }
 
-export type TenantPlan = "trial" | "hr" | "hr_payroll";
+export type TenantPlan = "trial" | "starter" | "growth" | "scale";
 
 export interface Tenant {
   id: string;
@@ -259,6 +259,10 @@ export interface Tenant {
   primaryContact: string;
   plan: TenantPlan;
   trialEndsAt?: string;
+  stripeCustomerId?: string | null;
+  stripeSubscriptionId?: string | null;
+  subscriptionStatus?: string | null;
+  currentPeriodEnd?: string | null;
   payrollDisclaimerAcceptedAt?: string | null;
   logoUrl?: string;
 }
