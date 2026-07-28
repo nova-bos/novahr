@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/layout/page-header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/auth/auth-provider";
-import { updateUserProfileAction, sendPasswordResetAction } from "@/lib/auth/profile-actions";
+import { updateUserProfileAction } from "@/lib/auth/profile-actions";
+import { createClient } from "@/lib/supabase/client";
 import { CloseAccountCard } from "@/components/settings/close-account-card";
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
 
@@ -65,13 +66,17 @@ export default function AccountPage() {
   }
 
   async function handlePasswordReset() {
+    if (!user?.email) return;
     setSendingReset(true);
-    const result = await sendPasswordResetAction();
+    const supabase = createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
     setSendingReset(false);
-    if (result.success) {
-      toast.success("Password reset email sent. Check your inbox.");
+    if (error) {
+      toast.error("Failed to send reset email. Please try again.");
     } else {
-      toast.error(result.error ?? "Failed to send reset email");
+      toast.success("Password reset email sent. Check your inbox.");
     }
   }
 
