@@ -22,7 +22,7 @@ import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { formatDate } from "@/lib/format";
 import { createCheckoutSession, createPortalSession } from "@/lib/billing/actions";
 
-const SUPPORT_EMAIL = "support@novabos.co.za";
+const SALES_EMAIL = "sales@novabos.co.za";
 
 export default function BillingPage() {
   const allowed = useRoleGuard(["hr"]);
@@ -180,8 +180,8 @@ export default function BillingPage() {
             Click a plan above to pay securely via Paystack. You will be redirected to the
             Paystack hosted checkout and returned here once payment is confirmed. All amounts are
             in South African Rand (ZAR) and billed monthly. Contact{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary hover:underline">
-              {SUPPORT_EMAIL}
+            <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline">
+              {SALES_EMAIL}
             </a>{" "}
             with any billing questions.
           </CardDescription>
