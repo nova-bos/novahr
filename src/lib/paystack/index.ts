@@ -24,9 +24,13 @@ export async function initializeTransaction(params: {
   });
   const json = (await res.json()) as {
     status: boolean;
+    message?: string;
     data: { authorization_url: string; reference: string };
   };
-  if (!json.status) throw new Error("Paystack: failed to initialize transaction");
+  if (!json.status) {
+    console.error("[paystack] initializeTransaction failed:", JSON.stringify(json));
+    throw new Error(`Paystack: ${json.message ?? "failed to initialize transaction"}`);
+  }
   return json.data;
 }
 

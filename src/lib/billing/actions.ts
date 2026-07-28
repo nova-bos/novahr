@@ -45,8 +45,9 @@ export async function createCheckoutSession(
 
     return { url: data.authorization_url };
   } catch (err) {
-    console.error("[billing] createCheckoutSession error:", err);
-    return { error: "Something went wrong. Please try again." };
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[billing] createCheckoutSession error:", msg);
+    return { error: `Something went wrong: ${msg}` };
   }
 }
 
