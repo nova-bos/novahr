@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
   // Catch it here and forward to the callback route so the code exchange
   // always runs, regardless of which path the code lands on.
   const code = searchParams.get("code");
-  if (code && pathname !== "/auth/callback") {
+  if (code && pathname !== "/auth/callback" && pathname !== "/reset-password") {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/callback";
     return NextResponse.redirect(url);

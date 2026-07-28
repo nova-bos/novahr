@@ -19,6 +19,27 @@ export default function ResetPasswordPage() {
   const [error, setError] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [done, setDone] = React.useState(false);
+  const [ready, setReady] = React.useState(false);
+
+  // Exchange the one-time code from the email link for a recovery session.
+  // Supabase delivers the code to this page via ?code= in the URL.
+  React.useEffect(() => {
+    async function exchangeCode() {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      if (code) {
+        const supabase = createClient();
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          setError("This reset link has expired or already been used. Please request a new one.");
+        }
+        // Remove code from URL so it can't be replayed
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+      setReady(true);
+    }
+    exchangeCode();
+  }, []);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -42,6 +63,19 @@ export default function ResetPasswordPage() {
 
     setDone(true);
     setSubmitting(false);
+  }
+
+  if (!ready) {
+    return (
+      <AuthShell
+        heading="Verifying your link."
+        description="Just a moment while we verify your reset link."
+      >
+        <div className="flex justify-center py-8">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </div>
+      </AuthShell>
+    );
   }
 
   if (done) {
