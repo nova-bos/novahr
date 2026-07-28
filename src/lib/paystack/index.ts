@@ -52,3 +52,35 @@ export async function getSubscriptionManageLink(subscriptionCode: string): Promi
   if (!json.status) throw new Error("Paystack: failed to get manage link");
   return json.data.link;
 }
+
+export async function chargeAuthorization(params: {
+  authorizationCode: string;
+  email: string;
+  amountKobo: number;
+  reference: string;
+  metadata?: Record<string, unknown>;
+}): Promise<{ status: string; reference: string; amountKobo: number }> {
+  const res = await fetch(`${BASE}/transaction/charge_authorization`, {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({
+      authorization_code: params.authorizationCode,
+      email: params.email,
+      amount: params.amountKobo,
+      reference: params.reference,
+      metadata: params.metadata ?? {},
+    }),
+  });
+  const json = await res.json() as Record<string, unknown>;
+  if (!json.status) {
+    const msg = (json.message as string | undefined) ?? "chargeAuthorization failed";
+    console.error("[paystack] chargeAuthorization error:", json);
+    throw new Error(msg);
+  }
+  const data = json.data as Record<string, unknown>;
+  return {
+    status: (data.status as string) ?? "unknown",
+    reference: (data.reference as string) ?? params.reference,
+    amountKobo: (data.amount as number) ?? params.amountKobo,
+  };
+}

@@ -17,7 +17,7 @@ import {
 import { usePlan } from "@/lib/plan/use-plan";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { formatDate } from "@/lib/format";
-import { createPortalSession } from "@/lib/billing/actions";
+import { createPortalSession, createSubscription } from "@/lib/billing/actions";
 import { PLATFORM_FEE, MEMBER_FEE } from "@/lib/billing/calculator";
 
 const SALES_EMAIL = "sales@novabos.co.za";
@@ -40,6 +40,7 @@ export default function BillingPage() {
   } = usePlan();
 
   const [portalLoading, setPortalLoading] = React.useState(false);
+  const [subscribeLoading, setSubscribeLoading] = React.useState(false);
 
   React.useEffect(() => {
     if (searchParams.get("success") === "1") {
@@ -50,6 +51,20 @@ export default function BillingPage() {
   if (!allowed) return null;
 
   const memberCharge = activeMemberCount * MEMBER_FEE;
+
+  async function handleSubscribe() {
+    setSubscribeLoading(true);
+    try {
+      const result = await createSubscription();
+      if ("error" in result) {
+        toast.error(result.error);
+      } else {
+        window.location.href = result.url;
+      }
+    } finally {
+      setSubscribeLoading(false);
+    }
+  }
 
   async function handleManageSubscription() {
     setPortalLoading(true);
@@ -166,6 +181,10 @@ export default function BillingPage() {
                 )}
                 Manage subscription
               </Button>
+              <p className="text-xs text-muted-foreground">
+                To update your payment method or cancel, email{" "}
+                <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline">{SALES_EMAIL}</a>.
+              </p>
             </CardContent>
           </Card>
         </>
@@ -217,11 +236,12 @@ export default function BillingPage() {
                 </p>
               </div>
               <div className="flex flex-col gap-2">
-                <Button disabled className="w-fit">
-                  Billing activation coming soon
+                <Button onClick={handleSubscribe} disabled={subscribeLoading} className="w-fit">
+                  {subscribeLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                  Subscribe now
                 </Button>
                 <p className="text-xs text-muted-foreground">
-                  To activate your subscription, email{" "}
+                  You will be redirected to Paystack to complete payment securely. Questions? Email{" "}
                   <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline">{SALES_EMAIL}</a>.
                 </p>
               </div>

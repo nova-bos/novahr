@@ -32,6 +32,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     const customerCode = (data.customer as Record<string, string> | undefined)?.customer_code;
 
+    // Extract auth code for recurring charge-authorization billing
+    const authorization = data.authorization as Record<string, unknown> | undefined;
+    const authCode = authorization?.authorization_code as string | undefined;
+    const reusable = authorization?.reusable as boolean | undefined;
+    const customerEmail = (data.customer as Record<string, unknown>)?.email as string | undefined;
+    const metadata = data.metadata as Record<string, unknown> | undefined;
+    const memberCount = metadata?.memberCount as number | undefined;
+    const amountKobo = data.amount as number | undefined;
+    const isSubscriptionInit = metadata?.type === "subscription_init";
+
+    // Calculate next period end: today + 1 calendar month
+    const nextPeriodEnd = new Date();
+    nextPeriodEnd.setMonth(nextPeriodEnd.getMonth() + 1);
+
     await prisma.tenant.update({
       where: { id: tenantId },
       data: {
@@ -39,6 +53,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         subscriptionStatus: "active",
         ...(customerCode ? { paystackCustomerCode: customerCode } : {}),
         ...(subscriptionCode ? { paystackSubscriptionCode: subscriptionCode } : {}),
+        ...(isSubscriptionInit && authCode && reusable && {
+          paystackAuthCode: authCode,
+          paystackBillingEmail: customerEmail ?? undefined,
+          billingMemberCount: memberCount ?? undefined,
+          billingAmountKobo: amountKobo ?? undefined,
+          currentPeriodEnd: nextPeriodEnd,
+        }),
       },
     });
 

@@ -177,8 +177,12 @@ model Tenant {
   // Paystack billing fields
   paystackCustomerCode     String?
   paystackSubscriptionCode String?
+  paystackAuthCode         String?   // authorization_code for recurring charges
+  paystackBillingEmail     String?   // email used in the original Paystack transaction
   subscriptionStatus       String?   // active, past_due, canceled, incomplete
   currentPeriodEnd         DateTime?
+  billingMemberCount       Int?      // active member count at last billing snapshot
+  billingAmountKobo        Int?      // amount charged at last billing (in kobo)
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
