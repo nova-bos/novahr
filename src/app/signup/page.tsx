@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2, Users, ShieldCheck, CalendarRange, Wallet } from "lucide-react";
+import { ChevronDown, Eye, EyeOff, Loader2, Users, ShieldCheck, CalendarRange, Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -97,7 +97,7 @@ export default function SignupPage() {
         </div>
         <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-sm space-y-6">
-            <div className="mb-8">
+            <div className="mb-8 text-center">
               <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 We sent a confirmation link to <span className="font-medium text-foreground">{email}</span>. Click it, then sign in to set up {companyName || "your company"}.
@@ -156,7 +156,31 @@ export default function SignupPage() {
         </div>
 
         <div className="w-full max-w-sm">
-          <div className="mb-8">
+          {/* Mobile-only: surface the branding value props as a collapsible. */}
+          <details className="group mb-6 rounded-xl border bg-card md:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+              Why NovaHR?
+              <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+            </summary>
+            <div className="border-t px-4 py-4">
+              <p className="text-sm text-muted-foreground">
+                Add your team, run South African payroll, and manage leave and
+                compliance, all in one place.
+              </p>
+              <ul className="mt-4 space-y-3">
+                {HIGHLIGHTS.map(({ icon: Icon, text }) => (
+                  <li key={text} className="flex items-center gap-3">
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                      <Icon size={14} className="text-primary" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">{text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+
+          <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-foreground">Sign your company up</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               You will be the first HR administrator for your new workspace.

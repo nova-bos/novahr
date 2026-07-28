@@ -75,7 +75,7 @@ export default function CompleteSetupPage() {
         </div>
 
         <div className="w-full max-w-sm">
-          <div className="mb-8">
+          <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-foreground">Complete your setup</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Enter your company name to get started.

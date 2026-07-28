@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   Banknote,
   CalendarRange,
+  ChevronDown,
   Eye,
   EyeOff,
   Loader2,
@@ -146,7 +147,32 @@ export default function LoginPage() {
         </div>
 
         <div className="w-full max-w-sm">
-          <div className="mb-8">
+          {/* Mobile-only: the branding panel is hidden on small screens, so
+              surface its value props here as a collapsible disclosure. */}
+          <details className="group mb-6 rounded-xl border bg-card md:hidden">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium [&::-webkit-details-marker]:hidden">
+              Why NovaHR?
+              <ChevronDown className="size-4 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
+            </summary>
+            <div className="border-t px-4 py-4">
+              <p className="text-sm text-muted-foreground">
+                From onboarding and leave to payslips, bank payments and compliance,
+                NovaHR runs your people operations in one place.
+              </p>
+              <ul className="mt-4 space-y-3">
+                {FEATURES.map(({ icon: Icon, label }) => (
+                  <li key={label} className="flex items-center gap-3">
+                    <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/15">
+                      <Icon size={14} className="text-primary" />
+                    </div>
+                    <span className="text-sm text-muted-foreground">{label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+
+          <div className="mb-8 text-center">
             <h1 className="text-2xl font-bold text-foreground">Welcome back</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Sign in to your NovaHR account

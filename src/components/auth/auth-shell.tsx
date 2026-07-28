@@ -1,4 +1,5 @@
 import * as React from "react";
+import { ChevronDown } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
@@ -19,12 +20,22 @@ export function AuthShell({
 }) {
   return (
     <div className="flex min-h-svh flex-col lg:flex-row">
-      {/* Mobile banner */}
-      <div className="flex flex-col gap-3 bg-sidebar px-6 pb-8 pt-8 text-sidebar-foreground lg:hidden">
-        <div className="flex items-center">
+      {/* Mobile banner: logo always visible, the value props collapse behind a
+          toggle so they do not push the form down the screen. */}
+      <div className="bg-sidebar text-sidebar-foreground lg:hidden">
+        <div className="flex items-center px-6 pb-3 pt-7">
           <Logo height={26} forceDark />
         </div>
-        <p className="max-w-sm text-sm text-sidebar-foreground/70">{description}</p>
+        <details className="group px-6 pb-5">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium text-sidebar-foreground/80 [&::-webkit-details-marker]:hidden">
+            About NovaHR
+            <ChevronDown className="size-4 transition-transform duration-200 group-open:rotate-180" />
+          </summary>
+          <div className="mt-3 space-y-2">
+            <p className="text-base font-semibold">{heading}</p>
+            <p className="text-sm text-sidebar-foreground/70">{description}</p>
+          </div>
+        </details>
       </div>
 
       {/* Branding panel */}

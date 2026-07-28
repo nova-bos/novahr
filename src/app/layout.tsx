@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
-import { ThemeProvider } from "next-themes";
+import { ThemeManager } from "@/components/layout/theme-manager";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AppProvider } from "@/lib/store/app-provider";
@@ -43,7 +43,7 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-svh">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeManager>
           <EnvBanner />
           <AppProvider>
             <AuthProvider>
@@ -54,7 +54,7 @@ export default function RootLayout({
               </TooltipProvider>
             </AuthProvider>
           </AppProvider>
-        </ThemeProvider>
+        </ThemeManager>
       </body>
     </html>
   );
