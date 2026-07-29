@@ -47,8 +47,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const authCode = authorization?.authorization_code as string | undefined;
     const reusable = authorization?.reusable as boolean | undefined;
     const customerEmail = (data.customer as Record<string, unknown>)?.email as string | undefined;
-    const memberCount = meta?.memberCount as number | undefined;
-    const amountKobo = data.amount as number | undefined;
+    const memberCount = meta?.memberCount !== undefined ? Number(meta.memberCount) : undefined;
+    const amountKobo = data.amount !== undefined ? Number(data.amount) : undefined;
     const isSubscriptionInit = meta?.type === "subscription_init";
 
     // Calculate next period end: today + 1 calendar month
