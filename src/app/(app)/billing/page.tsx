@@ -219,7 +219,7 @@ export default function BillingPage() {
                   ) : (
                     <button
                       onClick={() => setConfirmCancel(true)}
-                      className="text-xs text-muted-foreground hover:text-destructive transition-colors underline-offset-2 hover:underline"
+                      className="text-sm text-foreground/60 underline underline-offset-2 hover:text-foreground/80 transition-colors"
                     >
                       Cancel subscription
                     </button>
