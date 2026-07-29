@@ -24,6 +24,7 @@ import { SettingRow } from "./setting-row";
 import {
   getPayrollSettingsAction,
   updateStatutoryReferencesAction,
+  updateTaxFlagsAction,
 } from "@/lib/settings/actions";
 
 export function PayrollSettings() {
@@ -39,40 +40,15 @@ export function PayrollSettings() {
   const [sdlReference, setSdlReference] = React.useState(config.sdlReferenceNumber);
   const [savingRefs, setSavingRefs] = React.useState(false);
   const [refErrors, setRefErrors] = React.useState<Record<string, string>>({});
-  const [uifEnabled, setUifEnabled] = React.useState<boolean>(() => {
-    if (typeof window === "undefined") return config.uifEnabled;
-    try {
-      const stored = JSON.parse(localStorage.getItem(`novahr:payroll-config:${tenant.id}`) ?? "null");
-      return stored?.uifEnabled ?? config.uifEnabled;
-    } catch {
-      return config.uifEnabled;
-    }
-  });
-  const [sdlEnabled, setSdlEnabled] = React.useState<boolean>(() => {
-    if (typeof window === "undefined") return config.sdlEnabled;
-    try {
-      const stored = JSON.parse(localStorage.getItem(`novahr:payroll-config:${tenant.id}`) ?? "null");
-      return stored?.sdlEnabled ?? config.sdlEnabled;
-    } catch {
-      return config.sdlEnabled;
-    }
-  });
+  const [uifEnabled, setUifEnabled] = React.useState<boolean>(config.uifEnabled);
+  const [sdlEnabled, setSdlEnabled] = React.useState<boolean>(config.sdlEnabled);
   const [saving, setSaving] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = JSON.parse(localStorage.getItem(`novahr:payroll-config:${tenant.id}`) ?? "null");
-      if (stored) {
-        if (typeof stored.uifEnabled === "boolean") setUifEnabled(stored.uifEnabled);
-        if (typeof stored.sdlEnabled === "boolean") setSdlEnabled(stored.sdlEnabled);
-      }
-    } catch {
-      // ignore SSR or parse errors
-    }
-    // Load statutory reference numbers from DB (they override the static config fallback)
     getPayrollSettingsAction(tenant.id).then((s) => {
+      setUifEnabled(s.uifEnabled);
+      setSdlEnabled(s.sdlEnabled);
       if (s.payeReferenceNumber) setPayeReference(s.payeReferenceNumber);
       if (s.uifReferenceNumber) setUifReference(s.uifReferenceNumber);
       if (s.sdlReferenceNumber) setSdlReference(s.sdlReferenceNumber);
@@ -81,28 +57,16 @@ export function PayrollSettings() {
 
   function handleUifChange(checked: boolean) {
     setUifEnabled(checked);
-    if (typeof window !== "undefined") {
-      try {
-        const key = `novahr:payroll-config:${tenant.id}`;
-        const prev = JSON.parse(localStorage.getItem(key) ?? "{}") as Record<string, unknown>;
-        localStorage.setItem(key, JSON.stringify({ ...prev, uifEnabled: checked }));
-      } catch {
-        // ignore
-      }
-    }
+    void updateTaxFlagsAction(tenant.id, { uifEnabled: checked, sdlEnabled }).catch(() =>
+      toast.error("Could not save UIF setting.")
+    );
   }
 
   function handleSdlChange(checked: boolean) {
     setSdlEnabled(checked);
-    if (typeof window !== "undefined") {
-      try {
-        const key = `novahr:payroll-config:${tenant.id}`;
-        const prev = JSON.parse(localStorage.getItem(key) ?? "{}") as Record<string, unknown>;
-        localStorage.setItem(key, JSON.stringify({ ...prev, sdlEnabled: checked }));
-      } catch {
-        // ignore
-      }
-    }
+    void updateTaxFlagsAction(tenant.id, { uifEnabled, sdlEnabled: checked }).catch(() =>
+      toast.error("Could not save SDL setting.")
+    );
   }
 
   function validatePayeRef(v: string) {

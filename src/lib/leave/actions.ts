@@ -6,7 +6,7 @@ import { runAsTenant } from "@/lib/db-context";
 import { requireEmployeeScope, requireUser, requireActiveSubscription } from "@/lib/auth/require";
 import { leaveTypeLabel } from "@/lib/format";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
-import { sendLeaveRequestEmail, sendLeaveDecisionEmail } from "@/lib/email";
+import { sendLeaveRequestEmail, sendLeaveDecisionEmail, sendLeaveCancellationEmail } from "@/lib/email";
 import type { ActivityItem, DaySelection, LeaveRequest, LeaveStatus, LeaveType, NotificationItem } from "@/lib/types";
 import { mapActivityItem, mapLeaveRequest, mapNotificationItem } from "../workspace/mappers";
 
@@ -394,8 +394,41 @@ export async function cancelLeaveRequestRecord(id: string): Promise<{
       },
     });
 
-    return { leaveRequest, activity, notification };
+    return {
+      leaveRequest,
+      activity,
+      notification,
+      employeeName,
+      leaveType: target.type as LeaveType,
+      days: target.days,
+      startDate: target.startDate.toISOString().slice(0, 10),
+      endDate: target.endDate.toISOString().slice(0, 10),
+    };
   });
+
+  // Email HR users so they know to stop waiting on this request.
+  void (async () => {
+    try {
+      const hrUsers = await prisma.user.findMany({
+        where: { tenantId, role: "hr" },
+        select: { email: true },
+      });
+      const hrEmails = hrUsers.map((u) => u.email).filter(Boolean);
+      if (hrEmails.length > 0) {
+        await sendLeaveCancellationEmail({
+          recipientEmails: hrEmails,
+          employeeName: result.employeeName,
+          leaveType: result.leaveType,
+          days: result.days,
+          startDate: result.startDate,
+          endDate: result.endDate,
+          appUrl: process.env.NEXT_PUBLIC_APP_URL,
+        });
+      }
+    } catch (err) {
+      console.error("[leave] cancel email failed", err);
+    }
+  })();
 
   return {
     leaveRequest: mapLeaveRequest(result.leaveRequest),

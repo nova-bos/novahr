@@ -29,14 +29,34 @@ export function usePlan() {
     [plan],
   );
 
+  const isSubscribed = plan === "subscribed" || plan === "enterprise";
+
+  // True when the subscription is locked and the user should see a paywall.
+  // Mirrors the server-side requireActiveSubscription grace logic.
+  const subscriptionLocked = React.useMemo(() => {
+    if (!isSubscribed || plan === "enterprise") return false;
+    if (subscriptionStatus === "expired") return true;
+    if (subscriptionStatus === "past_due") {
+      const GRACE_MS = 3 * 24 * 60 * 60 * 1000;
+      if (!currentPeriodEnd) return false;
+      return Date.now() - new Date(currentPeriodEnd).getTime() > GRACE_MS;
+    }
+    if (subscriptionStatus === "canceled") {
+      if (!currentPeriodEnd) return true;
+      return new Date(currentPeriodEnd) <= new Date();
+    }
+    return false;
+  }, [isSubscribed, plan, subscriptionStatus, currentPeriodEnd]);
+
   return React.useMemo(
     () => ({
       plan,
       can,
       isTrial: plan === "trial",
-      isSubscribed: plan === "subscribed" || plan === "enterprise",
+      isSubscribed,
       isEnterprise,
       subscriptionStatus,
+      subscriptionLocked,
       currentPeriodEnd,
       trialExpired: isTrialExpired(trialEndsAt),
       daysLeft: daysLeftInTrial(trialEndsAt),
@@ -45,6 +65,6 @@ export function usePlan() {
       monthlyAmount,
       enterpriseThreshold: ENTERPRISE_THRESHOLD,
     }),
-    [plan, trialEndsAt, subscriptionStatus, currentPeriodEnd, activeMemberCount, monthlyAmount, isEnterprise, can],
+    [plan, trialEndsAt, subscriptionStatus, subscriptionLocked, currentPeriodEnd, activeMemberCount, monthlyAmount, isEnterprise, isSubscribed, can],
   );
 }

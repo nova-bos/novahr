@@ -92,6 +92,10 @@ export async function requireActiveSubscription(tenantId: string): Promise<void>
       throw new Error("Your subscription has ended. Visit Billing to resubscribe.");
     }
 
+    if (tenant.subscriptionStatus === "expired") {
+      throw new Error("Your subscription has ended. Visit Billing to resubscribe.");
+    }
+
     if (tenant.subscriptionStatus === "past_due") {
       const GRACE_MS = 3 * 24 * 60 * 60 * 1000;
       if (!tenant.currentPeriodEnd || now.getTime() - tenant.currentPeriodEnd.getTime() <= GRACE_MS) return;

@@ -15,11 +15,14 @@ const CONTACT_EMAIL = "sales@novabos.co.za";
  * reachable so the customer can see their subscription info.
  */
 export function TrialGate({ children }: { children: React.ReactNode }) {
-  const { isTrial, trialExpired, daysLeft, trialEndsAt } = usePlan();
+  const { isTrial, trialExpired, daysLeft, trialEndsAt, subscriptionLocked, subscriptionStatus } = usePlan();
   const { logout } = useAuth();
   const pathname = usePathname();
 
-  if (isTrial && trialExpired && trialEndsAt && pathname !== "/billing") {
+  const trialWall = isTrial && trialExpired && trialEndsAt && pathname !== "/billing";
+  const subscriptionWall = subscriptionLocked && pathname !== "/billing";
+
+  if (trialWall) {
     return (
       <div className="flex min-h-[60svh] flex-col items-center justify-center gap-4 px-6 text-center">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
@@ -37,6 +40,35 @@ export function TrialGate({ children }: { children: React.ReactNode }) {
           </Button>
           <Button variant="outline" asChild>
             <a href={`mailto:${CONTACT_EMAIL}?subject=NovaHR%20subscription%20activation`}>Contact sales</a>
+          </Button>
+          <Button variant="ghost" onClick={() => void logout()}>
+            Sign out
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (subscriptionWall) {
+    const isOverdue = subscriptionStatus === "past_due";
+    return (
+      <div className="flex min-h-[60svh] flex-col items-center justify-center gap-4 px-6 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+          <Lock size={20} className="text-destructive" />
+        </div>
+        <div className="space-y-1.5">
+          <h2 className="text-xl font-semibold tracking-tight">
+            {isOverdue ? "Payment overdue" : "Subscription ended"}
+          </h2>
+          <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+            {isOverdue
+              ? "Your last payment failed. Update your payment method to restore access."
+              : "Your subscription has ended. Your data is safe. Resubscribe to continue."}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button asChild>
+            <Link href="/billing">{isOverdue ? "Update payment" : "Resubscribe"}</Link>
           </Button>
           <Button variant="ghost" onClick={() => void logout()}>
             Sign out

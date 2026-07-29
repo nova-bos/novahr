@@ -3,6 +3,7 @@
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole } from "@/lib/auth/require";
+import { sendTerminationEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { accruedEntitlement } from "@/lib/leave/accrual";
 
@@ -20,10 +21,17 @@ export async function terminateEmployeeAction(
 ): Promise<{ success: boolean; error?: string }> {
   const session = await requireRole("hr");
 
-  const linkedUser = await prisma.user.findFirst({
-    where: { employeeId: input.employeeId, tenantId: session.tenantId },
-    select: { id: true },
-  });
+  const [linkedUser, tenantRow, employeeRow] = await Promise.all([
+    prisma.user.findFirst({
+      where: { employeeId: input.employeeId, tenantId: session.tenantId },
+      select: { id: true },
+    }),
+    prisma.tenant.findUnique({ where: { id: session.tenantId }, select: { name: true } }),
+    prisma.employee.findFirst({
+      where: { id: input.employeeId, tenantId: session.tenantId },
+      select: { email: true, firstName: true, lastName: true },
+    }),
+  ]);
 
   await runAsTenant(session.tenantId, async (tx) => {
     const employee = await tx.employee.findFirstOrThrow({
@@ -115,6 +123,17 @@ export async function terminateEmployeeAction(
       });
       await admin.auth.admin.deleteUser(linkedUser.id);
     }
+  }
+
+  // Notify the employee of their termination
+  if (employeeRow) {
+    void sendTerminationEmail({
+      recipientEmail: employeeRow.email,
+      employeeName: `${employeeRow.firstName} ${employeeRow.lastName}`,
+      terminationDate: input.terminationDate,
+      companyName: tenantRow?.name ?? "your employer",
+      appUrl: process.env.NEXT_PUBLIC_APP_URL,
+    });
   }
 
   return { success: true };

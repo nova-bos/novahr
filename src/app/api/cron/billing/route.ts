@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { chargeAuthorization } from "@/lib/paystack";
 import { calculateMonthlyAmount, ENTERPRISE_THRESHOLD } from "@/lib/billing/calculator";
+import { sendPaymentFailedEmail } from "@/lib/email";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
       paystackAuthCode: true,
       paystackBillingEmail: true,
       currentPeriodEnd: true,
+      billingAmountKobo: true,
     },
   });
 
@@ -95,6 +97,13 @@ export async function POST(req: NextRequest) {
           where: { id: tenant.id },
           data: { subscriptionStatus: "past_due" },
         });
+        if (tenant.paystackBillingEmail) {
+          void sendPaymentFailedEmail({
+            recipientEmail: tenant.paystackBillingEmail,
+            companyName: tenant.name,
+            amountRands: amountRands,
+          });
+        }
         results.push({ tenantId: tenant.id, status: "failed", error: charge.status });
       }
     } catch (err) {
@@ -103,6 +112,16 @@ export async function POST(req: NextRequest) {
         where: { id: tenant.id },
         data: { subscriptionStatus: "past_due" },
       });
+      if (tenant.paystackBillingEmail) {
+        const lastAmountRands = tenant.billingAmountKobo != null
+          ? tenant.billingAmountKobo / 100
+          : 0;
+        void sendPaymentFailedEmail({
+          recipientEmail: tenant.paystackBillingEmail,
+          companyName: tenant.name,
+          amountRands: lastAmountRands,
+        });
+      }
       results.push({
         tenantId: tenant.id,
         status: "error",

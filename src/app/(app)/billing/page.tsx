@@ -72,8 +72,6 @@ export default function BillingPage() {
       currentPeriodEnd != null &&
       new Date(currentPeriodEnd) <= new Date());
 
-  const showSubscribeFlow = isTrial || subscriptionEnded;
-
   async function handleSubscribe() {
     setSubscribeLoading(true);
     try {

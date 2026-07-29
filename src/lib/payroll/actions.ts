@@ -1,10 +1,11 @@
 "use server";
 
 import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole, requireActiveSubscription } from "@/lib/auth/require";
 import { formatMonthYear } from "@/lib/format";
-import { sendPayslipEmail } from "@/lib/email";
+import { sendPayslipEmail, sendPayrollApprovalRequestEmail } from "@/lib/email";
 import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
 import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator";
 import { reverseRunCompletion } from "./run-reversal";
@@ -415,6 +416,38 @@ export async function completePayrollRunRecord(
       return { payrollRun, activity, notification, nextRun, newPayslips, eligible };
     }
   );
+
+  // Email the designated approver when the run is waiting for sign-off
+  if (payrollRun.status === "awaiting_approval") {
+    void (async () => {
+      try {
+        const settings = await prisma.payrollSettings.findUnique({
+          where: { tenantId },
+          select: { approvalUserId: true },
+        });
+        if (settings?.approvalUserId) {
+          const approver = await prisma.user.findUnique({
+            where: { id: settings.approvalUserId },
+            select: { email: true, name: true },
+          });
+          if (approver) {
+            const totalNet = newPayslips.reduce((sum, p) => sum + p.netPay, 0);
+            await sendPayrollApprovalRequestEmail({
+              recipientEmail: approver.email,
+              approverName: approver.name,
+              period: formatMonthYear(payrollRun.period),
+              employeeCount: newPayslips.length,
+              totalNet,
+              submittedBy: session.name,
+              appUrl: process.env.NEXT_PUBLIC_APP_URL,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("[payroll] approval request email failed", err);
+      }
+    })();
+  }
 
   // Only send payslip emails if the run went straight to completed (no approval required)
   if (payrollRun.status === "completed") {

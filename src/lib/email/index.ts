@@ -315,6 +315,321 @@ export async function sendContactFormEmail(args: ContactFormEmailArgs): Promise<
   }
 }
 
+interface LeaveCancellationEmailArgs {
+  recipientEmails: string[];
+  employeeName: string;
+  leaveType: LeaveType;
+  days: number;
+  startDate: string;
+  endDate: string;
+  appUrl?: string;
+}
+
+export async function sendLeaveCancellationEmail(args: LeaveCancellationEmailArgs): Promise<void> {
+  const client = getResend();
+  if (!client || args.recipientEmails.length === 0) return;
+
+  const label = leaveTypeLabel(args.leaveType);
+  const dayWord = args.days === 1 ? "day" : "days";
+  const appUrl = args.appUrl ?? "https://hr.novabos.co.za";
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Leave request cancelled</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">${esc(args.employeeName)} has cancelled a pending leave request. No action is needed.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Employee</p>
+          <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#18181b;">${esc(args.employeeName)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Leave type</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${label} ${pill(`${args.days} ${dayWord}`, "#f4f4f5")}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:20px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Dates</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${formatDate(args.startDate)} to ${formatDate(args.endDate)}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:28px 0 0;">
+      <a href="${appUrl}/leave" style="display:inline-block;padding:10px 20px;background:#18181b;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">View leave</a>
+    </p>
+  `;
+
+  try {
+    await client.emails.send({
+      from: FROM,
+      to: args.recipientEmails,
+      subject: `${args.employeeName} cancelled their ${label.toLowerCase()} leave request`,
+      html: baseLayout(`Leave cancelled: ${esc(args.employeeName)}`, body),
+    });
+  } catch (err) {
+    console.error("[email] sendLeaveCancellationEmail failed", err);
+  }
+}
+
+interface PayrollApprovalRequestEmailArgs {
+  recipientEmail: string;
+  approverName: string;
+  period: string;
+  employeeCount: number;
+  totalNet: number;
+  submittedBy: string;
+  appUrl?: string;
+}
+
+export async function sendPayrollApprovalRequestEmail(args: PayrollApprovalRequestEmailArgs): Promise<void> {
+  const client = getResend();
+  if (!client) return;
+
+  const appUrl = args.appUrl ?? "https://hr.novabos.co.za";
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Payroll run awaiting your approval</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Hi ${esc(args.approverName.split(" ")[0])}, ${esc(args.submittedBy)} has submitted a payroll run that requires your sign-off.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Pay period</p>
+          <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#18181b;">${esc(args.period)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Employees</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${args.employeeCount}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:20px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Total net pay</p>
+          <p style="margin:4px 0 0;font-size:28px;font-weight:700;color:#18181b;">${formatCurrency(args.totalNet)}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:28px 0 0;">
+      <a href="${appUrl}/payroll" style="display:inline-block;padding:10px 20px;background:#18181b;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Review and approve</a>
+    </p>
+  `;
+
+  try {
+    await client.emails.send({
+      from: FROM,
+      to: args.recipientEmail,
+      subject: `Payroll for ${args.period} is awaiting your approval`,
+      html: baseLayout(`Payroll approval required: ${args.period}`, body),
+    });
+  } catch (err) {
+    console.error("[email] sendPayrollApprovalRequestEmail failed", err);
+  }
+}
+
+interface PayrollRejectedEmailArgs {
+  recipientEmails: string[];
+  period: string;
+  rejectedBy: string;
+  note: string;
+  appUrl?: string;
+}
+
+export async function sendPayrollRejectedEmail(args: PayrollRejectedEmailArgs): Promise<void> {
+  const client = getResend();
+  if (!client || args.recipientEmails.length === 0) return;
+
+  const appUrl = args.appUrl ?? "https://hr.novabos.co.za";
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Payroll run sent back for revision</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">${esc(args.rejectedBy)} has sent back the ${esc(args.period)} payroll run. Please review the note and reprocess.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Pay period</p>
+          <p style="margin:4px 0 0;font-size:15px;font-weight:600;color:#18181b;">${esc(args.period)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:20px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Reason</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${esc(args.note)}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:28px 0 0;">
+      <a href="${appUrl}/payroll" style="display:inline-block;padding:10px 20px;background:#18181b;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Review payroll</a>
+    </p>
+  `;
+
+  try {
+    await client.emails.send({
+      from: FROM,
+      to: args.recipientEmails,
+      subject: `Payroll for ${args.period} was sent back for revision`,
+      html: baseLayout(`Payroll sent back: ${args.period}`, body),
+    });
+  } catch (err) {
+    console.error("[email] sendPayrollRejectedEmail failed", err);
+  }
+}
+
+interface TerminationEmailArgs {
+  recipientEmail: string;
+  employeeName: string;
+  terminationDate: string;
+  companyName: string;
+  appUrl?: string;
+}
+
+export async function sendTerminationEmail(args: TerminationEmailArgs): Promise<void> {
+  const client = getResend();
+  if (!client) return;
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Employment confirmation</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Hi ${esc(args.employeeName.split(" ")[0])}, this email confirms that your employment with ${esc(args.companyName)} ended on ${formatDate(args.terminationDate)}.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Employee</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${esc(args.employeeName)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:20px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Termination date</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${formatDate(args.terminationDate)}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:24px 0 0;font-size:14px;color:#52525b;">Your payslips and records are available from your HR department. Please contact ${esc(args.companyName)} directly for any documentation requests.</p>
+  `;
+
+  try {
+    await client.emails.send({
+      from: FROM,
+      to: args.recipientEmail,
+      subject: `Employment confirmation: ${args.companyName}`,
+      html: baseLayout("Employment confirmation", body),
+    });
+  } catch (err) {
+    console.error("[email] sendTerminationEmail failed", err);
+  }
+}
+
+interface SubscriptionActivatedEmailArgs {
+  recipientEmail: string;
+  recipientName: string;
+  companyName: string;
+  period: string;
+  amountRands: number;
+  appUrl?: string;
+}
+
+export async function sendSubscriptionActivatedEmail(args: SubscriptionActivatedEmailArgs): Promise<void> {
+  const client = getResend();
+  if (!client) return;
+
+  const appUrl = args.appUrl ?? "https://hr.novabos.co.za";
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Subscription activated</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">Hi ${esc(args.recipientName.split(" ")[0])}, your NovaHR subscription for ${esc(args.companyName)} is now active. Thank you for subscribing.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f9f9fb;border-radius:8px;padding:20px 20px 4px;">
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">First billing period</p>
+          <p style="margin:4px 0 0;font-size:15px;color:#18181b;">${esc(args.period)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:20px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.5px;">Amount charged</p>
+          <p style="margin:4px 0 0;font-size:28px;font-weight:700;color:#18181b;">${formatCurrency(args.amountRands)}</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:28px 0 0;">
+      <a href="${appUrl}/dashboard" style="display:inline-block;padding:10px 20px;background:#18181b;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Go to NovaHR</a>
+    </p>
+
+    <p style="margin:20px 0 0;font-size:13px;color:#a1a1aa;">Billing questions? Email <a href="mailto:billing@novabos.co.za" style="color:#52525b;">billing@novabos.co.za</a></p>
+  `;
+
+  try {
+    await client.emails.send({
+      from: FROM,
+      to: args.recipientEmail,
+      subject: "Your NovaHR subscription is active",
+      html: baseLayout("Subscription activated", body),
+    });
+  } catch (err) {
+    console.error("[email] sendSubscriptionActivatedEmail failed", err);
+  }
+}
+
+interface PaymentFailedEmailArgs {
+  recipientEmail: string;
+  companyName: string;
+  amountRands: number;
+  appUrl?: string;
+}
+
+export async function sendPaymentFailedEmail(args: PaymentFailedEmailArgs): Promise<void> {
+  const client = getResend();
+  if (!client) return;
+
+  const appUrl = args.appUrl ?? "https://hr.novabos.co.za";
+
+  const body = `
+    <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Payment failed</h2>
+    <p style="margin:0 0 24px;font-size:15px;color:#52525b;">We were unable to collect your NovaHR subscription payment for ${esc(args.companyName)}. Please update your payment method to avoid losing access.</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff1f2;border-radius:8px;border:1px solid #fecdd3;padding:20px 20px 4px;">
+      <tr>
+        <td style="padding-bottom:14px;">
+          <p style="margin:0;font-size:11px;font-weight:600;color:#9f1239;text-transform:uppercase;letter-spacing:0.5px;">Amount due</p>
+          <p style="margin:4px 0 0;font-size:28px;font-weight:700;color:#be123c;">${formatCurrency(args.amountRands)}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:20px;">
+          <p style="margin:0;font-size:13px;color:#9f1239;">You have a 3-day grace period before access is restricted. Please act now.</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin:28px 0 0;">
+      <a href="${appUrl}/billing" style="display:inline-block;padding:10px 20px;background:#dc2626;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Update payment method</a>
+    </p>
+  `;
+
+  try {
+    await client.emails.send({
+      from: FROM,
+      to: args.recipientEmail,
+      subject: `Action required: NovaHR payment failed for ${args.companyName}`,
+      html: baseLayout("Payment failed", body),
+    });
+  } catch (err) {
+    console.error("[email] sendPaymentFailedEmail failed", err);
+  }
+}
+
 interface PayslipEmailArgs {
   recipientEmail: string;
   employeeName: string;

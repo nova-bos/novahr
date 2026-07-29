@@ -165,6 +165,25 @@ export async function updateTaxSettingsAction(
   }
 }
 
+export async function updateTaxFlagsAction(
+  tenantId: string,
+  data: { uifEnabled: boolean; sdlEnabled: boolean }
+): Promise<{ success: boolean; error?: string }> {
+  await requireTenant(tenantId, "hr");
+  try {
+    await runAsTenant(tenantId, async (tx) => {
+      return tx.payrollSettings.upsert({
+        where: { tenantId },
+        update: data,
+        create: { tenantId, ...data },
+      });
+    });
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
+  }
+}
+
 export async function updateBenefitSettingsAction(
   tenantId: string,
   data: {

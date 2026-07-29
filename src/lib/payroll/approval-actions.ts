@@ -2,8 +2,10 @@
 
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole } from "@/lib/auth/require";
+import { formatMonthYear } from "@/lib/format";
 import { mapPayrollRun } from "@/lib/workspace/mappers";
-import { sendPayslipEmail } from "@/lib/email";
+import { sendPayslipEmail, sendPayrollRejectedEmail } from "@/lib/email";
+import { prisma } from "@/lib/prisma";
 import { mapEmployee } from "@/lib/workspace/mappers";
 import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
 import { reverseRunCompletion } from "./run-reversal";
@@ -87,7 +89,7 @@ export async function rejectPayrollApprovalAction(
   note: string
 ): Promise<{ payrollRun: PayrollRun }> {
   const session = await requireRole("hr", "exco");
-  return runAsTenant(session.tenantId, async (tx) => {
+  const result = await runAsTenant(session.tenantId, async (tx) => {
     const owned = await tx.payrollRun.findFirst({
       where: { id: runId, tenantId: session.tenantId },
       select: { id: true, status: true },
@@ -113,6 +115,30 @@ export async function rejectPayrollApprovalAction(
         processedOn: null,
       },
     });
-    return { payrollRun: mapPayrollRun(updated, []) };
+    return { payrollRun: mapPayrollRun(updated, []), period: updated.period };
   });
+
+  // Email all HR users so they know to reprocess
+  void (async () => {
+    try {
+      const hrUsers = await prisma.user.findMany({
+        where: { tenantId: session.tenantId, role: "hr" },
+        select: { email: true },
+      });
+      const hrEmails = hrUsers.map((u) => u.email).filter(Boolean);
+      if (hrEmails.length > 0) {
+        await sendPayrollRejectedEmail({
+          recipientEmails: hrEmails,
+          period: formatMonthYear(result.period),
+          rejectedBy: session.name,
+          note,
+          appUrl: process.env.NEXT_PUBLIC_APP_URL,
+        });
+      }
+    } catch (err) {
+      console.error("[payroll] rejection email failed", err);
+    }
+  })();
+
+  return { payrollRun: result.payrollRun };
 }

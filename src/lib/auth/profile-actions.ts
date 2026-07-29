@@ -26,6 +26,40 @@ export async function updateUserProfileAction(data: {
   return { success: true };
 }
 
+const DEFAULT_NOTIFICATION_PREFS = {
+  leaveRequests: true,
+  leaveDecisions: true,
+  payrollReminders: true,
+  payslipsPublished: true,
+  onboardingUpdates: true,
+  weeklyDigest: false,
+};
+
+export type NotificationPreferences = typeof DEFAULT_NOTIFICATION_PREFS;
+
+export async function getNotificationPreferencesAction(): Promise<NotificationPreferences> {
+  const session = await requireUser();
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { notificationPreferences: true },
+  });
+  if (!user?.notificationPreferences || typeof user.notificationPreferences !== "object") {
+    return DEFAULT_NOTIFICATION_PREFS;
+  }
+  return { ...DEFAULT_NOTIFICATION_PREFS, ...(user.notificationPreferences as Partial<NotificationPreferences>) };
+}
+
+export async function updateNotificationPreferencesAction(
+  prefs: NotificationPreferences
+): Promise<{ success: boolean }> {
+  const session = await requireUser();
+  await prisma.user.update({
+    where: { id: session.id },
+    data: { notificationPreferences: prefs },
+  });
+  return { success: true };
+}
+
 export async function sendPasswordResetAction(): Promise<{ success: boolean; error?: string }> {
   const session = await requireUser();
   const supabase = await createClient();

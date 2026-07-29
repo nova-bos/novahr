@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyTransaction } from "@/lib/paystack";
+import { sendSubscriptionActivatedEmail } from "@/lib/email";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const reference =
@@ -70,6 +71,33 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         }),
       },
     });
+
+    // Email the HR admin who subscribed
+    if (isSubscriptionInit && customerEmail) {
+      void (async () => {
+        try {
+          const tenant = await prisma.tenant.findUnique({
+            where: { id: tenantId },
+            select: { name: true },
+          });
+          const hrUser = await prisma.user.findFirst({
+            where: { tenantId, email: customerEmail },
+            select: { name: true },
+          });
+          const nextPeriodLabel = new Date().toLocaleString("en-ZA", { month: "long", year: "numeric" });
+          await sendSubscriptionActivatedEmail({
+            recipientEmail: customerEmail,
+            recipientName: hrUser?.name ?? customerEmail,
+            companyName: tenant?.name ?? "your organisation",
+            period: nextPeriodLabel,
+            amountRands: amountKobo != null ? amountKobo / 100 : 0,
+            appUrl,
+          });
+        } catch (err) {
+          console.error("[billing-callback] activation email failed", err);
+        }
+      })();
+    }
 
     return NextResponse.redirect(`${appUrl}/billing?success=1`);
   } catch (err) {
