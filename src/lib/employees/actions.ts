@@ -2,7 +2,7 @@
 
 import type { Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
-import { requireEmployeeScope, requireRole } from "@/lib/auth/require";
+import { requireEmployeeScope, requireRole, requireActiveSubscription } from "@/lib/auth/require";
 import type { ActivityItem, Employee, NotificationItem, Onboarding } from "@/lib/types";
 import { mapActivityItem, mapEmployee, mapNotificationItem } from "../workspace/mappers";
 import { claimNextEmployeeNumber } from "@/lib/employee-numbers/actions";
@@ -44,6 +44,7 @@ export async function createEmployeeRecord(
   employee: Employee
 ): Promise<{ employee: Employee; activity: ActivityItem; notification: NotificationItem }> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
   const isOnboarding = employee.status === "probation";
 
   return runAsTenant(session.tenantId, async (tx) => {

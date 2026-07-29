@@ -2,7 +2,7 @@
 
 import type { Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
-import { requireRole } from "@/lib/auth/require";
+import { requireRole, requireActiveSubscription } from "@/lib/auth/require";
 import { formatMonthYear } from "@/lib/format";
 import { sendPayslipEmail } from "@/lib/email";
 import { generateEmp201FromRunAction } from "@/lib/compliance/actions";
@@ -30,6 +30,7 @@ function round2(n: number): number {
 
 export async function startPayrollRunRecord(runId: string): Promise<PayrollRun> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
   return runAsTenant(session.tenantId, async (tx) => {
     const owned = await tx.payrollRun.findFirst({
       where: { id: runId, tenantId: session.tenantId },
@@ -54,6 +55,7 @@ export async function completePayrollRunRecord(
   notification: NotificationItem;
 }> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
   const tenantId = session.tenantId;
   const { payrollRun, activity, notification, nextRun, newPayslips, eligible } = await runAsTenant(
     tenantId,

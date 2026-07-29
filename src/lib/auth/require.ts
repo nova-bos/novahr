@@ -68,6 +68,46 @@ export async function requireTenant(tenantId: string, ...roles: UserRole[]): Pro
 }
 
 /**
+ * Asserts the tenant has an active subscription. Call this after requireRole/
+ * requireTenant so you already have the tenantId. Throws with a user-readable
+ * message when the trial has expired or the subscription is not active.
+ * Past-due tenants get a 3-day grace window before access is revoked.
+ */
+export async function requireActiveSubscription(tenantId: string): Promise<void> {
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { plan: true, subscriptionStatus: true, trialEndsAt: true, currentPeriodEnd: true },
+  });
+  if (!tenant) throw new Error("Tenant not found.");
+
+  const now = new Date();
+
+  if (tenant.plan === "enterprise") return;
+
+  if (tenant.plan === "subscribed") {
+    if (tenant.subscriptionStatus === "active") return;
+
+    if (tenant.subscriptionStatus === "canceled") {
+      if (tenant.currentPeriodEnd && tenant.currentPeriodEnd > now) return;
+      throw new Error("Your subscription has ended. Visit Billing to resubscribe.");
+    }
+
+    if (tenant.subscriptionStatus === "past_due") {
+      const GRACE_MS = 3 * 24 * 60 * 60 * 1000;
+      if (!tenant.currentPeriodEnd || now.getTime() - tenant.currentPeriodEnd.getTime() <= GRACE_MS) return;
+      throw new Error("Your payment is overdue. Visit Billing to update your payment method.");
+    }
+  }
+
+  if (tenant.plan === "trial") {
+    if (!tenant.trialEndsAt || tenant.trialEndsAt > now) return;
+    throw new Error("Your free trial has ended. Visit Billing to subscribe and continue.");
+  }
+
+  throw new Error("Your subscription is not active. Visit Billing to restore access.");
+}
+
+/**
  * Asserts the current user may act on behalf of `employeeId`:
  * HR always can, managers can for themselves and their direct reports,
  * employees only for themselves.

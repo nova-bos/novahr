@@ -2,7 +2,7 @@
 import { decToNumber } from "@/lib/workspace/mappers";
 
 import { runAsTenant } from "@/lib/db-context";
-import { requireTenant } from "@/lib/auth/require";
+import { requireTenant, requireActiveSubscription } from "@/lib/auth/require";
 import { generateNifFile, submitNifBatch, type NifInstruction } from "@/lib/bank-exports/netcash";
 import { getNetcashServiceKeys } from "@/lib/settings/netcash-keys";
 
@@ -11,6 +11,7 @@ export async function generateBankExportCsvAction(
   payrollRunId: string
 ): Promise<{ csv: string; filename: string; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     const result = await runAsTenant(tenantId, async (tx) => {
       const run = await tx.payrollRun.findFirst({ where: { id: payrollRunId, tenantId } });
@@ -72,6 +73,7 @@ export async function generateNetcashNifAction(
   payrollRunId: string
 ): Promise<{ nif: string; filename: string; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     const result = await runAsTenant(tenantId, async (tx) => {
       const run = await tx.payrollRun.findFirst({ where: { id: payrollRunId, tenantId } });
@@ -139,6 +141,7 @@ export async function submitNetcashBatchAction(
   payrollRunId: string
 ): Promise<{ token: string; error?: string }> {
   const session = await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     // Phase 1: load the run and claim a submission ledger row in one
     // transaction. The ledger makes the action idempotent: a run that was
@@ -281,6 +284,7 @@ export async function createBankExportRecordAction(
   data: { totalAmount: number; paymentCount: number; approvedBy?: string }
 ): Promise<{ id: string; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     const record = await runAsTenant(tenantId, async (tx) => {
       const run = await tx.payrollRun.findFirst({

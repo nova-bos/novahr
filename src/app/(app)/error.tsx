@@ -1,6 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
+
+const BILLING_ERRORS = ["trial has ended", "subscription has ended", "payment is overdue", "subscription is not active"];
+
+function isBillingError(message: string) {
+  return BILLING_ERRORS.some((phrase) => message.toLowerCase().includes(phrase));
+}
 
 export default function Error({
   error,
@@ -13,6 +20,8 @@ export default function Error({
     console.error(error);
   }, [error]);
 
+  const billing = isBillingError(error.message);
+
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
       <div className="text-destructive">
@@ -23,17 +32,38 @@ export default function Error({
         </svg>
       </div>
       <div>
-        <p className="font-semibold">Something went wrong</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          An unexpected error occurred. Try again or contact support.
+        <p className="font-semibold">{billing ? "Subscription required" : "Something went wrong"}</p>
+        <p className="mt-1 text-sm text-muted-foreground max-w-sm">
+          {billing
+            ? error.message
+            : "An unexpected error occurred. Try again or contact support if the problem persists."}
         </p>
       </div>
-      <button
-        onClick={reset}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-      >
-        Try again
-      </button>
+      <div className="flex gap-3">
+        {billing ? (
+          <Link
+            href="/billing"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Go to Billing
+          </Link>
+        ) : (
+          <button
+            onClick={reset}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Try again
+          </button>
+        )}
+        {!billing && (
+          <a
+            href="mailto:support@novabos.co.za"
+            className="rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+          >
+            Contact support
+          </a>
+        )}
+      </div>
     </div>
   );
 }
