@@ -20,8 +20,18 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.redirect(`${appUrl}/billing?error=payment_failed`);
     }
 
-    const tenantId = (data.metadata as Record<string, string> | undefined)?.tenantId;
+    // Paystack sometimes returns metadata as a JSON string rather than a parsed object.
+    const rawMeta = data.metadata;
+    let meta: Record<string, unknown> | undefined;
+    if (typeof rawMeta === "string") {
+      try { meta = JSON.parse(rawMeta); } catch { meta = undefined; }
+    } else {
+      meta = rawMeta as Record<string, unknown> | undefined;
+    }
+
+    const tenantId = meta?.tenantId as string | undefined;
     if (!tenantId) {
+      console.error("[paystack-callback] missing tenantId in metadata:", JSON.stringify(data.metadata));
       return NextResponse.redirect(`${appUrl}/billing?error=missing_tenant`);
     }
 
@@ -37,10 +47,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const authCode = authorization?.authorization_code as string | undefined;
     const reusable = authorization?.reusable as boolean | undefined;
     const customerEmail = (data.customer as Record<string, unknown>)?.email as string | undefined;
-    const metadata = data.metadata as Record<string, unknown> | undefined;
-    const memberCount = metadata?.memberCount as number | undefined;
+    const memberCount = meta?.memberCount as number | undefined;
     const amountKobo = data.amount as number | undefined;
-    const isSubscriptionInit = metadata?.type === "subscription_init";
+    const isSubscriptionInit = meta?.type === "subscription_init";
 
     // Calculate next period end: today + 1 calendar month
     const nextPeriodEnd = new Date();

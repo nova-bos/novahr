@@ -46,6 +46,16 @@ export default function BillingPage() {
     if (searchParams.get("success") === "1") {
       toast.success("Subscription activated. Welcome to NovaHR!");
     }
+    const err = searchParams.get("error");
+    if (err) {
+      const messages: Record<string, string> = {
+        missing_reference: "Payment reference missing. Please try again.",
+        payment_failed: "Payment was not completed. Please try again.",
+        missing_tenant: "Could not identify your account after payment. Contact support.",
+        verification_failed: "Payment verification failed. Contact support if you were charged.",
+      };
+      toast.error(messages[err] ?? `Payment error: ${err}`);
+    }
   }, [searchParams]);
 
   if (!allowed) return null;
