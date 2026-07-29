@@ -208,33 +208,41 @@ export default function BillingPage() {
                 <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline">{SALES_EMAIL}</a>.
               </p>
 
-              {subscriptionStatus !== "canceled" && (
-                <div className="border-t pt-4 mt-2">
-                  {confirmCancel ? (
-                    <div className="flex flex-col gap-2">
-                      <p className="text-sm text-muted-foreground">
-                        Are you sure? You will keep access until {currentPeriodEnd ? formatDate(currentPeriodEnd) : "your period ends"}, then your account reverts to the free trial.
-                      </p>
-                      <div className="flex gap-2">
-                        <Button variant="destructive" size="sm" onClick={handleCancel} disabled={cancelLoading}>
-                          {cancelLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
-                          Yes, cancel subscription
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setConfirmCancel(false)} disabled={cancelLoading}>
-                          Keep subscription
-                        </Button>
-                      </div>
+              <div className="border-t pt-4 mt-2">
+                {subscriptionStatus === "canceled" ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      Your subscription was cancelled. You still have full access until {currentPeriodEnd ? formatDate(currentPeriodEnd) : "your period ends"}.
+                    </p>
+                    <Button onClick={handleSubscribe} disabled={subscribeLoading} className="w-fit">
+                      {subscribeLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                      Reactivate subscription
+                    </Button>
+                  </div>
+                ) : confirmCancel ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm text-muted-foreground">
+                      Are you sure? You will keep access until {currentPeriodEnd ? formatDate(currentPeriodEnd) : "your period ends"}, then your account reverts to the free trial.
+                    </p>
+                    <div className="flex gap-2">
+                      <Button variant="destructive" size="sm" onClick={handleCancel} disabled={cancelLoading}>
+                        {cancelLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                        Yes, cancel subscription
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setConfirmCancel(false)} disabled={cancelLoading}>
+                        Keep subscription
+                      </Button>
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmCancel(true)}
-                      className="text-sm text-foreground/60 underline underline-offset-2 hover:text-foreground/80 transition-colors"
-                    >
-                      Cancel subscription
-                    </button>
-                  )}
-                </div>
-              )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmCancel(true)}
+                    className="text-sm text-foreground/60 underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                  >
+                    Cancel subscription
+                  </button>
+                )}
+              </div>
             </CardContent>
           </Card>
         </>
