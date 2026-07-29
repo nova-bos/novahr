@@ -3,7 +3,7 @@
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { runAsTenant } from "@/lib/db-context";
-import { requireEmployeeScope, requireUser } from "@/lib/auth/require";
+import { requireEmployeeScope, requireUser, requireActiveSubscription } from "@/lib/auth/require";
 import { leaveTypeLabel } from "@/lib/format";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 import { sendLeaveRequestEmail, sendLeaveDecisionEmail } from "@/lib/email";
@@ -24,6 +24,7 @@ export async function createLeaveRequestRecord(
 ): Promise<{ leaveRequest: LeaveRequest; activity: ActivityItem; notification: NotificationItem }> {
   const session = await requireEmployeeScope(input.employeeId);
   const tenantId = session.tenantId;
+  await requireActiveSubscription(tenantId);
 
   if (input.daySelections.length === 0) {
     throw new Error("Please select at least one day.");
@@ -117,6 +118,7 @@ export async function decideLeaveRequestRecord(
 }> {
   const session = await requireUser();
   const tenantId = session.tenantId;
+  await requireActiveSubscription(tenantId);
   const decidedBy = session.name;
 
   const inner = await runAsTenant(tenantId, async (tx) => {
@@ -320,6 +322,7 @@ export async function cancelLeaveRequestRecord(id: string): Promise<{
 }> {
   const session = await requireUser();
   const tenantId = session.tenantId;
+  await requireActiveSubscription(tenantId);
 
   if (!session.employeeId) {
     throw new Error("Only the employee who submitted this request can cancel it.");

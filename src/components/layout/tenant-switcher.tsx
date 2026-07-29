@@ -1,90 +1,36 @@
 "use client";
 
 import Image from "next/image";
-import { Building2, Check, ChevronsUpDown } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-import { useApp } from "@/lib/store/app-provider";
-import { useCurrentTenant, useTenants } from "@/lib/store/hooks";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useCurrentTenant } from "@/lib/store/hooks";
 
 export function TenantSwitcher() {
   const tenant = useCurrentTenant();
-  const tenants = useTenants();
-  const { setTenant } = useApp();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          className="h-9 justify-between gap-2 border-border/70 bg-background px-2 sm:max-w-[220px] sm:px-2.5 font-normal shadow-none"
-        >
-          <span className="flex min-w-0 items-center gap-2">
-            <span
-              className="flex size-6 shrink-0 items-center justify-center rounded-md overflow-hidden text-[11px] font-semibold text-white"
-              style={{ backgroundColor: tenant.logoUrl ? "transparent" : tenant.color }}
-            >
-              {tenant.logoUrl ? (
-                <Image src={tenant.logoUrl} alt={tenant.name} width={24} height={24} className="h-full w-full object-contain" unoptimized />
-              ) : (
-                tenant.initials
-              )}
-            </span>
-            <span className="hidden truncate text-sm font-medium sm:inline">{tenant.name}</span>
-          </span>
-          <ChevronsUpDown className="hidden size-3.5 shrink-0 text-muted-foreground sm:block" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-72">
-        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-          Switch workspace
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {tenants.map((t) => (
-          <DropdownMenuItem
-            key={t.id}
-            onClick={() => setTenant(t.id)}
-            className="gap-2 py-2"
-          >
-            <span
-              className="flex size-7 shrink-0 items-center justify-center rounded-md overflow-hidden text-xs font-semibold text-white"
-              style={{ backgroundColor: t.logoUrl ? "transparent" : t.color }}
-            >
-              {t.logoUrl ? (
-                <Image src={t.logoUrl} alt={t.name} width={28} height={28} className="h-full w-full object-contain" unoptimized />
-              ) : (
-                t.initials
-              )}
-            </span>
-            <span className="flex min-w-0 flex-col">
-              <span className="truncate text-sm font-medium">{t.name}</span>
-              <span className="truncate text-xs text-muted-foreground">{t.industry}</span>
-            </span>
-            <Check
-              className={cn(
-                "ml-auto size-4 text-primary",
-                t.id === tenant.id ? "opacity-100" : "opacity-0"
-              )}
-            />
-          </DropdownMenuItem>
-        ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="gap-2 text-muted-foreground">
-          <a href="/settings">
-            <Building2 className="size-4" />
-            Workspace settings
-          </a>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Link
+      href="/settings"
+      className="flex h-9 items-center gap-2 rounded-md border border-border/70 bg-background px-2.5 text-sm font-medium hover:bg-muted transition-colors sm:max-w-[220px]"
+      aria-label="Company settings"
+    >
+      <span
+        className="flex size-6 shrink-0 items-center justify-center rounded-md overflow-hidden text-[11px] font-semibold text-white"
+        style={{ backgroundColor: tenant.logoUrl ? "transparent" : tenant.color }}
+      >
+        {tenant.logoUrl ? (
+          <Image
+            src={tenant.logoUrl}
+            alt={tenant.name}
+            width={24}
+            height={24}
+            className="h-full w-full object-contain"
+            unoptimized
+          />
+        ) : (
+          tenant.initials
+        )}
+      </span>
+      <span className="hidden truncate sm:inline">{tenant.name}</span>
+    </Link>
   );
 }

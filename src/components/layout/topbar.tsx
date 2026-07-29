@@ -1,12 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Check, HelpCircle, LogOut, UserCog, UserRound } from "lucide-react";
+import { Building2, HelpCircle, LogOut, UserCog, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-provider";
-import { useApp } from "@/lib/store/app-provider";
-import { useCurrentTenant, useTenants } from "@/lib/store/hooks";
 import { ROLE_LABELS } from "@/lib/auth/types";
 import { TenantSwitcher } from "./tenant-switcher";
 import { NotificationsMenu } from "./notifications-menu";
@@ -14,7 +11,6 @@ import { SupportHub } from "./support-hub";
 import { CommandMenu } from "./command-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,11 +22,7 @@ import {
 
 function MobileProfileMenu() {
   const { user, logout } = useAuth();
-  const { setTenant } = useApp();
-  const tenant = useCurrentTenant();
-  const tenants = useTenants();
   const router = useRouter();
-  const canSwitchTenant = user?.role === "hr" || user?.role === "exco";
 
   function handleLogout() {
     logout();
@@ -95,31 +87,6 @@ function MobileProfileMenu() {
           </a>
         </DropdownMenuItem>
 
-        {canSwitchTenant && tenants.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-              Workspace
-            </DropdownMenuLabel>
-            {tenants.map((t) => (
-              <DropdownMenuItem key={t.id} onClick={() => setTenant(t.id)} className="gap-2 py-2">
-                <span
-                  className="flex size-6 shrink-0 items-center justify-center rounded-md overflow-hidden text-[11px] font-semibold text-white"
-                  style={{ backgroundColor: t.logoUrl ? "transparent" : t.color }}
-                >
-                  {t.logoUrl ? (
-                    <Image src={t.logoUrl} alt={t.name} width={24} height={24} className="h-full w-full object-contain" unoptimized />
-                  ) : (
-                    t.initials
-                  )}
-                </span>
-                <span className="truncate text-sm">{t.name}</span>
-                <Check className={cn("ml-auto size-4 text-primary", t.id === tenant.id ? "opacity-100" : "opacity-0")} />
-              </DropdownMenuItem>
-            ))}
-          </>
-        )}
-
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="text-destructive focus:bg-destructive/10 focus:text-destructive"
@@ -134,12 +101,8 @@ function MobileProfileMenu() {
 }
 
 export function Topbar() {
-  const { user } = useAuth();
-  const canSwitchTenant = user?.role === "hr" || user?.role === "exco";
-
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full shrink-0 items-center gap-3 overflow-x-hidden border-b border-border/70 bg-background/80 px-4 backdrop-blur-sm sm:px-6">
-      {/* Search bar - flex-1 so right icons stay pinned to the right edge */}
       <div className="flex-1 min-w-0">
         <CommandMenu />
       </div>
@@ -147,8 +110,7 @@ export function Topbar() {
       <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         <SupportHub />
         <NotificationsMenu />
-        {/* Workspace switcher: desktop only — mobile shows it inside the profile menu */}
-        {canSwitchTenant && <span className="hidden md:flex"><TenantSwitcher /></span>}
+        <TenantSwitcher />
         <MobileProfileMenu />
       </div>
     </header>
