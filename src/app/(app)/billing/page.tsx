@@ -63,6 +63,15 @@ export default function BillingPage() {
 
   const memberCharge = activeMemberCount * MEMBER_FEE;
 
+  // Treat a canceled subscription whose period has already ended like a trial:
+  // show the subscribe button so the user can reactivate.
+  const canceledAndExpired =
+    subscriptionStatus === "canceled" &&
+    currentPeriodEnd != null &&
+    new Date(currentPeriodEnd) <= new Date();
+
+  const showSubscribeFlow = isTrial || canceledAndExpired;
+
   async function handleSubscribe() {
     setSubscribeLoading(true);
     try {
@@ -143,7 +152,7 @@ export default function BillingPage() {
             </Button>
           </CardContent>
         </Card>
-      ) : isSubscribed ? (
+      ) : isSubscribed && !canceledAndExpired ? (
         /* Subscribed state */
         <>
           <Card>
@@ -230,7 +239,7 @@ export default function BillingPage() {
           </Card>
         </>
       ) : (
-        /* Trial state */
+        /* Trial / reactivation state */
         <>
           <Card>
             <CardHeader>
@@ -240,18 +249,22 @@ export default function BillingPage() {
                     <Users className="size-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <CardTitle>{trialExpired ? "Trial ended" : "Free trial"}</CardTitle>
+                    <CardTitle>
+                      {canceledAndExpired ? "Subscription ended" : trialExpired ? "Trial ended" : "Free trial"}
+                    </CardTitle>
                     <CardDescription>
-                      {trialExpired
-                        ? "Your 14-day free trial has ended."
-                        : trialEndsAt
-                          ? `Your trial ends on ${formatDate(trialEndsAt)}.`
-                          : "Explore everything NovaHR has to offer."}
+                      {canceledAndExpired
+                        ? "Your subscription has ended. Resubscribe to restore full access."
+                        : trialExpired
+                          ? "Your 14-day free trial has ended."
+                          : trialEndsAt
+                            ? `Your trial ends on ${formatDate(trialEndsAt)}.`
+                            : "Explore everything NovaHR has to offer."}
                     </CardDescription>
                   </div>
                 </div>
-                <Badge variant={trialExpired ? "destructive" : "secondary"}>
-                  {trialExpired ? "Expired" : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
+                <Badge variant={canceledAndExpired || trialExpired ? "destructive" : "secondary"}>
+                  {canceledAndExpired ? "Ended" : trialExpired ? "Expired" : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
                 </Badge>
               </div>
             </CardHeader>

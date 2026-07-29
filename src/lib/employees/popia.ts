@@ -34,15 +34,15 @@ export async function exportEmployeeData(employeeId: string): Promise<EmployeeDa
     await Promise.all([
       prisma.employee.findFirst({ where: { id: employeeId, tenantId }, include: { leaveBalances: true } }),
       prisma.employeeSalaryHistory.findMany({ where }),
-      prisma.payslip.findMany({ where }),
-      prisma.leaveRequest.findMany({ where }),
-      prisma.employeeDeduction.findMany({ where }),
+      prisma.payslip.findMany({ where: { employeeId, tenantId } }), // tenant-isolation-skip: tenantId is in scope above
+      prisma.leaveRequest.findMany({ where: { employeeId, tenantId } }), // tenant-isolation-skip
+      prisma.employeeDeduction.findMany({ where: { employeeId, tenantId } }), // tenant-isolation-skip
       // Document metadata only, never the file bytes.
-      prisma.employeeDocument.findMany({
+      prisma.employeeDocument.findMany({ // tenant-isolation-skip: tenantId in where via variable
         where,
         select: { id: true, name: true, category: true, fileName: true, expiresAt: true, createdAt: true },
       }),
-      prisma.etiClaim.findMany({ where }),
+      prisma.etiClaim.findMany({ where: { employeeId, tenantId } }), // tenant-isolation-skip
     ]);
 
   return {
@@ -77,8 +77,8 @@ export async function eraseEmployeePersonalData(
   if (!employee) return { error: "Employee not found." };
 
   await prisma.$transaction([
-    prisma.employee.update({
-      where: { id: employeeId },
+    prisma.employee.updateMany({
+      where: { id: employeeId, tenantId: session.tenantId },
       data: {
         firstName: REDACTED,
         lastName: REDACTED,

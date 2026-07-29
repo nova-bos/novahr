@@ -19,8 +19,14 @@ export async function createSubscription(): Promise<{ url: string } | { error: s
     });
 
     if (!tenant) return { error: "Tenant not found." };
-    if (tenant.plan === "subscribed" && tenant.subscriptionStatus === "active") {
+    if (
+      tenant.plan === "subscribed" &&
+      tenant.subscriptionStatus === "active"
+    ) {
       return { error: "You already have an active subscription." };
+    }
+    if (tenant.plan === "enterprise") {
+      return { error: "Enterprise accounts are managed directly. Contact sales@novabos.co.za." };
     }
 
     // Count active members to calculate first month's charge

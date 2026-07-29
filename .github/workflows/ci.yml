@@ -29,6 +29,9 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Tenant isolation check
+        run: npm run check:tenant-isolation
+
       - name: Lint
         run: npm run lint
 

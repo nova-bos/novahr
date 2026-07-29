@@ -187,6 +187,6 @@ export async function deleteEmployeeDocument(
 
   const supabase = createAdminClient();
   await supabase.storage.from(BUCKET).remove([doc.storagePath]);
-  await prisma.employeeDocument.delete({ where: { id: doc.id } });
+  await prisma.employeeDocument.deleteMany({ where: { id: doc.id, tenantId: session.tenantId } });
   return { ok: true };
 }

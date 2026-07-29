@@ -10,6 +10,7 @@
     "build": "prisma migrate deploy && prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
+    "check:tenant-isolation": "node scripts/check-tenant-isolation.mjs",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "screenshots": "tsx scripts/capture-screenshots.ts",

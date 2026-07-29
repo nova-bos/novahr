@@ -129,7 +129,7 @@ export async function cancelEmployeeDeduction(
   if (!existing) return { error: "Deduction not found." };
   if (existing.status !== "active") return { error: "Only active deductions can be cancelled." };
 
-  const updated = await prisma.employeeDeduction.update({
+  const updated = await prisma.employeeDeduction.update({ // tenant-isolation-skip: ownership verified via findFirst above
     where: { id },
     data: { status: "cancelled" },
   });

@@ -56,8 +56,8 @@ export async function updateEmployeeEquityAction(
   });
   if (!employee) return { error: "Employee not found." };
 
-  await prisma.employee.update({
-    where: { id: employeeId },
+  await prisma.employee.updateMany({
+    where: { id: employeeId, tenantId: session.tenantId },
     data: {
       equityRace: input.equityRace,
       equityGender: input.equityGender,
