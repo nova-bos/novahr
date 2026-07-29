@@ -20,10 +20,12 @@ export async function POST(req: NextRequest) {
 
   const now = new Date();
 
-  // Find all subscribed tenants due for renewal
+  // Find all subscribed tenants due for renewal (exclude canceled — they keep their
+  // auth code for self-serve reactivation, not for automatic renewal)
   const dueTenants = await prisma.tenant.findMany({
     where: {
       plan: "subscribed",
+      subscriptionStatus: { not: "canceled" },
       paystackAuthCode: { not: null },
       paystackBillingEmail: { not: null },
       currentPeriodEnd: { lte: now },
@@ -123,14 +125,13 @@ export async function POST(req: NextRequest) {
     await prisma.tenant.update({
       where: { id: tenant.id },
       data: {
-        plan: "trial",
-        subscriptionStatus: null,
+        subscriptionStatus: "expired",
         currentPeriodEnd: null,
         billingMemberCount: null,
         billingAmountKobo: null,
       },
     });
-    results.push({ tenantId: tenant.id, status: "downgraded_after_cancel" });
+    results.push({ tenantId: tenant.id, status: "expired_after_cancel" });
   }
 
   console.log(`[billing-cron] Processed ${dueTenants.length} renewals, ${expiredCanceled.length} downgrades:`, results);

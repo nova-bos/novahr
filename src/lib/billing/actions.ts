@@ -1,10 +1,9 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth/require";
+import { requireUser, requireRole } from "@/lib/auth/require";
 import { initializeTransaction } from "@/lib/paystack";
 import { calculateMonthlyAmount } from "@/lib/billing/calculator";
-import { requireRole } from "@/lib/auth/require";
 
 const APP_URL = () =>
   (process.env.NEXT_PUBLIC_APP_URL ?? "https://hr.novabos.co.za").replace(/\/+$/, "");
@@ -19,22 +18,15 @@ export async function createSubscription(): Promise<{ url: string } | { error: s
     });
 
     if (!tenant) return { error: "Tenant not found." };
-    if (
-      tenant.plan === "subscribed" &&
-      tenant.subscriptionStatus === "active"
-    ) {
+    if (tenant.plan === "subscribed" && tenant.subscriptionStatus === "active") {
       return { error: "You already have an active subscription." };
     }
     if (tenant.plan === "enterprise") {
       return { error: "Enterprise accounts are managed directly. Contact sales@novabos.co.za." };
     }
 
-    // Count active members to calculate first month's charge
     const memberCount = await prisma.employee.count({
-      where: {
-        tenantId: user.tenantId,
-        status: { not: "terminated" },
-      },
+      where: { tenantId: user.tenantId, status: { not: "terminated" } },
     });
 
     const amountRands = calculateMonthlyAmount(memberCount);
@@ -45,17 +37,52 @@ export async function createSubscription(): Promise<{ url: string } | { error: s
       amount: amountKobo,
       currency: "ZAR",
       callback_url: `${APP_URL()}/api/billing/paystack/callback`,
-      metadata: {
-        tenantId: tenant.id,
-        memberCount,
-        type: "subscription_init",
-      },
+      metadata: { tenantId: tenant.id, memberCount, type: "subscription_init" },
     });
 
     return { url: result.authorization_url };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     console.error("[billing] createSubscription error:", err);
+    return { error: `Something went wrong: ${msg}` };
+  }
+}
+
+/**
+ * Reactivates a cancelled subscription without charging immediately.
+ * The user is still within their paid period, so we just flip the status
+ * back to active. The cron will charge on the existing currentPeriodEnd.
+ */
+export async function reactivateSubscription(): Promise<{ ok: true } | { error: string }> {
+  try {
+    const user = await requireRole("hr");
+    console.log("[reactivate] user.tenantId:", user.tenantId);
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: user.tenantId },
+      select: { plan: true, subscriptionStatus: true, currentPeriodEnd: true },
+    });
+
+    console.log("[reactivate] tenant:", JSON.stringify(tenant));
+
+    if (!tenant) return { error: "Tenant not found." };
+    if (tenant.plan !== "subscribed" && tenant.plan !== "enterprise") {
+      return { error: "No subscription to reactivate." };
+    }
+    if (tenant.subscriptionStatus !== "canceled") {
+      return { error: "Subscription is not in a cancelled state." };
+    }
+
+    await prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: { subscriptionStatus: "active" },
+    });
+
+    console.log("[reactivate] success — status flipped to active");
+    return { ok: true };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    console.error("[billing] reactivateSubscription error:", err);
     return { error: `Something went wrong: ${msg}` };
   }
 }
@@ -76,13 +103,10 @@ export async function cancelSubscription(): Promise<{ ok: true } | { error: stri
       return { error: "Subscription is already cancelled." };
     }
 
+    // Keep paystackAuthCode so reactivation can charge without a redirect.
     await prisma.tenant.update({
       where: { id: user.tenantId },
-      data: {
-        subscriptionStatus: "canceled",
-        paystackAuthCode: null,
-        paystackBillingEmail: null,
-      },
+      data: { subscriptionStatus: "canceled" },
     });
 
     return { ok: true };

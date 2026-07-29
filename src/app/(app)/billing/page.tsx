@@ -17,7 +17,7 @@ import {
 import { usePlan } from "@/lib/plan/use-plan";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { formatDate } from "@/lib/format";
-import { createSubscription, cancelSubscription } from "@/lib/billing/actions";
+import { createSubscription, cancelSubscription, reactivateSubscription } from "@/lib/billing/actions";
 import { PLATFORM_FEE, MEMBER_FEE } from "@/lib/billing/calculator";
 
 const SALES_EMAIL = "sales@novabos.co.za";
@@ -40,6 +40,7 @@ export default function BillingPage() {
   } = usePlan();
 
   const [subscribeLoading, setSubscribeLoading] = React.useState(false);
+  const [reactivateLoading, setReactivateLoading] = React.useState(false);
   const [cancelLoading, setCancelLoading] = React.useState(false);
   const [confirmCancel, setConfirmCancel] = React.useState(false);
 
@@ -63,14 +64,15 @@ export default function BillingPage() {
 
   const memberCharge = activeMemberCount * MEMBER_FEE;
 
-  // Treat a canceled subscription whose period has already ended like a trial:
-  // show the subscribe button so the user can reactivate.
-  const canceledAndExpired =
-    subscriptionStatus === "canceled" &&
-    currentPeriodEnd != null &&
-    new Date(currentPeriodEnd) <= new Date();
+  // A subscription that has ended: either the period elapsed while canceled
+  // (pre-cron) or the cron already stamped it "expired" (post-cron).
+  const subscriptionEnded =
+    subscriptionStatus === "expired" ||
+    (subscriptionStatus === "canceled" &&
+      currentPeriodEnd != null &&
+      new Date(currentPeriodEnd) <= new Date());
 
-  const showSubscribeFlow = isTrial || canceledAndExpired;
+  const showSubscribeFlow = isTrial || subscriptionEnded;
 
   async function handleSubscribe() {
     setSubscribeLoading(true);
@@ -83,6 +85,21 @@ export default function BillingPage() {
       }
     } finally {
       setSubscribeLoading(false);
+    }
+  }
+
+  async function handleReactivate() {
+    setReactivateLoading(true);
+    try {
+      const result = await reactivateSubscription();
+      if ("ok" in result) {
+        toast.success("Subscription reactivated. You will be billed on your next renewal date.");
+        window.location.reload();
+      } else {
+        toast.error(result.error);
+      }
+    } finally {
+      setReactivateLoading(false);
     }
   }
 
@@ -104,13 +121,17 @@ export default function BillingPage() {
 
   const headerDescription = isEnterprise
     ? `Your organisation has ${activeMemberCount} active members. Enterprise pricing applies.`
-    : isSubscribed
-      ? `Subscription active. ${activeMemberCount} active ${activeMemberCount === 1 ? "member" : "members"}.`
-      : trialExpired
-        ? "Your free trial has ended. Contact us to activate your subscription."
-        : trialEndsAt
-          ? `Free trial: ${daysLeft} ${daysLeft === 1 ? "day" : "days"} remaining.`
-          : "You are on a free trial.";
+    : subscriptionEnded
+      ? "Your subscription has ended. Resubscribe to restore access."
+      : isSubscribed && subscriptionStatus === "canceled"
+        ? `Subscription cancelled. Access continues until ${currentPeriodEnd ? formatDate(currentPeriodEnd) : "your period ends"}.`
+        : isSubscribed
+          ? `Subscription active. ${activeMemberCount} active ${activeMemberCount === 1 ? "member" : "members"}.`
+          : trialExpired
+            ? "Your free trial has ended. Subscribe to continue."
+            : trialEndsAt
+              ? `Free trial: ${daysLeft} ${daysLeft === 1 ? "day" : "days"} remaining.`
+              : "You are on a free trial.";
 
   return (
     <div className="flex flex-col gap-6">
@@ -152,7 +173,7 @@ export default function BillingPage() {
             </Button>
           </CardContent>
         </Card>
-      ) : isSubscribed && !canceledAndExpired ? (
+      ) : isSubscribed && !subscriptionEnded ? (
         /* Subscribed state */
         <>
           <Card>
@@ -214,8 +235,8 @@ export default function BillingPage() {
                     <p className="text-sm text-muted-foreground">
                       Your subscription was cancelled. You still have full access until {currentPeriodEnd ? formatDate(currentPeriodEnd) : "your period ends"}.
                     </p>
-                    <Button onClick={handleSubscribe} disabled={subscribeLoading} className="w-fit">
-                      {subscribeLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                    <Button onClick={handleReactivate} disabled={reactivateLoading} className="w-fit">
+                      {reactivateLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
                       Reactivate subscription
                     </Button>
                   </div>
@@ -237,7 +258,7 @@ export default function BillingPage() {
                 ) : (
                   <button
                     onClick={() => setConfirmCancel(true)}
-                    className="text-sm text-foreground/60 underline underline-offset-2 hover:text-foreground/80 transition-colors"
+                    className="cursor-pointer text-sm text-foreground/60 underline underline-offset-2 hover:text-foreground/80 transition-colors"
                   >
                     Cancel subscription
                   </button>
@@ -258,10 +279,10 @@ export default function BillingPage() {
                   </div>
                   <div>
                     <CardTitle>
-                      {canceledAndExpired ? "Subscription ended" : trialExpired ? "Trial ended" : "Free trial"}
+                      {subscriptionEnded ? "Subscription ended" : trialExpired ? "Trial ended" : "Free trial"}
                     </CardTitle>
                     <CardDescription>
-                      {canceledAndExpired
+                      {subscriptionEnded
                         ? "Your subscription has ended. Resubscribe to restore full access."
                         : trialExpired
                           ? "Your 14-day free trial has ended."
@@ -271,8 +292,8 @@ export default function BillingPage() {
                     </CardDescription>
                   </div>
                 </div>
-                <Badge variant={canceledAndExpired || trialExpired ? "destructive" : "secondary"}>
-                  {canceledAndExpired ? "Ended" : trialExpired ? "Expired" : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
+                <Badge variant={subscriptionEnded || trialExpired ? "destructive" : "secondary"}>
+                  {subscriptionEnded ? "Ended" : trialExpired ? "Expired" : `${daysLeft} ${daysLeft === 1 ? "day" : "days"} left`}
                 </Badge>
               </div>
             </CardHeader>

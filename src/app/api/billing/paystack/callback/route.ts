@@ -45,7 +45,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Extract auth code for recurring charge-authorization billing
     const authorization = data.authorization as Record<string, unknown> | undefined;
     const authCode = authorization?.authorization_code as string | undefined;
-    const reusable = authorization?.reusable as boolean | undefined;
     const customerEmail = (data.customer as Record<string, unknown>)?.email as string | undefined;
     const memberCount = meta?.memberCount !== undefined ? Number(meta.memberCount) : undefined;
     const amountKobo = data.amount !== undefined ? Number(data.amount) : undefined;
@@ -62,7 +61,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         subscriptionStatus: "active",
         ...(customerCode ? { paystackCustomerCode: customerCode } : {}),
         ...(subscriptionCode ? { paystackSubscriptionCode: subscriptionCode } : {}),
-        ...(isSubscriptionInit && authCode && reusable && {
+        ...(isSubscriptionInit && authCode && {
           paystackAuthCode: authCode,
           paystackBillingEmail: customerEmail ?? undefined,
           billingMemberCount: memberCount ?? undefined,
