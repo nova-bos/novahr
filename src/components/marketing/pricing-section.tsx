@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { appLink } from "@/lib/marketing/app-link";
 import { Button } from "@/components/ui/button";
 import { PLATFORM_FEE, MEMBER_FEE, ENTERPRISE_THRESHOLD } from "@/lib/marketing/pricing";
 
@@ -90,7 +91,7 @@ export function PricingSection() {
           ))}
         </div>
         <Button asChild>
-          <Link href="/signup">Start your free trial</Link>
+          <Link href={appLink("/signup")}>Start your free trial</Link>
         </Button>
         <p className="mt-3 text-xs text-muted-foreground">14-day free trial. No credit card required.</p>
       </div>

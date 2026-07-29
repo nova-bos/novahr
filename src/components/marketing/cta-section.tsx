@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { appLink } from "@/lib/marketing/app-link";
 
 export function CtaSection() {
   return (
@@ -18,7 +19,7 @@ export function CtaSection() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button size="lg" asChild>
-            <Link href="/signup">Get started free</Link>
+            <Link href={appLink("/signup")}>Get started free</Link>
           </Button>
           <Button size="lg" variant="outline" asChild>
             <Link href="/#contact">Talk to us</Link>

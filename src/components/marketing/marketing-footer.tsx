@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { appLink } from "@/lib/marketing/app-link";
 import { Logo } from "@/components/layout/logo";
 
 const LEGAL_LINKS = [
@@ -34,11 +35,11 @@ export function MarketingFooter() {
           <Link href="/#pricing" className="hover:text-foreground transition-colors">
             Pricing
           </Link>
-          <Link href="/login" className="hover:text-foreground transition-colors">
+          <Link href={appLink("/login")} className="hover:text-foreground transition-colors">
             Sign in
           </Link>
           <Link
-            href="/signup"
+            href={appLink("/signup")}
             className="font-medium text-primary hover:text-primary/80 transition-colors"
           >
             Get started

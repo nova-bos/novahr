@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { appLink } from "@/lib/marketing/app-link";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -45,7 +46,7 @@ export function Hero() {
 
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button size="lg" asChild>
-              <Link href="/signup">Get started free</Link>
+              <Link href={appLink("/signup")}>Get started free</Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link href="/#how-it-works">See how it works</Link>
