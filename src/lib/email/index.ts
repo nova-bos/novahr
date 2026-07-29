@@ -76,7 +76,7 @@ export async function sendLeaveRequestEmail(args: LeaveRequestEmailArgs): Promis
 
   const label = leaveTypeLabel(args.leaveType);
   const dayWord = args.days === 1 ? "day" : "days";
-  const appUrl = args.appUrl ?? "https://novabos.co.za";
+  const appUrl = args.appUrl ?? "https://hr.novabos.co.za";
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">New leave request</h2>
@@ -146,7 +146,7 @@ export async function sendLeaveDecisionEmail(args: LeaveDecisionEmailArgs): Prom
 
   const label = leaveTypeLabel(args.leaveType).toLowerCase();
   const dayWord = args.days === 1 ? "day" : "days";
-  const appUrl = args.appUrl ?? "https://novabos.co.za";
+  const appUrl = args.appUrl ?? "https://hr.novabos.co.za";
 
   const isApproved = args.status === "approved";
   const statusColor = isApproved ? "#dcfce7" : "#fee2e2";
@@ -328,7 +328,7 @@ export async function sendPayslipEmail(args: PayslipEmailArgs): Promise<void> {
   if (!client) return;
 
   const periodLabel = formatMonthYear(args.period);
-  const appUrl = args.appUrl ?? "https://novabos.co.za";
+  const appUrl = args.appUrl ?? "https://hr.novabos.co.za";
 
   const body = `
     <h2 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;">Your ${periodLabel} payslip is ready</h2>

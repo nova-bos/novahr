@@ -7,7 +7,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     request.nextUrl.searchParams.get("reference") ??
     request.nextUrl.searchParams.get("trxref");
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://novabos.co.za";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://hr.novabos.co.za";
 
   if (!reference) {
     return NextResponse.redirect(`${appUrl}/billing?error=missing_reference`);

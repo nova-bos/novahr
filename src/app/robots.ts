@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/app/", "/api/"],
       },
     ],
-    sitemap: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://novahr.app"}/sitemap.xml`,
+    sitemap: `${process.env.NEXT_PUBLIC_APP_URL ?? "https://hr.novabos.co.za"}/sitemap.xml`,
   };
 }
