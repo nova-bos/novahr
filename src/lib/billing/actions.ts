@@ -5,7 +5,8 @@ import { requireUser } from "@/lib/auth/require";
 import { initializeTransaction, getSubscriptionManageLink } from "@/lib/paystack";
 import { calculateMonthlyAmount } from "@/lib/billing/calculator";
 
-const CALLBACK_URL = `${process.env.NEXT_PUBLIC_APP_URL}/api/billing/paystack/callback`;
+const APP_URL = () =>
+  (process.env.NEXT_PUBLIC_APP_URL ?? "https://hr.novabos.co.za").replace(/\/+$/, "");
 
 export async function createSubscription(): Promise<{ url: string } | { error: string }> {
   try {
@@ -36,7 +37,7 @@ export async function createSubscription(): Promise<{ url: string } | { error: s
       email: user.email,
       amount: amountKobo,
       currency: "ZAR",
-      callback_url: CALLBACK_URL,
+      callback_url: `${APP_URL()}/api/billing/paystack/callback`,
       metadata: {
         tenantId: tenant.id,
         memberCount,
