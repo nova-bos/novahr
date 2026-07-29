@@ -109,6 +109,30 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  console.log(`[billing-cron] Processed ${dueTenants.length} tenants:`, results);
-  return NextResponse.json({ processed: dueTenants.length, results });
+  // Downgrade canceled subscriptions whose access period has expired
+  const expiredCanceled = await prisma.tenant.findMany({
+    where: {
+      plan: { in: ["subscribed", "enterprise"] },
+      subscriptionStatus: "canceled",
+      currentPeriodEnd: { lte: now },
+    },
+    select: { id: true },
+  });
+
+  for (const tenant of expiredCanceled) {
+    await prisma.tenant.update({
+      where: { id: tenant.id },
+      data: {
+        plan: "trial",
+        subscriptionStatus: null,
+        currentPeriodEnd: null,
+        billingMemberCount: null,
+        billingAmountKobo: null,
+      },
+    });
+    results.push({ tenantId: tenant.id, status: "downgraded_after_cancel" });
+  }
+
+  console.log(`[billing-cron] Processed ${dueTenants.length} renewals, ${expiredCanceled.length} downgrades:`, results);
+  return NextResponse.json({ processed: dueTenants.length + expiredCanceled.length, results });
 }

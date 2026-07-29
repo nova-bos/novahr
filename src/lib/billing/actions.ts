@@ -2,8 +2,9 @@
 
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/require";
-import { initializeTransaction, getSubscriptionManageLink } from "@/lib/paystack";
+import { initializeTransaction } from "@/lib/paystack";
 import { calculateMonthlyAmount } from "@/lib/billing/calculator";
+import { requireRole } from "@/lib/auth/require";
 
 const APP_URL = () =>
   (process.env.NEXT_PUBLIC_APP_URL ?? "https://hr.novabos.co.za").replace(/\/+$/, "");
@@ -53,20 +54,34 @@ export async function createSubscription(): Promise<{ url: string } | { error: s
   }
 }
 
-export async function createPortalSession(): Promise<{ url: string } | { error: string }> {
+export async function cancelSubscription(): Promise<{ ok: true } | { error: string }> {
   try {
-    const user = await requireUser();
+    const user = await requireRole("hr");
+
     const tenant = await prisma.tenant.findUnique({
       where: { id: user.tenantId },
-      select: { paystackSubscriptionCode: true },
+      select: { plan: true, subscriptionStatus: true },
     });
-    if (!tenant?.paystackSubscriptionCode) {
-      return { error: "No active subscription found." };
+
+    if (!tenant || (tenant.plan !== "subscribed" && tenant.plan !== "enterprise")) {
+      return { error: "No active subscription to cancel." };
     }
-    const link = await getSubscriptionManageLink(tenant.paystackSubscriptionCode);
-    return { url: link };
+    if (tenant.subscriptionStatus === "canceled") {
+      return { error: "Subscription is already cancelled." };
+    }
+
+    await prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: {
+        subscriptionStatus: "canceled",
+        paystackAuthCode: null,
+        paystackBillingEmail: null,
+      },
+    });
+
+    return { ok: true };
   } catch (err) {
-    console.error("[billing] createPortalSession error:", err);
+    console.error("[billing] cancelSubscription error:", err);
     return { error: "Something went wrong. Please try again." };
   }
 }

@@ -17,7 +17,7 @@ import {
 import { usePlan } from "@/lib/plan/use-plan";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { formatDate } from "@/lib/format";
-import { createSubscription } from "@/lib/billing/actions";
+import { createSubscription, cancelSubscription } from "@/lib/billing/actions";
 import { PLATFORM_FEE, MEMBER_FEE } from "@/lib/billing/calculator";
 
 const SALES_EMAIL = "sales@novabos.co.za";
@@ -40,6 +40,8 @@ export default function BillingPage() {
   } = usePlan();
 
   const [subscribeLoading, setSubscribeLoading] = React.useState(false);
+  const [cancelLoading, setCancelLoading] = React.useState(false);
+  const [confirmCancel, setConfirmCancel] = React.useState(false);
 
   React.useEffect(() => {
     if (searchParams.get("success") === "1") {
@@ -72,6 +74,22 @@ export default function BillingPage() {
       }
     } finally {
       setSubscribeLoading(false);
+    }
+  }
+
+  async function handleCancel() {
+    setCancelLoading(true);
+    try {
+      const result = await cancelSubscription();
+      if ("error" in result) {
+        toast.error(result.error);
+      } else {
+        toast.success("Subscription cancelled. You have access until your billing period ends.");
+        setConfirmCancel(false);
+        window.location.reload();
+      }
+    } finally {
+      setCancelLoading(false);
     }
   }
 
@@ -136,13 +154,21 @@ export default function BillingPage() {
                     <ShieldCheck className="size-5 text-primary" />
                   </div>
                   <div>
-                    <CardTitle>Subscription active</CardTitle>
+                    <CardTitle>{subscriptionStatus === "canceled" ? "Subscription cancelled" : "Subscription active"}</CardTitle>
                     <CardDescription>
-                      {currentPeriodEnd ? `Renews on ${formatDate(currentPeriodEnd)}` : "Active subscription"}
+                      {subscriptionStatus === "canceled"
+                        ? currentPeriodEnd
+                          ? `Access continues until ${formatDate(currentPeriodEnd)}, then reverts to free trial.`
+                          : "Your subscription has been cancelled."
+                        : currentPeriodEnd
+                          ? `Renews on ${formatDate(currentPeriodEnd)}`
+                          : "Active subscription"}
                     </CardDescription>
                   </div>
                 </div>
-                <Badge variant="default">Active</Badge>
+                <Badge variant={subscriptionStatus === "canceled" ? "secondary" : "default"}>
+                  {subscriptionStatus === "canceled" ? "Cancelled" : "Active"}
+                </Badge>
               </div>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
@@ -169,9 +195,37 @@ export default function BillingPage() {
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                To update your payment method or cancel, email{" "}
+                To update your payment method, email{" "}
                 <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline">{SALES_EMAIL}</a>.
               </p>
+
+              {subscriptionStatus !== "canceled" && (
+                <div className="border-t pt-4 mt-2">
+                  {confirmCancel ? (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-sm text-muted-foreground">
+                        Are you sure? You will keep access until {currentPeriodEnd ? formatDate(currentPeriodEnd) : "your period ends"}, then your account reverts to the free trial.
+                      </p>
+                      <div className="flex gap-2">
+                        <Button variant="destructive" size="sm" onClick={handleCancel} disabled={cancelLoading}>
+                          {cancelLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                          Yes, cancel subscription
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => setConfirmCancel(false)} disabled={cancelLoading}>
+                          Keep subscription
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmCancel(true)}
+                      className="text-xs text-muted-foreground hover:text-destructive transition-colors underline-offset-2 hover:underline"
+                    >
+                      Cancel subscription
+                    </button>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </>
