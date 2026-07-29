@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ExternalLink, Loader2, Users, ShieldCheck, Mail } from "lucide-react";
+import { Loader2, Users, ShieldCheck, Mail } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/layout/page-header";
@@ -17,7 +17,7 @@ import {
 import { usePlan } from "@/lib/plan/use-plan";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 import { formatDate } from "@/lib/format";
-import { createPortalSession, createSubscription } from "@/lib/billing/actions";
+import { createSubscription } from "@/lib/billing/actions";
 import { PLATFORM_FEE, MEMBER_FEE } from "@/lib/billing/calculator";
 
 const SALES_EMAIL = "sales@novabos.co.za";
@@ -39,7 +39,6 @@ export default function BillingPage() {
     enterpriseThreshold,
   } = usePlan();
 
-  const [portalLoading, setPortalLoading] = React.useState(false);
   const [subscribeLoading, setSubscribeLoading] = React.useState(false);
 
   React.useEffect(() => {
@@ -76,20 +75,6 @@ export default function BillingPage() {
     }
   }
 
-  async function handleManageSubscription() {
-    setPortalLoading(true);
-    try {
-      const result = await createPortalSession();
-      if ("error" in result) {
-        toast.error(result.error);
-      } else {
-        window.open(result.url, "_blank", "noopener,noreferrer");
-      }
-    } finally {
-      setPortalLoading(false);
-    }
-  }
-
   const headerDescription = isEnterprise
     ? `Your organisation has ${activeMemberCount} active members. Enterprise pricing applies.`
     : isSubscribed
@@ -108,10 +93,10 @@ export default function BillingPage() {
       {subscriptionStatus === "past_due" && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm">
           <span className="text-destructive">
-            Your last payment failed. Update your billing details to restore full access.
+            Your last payment failed. Re-authorise your card to restore full access.
           </span>
-          <Button variant="destructive" size="sm" onClick={handleManageSubscription} disabled={portalLoading}>
-            {portalLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+          <Button variant="destructive" size="sm" onClick={handleSubscribe} disabled={subscribeLoading}>
+            {subscribeLoading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
             Update payment
           </Button>
         </div>
@@ -183,14 +168,6 @@ export default function BillingPage() {
                   </p>
                 )}
               </div>
-              <Button variant="outline" onClick={handleManageSubscription} disabled={portalLoading} className="w-fit">
-                {portalLoading ? (
-                  <Loader2 className="mr-2 size-4 animate-spin" />
-                ) : (
-                  <ExternalLink className="mr-2 size-4" />
-                )}
-                Manage subscription
-              </Button>
               <p className="text-xs text-muted-foreground">
                 To update your payment method or cancel, email{" "}
                 <a href={`mailto:${SALES_EMAIL}`} className="text-primary hover:underline">{SALES_EMAIL}</a>.
