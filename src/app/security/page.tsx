@@ -39,8 +39,7 @@ export default function SecurityPage() {
             <p className="text-sm leading-relaxed text-muted-foreground">
               <strong className="font-semibold text-foreground">Least-privilege access.</strong>{" "}
               Employees see only their own data; managers their team; admins their company.
-              Internally, production access is limited to named engineers with multi-factor
-              authentication, and support works through application tools, not raw database access.
+              Internally, production access is limited to named engineers, and support works through application tools, not raw database access.
             </p>
 
             <p className="text-sm leading-relaxed text-muted-foreground">
