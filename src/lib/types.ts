@@ -117,6 +117,14 @@ export interface SalaryInfo {
   // privately (no payroll contribution). Lets the SARS medical tax credit apply
   // on assessment terms.
   isMedicalAidMember?: boolean;
+  // Wage basis for variable / wage-based pay (Phase 4). "salaried" is the
+  // default and leaves the monthly calculation untouched. The rates are used
+  // upstream (capture helpers) to compute variable-pay amounts.
+  wageType?: "salaried" | "hourly" | "daily" | "weekly";
+  hourlyRate?: number;
+  dailyRate?: number;
+  weeklyRate?: number;
+  ordinaryHoursPerMonth?: number;
 }
 
 export interface LeaveBalance {

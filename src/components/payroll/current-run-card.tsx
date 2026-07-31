@@ -26,6 +26,7 @@ import { useCurrentTenant, useEmployees, usePayrollRuns } from "@/lib/store/hook
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatDateLong, formatMonthYear, plural } from "@/lib/format";
 import { PayrollStatusBadge } from "./payroll-status-badge";
+import { VariablePayCard } from "./variable-pay-card";
 import { acceptPayrollDisclaimer } from "@/lib/payroll/disclaimer-actions";
 
 export function CurrentRunCard() {
@@ -107,6 +108,7 @@ export function CurrentRunCard() {
   }
 
   return (
+    <div className="flex flex-col gap-6">
     <Card>
       <CardHeader>
         <div className="flex flex-wrap items-center gap-2">
@@ -294,5 +296,8 @@ export function CurrentRunCard() {
         </DialogContent>
       </Dialog>
     </Card>
+
+      <VariablePayCard run={run} />
+    </div>
   );
 }

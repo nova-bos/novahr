@@ -11,6 +11,7 @@ import { STATUTORY_DEFAULTS, buildPayslip, incrementPeriod } from "./calculator"
 import { reverseRunCompletion } from "./run-reversal";
 import { workingDaysBetween } from "@/lib/leave/business-days";
 import { applyRecurringDeductions } from "./recurring-deductions";
+import { toInputValue } from "./variable-pay";
 import type { ActivityItem, DaySelection, NotificationItem, PayrollRun, Payslip } from "@/lib/types";
 import {
   decToNumber,
@@ -178,11 +179,32 @@ export async function completePayrollRunRecord(
         }
       }
 
+      // Variable-pay inputs captured against this run (Phase 4). Grouped per
+      // employee and mapped to the plain values the calculator consumes.
+      const variableInputRows = await tx.payrollInput.findMany({
+        where: { tenantId: run.tenantId, payrollRunId: run.id },
+      });
+      const inputsByEmployee = new Map<string, ReturnType<typeof toInputValue>[]>();
+      for (const row of variableInputRows) {
+        const value = toInputValue({
+          componentType: row.componentType,
+          label: row.label,
+          amount: decToNumber(row.amount),
+          taxTreatment: row.taxTreatment,
+          quantity: row.quantity != null ? decToNumber(row.quantity) : null,
+          rate: row.rate != null ? decToNumber(row.rate) : null,
+        });
+        const arr = inputsByEmployee.get(row.employeeId) ?? [];
+        arr.push(value);
+        inputsByEmployee.set(row.employeeId, arr);
+      }
+
       const newPayslips = eligible.map((e) =>
         buildPayslip(e, run.id, run.period, payDateStr, {
           isSDLLiable,
           statutory,
           unpaidLeaveDays: unpaidDaysByEmployee.get(e.id) ?? 0,
+          inputs: inputsByEmployee.get(e.id) ?? [],
         })
       );
 

@@ -39,6 +39,10 @@ export function buildEmployeeFromForm(
       medicalAid: form.medicalAid ? Number(form.medicalAid) : undefined,
       retirementAnnuity: form.retirementAnnuity ? Number(form.retirementAnnuity) : undefined,
       isMedicalAidMember: form.isMedicalAidMember || undefined,
+      wageType: form.wageType || "salaried",
+      hourlyRate: form.wageType === "hourly" && form.hourlyRate ? Number(form.hourlyRate) : undefined,
+      dailyRate: form.wageType === "daily" && form.dailyRate ? Number(form.dailyRate) : undefined,
+      weeklyRate: form.wageType === "weekly" && form.weeklyRate ? Number(form.weeklyRate) : undefined,
     },
     bankDetails: {
       bank: form.bank,

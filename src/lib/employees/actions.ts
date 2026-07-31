@@ -98,6 +98,11 @@ export async function createEmployeeRecord(
         salaryEmployerBenefits: employee.salary.employerBenefits
           ? (employee.salary.employerBenefits as unknown as Prisma.InputJsonValue)
           : undefined,
+        wageType: employee.salary.wageType ?? "salaried",
+        hourlyRate: employee.salary.hourlyRate,
+        dailyRate: employee.salary.dailyRate,
+        weeklyRate: employee.salary.weeklyRate,
+        ordinaryHoursPerMonth: employee.salary.ordinaryHoursPerMonth,
         bankName: employee.bankDetails.bank,
         bankAccountNumber: employee.bankDetails.accountNumber,
         bankBranchCode: employee.bankDetails.branchCode,
@@ -243,6 +248,12 @@ export async function updateEmployeeRecord(
       data.salaryRetirementAnnuity = salary.retirementAnnuity;
     if (salary.employerBenefits !== undefined)
       data.salaryEmployerBenefits = salary.employerBenefits as unknown as Prisma.InputJsonValue;
+    if (salary.wageType !== undefined) data.wageType = salary.wageType;
+    if (salary.hourlyRate !== undefined) data.hourlyRate = salary.hourlyRate;
+    if (salary.dailyRate !== undefined) data.dailyRate = salary.dailyRate;
+    if (salary.weeklyRate !== undefined) data.weeklyRate = salary.weeklyRate;
+    if (salary.ordinaryHoursPerMonth !== undefined)
+      data.ordinaryHoursPerMonth = salary.ordinaryHoursPerMonth;
   }
 
   const bankFieldsChanged =

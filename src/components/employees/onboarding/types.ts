@@ -64,6 +64,11 @@ export interface NewEmployeeForm {
   medicalAid: string;
   retirementAnnuity: string;
 
+  wageType: "salaried" | "hourly" | "daily" | "weekly";
+  hourlyRate: string;
+  dailyRate: string;
+  weeklyRate: string;
+
   isMedicalAidMember: boolean;
 
   bank: string;
@@ -117,6 +122,10 @@ export function emptyForm(defaults: { location: string; bank: string }): NewEmpl
     pensionContributionPct: "",
     medicalAid: "",
     retirementAnnuity: "",
+    wageType: "salaried",
+    hourlyRate: "",
+    dailyRate: "",
+    weeklyRate: "",
     isMedicalAidMember: false,
 
     bank: defaults.bank,

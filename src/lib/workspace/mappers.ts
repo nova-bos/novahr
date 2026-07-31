@@ -22,6 +22,7 @@ import type {
   PayrollRun,
   Payslip,
   PayslipLineItem,
+  SalaryInfo,
   Tenant,
 } from "../types";
 
@@ -139,6 +140,11 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
       medicalAid: row.salaryMedicalAid != null ? decToNumber(row.salaryMedicalAid) : undefined,
       retirementAnnuity: row.salaryRetirementAnnuity != null ? decToNumber(row.salaryRetirementAnnuity) : undefined,
       employerBenefits: (row.salaryEmployerBenefits as unknown as EmployerBenefit[] | null) ?? undefined,
+      wageType: (row.wageType as SalaryInfo["wageType"]) ?? "salaried",
+      hourlyRate: row.hourlyRate != null ? decToNumber(row.hourlyRate) : undefined,
+      dailyRate: row.dailyRate != null ? decToNumber(row.dailyRate) : undefined,
+      weeklyRate: row.weeklyRate != null ? decToNumber(row.weeklyRate) : undefined,
+      ordinaryHoursPerMonth: row.ordinaryHoursPerMonth != null ? decToNumber(row.ordinaryHoursPerMonth) : undefined,
     },
     bankDetails: {
       bank: row.bankName,
