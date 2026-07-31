@@ -11,6 +11,12 @@ export interface SessionUser {
   name: string;
   email: string;
   employeeId?: string;
+  /**
+   * Branch scope for this admin. Null/undefined means whole-company access
+   * (current behaviour). When set, the employee directory and payroll
+   * eligibility are additionally filtered to this branch, inside the tenant.
+   */
+  branchScopeId?: string;
 }
 
 /**
@@ -40,6 +46,7 @@ export async function requireUser(): Promise<SessionUser> {
     name: profile.name,
     email: profile.email,
     employeeId: profile.employeeId ?? undefined,
+    branchScopeId: profile.branchScopeId ?? undefined,
   };
 }
 

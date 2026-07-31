@@ -5,6 +5,7 @@ const mockPrisma = vi.hoisted(() => ({
   tenant: { findUnique: vi.fn(), findMany: vi.fn() },
   employee: { findMany: vi.fn() },
   department: { findMany: vi.fn() },
+  branch: { findMany: vi.fn().mockResolvedValue([]) },
   leaveRequest: { findMany: vi.fn() },
   payrollRun: { findMany: vi.fn() },
   payrollSettings: { findUnique: vi.fn().mockResolvedValue(null) },
@@ -158,6 +159,7 @@ function mockWorkspaceRows(overrides: {
   mockPrisma.tenant.findUnique.mockResolvedValue(makeTenantRow());
   mockPrisma.employee.findMany.mockResolvedValue(overrides.employees ?? [makeEmployeeRow()]);
   mockPrisma.department.findMany.mockResolvedValue([makeDepartmentRow()]);
+  mockPrisma.branch.findMany.mockResolvedValue([]);
   mockPrisma.leaveRequest.findMany.mockResolvedValue(overrides.leaveRequests ?? [makeLeaveRequestRow()]);
   mockPrisma.payrollRun.findMany.mockResolvedValue(overrides.payrollRuns ?? [makePayrollRunRow()]);
   mockPrisma.payslip.findMany.mockResolvedValue(overrides.payslips ?? [makePayslipRow()]);

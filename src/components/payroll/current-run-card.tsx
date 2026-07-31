@@ -21,8 +21,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useApp } from "@/lib/store/app-provider";
-import { useCurrentTenant, useEmployees, usePayrollRuns } from "@/lib/store/hooks";
+import { useActiveBranches, useCurrentTenant, useEmployees, usePayrollRuns } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatDateLong, formatMonthYear, plural } from "@/lib/format";
 import { PayrollStatusBadge } from "./payroll-status-badge";
@@ -30,10 +37,12 @@ import { VariablePayCard } from "./variable-pay-card";
 import { acceptPayrollDisclaimer } from "@/lib/payroll/disclaimer-actions";
 
 export function CurrentRunCard() {
-  const { startPayrollRun, completePayrollRun } = useApp();
+  const { startPayrollRun, completePayrollRun, setPayrollRunBranch } = useApp();
   const tenant = useCurrentTenant();
   const runs = usePayrollRuns();
   const employees = useEmployees();
+  const branches = useActiveBranches();
+  const [branchSaving, setBranchSaving] = React.useState(false);
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [disclaimerOpen, setDisclaimerOpen] = React.useState(false);
   const [disclaimerChecked, setDisclaimerChecked] = React.useState(false);
@@ -45,9 +54,29 @@ export function CurrentRunCard() {
 
   if (!run) return null;
 
+  const runBranch = run.branchId ? branches.find((b) => b.id === run.branchId) : null;
+  // Client-side eligibility mirrors the server: when the run targets a branch,
+  // only that branch's employees are counted; a null-branch run is company-wide.
   const eligible = employees.filter(
-    (e) => e.status !== "terminated" && e.startDate <= run.payDate
+    (e) =>
+      e.status !== "terminated" &&
+      e.startDate <= run.payDate &&
+      (run.branchId ? e.branchId === run.branchId : true)
   );
+
+  async function handleBranchChange(value: string) {
+    if (!run) return;
+    setBranchSaving(true);
+    try {
+      await setPayrollRunBranch(run.id, value === "all" ? null : value);
+    } catch (err) {
+      toast.error("Couldn't update the branch", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setBranchSaving(false);
+    }
+  }
   const projectedGross = eligible.reduce(
     (sum, e) => sum + calculateMonthlyPayroll(e).grossPay,
     0
@@ -117,6 +146,11 @@ export function CurrentRunCard() {
             {formatMonthYear(run.period)} payroll
           </CardTitle>
           <PayrollStatusBadge status={run.status} />
+          {branches.length > 0 ? (
+            <span className="rounded-full border border-border/70 px-2.5 py-0.5 text-xs text-muted-foreground">
+              {runBranch ? runBranch.name : "Whole company"}
+            </span>
+          ) : null}
         </div>
         <CardDescription>
           {run.status === "processing"
@@ -125,6 +159,30 @@ export function CurrentRunCard() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {branches.length > 0 && run.status === "scheduled" ? (
+          <div className="mb-4 flex flex-col gap-1.5 sm:max-w-xs">
+            <label htmlFor="run-branch" className="text-xs text-muted-foreground">
+              Run payroll for
+            </label>
+            <Select
+              value={run.branchId ?? "all"}
+              onValueChange={handleBranchChange}
+              disabled={branchSaving}
+            >
+              <SelectTrigger id="run-branch" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Whole company</SelectItem>
+                {branches.map((branch) => (
+                  <SelectItem key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="min-w-0 rounded-xl border border-border/70 p-4">
             <p className="text-xs text-muted-foreground">Pay date</p>

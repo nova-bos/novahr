@@ -160,6 +160,8 @@ export interface Employee {
   startDate: string;
   location: string;
   managerId?: string;
+  /** Optional branch. Undefined/null means whole company / head office. */
+  branchId?: string;
   salary: SalaryInfo;
   bankDetails: BankDetails;
   taxNumber: string;
@@ -260,6 +262,8 @@ export interface PayrollRun {
   label: string;
   payDate: string;
   status: PayrollRunStatus;
+  /** Optional branch this run targets. Undefined/null means the whole company. */
+  branchId?: string;
   totalGross: number;
   totalDeductions: number;
   totalNet: number;
@@ -281,6 +285,17 @@ export interface Department {
   headId?: string;
   color: string;
   budget: number;
+}
+
+export interface Branch {
+  id: string;
+  tenantId: string;
+  name: string;
+  code?: string;
+  address?: string;
+  city?: string;
+  isDefault: boolean;
+  isActive: boolean;
 }
 
 export type TenantPlan = "trial" | "subscribed" | "enterprise";

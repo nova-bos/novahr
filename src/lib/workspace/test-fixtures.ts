@@ -23,6 +23,7 @@ export function makeEmployeeRow(overrides: Partial<EmployeeWithBalances> = {}): 
     startDate: new Date("2024-01-15T00:00:00Z"),
     location: "Cape Town",
     managerId: null,
+    branchId: null,
     salaryAnnualGross: new Prisma.Decimal(600_000),
     salaryCurrency: "ZAR",
     salaryPayFrequency: "monthly",

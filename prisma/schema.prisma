@@ -217,6 +217,28 @@ model Tenant {
   employeeQualifications EmployeeQualification[]
   customFieldDefinitions TenantCustomFieldDefinition[]
   customFieldValues      EmployeeCustomFieldValue[]
+  branches               Branch[]
+}
+
+// A physical or organisational branch (site, office, region) within a tenant.
+// Additive and optional: a tenant with zero branches behaves exactly as before.
+// A null branchId on an Employee or PayrollRun means "whole company / head
+// office". Only Tenant carries a back-relation; Employee, PayrollRun and User
+// hold plain scalar branch columns (no back-relation) so their existing
+// checked-update paths are unaffected.
+model Branch {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  code      String?
+  address   String?
+  city      String?
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
 }
 
 model BillingCharge {
@@ -248,6 +270,11 @@ model User {
   avatarColor             String
   initials                String
   notificationPreferences Json?
+  // Branch scope for admins. Null means the user sees and acts on the whole
+  // company (current behaviour). When set, HR limits this admin to a single
+  // branch: the employee directory and payroll eligibility are additionally
+  // filtered to this branch, inside the existing tenant boundary.
+  branchScopeId           String?
   createdAt               DateTime  @default(now())
 
   @@index([tenantId])
@@ -273,6 +300,10 @@ model Employee {
   startDate      DateTime
   location       String
   managerId      String?
+  // Optional branch assignment. Null means "whole company / head office"
+  // (current behaviour). Plain scalar (no Prisma relation) so the existing
+  // checked employee-update path is unaffected.
+  branchId       String?
 
   salaryAnnualGross            Decimal @db.Decimal(15, 2)
   salaryCurrency                String       @default("ZAR")
@@ -482,6 +513,9 @@ model PayrollRun {
   label           String
   payDate         DateTime
   status          PayrollRunStatus @default(scheduled)
+  // Optional branch this run targets. Null means the run covers the whole
+  // company (current behaviour: all non-terminated, started employees).
+  branchId        String?
   totalGross      Decimal @db.Decimal(15, 2)            @default(0)
   totalDeductions Decimal @db.Decimal(15, 2)            @default(0)
   totalNet        Decimal @db.Decimal(15, 2)            @default(0)

@@ -13,6 +13,7 @@ import { NetcashSettings } from "@/components/settings/netcash-settings";
 import { PayslipStudio } from "@/components/settings/payslip-studio";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
 import { DepartmentSettings } from "@/components/settings/department-settings";
+import { BranchSettings } from "@/components/settings/branch-settings";
 import { UserSettings } from "@/components/settings/user-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
@@ -32,6 +33,7 @@ export default function SettingsPage() {
       "company",
       "users",
       "departments",
+      "branches",
       ...(can("payrollSettings") ? ["payroll"] : []),
       "leave",
       "notifications",
@@ -64,6 +66,7 @@ export default function SettingsPage() {
             <TabsTrigger value="company">Company</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="departments">Departments</TabsTrigger>
+            <TabsTrigger value="branches">Branches</TabsTrigger>
             {can("payrollSettings") ? (
               <TabsTrigger value="payroll">Payroll</TabsTrigger>
             ) : null}
@@ -101,6 +104,9 @@ export default function SettingsPage() {
         </TabsContent>
         <TabsContent value="departments" className="mt-4">
           <DepartmentSettings />
+        </TabsContent>
+        <TabsContent value="branches" className="mt-4">
+          <BranchSettings />
         </TabsContent>
         {can("payrollSettings") ? (
           <TabsContent value="payroll" className="mt-4">

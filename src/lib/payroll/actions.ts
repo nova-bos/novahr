@@ -30,6 +30,42 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+/**
+ * Sets (or clears) the branch a scheduled payroll run targets. Null means the
+ * run covers the whole company (current behaviour). Only a scheduled run may be
+ * retargeted; once processing has started the eligibility set is fixed. The
+ * branch, when provided, must belong to the tenant and be active.
+ */
+export async function setPayrollRunBranchAction(
+  runId: string,
+  branchId: string | null
+): Promise<PayrollRun> {
+  const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
+  return runAsTenant(session.tenantId, async (tx) => {
+    const run = await tx.payrollRun.findFirst({
+      where: { id: runId, tenantId: session.tenantId },
+    });
+    if (!run) throw new Error("Payroll run not found.");
+    if (run.status !== "scheduled") {
+      throw new Error("The branch can only be changed before the run is started.");
+    }
+    if (branchId != null) {
+      const branch = await tx.branch.findFirst({
+        where: { id: branchId, tenantId: session.tenantId, isActive: true },
+        select: { id: true },
+      });
+      if (!branch) throw new Error("Branch not found.");
+    }
+    const updated = await tx.payrollRun.update({
+      where: { id: runId },
+      data: { branchId },
+    });
+    const payslips = await tx.payslip.findMany({ where: { runId, tenantId: session.tenantId }, select: { id: true } });
+    return mapPayrollRun(updated, payslips.map((p) => p.id));
+  });
+}
+
 export async function startPayrollRunRecord(runId: string): Promise<PayrollRun> {
   const session = await requireRole("hr");
   await requireActiveSubscription(session.tenantId);
@@ -70,9 +106,19 @@ export async function completePayrollRunRecord(
         throw new Error("This payroll run has already been processed.");
       }
       const tenant = await tx.tenant.findUniqueOrThrow({ where: { id: run.tenantId } });
+      // Branch scoping for eligibility. When the run targets a branch, only that
+      // branch's employees are included; a null-branch run stays company-wide
+      // (exactly today's behaviour). A branch-scoped admin is additionally
+      // constrained to their own branch, inside the tenant boundary.
+      const branchFilter =
+        run.branchId != null
+          ? { branchId: run.branchId }
+          : session.branchScopeId
+            ? { branchId: session.branchScopeId }
+            : {};
       const [employeeRows, payrollProfiles] = await Promise.all([
         tx.employee.findMany({
-          where: { tenantId: run.tenantId },
+          where: { tenantId: run.tenantId, ...branchFilter },
           include: { leaveBalances: true },
         }),
         tx.payrollProfile.findMany({
@@ -431,6 +477,9 @@ export async function completePayrollRunRecord(
               label: `${formatMonthYear(nextPeriod)} Payroll`,
               payDate: new Date(nextPayDate),
               status: "scheduled",
+              // Carry the branch forward so a branch's rolling schedule stays on
+              // that branch. Null runs stay company-wide as before.
+              branchId: run.branchId,
               employeeCount: nextEligibleCount,
             },
           });

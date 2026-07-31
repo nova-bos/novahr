@@ -27,6 +27,7 @@ export function buildEmployeeFromForm(
     startDate: form.startDate,
     location: form.location.trim(),
     managerId: form.managerId || undefined,
+    branchId: form.branchId || undefined,
     salary: {
       annualGross: Number(form.annualGross) || 0,
       currency: "ZAR",

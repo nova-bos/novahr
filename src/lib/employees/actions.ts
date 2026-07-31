@@ -87,6 +87,7 @@ export async function createEmployeeRecord(
         startDate: new Date(employee.startDate),
         location: employee.location,
         managerId: employee.managerId,
+        branchId: employee.branchId ?? null,
         salaryAnnualGross: employee.salary.annualGross,
         salaryCurrency: employee.salary.currency,
         salaryPayFrequency: employee.salary.payFrequency,

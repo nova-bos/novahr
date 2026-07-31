@@ -27,7 +27,7 @@ import {
   validateEditEmployeeCompensation,
 } from "@/lib/schemas/employee";
 import { useApp } from "@/lib/store/app-provider";
-import { useDepartments, useEmployees, useTenantId } from "@/lib/store/hooks";
+import { useActiveBranches, useDepartments, useEmployees, useTenantId } from "@/lib/store/hooks";
 import { getPayrollSettingsAction } from "@/lib/settings/actions";
 import type {
   Employee,
@@ -74,6 +74,7 @@ interface EditEmployeeDialogProps {
 export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmployeeDialogProps) {
   const { updateEmployee } = useApp();
   const departments = useDepartments();
+  const branches = useActiveBranches();
   const allEmployees = useEmployees();
   const tenantId = useTenantId();
   const [saving, setSaving] = React.useState(false);
@@ -141,6 +142,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
         managerId: form.managerId || undefined,
         jobTitle: form.jobTitle,
         department: form.department,
+        branchId: form.branchId || undefined,
         employmentType: form.employmentType,
         status: form.status,
         location: form.location,
@@ -436,6 +438,29 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                       </SelectContent>
                     </Select>
                   </div>
+                  {branches.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="branch">Branch <OptionalTag /></Label>
+                      <Select
+                        value={form.branchId || "none"}
+                        onValueChange={(value) =>
+                          setForm((f) => ({ ...f, branchId: value === "none" ? "" : value }))
+                        }
+                      >
+                        <SelectTrigger id="branch" className="w-full">
+                          <SelectValue placeholder="Select branch" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Head office / whole company</SelectItem>
+                          {branches.map((branch) => (
+                            <SelectItem key={branch.id} value={branch.id}>
+                              {branch.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : null}
                   <div className="space-y-1.5">
                     <Label htmlFor="employmentType">Employment type</Label>
                     <Select
@@ -817,6 +842,7 @@ function buildFormState(employee: Employee) {
     managerId: employee.managerId ?? "",
     jobTitle: employee.jobTitle,
     department: employee.department,
+    branchId: employee.branchId ?? "",
     employmentType: employee.employmentType,
     status: employee.status,
     location: employee.location,

@@ -3,6 +3,7 @@
 import * as React from "react";
 import type {
   ActivityItem,
+  Branch,
   CustomHoliday,
   Department,
   Employee,
@@ -32,7 +33,12 @@ import {
   deleteDepartmentRecord,
   updateDepartmentRecord,
 } from "../departments/actions";
-import { completePayrollRunRecord, startPayrollRunRecord } from "../payroll/actions";
+import {
+  createBranchRecord,
+  updateBranchRecord,
+  deactivateBranchRecord,
+} from "../branches/actions";
+import { completePayrollRunRecord, setPayrollRunBranchAction, startPayrollRunRecord } from "../payroll/actions";
 import { markAllNotificationsReadRecord, markNotificationReadRecord, markNotificationUnreadRecord } from "../notifications/actions";
 import { getTenantWorkspace, type TenantWorkspace } from "../workspace/actions";
 import { createCustomHolidayAction, deleteCustomHolidayAction } from "../leave/custom-holiday-actions";
@@ -48,6 +54,7 @@ export interface AppState {
   currentTenant: Tenant | null;
   employees: Employee[];
   departments: Department[];
+  branches: Branch[];
   leaveRequests: LeaveRequest[];
   payrollRuns: PayrollRun[];
   payslips: Payslip[];
@@ -103,6 +110,8 @@ export type Action =
   | { type: "DEPARTMENT_ADDED"; department: Department }
   | { type: "DEPARTMENT_UPDATED"; department: Department }
   | { type: "DEPARTMENT_DELETED"; id: string }
+  | { type: "BRANCH_ADDED"; branch: Branch }
+  | { type: "BRANCH_UPDATED"; branch: Branch }
   | { type: "CUSTOM_HOLIDAY_ADDED"; holiday: CustomHoliday }
   | { type: "CUSTOM_HOLIDAY_DELETED"; id: string }
   | { type: "LEAVE_REVIEWER_ADDED"; reviewer: LeaveReviewer }
@@ -113,6 +122,7 @@ export const initialState: AppState = {
   currentTenant: null,
   employees: [],
   departments: [],
+  branches: [],
   leaveRequests: [],
   payrollRuns: [],
   payslips: [],
@@ -133,6 +143,7 @@ export function reducer(state: AppState, action: Action): AppState {
         currentTenant: null,
         employees: [],
         departments: [],
+        branches: [],
         leaveRequests: [],
         payrollRuns: [],
         payslips: [],
@@ -283,6 +294,15 @@ export function reducer(state: AppState, action: Action): AppState {
     case "DEPARTMENT_DELETED":
       return { ...state, departments: state.departments.filter((d) => d.id !== action.id) };
 
+    case "BRANCH_ADDED":
+      return { ...state, branches: [...state.branches, action.branch] };
+
+    case "BRANCH_UPDATED":
+      return {
+        ...state,
+        branches: state.branches.map((b) => (b.id === action.branch.id ? action.branch : b)),
+      };
+
     case "CUSTOM_HOLIDAY_ADDED":
       return {
         ...state,
@@ -321,6 +341,7 @@ interface AppContextValue {
   ) => Promise<void>;
   cancelLeaveRequest: (id: string) => Promise<void>;
   startPayrollRun: (runId: string) => Promise<void>;
+  setPayrollRunBranch: (runId: string, branchId: string | null) => Promise<void>;
   completePayrollRun: (runId: string) => Promise<void>;
   markNotificationRead: (id: string) => Promise<void>;
   markNotificationUnread: (id: string) => Promise<void>;
@@ -334,6 +355,25 @@ interface AppContextValue {
     data: { name?: string; description?: string; headId?: string | null }
   ) => Promise<void>;
   deleteDepartment: (id: string) => Promise<void>;
+  addBranch: (data: {
+    name: string;
+    code?: string;
+    address?: string;
+    city?: string;
+    isDefault?: boolean;
+  }) => Promise<Branch>;
+  updateBranch: (
+    id: string,
+    data: {
+      name?: string;
+      code?: string | null;
+      address?: string | null;
+      city?: string | null;
+      isDefault?: boolean;
+      isActive?: boolean;
+    }
+  ) => Promise<void>;
+  deactivateBranch: (id: string) => Promise<void>;
   addCustomHoliday: (data: { name: string; date: string; recurring: boolean }) => Promise<void>;
   deleteCustomHoliday: (id: string) => Promise<void>;
   addLeaveReviewer: (data: {
@@ -431,6 +471,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const payrollRun = await startPayrollRunRecord(runId);
         dispatch({ type: "PAYROLL_RUN_STARTED", payrollRun });
       },
+      setPayrollRunBranch: async (runId, branchId) => {
+        const payrollRun = await setPayrollRunBranchAction(runId, branchId);
+        dispatch({ type: "PAYROLL_RUN_STARTED", payrollRun });
+      },
       completePayrollRun: async (runId) => {
         const result = await completePayrollRunRecord(runId);
         dispatch({
@@ -478,6 +522,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       deleteDepartment: async (id) => {
         await deleteDepartmentRecord(id);
         dispatch({ type: "DEPARTMENT_DELETED", id });
+      },
+      addBranch: async (data) => {
+        const branch = await createBranchRecord(data);
+        dispatch({ type: "BRANCH_ADDED", branch });
+        return branch;
+      },
+      updateBranch: async (id, data) => {
+        const branch = await updateBranchRecord(id, data);
+        dispatch({ type: "BRANCH_UPDATED", branch });
+      },
+      deactivateBranch: async (id) => {
+        const branch = await deactivateBranchRecord(id);
+        dispatch({ type: "BRANCH_UPDATED", branch });
       },
       addCustomHoliday: async (data) => {
         const result = await createCustomHolidayAction(data);

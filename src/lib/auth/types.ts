@@ -14,6 +14,8 @@ export interface AppUser {
   employeeId?: string;
   avatarColor: string;
   initials: string;
+  /** Null means whole-company access; set limits this admin to one branch. */
+  branchScopeId?: string;
 }
 
 export const ROLE_LABELS: Record<UserRole, string> = {
