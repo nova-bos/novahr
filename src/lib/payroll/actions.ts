@@ -553,6 +553,82 @@ export async function completePayrollRunRecord(
   };
 }
 
+/**
+ * Creates an off-cycle payroll run: an ad-hoc run outside the normal monthly
+ * schedule (a bonus run or a correction) that the user can attach variable-pay
+ * inputs to (Phase 4's PayrollInput) and finalise independently. It never
+ * touches the regular scheduled run for the period, and completing it uses the
+ * same completePayrollRunRecord path. runType is set to "off_cycle" so the run
+ * is distinguishable in the UI and reporting; regular runs stay untouched.
+ */
+export async function createOffCyclePayrollRunAction(input: {
+  period: string;
+  payDate: string;
+  reason?: string;
+  branchId?: string | null;
+}): Promise<PayrollRun> {
+  const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
+  const tenantId = session.tenantId;
+
+  if (!/^\d{4}-\d{2}$/.test(input.period)) {
+    throw new Error("Period must be in YYYY-MM format.");
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.payDate)) {
+    throw new Error("Pay date must be a valid date.");
+  }
+
+  return runAsTenant(tenantId, async (tx) => {
+    // A branch-scoped admin may only create runs for their own branch. An
+    // explicit branch, when given, must belong to the tenant and be active.
+    let branchId = input.branchId ?? null;
+    if (session.branchScopeId) {
+      branchId = session.branchScopeId;
+    }
+    if (branchId != null) {
+      const branch = await tx.branch.findFirst({
+        where: { id: branchId, tenantId, isActive: true },
+        select: { id: true },
+      });
+      if (!branch) throw new Error("Branch not found.");
+    }
+
+    const reason = input.reason?.trim() || undefined;
+    const label = reason
+      ? `${formatMonthYear(input.period)} off-cycle: ${reason}`
+      : `${formatMonthYear(input.period)} off-cycle run`;
+
+    // A distinct id so an off-cycle run never collides with the regular
+    // "{tenant}-run-{period}" scheduled run for the same period.
+    const id = `${tenantId}-offcycle-${input.period}-${Date.now().toString(36)}`;
+
+    const run = await tx.payrollRun.create({
+      data: {
+        id,
+        tenantId,
+        period: input.period,
+        label,
+        payDate: new Date(input.payDate),
+        status: "scheduled",
+        runType: "off_cycle",
+        runReason: reason,
+        branchId,
+      },
+    });
+
+    await tx.activityItem.create({
+      data: {
+        tenantId,
+        type: "payroll_run",
+        message: `created an off-cycle payroll run for ${formatMonthYear(input.period)}`,
+        actor: session.name,
+      },
+    });
+
+    return mapPayrollRun(run, []);
+  });
+}
+
 export async function cancelPayrollRunRecord(runId: string): Promise<{
   payrollRun: PayrollRun;
   cancelledPayslipIds: string[];

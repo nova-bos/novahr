@@ -7,6 +7,7 @@ import { PayrollHistory } from "@/components/payroll/payroll-history";
 import { MyPayslips } from "@/components/payroll/my-payslips";
 import { NetcashPanel } from "@/components/payroll/netcash-panel";
 import { SubmitNetcashCta } from "@/components/payroll/submit-netcash-cta";
+import { CreateOffCycleRun } from "@/components/payroll/create-off-cycle-run";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 
@@ -30,7 +31,9 @@ export default function PayrollPage() {
       <PageHeader
         title="Payroll"
         description="Review pay runs, track totals and publish payslips to your team."
-      />
+      >
+        <CreateOffCycleRun />
+      </PageHeader>
       <SubmitNetcashCta />
       <PayrollStats />
       <NetcashPanel />

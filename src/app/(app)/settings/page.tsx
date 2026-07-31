@@ -12,6 +12,7 @@ import { BenefitsSettings } from "@/components/settings/benefits-settings";
 import { NetcashSettings } from "@/components/settings/netcash-settings";
 import { PayslipStudio } from "@/components/settings/payslip-studio";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
+import { BirthdayCalendarSettings } from "@/components/settings/birthday-calendar-settings";
 import { DepartmentSettings } from "@/components/settings/department-settings";
 import { BranchSettings } from "@/components/settings/branch-settings";
 import { UserSettings } from "@/components/settings/user-settings";
@@ -139,8 +140,9 @@ export default function SettingsPage() {
             </div>
           </TabsContent>
         ) : null}
-        <TabsContent value="leave" className="mt-4">
+        <TabsContent value="leave" className="mt-4 flex flex-col gap-6">
           <LeavePolicySettings />
+          <BirthdayCalendarSettings />
         </TabsContent>
         <TabsContent value="notifications" className="mt-4">
           <NotificationSettings />

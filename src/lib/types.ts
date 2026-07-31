@@ -187,6 +187,8 @@ export interface Employee {
   hasDisability?: boolean;
   leaveBalances: LeaveBalance[];
   onboarding?: Onboarding;
+  terminatedAt?: string | null;
+  terminationReason?: string | null;
 }
 
 export interface DaySelection {
@@ -264,6 +266,13 @@ export interface PayrollRun {
   status: PayrollRunStatus;
   /** Optional branch this run targets. Undefined/null means the whole company. */
   branchId?: string;
+  /**
+   * Run classification. "regular" (or undefined) is the normal monthly
+   * scheduled run; "off_cycle" is an ad-hoc bonus or correction run.
+   */
+  runType?: "regular" | "off_cycle";
+  /** Free-text reason for an off-cycle run. Undefined for regular runs. */
+  runReason?: string;
   totalGross: number;
   totalDeductions: number;
   totalNet: number;
@@ -325,6 +334,40 @@ export interface Tenant {
   currentPeriodEnd?: string | null;
   paystackCustomerCode?: string | null;
   paystackSubscriptionCode?: string | null;
+  showBirthdaysOnCalendar?: boolean;
+}
+
+export type DisciplinaryType =
+  | "warning_verbal"
+  | "warning_written"
+  | "final_warning"
+  | "suspension"
+  | "dismissal"
+  | "counselling";
+
+export interface DisciplinaryRecord {
+  id: string;
+  tenantId: string;
+  employeeId: string;
+  type: DisciplinaryType;
+  description: string;
+  issuedAt: string;
+  expiresAt?: string | null;
+  createdBy: string;
+  documentId?: string | null;
+  createdAt: string;
+}
+
+export interface Announcement {
+  id: string;
+  tenantId: string;
+  title: string;
+  body: string;
+  audience: "all" | "managers";
+  isPublished: boolean;
+  publishedAt?: string | null;
+  createdBy: string;
+  createdAt: string;
 }
 
 // Payroll compliance types

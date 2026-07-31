@@ -183,6 +183,10 @@ model Tenant {
   currentPeriodEnd         DateTime?
   billingMemberCount       Int?      // active member count at last billing snapshot
   billingAmountKobo        Int?      // amount charged at last billing (in kobo)
+  // When true, active employees with a dateOfBirth set appear on the company
+  // calendar with their birthday (day + month only, never the year). Default
+  // off so tenants that do not want this are unaffected.
+  showBirthdaysOnCalendar  Boolean  @default(false)
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
@@ -218,6 +222,8 @@ model Tenant {
   customFieldDefinitions TenantCustomFieldDefinition[]
   customFieldValues      EmployeeCustomFieldValue[]
   branches               Branch[]
+  disciplinaryRecords    DisciplinaryRecord[]
+  announcements          Announcement[]
 }
 
 // A physical or organisational branch (site, office, region) within a tenant.
@@ -390,6 +396,12 @@ model Employee {
   etiClaims      EtiClaim[]
   qualifications EmployeeQualification[]
   customFieldValues EmployeeCustomFieldValue[]
+  disciplinaryRecords DisciplinaryRecord[]
+
+  // Termination. terminatedAt is set when employment ends; it drives the
+  // termination letter template and leave encashment calculation.
+  terminatedAt       DateTime?
+  terminationReason  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -516,6 +528,14 @@ model PayrollRun {
   // Optional branch this run targets. Null means the run covers the whole
   // company (current behaviour: all non-terminated, started employees).
   branchId        String?
+  // Run classification. "regular" is the normal monthly scheduled run (the only
+  // behaviour before Phase 6); "off_cycle" is an ad-hoc run outside the schedule
+  // (a bonus run or a correction) that finalises independently. Null is treated
+  // as "regular" so every existing run keeps its behaviour.
+  runType         String?          @default("regular")
+  // Optional free-text reason for an off-cycle run (e.g. "Q3 bonus", "March
+  // correction"). Null for regular runs.
+  runReason       String?
   totalGross      Decimal @db.Decimal(15, 2)            @default(0)
   totalDeductions Decimal @db.Decimal(15, 2)            @default(0)
   totalNet        Decimal @db.Decimal(15, 2)            @default(0)
@@ -1017,4 +1037,52 @@ model RateLimit {
   count       Int
   windowStart DateTime
   updatedAt   DateTime @updatedAt
+}
+
+// A formal disciplinary or counselling record for an employee (Phase 6).
+// Additive: no existing data depends on this model.
+model DisciplinaryRecord {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  // Type of action: warning_verbal, warning_written, final_warning, suspension,
+  // dismissal, counselling.
+  type        String
+  // Short description of the incident or hearing outcome.
+  description String
+  // When the warning or action was issued.
+  issuedAt    DateTime
+  // Optional expiry (e.g. a verbal warning expires after 3 months).
+  expiresAt   DateTime?
+  // Who raised the record (display name).
+  createdBy   String
+  // Link to an uploaded document, if any.
+  documentId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, employeeId])
+}
+
+// A company-wide announcement or policy document (Phase 6).
+// Visible to employees via self-service; HR/exco create and manage them.
+model Announcement {
+  id          String   @id @default(cuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title       String
+  // Markdown body so HR can structure the content.
+  body        String
+  // audience: "all" = everyone, "managers" = managers and above.
+  audience    String   @default("all")
+  isPublished Boolean  @default(false)
+  publishedAt DateTime?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
 }

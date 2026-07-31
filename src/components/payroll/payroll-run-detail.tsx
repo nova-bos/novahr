@@ -32,10 +32,19 @@ import { generateBankExportCsvAction, generateNetcashNifAction, submitNetcashBat
 import { getPayslipSettingsAction } from "@/lib/settings/actions";
 import { approvePayrollRunAction, rejectPayrollApprovalAction } from "@/lib/payroll/approval-actions";
 import { cancelPayrollRunRecord } from "@/lib/payroll/actions";
+import { getGlJournalAction, getPayrollRegisterAction } from "@/lib/payroll/report-actions";
+import {
+  PAYROLL_REGISTER_HEADERS,
+  payrollRegisterToRows,
+  type PayrollRegister,
+} from "@/lib/payroll/register";
+import { GL_JOURNAL_HEADERS, glJournalToRows } from "@/lib/payroll/gl-journal";
+import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant } from "@/lib/store/hooks";
 import { PayrollStatusBadge } from "./payroll-status-badge";
 import { PayslipDialog } from "./payslip-dialog";
+import { VariablePayCard } from "./variable-pay-card";
 
 export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const payslips = usePayslipsByRun(run.id);
@@ -56,7 +65,85 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const [confirmApproveOpen, setConfirmApproveOpen] = React.useState(false);
   const [confirmSubmitOpen, setConfirmSubmitOpen] = React.useState(false);
   const [confirmCancelOpen, setConfirmCancelOpen] = React.useState(false);
-  const { reloadWorkspace } = useApp();
+  const [register, setRegister] = React.useState<PayrollRegister | null>(null);
+  const [isLoadingRegister, startRegisterTransition] = React.useTransition();
+  const [isGlExporting, startGlExportTransition] = React.useTransition();
+  const { reloadWorkspace, startPayrollRun, completePayrollRun } = useApp();
+  const [isStartingOffCycle, startOffCycleStartTransition] = React.useTransition();
+  const [isFinalizingOffCycle, startOffCycleFinalizeTransition] = React.useTransition();
+
+  const isOffCycle = (run.runType ?? "regular") === "off_cycle";
+  const isOffCycleOpen = isOffCycle && (run.status === "scheduled" || run.status === "processing");
+
+  function handleOffCycleStart() {
+    startOffCycleStartTransition(async () => {
+      try {
+        await startPayrollRun(run.id);
+        toast.success("Off-cycle run started. Review and finalise to publish payslips.");
+      } catch (err) {
+        toast.error("Could not start the run", {
+          description: err instanceof Error ? err.message : "Please try again.",
+        });
+      }
+    });
+  }
+
+  function handleOffCycleFinalize() {
+    startOffCycleFinalizeTransition(async () => {
+      try {
+        await completePayrollRun(run.id);
+        reloadWorkspace();
+        toast.success("Off-cycle run completed. Payslips have been published.");
+      } catch (err) {
+        toast.error("Could not complete the run", {
+          description: err instanceof Error ? err.message : "Please try again.",
+        });
+      }
+    });
+  }
+
+  // Load the payroll register once the run is completed so the on-screen table
+  // can render. Off-cycle and regular completed runs both qualify.
+  React.useEffect(() => {
+    if (run.status !== "completed") {
+      setRegister(null);
+      return;
+    }
+    startRegisterTransition(async () => {
+      try {
+        const result = await getPayrollRegisterAction(run.id);
+        setRegister(result.register);
+      } catch {
+        setRegister(null);
+      }
+    });
+  }, [run.id, run.status]);
+
+  function handleRegisterCsv() {
+    if (!register) return;
+    const csv = toCSV([...PAYROLL_REGISTER_HEADERS], payrollRegisterToRows(register));
+    downloadCSV(csv, `payroll-register-${run.period}`);
+    toast.success("Payroll register exported", { description: `payroll-register-${run.period}.csv downloaded.` });
+  }
+
+  function handleGlJournal() {
+    startGlExportTransition(async () => {
+      try {
+        const { journal } = await getGlJournalAction(run.id);
+        if (!journal.balanced) {
+          toast.error("The journal did not balance and was not exported.");
+          return;
+        }
+        const csv = toCSV([...GL_JOURNAL_HEADERS], glJournalToRows(journal));
+        downloadCSV(csv, `gl-journal-${run.period}`);
+        toast.success("GL journal exported", { description: `gl-journal-${run.period}.csv downloaded.` });
+      } catch (err) {
+        toast.error("Could not export the GL journal", {
+          description: err instanceof Error ? err.message : "Please try again.",
+        });
+      }
+    });
+  }
 
   function handleApprove() {
     startApproveTransition(async () => {
@@ -289,6 +376,26 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
               <Download className="mr-2 size-4" />
               {bulkDownloading ? (bulkProgress ?? "Generating...") : "Download all payslips"}
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRegisterCsv}
+              disabled={!register}
+              className="flex-1 sm:flex-none"
+            >
+              <Download className="mr-2 size-4" />
+              Register CSV
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGlJournal}
+              disabled={isGlExporting}
+              className="flex-1 sm:flex-none"
+            >
+              <Download className="mr-2 size-4" />
+              {isGlExporting ? "Generating..." : "Download GL journal"}
+            </Button>
             {can("bankExports") ? (
             <Button
               variant="outline"
@@ -441,6 +548,32 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
         </div>
       ) : null}
 
+      {isOffCycleOpen ? (
+        <>
+          <div className="rounded-lg border border-info/30 bg-info/5 p-4">
+            <p className="text-sm font-semibold text-info">Off-cycle run</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              This is an ad-hoc run outside the normal monthly schedule
+              {run.runReason ? `: ${run.runReason}` : "."} Add any variable pay below, then start
+              and finalise it. Your regular monthly run is not affected.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {run.status === "scheduled" ? (
+                <Button size="sm" onClick={handleOffCycleStart} disabled={isStartingOffCycle}>
+                  {isStartingOffCycle ? "Starting..." : "Start off-cycle run"}
+                </Button>
+              ) : null}
+              {run.status === "processing" ? (
+                <Button size="sm" onClick={handleOffCycleFinalize} disabled={isFinalizingOffCycle}>
+                  {isFinalizingOffCycle ? "Finalising..." : "Finalise and publish payslips"}
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          <VariablePayCard run={run} />
+        </>
+      ) : null}
+
       <StatCardGrid stats={stats} />
 
       <Card>
@@ -510,6 +643,87 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
           </div>
         </CardContent>
       </Card>
+
+      {run.status === "completed" ? (
+        <Card>
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <CardTitle>Payroll register</CardTitle>
+              <Button variant="outline" size="sm" onClick={handleRegisterCsv} disabled={!register}>
+                <Download className="mr-2 size-4" />
+                Export CSV
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {isLoadingRegister ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Loading register...</p>
+            ) : register && register.rows.length > 0 ? (
+              <div className="overflow-x-auto rounded-xl border border-border">
+                <Table className="min-w-[1000px] w-full text-sm">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee number</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Branch</TableHead>
+                      <TableHead className="text-right">Gross</TableHead>
+                      <TableHead className="text-right">Basic</TableHead>
+                      <TableHead className="text-right">Allowances</TableHead>
+                      <TableHead className="text-right">Overtime</TableHead>
+                      <TableHead className="text-right">Commission</TableHead>
+                      <TableHead className="text-right">Bonus</TableHead>
+                      <TableHead className="text-right">PAYE</TableHead>
+                      <TableHead className="text-right">UIF</TableHead>
+                      <TableHead className="text-right">Other</TableHead>
+                      <TableHead className="text-right">Net pay</TableHead>
+                      <TableHead className="text-right">Employer UIF</TableHead>
+                      <TableHead className="text-right">Employer SDL</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {register.rows.map((r) => (
+                      <TableRow key={r.employeeNumber + r.name}>
+                        <TableCell className="font-medium">{r.employeeNumber}</TableCell>
+                        <TableCell>{r.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{r.branch || "-"}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.gross)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.basic)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.allowances)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.overtime)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.commission)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.bonus)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.paye)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.uif)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.otherDeductions)}</TableCell>
+                        <TableCell className="text-right font-medium tabular-nums">{formatCurrency(r.netPay)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.employerUif)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{formatCurrency(r.employerSdl)}</TableCell>
+                      </TableRow>
+                    ))}
+                    <TableRow className="border-t-2 font-semibold">
+                      <TableCell colSpan={3}>Total</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.gross)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.basic)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.allowances)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.overtime)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.commission)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.bonus)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.paye)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.uif)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.otherDeductions)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.netPay)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.employerUif)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{formatCurrency(register.totals.employerSdl)}</TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">No register data for this run.</p>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       {selectedEmployee ? (
         <PayslipDialog
