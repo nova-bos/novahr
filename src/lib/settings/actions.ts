@@ -402,7 +402,7 @@ export async function testNetcashKeyAction(
   rawKey: string
 ): Promise<{ valid: boolean; status: string; message: string }> {
   await requireTenant(tenantId, "hr");
-  const rate = checkRateLimit(tenantId, { name: "netcash-key-test", limit: 10, windowMs: 10 * 60 * 1000 });
+  const rate = await checkRateLimit(tenantId, { name: "netcash-key-test", limit: 10, windowMs: 10 * 60 * 1000 });
   if (!rate.allowed) {
     return {
       valid: false,

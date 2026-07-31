@@ -24,7 +24,7 @@ export async function signOutAction(): Promise<void> {
 export async function throttleLogin(email: string): Promise<string | null> {
   const ip = await clientKey();
   const key = ip !== "unknown" ? ip : email.trim().toLowerCase();
-  const rate = checkRateLimit(key, { name: "login", limit: 10, windowMs: 60 * 1000 });
+  const rate = await checkRateLimit(key, { name: "login", limit: 10, windowMs: 60 * 1000 });
   if (!rate.allowed) {
     return "Too many sign-in attempts. Please wait a minute and try again.";
   }

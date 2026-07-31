@@ -41,7 +41,7 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
   // available, otherwise the submitted email.
   const ip = await clientKey();
   const rateKey = ip !== "unknown" ? ip : email.toLowerCase();
-  const signupRate = checkRateLimit(rateKey, { name: "signup", limit: 5, windowMs: 60 * 60 * 1000 });
+  const signupRate = await checkRateLimit(rateKey, { name: "signup", limit: 5, windowMs: 60 * 60 * 1000 });
   if (!signupRate.allowed) {
     return {
       status: "error",
@@ -144,7 +144,7 @@ export async function completeGoogleSignup(
     };
   }
 
-  const googleRate = checkRateLimit(await clientKey(), { name: "signup", limit: 5, windowMs: 60 * 60 * 1000 });
+  const googleRate = await checkRateLimit(await clientKey(), { name: "signup", limit: 5, windowMs: 60 * 60 * 1000 });
   if (!googleRate.allowed) {
     return {
       status: "error",

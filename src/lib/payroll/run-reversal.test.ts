@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import type { Prisma } from "@prisma/client";
+import type { TenantTransactionClient } from "@/lib/prisma";
 import { reverseRunCompletion } from "./run-reversal";
 
 type Payslip = { id: string; employeeId: string; deductions: { label: string; amount: number }[] };
@@ -38,7 +38,7 @@ describe("reverseRunCompletion", () => {
     ];
     const tx = makeTx(payslips, deductions);
 
-    await reverseRunCompletion(tx as unknown as Prisma.TransactionClient, "run-1", "t1");
+    await reverseRunCompletion(tx as unknown as TenantTransactionClient, "run-1", "t1");
 
     // Only the loan line is reversed; PAYE and UIF have no matching deduction.
     expect(tx.employeeDeduction.update).toHaveBeenCalledTimes(1);
@@ -53,7 +53,7 @@ describe("reverseRunCompletion", () => {
   it("does nothing when the run has no payslips", async () => {
     const tx = makeTx([], []);
 
-    await reverseRunCompletion(tx as unknown as Prisma.TransactionClient, "run-1", "t1");
+    await reverseRunCompletion(tx as unknown as TenantTransactionClient, "run-1", "t1");
 
     expect(tx.employeeDeduction.update).not.toHaveBeenCalled();
     expect(tx.bankExport.updateMany).not.toHaveBeenCalled();

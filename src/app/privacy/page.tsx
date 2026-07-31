@@ -136,7 +136,7 @@ export default function PrivacyPage() {
         {
           heading: "Security",
           paragraphs: [
-            "We protect personal information with appropriate, reasonable measures including encryption in transit and at rest, tenant isolation, role-based access control, least-privilege administration with multi-factor authentication, audit logging, and daily backups. See our Security page for details. No system is perfectly secure; we will notify affected parties and the Information Regulator of breaches as POPIA requires.",
+            "We protect personal information with appropriate, reasonable measures including encryption in transit and at rest, tenant isolation, role-based administrative access controls on a least-privilege basis, audit logging, and daily backups. See our Security page for details. No system is perfectly secure; we will notify affected parties and the Information Regulator of breaches as POPIA requires.",
           ],
         },
         {

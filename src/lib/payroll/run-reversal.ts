@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import type { TenantTransactionClient } from "@/lib/prisma";
 
 /**
  * Reverses the side-effects of completing a payroll run so it can be reopened
@@ -15,7 +15,7 @@ import type { Prisma } from "@prisma/client";
  * lives outside the "use server" modules.
  */
 export async function reverseRunCompletion(
-  tx: Prisma.TransactionClient,
+  tx: TenantTransactionClient,
   runId: string,
   tenantId: string
 ): Promise<void> {

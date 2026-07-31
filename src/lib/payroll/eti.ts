@@ -53,10 +53,25 @@ export function deriveDateOfBirthFromSaId(idNumber: string): string | null {
 // The maximum monthly remuneration for which any ETI may be claimed.
 export const ETI_REMUNERATION_CEILING = new Decimal("7500");
 
-// Minimum monthly wage gate. Where no sector wage regulation or bargaining
-// council wage applies, the national minimum monthly figure is used as the
-// floor below which ETI may not be claimed. Kept configurable per tenant.
-export const ETI_DEFAULT_MIN_MONTHLY_WAGE = new Decimal("2000");
+// National Minimum Wage, per hour. The 2025 gazetted NMW is R28.79/hour.
+// REVIEW this every year: the NMW is re-gazetted (usually in March) and must
+// be bumped upward when it is. The ETI minimum-wage gate is derived from this.
+export const NATIONAL_MINIMUM_WAGE_PER_HOUR = new Decimal("28.79");
+
+// Ordinary hours used to convert an hourly rate to a monthly equivalent and to
+// gross up / apportion sub-full-month remuneration. The Employment Tax
+// Incentive Act works on a 160-hour month.
+export const ETI_ORDINARY_HOURS = new Decimal("160");
+
+// Minimum monthly wage gate below which ETI may not be claimed. Set to the
+// National Minimum Wage monthly equivalent (NMW per hour * 160 ordinary hours =
+// R28.79 * 160 = R4,606.40). The previous R2,000 floor sat below the NMW and
+// let employers claim ETI on sub-minimum wages, which the ETI Act prohibits.
+// Where a sector or bargaining-council wage is higher, pass it via
+// EtiInput.minMonthlyWage to override. REVIEW when the NMW is gazetted upward.
+export const ETI_DEFAULT_MIN_MONTHLY_WAGE = NATIONAL_MINIMUM_WAGE_PER_HOUR.times(
+  ETI_ORDINARY_HOURS
+); // R4,606.40
 
 // The month (inclusive) from which ETI may first be claimed for any employee.
 export const ETI_START_DATE = new Date("2013-10-01T00:00:00.000Z");
@@ -114,6 +129,21 @@ export interface EtiInput {
   monthsAlreadyClaimed: number;
   /** Minimum monthly wage floor for this employee. */
   minMonthlyWage?: number;
+  /**
+   * Ordinary hours actually worked in the month. Defaults to 160 (a full ETI
+   * month) so existing callers are unchanged. When fewer than 160 hours are
+   * worked, both the wage-gate test and the ETI amount are computed on the
+   * 160-hour grossed-up remuneration, then the amount is apportioned back down
+   * by hoursWorked / 160, per the ETI Act's 160-hour rule.
+   */
+  hoursWorked?: number;
+  /**
+   * True when the employer is statutorily barred from claiming ETI for this
+   * employee, e.g. national, provincial or local government employers and other
+   * connected/excluded employers. Defaults to false so existing callers are
+   * unchanged. When set, emits the employment_type_excluded disqualification.
+   */
+  employmentExcluded?: boolean;
 }
 
 export interface EtiResult {
@@ -157,6 +187,15 @@ function bandAmount(bands: EtiBand[], remuneration: Decimal): Decimal {
 /**
  * Computes the ETI amount claimable for one employee for one month.
  * Returns qualifies=false with the failing reasons when not claimable.
+ *
+ * 160-hour rule (worked example). A qualifying employee works 80 ordinary hours
+ * in the month for actual remuneration of R2,000:
+ *   grossedUp   = 2000 * 160 / 80 = R4,000   (used for wage-gate and band lookup)
+ *   wage gate   = R4,000 >= R4,606.40 NMW floor? No -> below_minimum_wage.
+ * If instead the employee earned R2,500 for those 80 hours:
+ *   grossedUp   = 2500 * 160 / 80 = R5,000   (>= R4,606.40 floor, passes)
+ *   band ETI    = middle band -> R1,500 on the grossed-up figure
+ *   final ETI   = 1500 * 80 / 160 = R750.
  */
 export function calculateEti(input: EtiInput, employee: EtiEmployee): EtiResult {
   const disqualifications: EtiDisqualification[] = [];
@@ -173,11 +212,30 @@ export function calculateEti(input: EtiInput, employee: EtiEmployee): EtiResult 
     disqualifications.push("no_id_number");
   }
 
+  if (input.employmentExcluded) {
+    disqualifications.push("employment_type_excluded");
+  }
+
   if (new Date(employee.startDate) < ETI_START_DATE) {
     disqualifications.push("employed_before_2013");
   }
 
-  const remuneration = new Decimal(input.monthlyRemuneration);
+  // 160-hour apportionment. When fewer than 160 ordinary hours are worked, the
+  // wage-gate test and the ETI band lookup run on the grossed-up 160-hour
+  // equivalent; the resulting amount is apportioned back down afterwards. When
+  // hoursWorked is >= 160 or undefined the factor is 1 and behaviour is as before.
+  const hoursWorked = new Decimal(input.hoursWorked ?? ETI_ORDINARY_HOURS.toNumber());
+  const actualRemuneration = new Decimal(input.monthlyRemuneration);
+  const grossUp =
+    hoursWorked.greaterThan(0) && hoursWorked.lessThan(ETI_ORDINARY_HOURS)
+      ? ETI_ORDINARY_HOURS.dividedBy(hoursWorked)
+      : new Decimal(1);
+  const remuneration = actualRemuneration.times(grossUp);
+  const apportion =
+    hoursWorked.greaterThan(0) && hoursWorked.lessThan(ETI_ORDINARY_HOURS)
+      ? hoursWorked.dividedBy(ETI_ORDINARY_HOURS)
+      : new Decimal(1);
+
   if (remuneration.greaterThanOrEqualTo(ETI_REMUNERATION_CEILING)) {
     disqualifications.push("remuneration_above_ceiling");
   }
@@ -200,7 +258,8 @@ export function calculateEti(input: EtiInput, employee: EtiEmployee): EtiResult 
 
   const qualifyingMonth = input.monthsAlreadyClaimed + 1;
   const bands = qualifyingMonth <= 12 ? ETI_BANDS_FIRST_12 : ETI_BANDS_SECOND_12;
-  const amount = bandAmount(bands, remuneration).toDecimalPlaces(2);
+  // Compute the band ETI on the grossed-up figure, then apportion back down.
+  const amount = bandAmount(bands, remuneration).times(apportion).toDecimalPlaces(2);
 
   return {
     qualifies: true,

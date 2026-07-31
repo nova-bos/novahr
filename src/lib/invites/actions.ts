@@ -90,7 +90,7 @@ export async function createInviteAction(input: {
   const session = await requireRole("hr");
   await requireActiveSubscription(session.tenantId);
 
-  const inviteRate = checkRateLimit(session.tenantId, { name: "invite-create", limit: 20, windowMs: 60 * 60 * 1000 });
+  const inviteRate = await checkRateLimit(session.tenantId, { name: "invite-create", limit: 20, windowMs: 60 * 60 * 1000 });
   if (!inviteRate.allowed) {
     return { error: "Too many invitations sent. Try again in a few minutes." };
   }
@@ -332,7 +332,7 @@ export interface PublicInviteInfo {
 export async function getInviteByTokenAction(
   token: string
 ): Promise<{ invite?: PublicInviteInfo; error?: string }> {
-  const lookupRate = checkRateLimit(await clientKey(), { name: "invite-lookup", limit: 20, windowMs: 10 * 60 * 1000 });
+  const lookupRate = await checkRateLimit(await clientKey(), { name: "invite-lookup", limit: 20, windowMs: 10 * 60 * 1000 });
   if (!lookupRate.allowed) {
     return { error: "Too many attempts. Please wait a few minutes and try again." };
   }
@@ -371,7 +371,7 @@ export async function acceptInviteAction(input: {
   name: string;
   password: string;
 }): Promise<{ status: "success"; email: string } | { status: "error"; message: string }> {
-  const acceptRate = checkRateLimit(await clientKey(), { name: "invite-accept", limit: 10, windowMs: 10 * 60 * 1000 });
+  const acceptRate = await checkRateLimit(await clientKey(), { name: "invite-accept", limit: 10, windowMs: 10 * 60 * 1000 });
   if (!acceptRate.allowed) {
     return { status: "error", message: "Too many attempts. Please wait a few minutes and try again." };
   }

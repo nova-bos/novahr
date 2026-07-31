@@ -1,18 +1,17 @@
 import "server-only";
 import { headers } from "next/headers";
+import { prisma } from "@/lib/prisma";
 
-// Sliding-window rate limiter held in module memory. On serverless each warm
-// instance keeps its own window, so the limit is per instance rather than
-// global; that still stops the practical attack (rapid retries from one
-// client hitting the same warm function). Move to a shared store (Upstash or
-// a Postgres table) if limits must be exact across instances.
-
-interface Window {
-  timestamps: number[];
-}
-
-const windows = new Map<string, Window>();
-const MAX_KEYS = 10_000;
+// Fixed-window rate limiter backed by a shared Postgres table (RateLimit), so
+// limits hold across serverless instances rather than per warm instance. Each
+// call upserts the counter row keyed by "<name>:<key>", resets the window when
+// it has elapsed, increments, and reports whether the caller is within limit.
+//
+// The counter is advisory, not a financial invariant, so a plain read-modify
+// -write is acceptable: worst case two concurrent requests race and one extra
+// request slips through, which does not defeat the limiter's purpose (stopping
+// rapid retries). If the database is unreachable we FAIL OPEN and allow the
+// request rather than locking legitimate users out.
 
 export interface RateLimitOptions {
   // Unique name for the protected action, e.g. "invite-accept".
@@ -28,32 +27,46 @@ export interface RateLimitResult {
   retryAfterSeconds: number;
 }
 
-export function checkRateLimit(key: string, options: RateLimitOptions): RateLimitResult {
+export async function checkRateLimit(
+  key: string,
+  options: RateLimitOptions
+): Promise<RateLimitResult> {
   const now = Date.now();
   const fullKey = `${options.name}:${key}`;
 
-  // Opportunistic cleanup so the map cannot grow without bound.
-  if (windows.size > MAX_KEYS) {
-    for (const [k, w] of windows) {
-      if (w.timestamps.length === 0 || now - w.timestamps[w.timestamps.length - 1] > options.windowMs) {
-        windows.delete(k);
-      }
+  try {
+    const existing = await prisma.rateLimit.findUnique({ where: { key: fullKey } });
+
+    // No row yet, or the previous window has elapsed: start a fresh window.
+    if (!existing || now - existing.windowStart.getTime() >= options.windowMs) {
+      await prisma.rateLimit.upsert({
+        where: { key: fullKey },
+        create: { key: fullKey, count: 1, windowStart: new Date(now) },
+        update: { count: 1, windowStart: new Date(now) },
+      });
+      return { allowed: true, retryAfterSeconds: 0 };
     }
+
+    // Within the current window and already at or over the limit: block.
+    if (existing.count >= options.limit) {
+      const retryAfterSeconds = Math.max(
+        1,
+        Math.ceil((existing.windowStart.getTime() + options.windowMs - now) / 1000)
+      );
+      return { allowed: false, retryAfterSeconds };
+    }
+
+    // Within the window and under the limit: increment and allow.
+    await prisma.rateLimit.update({
+      where: { key: fullKey },
+      data: { count: { increment: 1 } },
+    });
+    return { allowed: true, retryAfterSeconds: 0 };
+  } catch (error) {
+    // Fail open: never lock users out because the rate-limit store is down.
+    console.error("[rate-limit] store error, allowing request:", error);
+    return { allowed: true, retryAfterSeconds: 0 };
   }
-
-  const window = windows.get(fullKey) ?? { timestamps: [] };
-  window.timestamps = window.timestamps.filter((t) => now - t < options.windowMs);
-
-  if (window.timestamps.length >= options.limit) {
-    const oldest = window.timestamps[0];
-    const retryAfterSeconds = Math.max(1, Math.ceil((oldest + options.windowMs - now) / 1000));
-    windows.set(fullKey, window);
-    return { allowed: false, retryAfterSeconds };
-  }
-
-  window.timestamps.push(now);
-  windows.set(fullKey, window);
-  return { allowed: true, retryAfterSeconds: 0 };
 }
 
 // Best-effort client identifier for unauthenticated actions. Vercel sets

@@ -12,6 +12,7 @@ import { formatPeriod } from "@/lib/compliance/utils";
 import { getUifDeclarationAction } from "@/lib/compliance/uif-actions";
 import {
   generateEmp201ForPeriodAction,
+  getEtiScheduleAction,
   markComplianceSubmittedAction,
 } from "@/lib/compliance/actions";
 import { ComplianceStatusBadge } from "./compliance-status-badge";
@@ -107,6 +108,48 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
     }
   }
 
+  async function handleEtiScheduleExport() {
+    try {
+      const rows = await getEtiScheduleAction(tenantId, period);
+      if (rows.length === 0) {
+        toast.error("No qualifying ETI claims for this period to export.");
+        return;
+      }
+      const csv = toCSV(
+        [
+          "Employee",
+          "Employee number",
+          "ID number",
+          "Qualifying month",
+          "ETI month",
+          "Band",
+          "Monthly remuneration",
+          "Hours worked",
+          "ETI amount",
+        ],
+        rows.map((r) => [
+          r.employeeName,
+          r.employeeNumber,
+          r.idNumber,
+          r.period,
+          r.etiMonth,
+          r.band,
+          r.monthlyRemuneration.toFixed(2),
+          r.hoursWorked,
+          r.amount.toFixed(2),
+        ])
+      );
+      downloadCSV(csv, `eti-schedule-${period}`);
+      toast.success("ETI schedule exported", {
+        description: `eti-schedule-${period}.csv downloaded.`,
+      });
+    } catch (err) {
+      toast.error("Could not export the ETI schedule", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    }
+  }
+
   async function handleMarkSubmitted() {
     if (!record) return;
     const ref = window.prompt("Enter the SARS eFiling reference number:");
@@ -180,6 +223,10 @@ export function Emp201Panel({ tenantId, period, record, onChanged }: Emp201Panel
               <Button variant="outline" size="sm" onClick={handleUifExport}>
                 <Download className="size-4" />
                 UIF declaration
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleEtiScheduleExport}>
+                <Download className="size-4" />
+                Download ETI schedule
               </Button>
               {isHR && record.status === "pending" && (
                 <Button size="sm" onClick={handleMarkSubmitted} disabled={submitting}>
