@@ -29,6 +29,7 @@ const requireTenant = vi.hoisted(() => vi.fn(async () => mockSession.current));
 vi.mock("@/lib/auth/require", () => ({
   requireUser: vi.fn(async () => mockSession.current),
   requireRole: vi.fn(async () => mockSession.current),
+  requireActiveSubscription: vi.fn(async () => {}),
   requireEmployeeScope: vi.fn(async () => mockSession.current),
   requireTenant,
 }));

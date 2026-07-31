@@ -9,6 +9,9 @@ Decimal.set({ rounding: Decimal.ROUND_HALF_UP });
 // (brackets, bases, rebates, MATC R376/R376/R254, s11F cap R430,000).
 // The under-65 tax threshold implied by these figures is R99,000, which is
 // asserted in calculator.test.ts as a tripwire against silent edits.
+// These constants are additionally validated end to end against a real LifeCheq
+// payslip by the "golden master: LifeCheq 2026/27 reconciliation" test. Do not
+// change any tax constant to make a test pass; the numbers are correct.
 // prevUpTo stored on each bracket to avoid index-based lookup and off-by-one risk
 const TAX_BRACKETS_2026_27 = [
   { upTo: 245_100,   rate: "0.18", base: "0",       prevUpTo: 0 },

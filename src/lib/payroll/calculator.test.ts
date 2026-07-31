@@ -477,6 +477,42 @@ describe("buildPayslip", () => {
   });
 });
 
+// ---- GOLDEN MASTER: validated against a real LifeCheq payslip (2026-07) ----
+// Founder-verified reconciliation (Desktop/NovaHR-vs-LifeCheq-payslip.xlsx).
+// Employee: basic R65,000/month + R1,400/month fully-taxable cash allowance
+// + R585/month taxable fringe benefit (income protection), under 65, no pension.
+// LifeCheq printed: PAYE R17,460.23, UIF R177.12, SDL R669.85, net R48,762.65.
+// This locks the validated 2026/27 constants end to end. If a tax constant or a
+// calculation path drifts, this fails. Do NOT "fix" it by editing the expected
+// numbers; investigate the calculator change instead.
+describe("golden master: LifeCheq 2026/27 reconciliation", () => {
+  const employee = makeEmployee({
+    annualGross: 780_000, // R65,000 / month
+    currency: "ZAR",
+    payFrequency: "monthly",
+    housingAllowance: 1_400, // R1,400/month, 100% taxable cash allowance
+    employerBenefits: [{ label: "Income Protection", amount: 585, taxable: true }],
+  });
+
+  const breakdown = calculateMonthlyPayroll(employee, { isSDLLiable: true });
+
+  it("gross earnings (cash) = R66,400", () => {
+    expect(breakdown.grossPay).toBeCloseTo(66_400, 2);
+  });
+  it("PAYE = R17,460.23", () => {
+    expect(breakdown.paye).toBeCloseTo(17_460.23, 2);
+  });
+  it("UIF employee = R177.12 (capped)", () => {
+    expect(breakdown.uif).toBeCloseTo(177.12, 2);
+  });
+  it("SDL employer = R669.85", () => {
+    expect(breakdown.employerSdl).toBeCloseTo(669.85, 2);
+  });
+  it("net pay = R48,762.65", () => {
+    expect(breakdown.netPay).toBeCloseTo(48_762.65, 2);
+  });
+});
+
 describe("incrementPeriod", () => {
   it("increments the month within a year", () => {
     expect(incrementPeriod("2026-01")).toBe("2026-02");
