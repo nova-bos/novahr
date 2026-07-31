@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { dobFromSaId, genderFromSaId } from "@/lib/schemas/sa-id";
 import { saIdNumber } from "@/lib/schemas/sa";
 import { formatDate } from "@/lib/format";
+import { GENDER_OPTIONS, MARITAL_OPTIONS, QUALIFICATION_TYPES } from "@/lib/config/employee-options";
 import { listCustomFieldDefinitionsAction } from "@/lib/custom-fields/actions";
 import type { TenantCustomFieldDefinition } from "@/lib/types";
 import type { FieldErrors } from "@/lib/schemas/employee";
@@ -28,27 +29,6 @@ interface StepProps {
   setForm: React.Dispatch<React.SetStateAction<NewEmployeeForm>>;
   errors: FieldErrors;
 }
-
-const GENDER_OPTIONS = [
-  { value: "male", label: "Male" },
-  { value: "female", label: "Female" },
-  { value: "other", label: "Other" },
-] as const;
-
-const MARITAL_OPTIONS = [
-  { value: "single", label: "Single" },
-  { value: "married", label: "Married" },
-  { value: "divorced", label: "Divorced" },
-  { value: "widowed", label: "Widowed" },
-  { value: "life_partner", label: "Life partner" },
-] as const;
-
-const QUALIFICATION_TYPES = [
-  { value: "degree", label: "Degree" },
-  { value: "diploma", label: "Diploma" },
-  { value: "certificate", label: "Certificate" },
-  { value: "licence", label: "Licence" },
-] as const;
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -238,8 +218,10 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
   const derivedDob = idValid ? dobFromSaId(form.idNumber.trim()) : null;
   const derivedGender = idValid ? genderFromSaId(form.idNumber.trim()) : null;
 
-  // Keep the first-class gender in sync with a valid SA ID (still editable via
-  // the passport path; for SA ID it is read-only and derived).
+  // Auto-fill gender and date of birth from a valid SA ID. This effect only runs
+  // when the derived values change (i.e. the ID number changes), so a gender the
+  // user has manually overridden afterwards is preserved. Gender remains editable
+  // via the dropdown below for people who do not identify with the derived value.
   React.useEffect(() => {
     if (derivedGender && form.gender !== derivedGender) {
       setForm((f) => ({ ...f, gender: derivedGender }));
@@ -382,17 +364,28 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                 <p className="text-xs text-muted-foreground">Derived from the ID number.</p>
               </div>
               <div className="space-y-1.5">
-                <Label>Gender</Label>
-                <Input
-                  readOnly
-                  value={
-                    derivedGender
-                      ? derivedGender.charAt(0).toUpperCase() + derivedGender.slice(1)
-                      : ""
+                <Label htmlFor="gender">Gender</Label>
+                <Select
+                  value={form.gender || undefined}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, gender: v as NewEmployeeForm["gender"] }))
                   }
-                  placeholder="Derived from ID"
-                />
-                <p className="text-xs text-muted-foreground">Derived from the ID number.</p>
+                >
+                  <SelectTrigger id="gender" className="w-full">
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {GENDER_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FieldError message={errors.gender} />
+                <p className="text-xs text-muted-foreground">
+                  Auto-filled from the ID number. Change it if needed.
+                </p>
               </div>
             </div>
           ) : (

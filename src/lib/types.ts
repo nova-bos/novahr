@@ -1,5 +1,12 @@
 export type EmploymentStatus = "active" | "on_leave" | "probation" | "terminated";
-export type EmploymentType = "full_time" | "part_time" | "contract";
+export type EmploymentType =
+  | "full_time"
+  | "part_time"
+  | "contract"
+  | "temporary"
+  | "casual"
+  | "learnership"
+  | "internship";
 export type PayFrequency = "monthly" | "biweekly" | "weekly";
 export type EquityRace = "african" | "coloured" | "indian" | "white" | "other";
 export type EquityGender = "male" | "female" | "other";
@@ -72,7 +79,16 @@ export interface NextOfKin {
 
 export type IdType = "sa_id" | "passport";
 export type Gender = "male" | "female" | "other";
-export type MaritalStatus = "single" | "married" | "divorced" | "widowed" | "life_partner";
+export type MaritalStatus =
+  | "single"
+  | "married"
+  | "customary_marriage"
+  | "civil_union"
+  | "life_partner"
+  | "engaged"
+  | "separated"
+  | "divorced"
+  | "widowed";
 
 export interface EmployeeQualification {
   id: string;

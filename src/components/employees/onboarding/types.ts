@@ -1,4 +1,4 @@
-import type { EmploymentType } from "@/lib/types";
+import type { EmploymentType, MaritalStatus } from "@/lib/types";
 import type { FieldErrors } from "@/lib/schemas/employee";
 import {
   validatePersonalStep,
@@ -32,7 +32,7 @@ export interface NewEmployeeForm {
   nationality: string;
   dateOfBirth: string;
   gender: "male" | "female" | "other" | "";
-  maritalStatus: "single" | "married" | "divorced" | "widowed" | "life_partner" | "";
+  maritalStatus: MaritalStatus | "";
   taxNumber: string;
   address: string;
   nextOfKinName: string;

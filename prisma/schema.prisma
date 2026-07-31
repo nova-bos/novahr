@@ -24,6 +24,10 @@ enum EmploymentType {
   full_time
   part_time
   contract
+  temporary
+  casual
+  learnership
+  internship
 }
 
 enum PayFrequency {

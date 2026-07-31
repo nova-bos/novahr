@@ -6,21 +6,8 @@ import { employmentTypeLabel, formatCurrency, formatDate, maskAccountNumber } fr
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { useCurrentTenant, useEmployees } from "@/lib/store/hooks";
 import { buildEmployeeFromForm } from "@/lib/employees/form-builder";
+import { GENDER_LABELS, MARITAL_LABELS } from "@/lib/config/employee-options";
 import type { NewEmployeeForm } from "./types";
-
-const GENDER_LABELS: Record<string, string> = {
-  male: "Male",
-  female: "Female",
-  other: "Other",
-};
-
-const MARITAL_LABELS: Record<string, string> = {
-  single: "Single",
-  married: "Married",
-  divorced: "Divorced",
-  widowed: "Widowed",
-  life_partner: "Life partner",
-};
 
 function genderLabel(value: string | null | undefined): string {
   return value ? GENDER_LABELS[value] ?? value : "";
