@@ -1,7 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
-import { requireTenant } from "@/lib/auth/require";
+import { requireTenant, requireActiveSubscription } from "@/lib/auth/require";
 import type { PayFrequency } from "@prisma/client";
 
 export interface PayrollProfileData {
@@ -64,6 +64,7 @@ export async function upsertPayrollProfileAction(
   data: PayrollProfileData
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     await runAsTenant(tenantId, async (tx) => {
       // The employee must belong to this tenant before touching their profile.

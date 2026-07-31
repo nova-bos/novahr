@@ -1,7 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
-import { requireRole } from "@/lib/auth/require";
+import { requireRole, requireActiveSubscription } from "@/lib/auth/require";
 import { mapDepartment } from "@/lib/workspace/mappers";
 import type { Department } from "@/lib/types";
 
@@ -22,6 +22,7 @@ export async function createDepartmentRecord(data: {
   headId?: string;
 }): Promise<Department> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
   const name = data.name.trim();
   if (name.length < 2) throw new Error("Department name must be at least 2 characters.");
 
@@ -51,6 +52,7 @@ export async function updateDepartmentRecord(
   data: { name?: string; description?: string; headId?: string | null }
 ): Promise<Department> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
 
   return runAsTenant(session.tenantId, async (tx) => {
     const existing = await tx.department.findFirst({
@@ -72,6 +74,7 @@ export async function updateDepartmentRecord(
 
 export async function deleteDepartmentRecord(id: string): Promise<{ reassigned: number }> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
 
   return runAsTenant(session.tenantId, async (tx) => {
     const department = await tx.department.findFirstOrThrow({

@@ -1,7 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
-import { requireRole } from "@/lib/auth/require";
+import { requireRole, requireActiveSubscription } from "@/lib/auth/require";
 import { formatMonthYear } from "@/lib/format";
 import { mapPayrollRun } from "@/lib/workspace/mappers";
 import { sendPayslipEmail, sendPayrollRejectedEmail } from "@/lib/email";
@@ -16,6 +16,7 @@ export async function approvePayrollRunAction(
   approvalNote?: string
 ): Promise<{ payrollRun: PayrollRun }> {
   const session = await requireRole("hr", "exco");
+  await requireActiveSubscription(session.tenantId);
   const result = await runAsTenant(session.tenantId, async (tx) => {
     const run = await tx.payrollRun.findFirstOrThrow({
       where: { id: runId, tenantId: session.tenantId },
@@ -89,6 +90,7 @@ export async function rejectPayrollApprovalAction(
   note: string
 ): Promise<{ payrollRun: PayrollRun }> {
   const session = await requireRole("hr", "exco");
+  await requireActiveSubscription(session.tenantId);
   const result = await runAsTenant(session.tenantId, async (tx) => {
     const owned = await tx.payrollRun.findFirst({
       where: { id: runId, tenantId: session.tenantId },

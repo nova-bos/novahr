@@ -212,6 +212,23 @@ model Tenant {
   leavePolicy           TenantLeavePolicy?
   customHolidays        CustomHoliday[]
   leaveReviewers        LeaveReviewer[]
+  billingCharges        BillingCharge[]
+}
+
+model BillingCharge {
+  id               String   @id @default(cuid())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  reference        String   @unique
+  period           String   // YYYY-MM
+  amountKobo       Int
+  status           String   // success | failed
+  chargeType       String   // subscription_init | subscription_renewal
+  paystackChargeId String?
+  createdAt        DateTime @default(now())
+
+  @@unique([tenantId, period])
+  @@index([tenantId])
 }
 
 model User {
