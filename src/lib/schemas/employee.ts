@@ -7,22 +7,66 @@ const optionalSaPhone = z
     message: "Enter a valid South African phone number, e.g. 071 234 5678",
   });
 
-export const personalStepSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  preferredName: z.string(),
-  email: z.email("Enter a valid email address"),
-  phone: saPhone,
-  idNumber: saIdNumber,
-  taxNumber: z.string().refine(
-    (v) => v === "" || /^\d{10}$/.test(v),
-    "Tax number must be 10 digits"
-  ),
-  address: z.string(),
-  emergencyName: z.string(),
-  emergencyRelationship: z.string(),
-  emergencyPhone: optionalSaPhone,
-});
+export const personalStepSchema = z
+  .object({
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
+    preferredName: z.string(),
+    email: z.email("Enter a valid email address"),
+    phone: saPhone,
+    idType: z.enum(["sa_id", "passport"]).default("sa_id"),
+    // ID and passport are validated conditionally in superRefine below, so the
+    // base fields accept any string here.
+    idNumber: z.string().default(""),
+    passportNumber: z.string().default(""),
+    nationality: z.string().default(""),
+    dateOfBirth: z.string().default(""),
+    gender: z.enum(["male", "female", "other", ""]).default(""),
+    maritalStatus: z
+      .enum(["single", "married", "divorced", "widowed", "life_partner", ""])
+      .default(""),
+    taxNumber: z.string().refine(
+      (v) => v === "" || /^\d{10}$/.test(v),
+      "Tax number must be 10 digits"
+    ),
+    address: z.string(),
+    nextOfKinName: z.string().default(""),
+    nextOfKinRelationship: z.string().default(""),
+    nextOfKinPhone: z.string().default("").refine(
+      (v) => v === "" || saPhone.safeParse(v).success,
+      "Enter a valid South African phone number, e.g. 071 234 5678"
+    ),
+    nextOfKinAddress: z.string().default(""),
+    emergencyContactSameAsNextOfKin: z.boolean().default(false),
+    emergencyName: z.string(),
+    emergencyRelationship: z.string(),
+    emergencyPhone: optionalSaPhone,
+  })
+  .superRefine((data, ctx) => {
+    if (data.idType === "passport") {
+      if (!data.passportNumber.trim()) {
+        ctx.addIssue({ code: "custom", path: ["passportNumber"], message: "Passport number is required" });
+      }
+      if (!data.nationality.trim()) {
+        ctx.addIssue({ code: "custom", path: ["nationality"], message: "Nationality is required" });
+      }
+      if (!data.dateOfBirth.trim()) {
+        ctx.addIssue({ code: "custom", path: ["dateOfBirth"], message: "Date of birth is required" });
+      }
+      if (!data.gender) {
+        ctx.addIssue({ code: "custom", path: ["gender"], message: "Gender is required" });
+      }
+    } else {
+      const result = saIdNumber.safeParse(data.idNumber);
+      if (!result.success) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["idNumber"],
+          message: result.error.issues[0]?.message ?? "SA ID number is invalid",
+        });
+      }
+    }
+  });
 
 export const roleStepSchema = z.object({
   jobTitle: z.string().min(1, "Job title is required"),
@@ -69,6 +113,8 @@ export const editEmployeeProfileSchema = z.object({
   email: z.email("Enter a valid email address"),
   phone: saPhone,
   emergencyPhone: optionalSaPhone,
+  // Next-of-kin phone is optional but, when supplied, must be a valid SA number.
+  nextOfKinPhone: optionalSaPhone,
 });
 
 export const editEmployeeCompensationSchema = z.object({

@@ -6,7 +6,7 @@ import { decryptField, encryptField } from "@/lib/crypto/field-crypto";
 // transparently; writes encrypt them transparently. Decryption is
 // plaintext-tolerant (see field-crypto.ts), so this is safe to deploy before
 // any data is backfilled.
-const EMPLOYEE_PII_FIELDS = ["idNumber", "taxNumber", "bankAccountNumber"] as const;
+const EMPLOYEE_PII_FIELDS = ["idNumber", "taxNumber", "bankAccountNumber", "passportNumber"] as const;
 
 type PlainRecord = Record<string, unknown>;
 

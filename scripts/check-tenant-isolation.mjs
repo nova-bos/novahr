@@ -36,6 +36,9 @@ const TENANT_SCOPED_MODELS = new Set([
   "leaveReviewer",
   "tenantLeavePolicy",
   "employeeNumberConfig",
+  "employeeQualification",
+  "tenantCustomFieldDefinition",
+  "employeeCustomFieldValue",
 ]);
 
 // Operations where the where clause must be scoped to a tenant.

@@ -8,6 +8,28 @@ import { useCurrentTenant, useEmployees } from "@/lib/store/hooks";
 import { buildEmployeeFromForm } from "@/lib/employees/form-builder";
 import type { NewEmployeeForm } from "./types";
 
+const GENDER_LABELS: Record<string, string> = {
+  male: "Male",
+  female: "Female",
+  other: "Other",
+};
+
+const MARITAL_LABELS: Record<string, string> = {
+  single: "Single",
+  married: "Married",
+  divorced: "Divorced",
+  widowed: "Widowed",
+  life_partner: "Life partner",
+};
+
+function genderLabel(value: string | null | undefined): string {
+  return value ? GENDER_LABELS[value] ?? value : "";
+}
+
+function maritalLabel(value: string | null | undefined): string {
+  return value ? MARITAL_LABELS[value] ?? value : "";
+}
+
 function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 text-sm">
@@ -64,9 +86,30 @@ export function StepReview({ form }: { form: NewEmployeeForm }) {
           <CardContent className="space-y-2.5">
             <ReviewRow label="Email" value={previewEmployee.email} />
             <ReviewRow label="Phone" value={previewEmployee.phone} />
-            <ReviewRow label="ID number" value={previewEmployee.idNumber} />
+            {previewEmployee.idType === "passport" ? (
+              <>
+                <ReviewRow label="Passport number" value={previewEmployee.passportNumber ?? ""} />
+                <ReviewRow label="Nationality" value={previewEmployee.nationality ?? ""} />
+              </>
+            ) : (
+              <ReviewRow label="ID number" value={previewEmployee.idNumber} />
+            )}
+            <ReviewRow
+              label="Date of birth"
+              value={previewEmployee.dateOfBirth ? formatDate(previewEmployee.dateOfBirth) : ""}
+            />
+            <ReviewRow label="Gender" value={genderLabel(previewEmployee.gender)} />
+            <ReviewRow label="Marital status" value={maritalLabel(previewEmployee.maritalStatus)} />
             <ReviewRow label="Tax number" value={previewEmployee.taxNumber} />
             <ReviewRow label="Address" value={previewEmployee.address} />
+            {previewEmployee.nextOfKin ? (
+              <>
+                <Separator />
+                <ReviewRow label="Next of kin" value={previewEmployee.nextOfKin.name} />
+                <ReviewRow label="Relationship" value={previewEmployee.nextOfKin.relationship} />
+                <ReviewRow label="Next of kin phone" value={previewEmployee.nextOfKin.phone} />
+              </>
+            ) : null}
             <Separator />
             <ReviewRow label="Emergency contact" value={previewEmployee.emergencyContact.name} />
             <ReviewRow
@@ -77,6 +120,24 @@ export function StepReview({ form }: { form: NewEmployeeForm }) {
               label="Emergency phone"
               value={previewEmployee.emergencyContact.phone}
             />
+            {previewEmployee.qualifications && previewEmployee.qualifications.length > 0 ? (
+              <>
+                <Separator />
+                {previewEmployee.qualifications.map((q) => (
+                  <ReviewRow
+                    key={q.id}
+                    label={q.type.charAt(0).toUpperCase() + q.type.slice(1)}
+                    value={q.institution ? `${q.name}, ${q.institution}` : q.name}
+                  />
+                ))}
+              </>
+            ) : null}
+            {previewEmployee.skills && previewEmployee.skills.length > 0 ? (
+              <ReviewRow label="Skills" value={previewEmployee.skills.join(", ")} />
+            ) : null}
+            {previewEmployee.languages && previewEmployee.languages.length > 0 ? (
+              <ReviewRow label="Languages" value={previewEmployee.languages.join(", ")} />
+            ) : null}
           </CardContent>
         </Card>
 

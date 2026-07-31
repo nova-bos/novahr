@@ -213,6 +213,9 @@ model Tenant {
   customHolidays        CustomHoliday[]
   leaveReviewers        LeaveReviewer[]
   billingCharges        BillingCharge[]
+  employeeQualifications EmployeeQualification[]
+  customFieldDefinitions TenantCustomFieldDefinition[]
+  customFieldValues      EmployeeCustomFieldValue[]
 }
 
 model BillingCharge {
@@ -292,9 +295,34 @@ model Employee {
   idNumber  String
   address   String
 
+  // Identity document. idType selects which set of fields applies:
+  // "sa_id" uses idNumber; "passport" uses passportNumber + nationality and
+  // requires an explicit dateOfBirth (there is no ID to derive it from).
+  idType         String    @default("sa_id")
+  passportNumber String?
+  nationality    String?
+  dateOfBirth    DateTime?
+  // First-class demographics, independent of the employment-equity capture.
+  gender         String?
+  maritalStatus  String?
+
   emergencyContactName         String
   emergencyContactRelationship String
   emergencyContactPhone        String
+
+  // Next of kin. Distinct from the emergency contact, though the two are often
+  // the same person: emergencyContactSameAsNextOfKin records that choice so the
+  // edit view can restore it. When true, the emergencyContact* fields are
+  // written with the next-of-kin values on save.
+  nextOfKinName                   String?
+  nextOfKinRelationship           String?
+  nextOfKinPhone                  String?
+  nextOfKinAddress                String?
+  emergencyContactSameAsNextOfKin Boolean @default(false)
+
+  // Repeatable skills and languages captured on the profile.
+  skills    String[] @default([])
+  languages String[] @default([])
 
   // Employment Equity (EEA2/EEA4) demographics
   equityRace        EquityRace?
@@ -317,11 +345,70 @@ model Employee {
   documents      EmployeeDocument[]
   deductions     EmployeeDeduction[]
   etiClaims      EtiClaim[]
+  qualifications EmployeeQualification[]
+  customFieldValues EmployeeCustomFieldValue[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([tenantId])
+}
+
+// A single qualification, skill certificate or licence held by an employee.
+// Repeatable: an employee can have many. Additive; no existing data depends on it.
+model EmployeeQualification {
+  id            String    @id @default(cuid())
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId    String
+  employee      Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  // degree | diploma | certificate | licence
+  type          String
+  name          String
+  institution   String?
+  yearCompleted Int?
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+
+  @@index([tenantId])
+  @@index([employeeId])
+}
+
+// Tenant-defined custom field. HR configures the label, type and (for selects)
+// the option list. Renders as an "Additional information" card on every
+// employee. Zero definitions means nothing extra is shown.
+model TenantCustomFieldDefinition {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  label     String
+  // text | number | date | select
+  fieldType String   @default("text")
+  /// JSON array of string options, only used when fieldType is "select".
+  options   Json?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  values EmployeeCustomFieldValue[]
+
+  @@index([tenantId])
+}
+
+// One employee's value for one custom-field definition.
+model EmployeeCustomFieldValue {
+  id           String                      @id @default(cuid())
+  tenantId     String
+  tenant       Tenant                      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId   String
+  employee     Employee                    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  definitionId String
+  definition   TenantCustomFieldDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  value        String
+
+  @@unique([employeeId, definitionId])
+  @@index([tenantId])
+  @@index([employeeId])
 }
 
 model LeaveBalance {

@@ -5,7 +5,8 @@ import { requireRole } from "@/lib/auth/require";
 import { claimNextEmployeeNumber } from "@/lib/employee-numbers/actions";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 import { saIdNumber, saPhone, bankAccountNumber, branchCode } from "@/lib/schemas/sa";
-import type { CsvRow } from "./import-columns";
+import { toCSV } from "@/lib/export/csv";
+import { IMPORT_COLUMNS, type CsvRow } from "./import-columns";
 import type {
   LeaveType,
   EmploymentType,
@@ -13,6 +14,8 @@ import type {
   EquityRace,
   EquityGender,
   OccupationalLevel,
+  Gender,
+  MaritalStatus,
 } from "@/lib/types";
 
 export type { CsvRow } from "./import-columns";
@@ -24,7 +27,21 @@ export interface ImportRowError {
 }
 
 export interface ImportEmployeesResult {
+  // Total rows written (created + updated), kept for backward compatibility.
   imported: number;
+  created: number;
+  updated: number;
+  errors: ImportRowError[];
+}
+
+/**
+ * Preview classification of parsed rows into creates, updates and errors, so the
+ * import dialog can show what will happen before the write runs. Computed
+ * against the tenant's current workforce (matched by employee number).
+ */
+export interface ImportPreview {
+  creates: number;
+  updates: number;
   errors: ImportRowError[];
 }
 
@@ -32,6 +49,14 @@ const EMPLOYMENT_TYPES: EmploymentType[] = ["full_time", "part_time", "contract"
 const PAY_FREQUENCIES: PayFrequency[] = ["monthly", "biweekly", "weekly"];
 const RACES: EquityRace[] = ["african", "coloured", "indian", "white", "other"];
 const GENDERS: EquityGender[] = ["male", "female", "other"];
+const DEMO_GENDERS: Gender[] = ["male", "female", "other"];
+const MARITAL_STATUSES: MaritalStatus[] = [
+  "single",
+  "married",
+  "divorced",
+  "widowed",
+  "life_partner",
+];
 const LEVELS: OccupationalLevel[] = [
   "top_management",
   "senior_management",
@@ -103,12 +128,36 @@ function validateRow(row: CsvRow, rowNumber: number): ImportRowError[] {
   else if (!saPhone.safeParse(row.phone.trim()).success)
     add("phone", "Phone must be a valid South African number, e.g. 071 234 5678.");
 
-  if (!row.idNumber?.trim()) add("idNumber", "SA ID number is required.");
-  else if (!saIdNumber.safeParse(row.idNumber.trim()).success)
-    add("idNumber", "SA ID number is invalid (must be 13 digits and pass the checksum).");
+  const idType = normEnum(row.idType ?? "");
+  const isPassport = idType === "passport";
+  if (row.idType?.trim() && idType !== "sa_id" && idType !== "passport")
+    add("idType", "ID type must be sa_id or passport.");
+
+  if (isPassport) {
+    if (!row.passportNumber?.trim()) add("passportNumber", "Passport number is required for passport holders.");
+    if (!row.dateOfBirth?.trim()) add("dateOfBirth", "Date of birth is required for passport holders.");
+    else if (isNaN(Date.parse(row.dateOfBirth.trim())))
+      add("dateOfBirth", "Date of birth must be a valid date (YYYY-MM-DD).");
+  } else {
+    if (!row.idNumber?.trim()) add("idNumber", "SA ID number is required.");
+    else if (!saIdNumber.safeParse(row.idNumber.trim()).success)
+      add("idNumber", "SA ID number is invalid (must be 13 digits and pass the checksum).");
+  }
+
+  if (row.dateOfBirth?.trim() && isNaN(Date.parse(row.dateOfBirth.trim())))
+    add("dateOfBirth", "Date of birth must be a valid date (YYYY-MM-DD).");
+
+  if (row.gender?.trim() && !(DEMO_GENDERS as string[]).includes(normEnum(row.gender)))
+    add("gender", "Gender must be male, female or other.");
+
+  if (row.maritalStatus?.trim() && !(MARITAL_STATUSES as string[]).includes(normEnum(row.maritalStatus)))
+    add("maritalStatus", "Marital status must be single, married, divorced, widowed or life_partner.");
 
   if (row.taxNumber?.trim() && !/^\d{10}$/.test(row.taxNumber.trim()))
     add("taxNumber", "Tax number must be 10 digits.");
+
+  if (row.nextOfKinPhone?.trim() && !saPhone.safeParse(row.nextOfKinPhone.trim()).success)
+    add("nextOfKinPhone", "Next of kin phone must be a valid South African number.");
 
   if (!row.jobTitle?.trim()) add("jobTitle", "Job title is required.");
 
@@ -162,27 +211,103 @@ function validateRow(row: CsvRow, rowNumber: number): ImportRowError[] {
   return errs;
 }
 
+/** Shared column mapping used for both create and update. */
+function mapRowToData(row: CsvRow): Record<string, unknown> {
+  const idType = normEnum(row.idType ?? "") === "passport" ? "passport" : "sa_id";
+  const dobRaw = row.dateOfBirth?.trim();
+  const dateOfBirth =
+    idType === "passport" && dobRaw && !isNaN(Date.parse(dobRaw)) ? new Date(dobRaw) : null;
+  return {
+    firstName: row.firstName.trim(),
+    lastName: row.lastName.trim(),
+    preferredName: row.preferredName?.trim() || null,
+    email: row.email.trim(),
+    phone: row.phone.trim(),
+    jobTitle: row.jobTitle.trim(),
+    department: row.department?.trim() || "General",
+    employmentType: normEmploymentType(row.employmentType ?? ""),
+    startDate: new Date(row.startDate.trim()),
+    location: row.location?.trim() ?? "",
+    salaryAnnualGross: Number(cleanNumber(row.annualGross)),
+    salaryCurrency: "ZAR",
+    salaryPayFrequency: normPayFrequency(row.payFrequency ?? ""),
+    salaryTravelAllowance: optionalNumber(row.travelAllowance ?? ""),
+    salaryHousingAllowance: optionalNumber(row.housingAllowance ?? ""),
+    salaryPensionContributionPct: optionalNumber(row.pensionContributionPct ?? ""),
+    salaryMedicalAid: optionalNumber(row.medicalAid ?? ""),
+    salaryRetirementAnnuity: optionalNumber(row.retirementAnnuity ?? ""),
+    bankName: row.bank.trim(),
+    bankAccountNumber: row.accountNumber.replace(/\s/g, "").trim(),
+    bankBranchCode: row.branchCode.replace(/\s/g, "").trim(),
+    bankAccountType: normAccountType(row.accountType ?? ""),
+    taxNumber: row.taxNumber?.trim() ?? "",
+    idType,
+    idNumber: idType === "passport" ? "" : row.idNumber.trim(),
+    passportNumber: idType === "passport" ? row.passportNumber?.trim() || null : null,
+    nationality: row.nationality?.trim() || null,
+    dateOfBirth,
+    gender: row.gender?.trim() ? (normEnum(row.gender) as Gender) : null,
+    maritalStatus: row.maritalStatus?.trim() ? (normEnum(row.maritalStatus) as MaritalStatus) : null,
+    address: row.address?.trim() ?? "",
+    emergencyContactName: row.emergencyName?.trim() ?? "",
+    emergencyContactRelationship: row.emergencyRelationship?.trim() ?? "",
+    emergencyContactPhone: row.emergencyPhone?.trim() ?? "",
+    nextOfKinName: row.nextOfKinName?.trim() || null,
+    nextOfKinRelationship: row.nextOfKinRelationship?.trim() || null,
+    nextOfKinPhone: row.nextOfKinPhone?.trim() || null,
+    nextOfKinAddress: row.nextOfKinAddress?.trim() || null,
+    equityRace: row.equityRace?.trim() ? (normEnum(row.equityRace) as EquityRace) : null,
+    equityGender: row.equityGender?.trim() ? (normEnum(row.equityGender) as EquityGender) : null,
+    occupationalLevel: row.occupationalLevel?.trim()
+      ? (normEnum(row.occupationalLevel) as OccupationalLevel)
+      : null,
+    foreignNational: parseBool(row.foreignNational ?? ""),
+    hasDisability: parseBool(row.hasDisability ?? ""),
+  };
+}
+
 export async function importEmployeesFromCsvAction(
   rows: CsvRow[]
 ): Promise<ImportEmployeesResult> {
   const session = await requireRole("hr");
   const tenantId = session.tenantId;
 
+  // Existing workforce, indexed by employee number (the upsert key) and by email
+  // (for manager links and duplicate-email detection).
+  const numberToId = new Map<string, string>();
+  const emailToId = new Map<string, string>();
+  await runAsTenant(tenantId, async (tx) => {
+    const existing = await tx.employee.findMany({
+      where: { tenantId },
+      select: { id: true, email: true, employeeNumber: true },
+    });
+    for (const e of existing) {
+      emailToId.set(e.email.toLowerCase(), e.id);
+      numberToId.set(e.employeeNumber.trim().toLowerCase(), e.id);
+    }
+  });
+
   const errors: ImportRowError[] = [];
-  const validRows: { row: CsvRow; rowNumber: number }[] = [];
+  // A row targets an existing employee when its employeeNumber matches one.
+  const validRows: { row: CsvRow; rowNumber: number; existingId: string | null }[] = [];
 
   rows.forEach((row, i) => {
     const rowErrors = validateRow(row, i + 1);
-    if (rowErrors.length > 0) errors.push(...rowErrors);
-    else validRows.push({ row, rowNumber: i + 1 });
-  });
+    const number = row.employeeNumber?.trim().toLowerCase() ?? "";
+    const existingId = number ? numberToId.get(number) ?? null : null;
 
-  // Preload existing employees so manager links can resolve by email, including
-  // managers that appear later in the same file (filled in after creation).
-  const emailToId = new Map<string, string>();
-  await runAsTenant(tenantId, async (tx) => {
-    const existing = await tx.employee.findMany({ where: { tenantId }, select: { id: true, email: true } });
-    for (const e of existing) emailToId.set(e.email.toLowerCase(), e.id);
+    // An employee number that does not match anyone is an error: we never
+    // silently create with a caller-supplied number (numbers are system-assigned).
+    if (number && !existingId) {
+      rowErrors.push({
+        row: i + 1,
+        field: "employeeNumber",
+        message: `Employee number "${row.employeeNumber?.trim()}" was not found. Leave it blank to create a new employee.`,
+      });
+    }
+
+    if (rowErrors.length > 0) errors.push(...rowErrors);
+    else validRows.push({ row, rowNumber: i + 1, existingId });
   });
 
   const leavePolicy = await runAsTenant(tenantId, (tx) =>
@@ -202,81 +327,63 @@ export async function importEmployeesFromCsvAction(
       }
     : DEFAULT_LEAVE_TOTALS;
 
-  let imported = 0;
+  let created = 0;
+  let updated = 0;
   const managerLinks: { employeeId: string; managerEmail: string; rowNumber: number }[] = [];
 
-  for (const { row, rowNumber } of validRows) {
+  for (const { row, rowNumber, existingId } of validRows) {
     try {
-      await runAsTenant(tenantId, async (tx) => {
-        const employeeNumber = await claimNextEmployeeNumber(tenantId, tx);
-        const firstName = row.firstName.trim();
-        const lastName = row.lastName.trim();
-
-        const created = await tx.employee.create({
-          data: {
-            tenantId,
-            employeeNumber,
-            firstName,
-            lastName,
-            preferredName: row.preferredName?.trim() || null,
-            email: row.email.trim(),
-            phone: row.phone.trim(),
-            avatarColor: randomAvatarColor(),
-            initials: toInitials(firstName, lastName),
-            jobTitle: row.jobTitle.trim(),
-            department: row.department?.trim() || "General",
-            employmentType: normEmploymentType(row.employmentType ?? ""),
-            status: "active",
-            startDate: new Date(row.startDate.trim()),
-            location: row.location?.trim() ?? "",
-            salaryAnnualGross: Number(cleanNumber(row.annualGross)),
-            salaryCurrency: "ZAR",
-            salaryPayFrequency: normPayFrequency(row.payFrequency ?? ""),
-            salaryTravelAllowance: optionalNumber(row.travelAllowance ?? ""),
-            salaryHousingAllowance: optionalNumber(row.housingAllowance ?? ""),
-            salaryPensionContributionPct: optionalNumber(row.pensionContributionPct ?? ""),
-            salaryMedicalAid: optionalNumber(row.medicalAid ?? ""),
-            salaryRetirementAnnuity: optionalNumber(row.retirementAnnuity ?? ""),
-            bankName: row.bank.trim(),
-            bankAccountNumber: row.accountNumber.replace(/\s/g, "").trim(),
-            bankBranchCode: row.branchCode.replace(/\s/g, "").trim(),
-            bankAccountType: normAccountType(row.accountType ?? ""),
-            taxNumber: row.taxNumber?.trim() ?? "",
-            idNumber: row.idNumber.trim(),
-            address: row.address?.trim() ?? "",
-            emergencyContactName: row.emergencyName?.trim() ?? "",
-            emergencyContactRelationship: row.emergencyRelationship?.trim() ?? "",
-            emergencyContactPhone: row.emergencyPhone?.trim() ?? "",
-            equityRace: row.equityRace?.trim() ? (normEnum(row.equityRace) as EquityRace) : null,
-            equityGender: row.equityGender?.trim() ? (normEnum(row.equityGender) as EquityGender) : null,
-            occupationalLevel: row.occupationalLevel?.trim()
-              ? (normEnum(row.occupationalLevel) as OccupationalLevel)
-              : null,
-            foreignNational: parseBool(row.foreignNational ?? ""),
-            hasDisability: parseBool(row.hasDisability ?? ""),
-            leaveBalances: {
-              create: (Object.keys(leaveTotals) as LeaveType[]).map((type) => ({
-                type,
-                total: leaveTotals[type],
-                used: 0,
-              })),
-            },
-          },
-        });
-
-        emailToId.set(created.email.toLowerCase(), created.id);
-        if (row.managerEmail?.trim()) {
-          managerLinks.push({
-            employeeId: created.id,
-            managerEmail: row.managerEmail.trim().toLowerCase(),
-            rowNumber,
+      const data = mapRowToData(row);
+      if (existingId) {
+        await runAsTenant(tenantId, async (tx) => {
+          const emp = await tx.employee.update({
+            where: { id: existingId },
+            data,
           });
-        }
-      });
-
-      imported++;
+          emailToId.set(emp.email.toLowerCase(), emp.id);
+          if (row.managerEmail?.trim()) {
+            managerLinks.push({
+              employeeId: emp.id,
+              managerEmail: row.managerEmail.trim().toLowerCase(),
+              rowNumber,
+            });
+          }
+        });
+        updated++;
+      } else {
+        await runAsTenant(tenantId, async (tx) => {
+          const employeeNumber = await claimNextEmployeeNumber(tenantId, tx);
+          const emp = await tx.employee.create({
+            data: {
+              ...(data as object),
+              tenantId,
+              employeeNumber,
+              avatarColor: randomAvatarColor(),
+              initials: toInitials(row.firstName.trim(), row.lastName.trim()),
+              status: "active",
+              leaveBalances: {
+                create: (Object.keys(leaveTotals) as LeaveType[]).map((type) => ({
+                  type,
+                  total: leaveTotals[type],
+                  used: 0,
+                })),
+              },
+            } as Parameters<typeof tx.employee.create>[0]["data"],
+          });
+          emailToId.set(emp.email.toLowerCase(), emp.id);
+          numberToId.set(emp.employeeNumber.trim().toLowerCase(), emp.id);
+          if (row.managerEmail?.trim()) {
+            managerLinks.push({
+              employeeId: emp.id,
+              managerEmail: row.managerEmail.trim().toLowerCase(),
+              rowNumber,
+            });
+          }
+        });
+        created++;
+      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unexpected error creating employee.";
+      const message = err instanceof Error ? err.message : "Unexpected error saving employee.";
       errors.push({ row: rowNumber, field: "general", message });
     }
   }
@@ -307,5 +414,174 @@ export async function importEmployeesFromCsvAction(
     }
   }
 
-  return { imported, errors };
+  return { imported: created + updated, created, updated, errors };
+}
+
+/**
+ * Classify parsed rows into creates and updates (and surface validation errors)
+ * without writing anything, so the dialog can preview the outcome. An
+ * employeeNumber that matches an existing employee is an update; a blank one is a
+ * create. A supplied number that matches nobody is an error. An email that
+ * belongs to a different existing employee (not the one matched by number) is
+ * flagged, but the same employee's own email is never treated as a duplicate.
+ */
+export async function previewEmployeeImportAction(rows: CsvRow[]): Promise<ImportPreview> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
+
+  const numberToId = new Map<string, string>();
+  const emailToId = new Map<string, string>();
+  await runAsTenant(tenantId, async (tx) => {
+    const existing = await tx.employee.findMany({
+      where: { tenantId },
+      select: { id: true, email: true, employeeNumber: true },
+    });
+    for (const e of existing) {
+      emailToId.set(e.email.toLowerCase(), e.id);
+      numberToId.set(e.employeeNumber.trim().toLowerCase(), e.id);
+    }
+  });
+
+  const errors: ImportRowError[] = [];
+  let creates = 0;
+  let updates = 0;
+  const seenEmails = new Map<string, number>();
+
+  rows.forEach((row, i) => {
+    const rowNumber = i + 1;
+    const rowErrors = validateRow(row, rowNumber);
+    const number = row.employeeNumber?.trim().toLowerCase() ?? "";
+    const existingId = number ? numberToId.get(number) ?? null : null;
+
+    if (number && !existingId) {
+      rowErrors.push({
+        row: rowNumber,
+        field: "employeeNumber",
+        message: `Employee number "${row.employeeNumber?.trim()}" was not found. Leave it blank to create a new employee.`,
+      });
+    }
+
+    const email = row.email?.trim().toLowerCase() ?? "";
+    if (email) {
+      // Duplicate against another existing employee (matched by number is fine).
+      const ownerId = emailToId.get(email);
+      if (ownerId && ownerId !== existingId) {
+        rowErrors.push({
+          row: rowNumber,
+          field: "email",
+          message: `Email "${row.email?.trim()}" already belongs to another employee.`,
+        });
+      }
+      // Duplicate within the file itself.
+      const firstSeen = seenEmails.get(email);
+      if (firstSeen != null) {
+        rowErrors.push({
+          row: rowNumber,
+          field: "email",
+          message: `Email "${row.email?.trim()}" is repeated (also on row ${firstSeen}).`,
+        });
+      } else {
+        seenEmails.set(email, rowNumber);
+      }
+    }
+
+    if (rowErrors.length > 0) {
+      errors.push(...rowErrors);
+      return;
+    }
+    if (existingId) updates++;
+    else creates++;
+  });
+
+  return { creates, updates, errors };
+}
+
+/**
+ * Build a downloadable CSV template pre-populated with the tenant's current
+ * workforce, in the exact import columns (employeeNumber first). Re-importing it
+ * updates those employees (matched by number); clearing a number and re-importing
+ * creates a new one. An empty tenant gets a header-only template plus a single
+ * commented example row so the shape is clear.
+ */
+export async function exportEmployeeTemplateAction(): Promise<string> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
+
+  const employees = await runAsTenant(tenantId, (tx) =>
+    tx.employee.findMany({
+      where: { tenantId },
+      orderBy: { employeeNumber: "asc" },
+    })
+  );
+
+  // managerId is a plain column (no Prisma relation), so resolve manager emails
+  // via a lookup over the same result set.
+  const emailById = new Map<string, string>();
+  for (const e of employees) emailById.set(e.id, e.email);
+
+  const headers = IMPORT_COLUMNS.map((c) => c.key);
+
+  const toDateStr = (d: Date | null): string => (d ? d.toISOString().slice(0, 10) : "");
+  const num = (v: { toString(): string } | number | null): string =>
+    v == null ? "" : typeof v === "number" ? String(v) : v.toString();
+
+  const rows = employees.map((e) => {
+    // SA-ID holders: derive DOB/gender from the ID for the export; passport
+    // holders use the stored columns.
+    const record: Record<string, string> = {
+      employeeNumber: e.employeeNumber,
+      firstName: e.firstName,
+      lastName: e.lastName,
+      preferredName: e.preferredName ?? "",
+      email: e.email,
+      phone: e.phone,
+      idType: e.idType ?? "sa_id",
+      idNumber: e.idNumber ?? "",
+      passportNumber: e.passportNumber ?? "",
+      nationality: e.nationality ?? "",
+      dateOfBirth: toDateStr(e.dateOfBirth),
+      gender: e.gender ?? "",
+      maritalStatus: e.maritalStatus ?? "",
+      taxNumber: e.taxNumber ?? "",
+      jobTitle: e.jobTitle,
+      department: e.department,
+      employmentType: e.employmentType,
+      startDate: toDateStr(e.startDate),
+      location: e.location,
+      managerEmail: e.managerId ? emailById.get(e.managerId) ?? "" : "",
+      annualGross: num(e.salaryAnnualGross),
+      payFrequency: e.salaryPayFrequency,
+      travelAllowance: num(e.salaryTravelAllowance),
+      housingAllowance: num(e.salaryHousingAllowance),
+      pensionContributionPct: num(e.salaryPensionContributionPct),
+      medicalAid: num(e.salaryMedicalAid),
+      retirementAnnuity: num(e.salaryRetirementAnnuity),
+      bank: e.bankName,
+      accountNumber: e.bankAccountNumber,
+      branchCode: e.bankBranchCode,
+      accountType: e.bankAccountType,
+      address: e.address,
+      emergencyName: e.emergencyContactName,
+      emergencyRelationship: e.emergencyContactRelationship,
+      emergencyPhone: e.emergencyContactPhone,
+      nextOfKinName: e.nextOfKinName ?? "",
+      nextOfKinRelationship: e.nextOfKinRelationship ?? "",
+      nextOfKinPhone: e.nextOfKinPhone ?? "",
+      nextOfKinAddress: e.nextOfKinAddress ?? "",
+      equityRace: e.equityRace ?? "",
+      equityGender: e.equityGender ?? "",
+      occupationalLevel: e.occupationalLevel ?? "",
+      foreignNational: e.foreignNational ? "yes" : "no",
+      hasDisability: e.hasDisability ? "yes" : "no",
+    };
+    return headers.map((h) => record[h] ?? "");
+  });
+
+  // Empty tenant: header plus a single example row so the format is obvious.
+  if (rows.length === 0) {
+    const example = IMPORT_COLUMNS.map((c) => c.example);
+    return toCSV(headers, [example]);
+  }
+
+  return toCSV(headers, rows);
 }

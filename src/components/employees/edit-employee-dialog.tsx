@@ -29,12 +29,33 @@ import {
 import { useApp } from "@/lib/store/app-provider";
 import { useDepartments, useEmployees, useTenantId } from "@/lib/store/hooks";
 import { getPayrollSettingsAction } from "@/lib/settings/actions";
-import type { Employee, EmployerBenefit, EmploymentStatus, EmploymentType } from "@/lib/types";
+import type {
+  Employee,
+  EmployerBenefit,
+  EmploymentStatus,
+  EmploymentType,
+  Gender,
+  MaritalStatus,
+} from "@/lib/types";
 
 const EMPLOYMENT_TYPES: { value: EmploymentType; label: string }[] = [
   { value: "full_time", label: "Full-time" },
   { value: "part_time", label: "Part-time" },
   { value: "contract", label: "Contract" },
+];
+
+const GENDER_OPTIONS: { value: Gender; label: string }[] = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
+
+const MARITAL_OPTIONS: { value: MaritalStatus; label: string }[] = [
+  { value: "single", label: "Single" },
+  { value: "married", label: "Married" },
+  { value: "divorced", label: "Divorced" },
+  { value: "widowed", label: "Widowed" },
+  { value: "life_partner", label: "Life partner" },
 ];
 
 const STATUSES: { value: EmploymentStatus; label: string }[] = [
@@ -91,7 +112,8 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
     const profileErrors = validateEditEmployeeProfile({
       email: form.email,
       phone: form.phone,
-      emergencyPhone: form.emergencyPhone,
+      emergencyPhone: form.emergencyContactSameAsNextOfKin ? "" : form.emergencyPhone,
+      nextOfKinPhone: form.nextOfKinPhone,
     });
     const compensationErrors = validateEditEmployeeCompensation({ annualGross: form.annualGross });
     const allErrors = { ...profileErrors, ...compensationErrors };
@@ -103,11 +125,17 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
 
     setSaving(true);
     try {
+      const sameAsNok = form.emergencyContactSameAsNextOfKin;
       await updateEmployee(employee.id, {
         firstName: form.firstName,
         lastName: form.lastName,
         preferredName: form.preferredName || undefined,
         idNumber: form.idNumber,
+        passportNumber: form.passportNumber || undefined,
+        nationality: form.nationality || undefined,
+        dateOfBirth: form.dateOfBirth || undefined,
+        gender: (form.gender || undefined) as Gender | undefined,
+        maritalStatus: (form.maritalStatus || undefined) as MaritalStatus | undefined,
         taxNumber: form.taxNumber,
         startDate: form.startDate,
         managerId: form.managerId || undefined,
@@ -137,11 +165,29 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
             }))
             .filter((b) => b.label !== "" && b.amount > 0),
         },
-        emergencyContact: {
-          name: form.emergencyName,
-          relationship: form.emergencyRelationship,
-          phone: form.emergencyPhone,
-        },
+        nextOfKin: hasNextOfKin(form)
+          ? {
+              name: form.nextOfKinName,
+              relationship: form.nextOfKinRelationship,
+              phone: form.nextOfKinPhone,
+              address: form.nextOfKinAddress,
+            }
+          : undefined,
+        emergencyContactSameAsNextOfKin: sameAsNok,
+        // When the emergency contact mirrors the next of kin, send the
+        // next-of-kin values so the stored emergency-contact columns stay in
+        // sync (the server also mirrors them defensively).
+        emergencyContact: sameAsNok
+          ? {
+              name: form.nextOfKinName,
+              relationship: form.nextOfKinRelationship,
+              phone: form.nextOfKinPhone,
+            }
+          : {
+              name: form.emergencyName,
+              relationship: form.emergencyRelationship,
+              phone: form.emergencyPhone,
+            },
       });
 
       toast.success("Employee profile updated", {
@@ -192,7 +238,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
             <TabsList className="w-full">
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="compensation">Compensation</TabsTrigger>
-              <TabsTrigger value="emergency">Emergency contact</TabsTrigger>
+              <TabsTrigger value="emergency">Contacts</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile" className="mt-4 space-y-6">
@@ -241,14 +287,35 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                       onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="idNumber">SA ID number</Label>
-                    <Input
-                      id="idNumber"
-                      value={form.idNumber}
-                      onChange={(e) => setForm((f) => ({ ...f, idNumber: e.target.value }))}
-                    />
-                  </div>
+                  {form.idType === "passport" ? (
+                    <>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="passportNumber">Passport number</Label>
+                        <Input
+                          id="passportNumber"
+                          value={form.passportNumber}
+                          onChange={(e) => setForm((f) => ({ ...f, passportNumber: e.target.value }))}
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="nationality">Nationality</Label>
+                        <Input
+                          id="nationality"
+                          value={form.nationality}
+                          onChange={(e) => setForm((f) => ({ ...f, nationality: e.target.value }))}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="idNumber">SA ID number</Label>
+                      <Input
+                        id="idNumber"
+                        value={form.idNumber}
+                        onChange={(e) => setForm((f) => ({ ...f, idNumber: e.target.value }))}
+                      />
+                    </div>
+                  )}
                   <div className="space-y-1.5">
                     <Label htmlFor="taxNumber">Tax number <OptionalTag /></Label>
                     <Input
@@ -256,6 +323,64 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                       value={form.taxNumber}
                       onChange={(e) => setForm((f) => ({ ...f, taxNumber: e.target.value }))}
                     />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="dateOfBirth">
+                      Date of birth {form.idType === "sa_id" ? null : <OptionalTag />}
+                    </Label>
+                    <Input
+                      id="dateOfBirth"
+                      type="date"
+                      value={form.dateOfBirth}
+                      readOnly={form.idType === "sa_id"}
+                      disabled={form.idType === "sa_id"}
+                      onChange={(e) => setForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
+                    />
+                    {form.idType === "sa_id" ? (
+                      <p className="text-xs text-muted-foreground">Derived from the ID number.</p>
+                    ) : null}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="gender">Gender {form.idType === "sa_id" ? null : <OptionalTag />}</Label>
+                    <Select
+                      value={form.gender || undefined}
+                      disabled={form.idType === "sa_id"}
+                      onValueChange={(value) => setForm((f) => ({ ...f, gender: value as Gender }))}
+                    >
+                      <SelectTrigger id="gender" className="w-full">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GENDER_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {form.idType === "sa_id" ? (
+                      <p className="text-xs text-muted-foreground">Derived from the ID number.</p>
+                    ) : null}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="maritalStatus">Marital status <OptionalTag /></Label>
+                    <Select
+                      value={form.maritalStatus || undefined}
+                      onValueChange={(value) =>
+                        setForm((f) => ({ ...f, maritalStatus: value as MaritalStatus }))
+                      }
+                    >
+                      <SelectTrigger id="maritalStatus" className="w-full">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MARITAL_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <Label htmlFor="address">Residential address <OptionalTag /></Label>
@@ -512,35 +637,93 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
               </div>
             </TabsContent>
 
-            <TabsContent value="emergency" className="mt-4 space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label htmlFor="emergencyName">Full name</Label>
-                  <Input
-                    id="emergencyName"
-                    value={form.emergencyName}
-                    onChange={(e) => setForm((f) => ({ ...f, emergencyName: e.target.value }))}
-                  />
+            <TabsContent value="emergency" className="mt-4 space-y-6">
+              <div className="space-y-3">
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  Next of kin
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="nextOfKinName">Full name <OptionalTag /></Label>
+                    <Input
+                      id="nextOfKinName"
+                      value={form.nextOfKinName}
+                      onChange={(e) => setForm((f) => ({ ...f, nextOfKinName: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="nextOfKinRelationship">Relationship <OptionalTag /></Label>
+                    <Input
+                      id="nextOfKinRelationship"
+                      value={form.nextOfKinRelationship}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, nextOfKinRelationship: e.target.value }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="nextOfKinPhone">Phone <OptionalTag /></Label>
+                    <Input
+                      id="nextOfKinPhone"
+                      value={form.nextOfKinPhone}
+                      onChange={(e) => setForm((f) => ({ ...f, nextOfKinPhone: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="nextOfKinAddress">Address <OptionalTag /></Label>
+                    <Input
+                      id="nextOfKinAddress"
+                      value={form.nextOfKinAddress}
+                      onChange={(e) => setForm((f) => ({ ...f, nextOfKinAddress: e.target.value }))}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="emergencyRelationship">Relationship</Label>
-                  <Input
-                    id="emergencyRelationship"
-                    value={form.emergencyRelationship}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, emergencyRelationship: e.target.value }))
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={form.emergencyContactSameAsNextOfKin}
+                    onCheckedChange={(v) =>
+                      setForm((f) => ({ ...f, emergencyContactSameAsNextOfKin: v === true }))
                     }
                   />
-                </div>
-                <div className="space-y-1.5 sm:col-span-2">
-                  <Label htmlFor="emergencyPhone">Phone</Label>
-                  <Input
-                    id="emergencyPhone"
-                    value={form.emergencyPhone}
-                    onChange={(e) => setForm((f) => ({ ...f, emergencyPhone: e.target.value }))}
-                  />
-                </div>
+                  Next of kin is also the emergency contact
+                </label>
               </div>
+
+              {!form.emergencyContactSameAsNextOfKin ? (
+                <div className="space-y-3 border-t border-border pt-4">
+                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    Emergency contact
+                  </p>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="emergencyName">Full name</Label>
+                      <Input
+                        id="emergencyName"
+                        value={form.emergencyName}
+                        onChange={(e) => setForm((f) => ({ ...f, emergencyName: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="emergencyRelationship">Relationship</Label>
+                      <Input
+                        id="emergencyRelationship"
+                        value={form.emergencyRelationship}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, emergencyRelationship: e.target.value }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label htmlFor="emergencyPhone">Phone</Label>
+                      <Input
+                        id="emergencyPhone"
+                        value={form.emergencyPhone}
+                        onChange={(e) => setForm((f) => ({ ...f, emergencyPhone: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </TabsContent>
           </Tabs>
 
@@ -563,7 +746,13 @@ function buildFormState(employee: Employee) {
     firstName: employee.firstName,
     lastName: employee.lastName,
     preferredName: employee.preferredName ?? "",
+    idType: employee.idType ?? "sa_id",
     idNumber: employee.idNumber,
+    passportNumber: employee.passportNumber ?? "",
+    nationality: employee.nationality ?? "",
+    dateOfBirth: employee.dateOfBirth ? employee.dateOfBirth.slice(0, 10) : "",
+    gender: employee.gender ?? "",
+    maritalStatus: employee.maritalStatus ?? "",
     taxNumber: employee.taxNumber,
     startDate: employee.startDate.slice(0, 10),
     managerId: employee.managerId ?? "",
@@ -592,8 +781,22 @@ function buildFormState(employee: Employee) {
       amount: String(b.amount),
       taxable: b.taxable,
     })),
+    nextOfKinName: employee.nextOfKin?.name ?? "",
+    nextOfKinRelationship: employee.nextOfKin?.relationship ?? "",
+    nextOfKinPhone: employee.nextOfKin?.phone ?? "",
+    nextOfKinAddress: employee.nextOfKin?.address ?? "",
+    emergencyContactSameAsNextOfKin: employee.emergencyContactSameAsNextOfKin ?? false,
     emergencyName: employee.emergencyContact.name,
     emergencyRelationship: employee.emergencyContact.relationship,
     emergencyPhone: employee.emergencyContact.phone,
   };
+}
+
+function hasNextOfKin(form: ReturnType<typeof buildFormState>): boolean {
+  return Boolean(
+    form.nextOfKinName.trim() ||
+      form.nextOfKinRelationship.trim() ||
+      form.nextOfKinPhone.trim() ||
+      form.nextOfKinAddress.trim()
+  );
 }

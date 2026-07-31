@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanySettings } from "@/components/settings/company-settings";
 import { EmployeeNumberSettings } from "@/components/settings/employee-number-settings";
+import { CustomFieldsSettings } from "@/components/settings/custom-fields-settings";
 import { PayrollSettings } from "@/components/settings/payroll-settings";
 import { PayrollTaxSettings } from "@/components/settings/payroll-tax-settings";
 import { BenefitsSettings } from "@/components/settings/benefits-settings";
@@ -86,6 +87,12 @@ export default function SettingsPage() {
               description="Prefix and sequence used for new employee numbers."
             >
               <EmployeeNumberSettings />
+            </SettingsSection>
+            <SettingsSection
+              title="Custom fields"
+              description="Extra fields captured on every employee profile."
+            >
+              <CustomFieldsSettings />
             </SettingsSection>
           </div>
         </TabsContent>
