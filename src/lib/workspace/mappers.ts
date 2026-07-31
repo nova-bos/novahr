@@ -91,6 +91,7 @@ export function mapTenant(row: PrismaTenant, logoUrl?: string | null): Tenant {
     currentPeriodEnd: row.currentPeriodEnd?.toISOString() ?? null,
     paystackCustomerCode: row.paystackCustomerCode ?? null,
     paystackSubscriptionCode: row.paystackSubscriptionCode ?? null,
+    showBirthdaysOnCalendar: row.showBirthdaysOnCalendar ?? false,
   };
 }
 
@@ -216,6 +217,8 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
       }),
     })),
     onboarding: (row.onboarding as unknown as Onboarding | null) ?? undefined,
+    terminatedAt: row.terminatedAt?.toISOString() ?? null,
+    terminationReason: row.terminationReason ?? null,
   };
 }
 
@@ -301,6 +304,8 @@ export function mapPayrollRun(row: PrismaPayrollRun, payslipIds: string[]): Payr
     payDate: toDateOnly(row.payDate),
     status: row.status,
     branchId: row.branchId ?? undefined,
+    runType: (row.runType as "regular" | "off_cycle" | null) ?? undefined,
+    runReason: row.runReason ?? undefined,
     totalGross: decToNumber(row.totalGross),
     totalDeductions: decToNumber(row.totalDeductions),
     totalNet: decToNumber(row.totalNet),

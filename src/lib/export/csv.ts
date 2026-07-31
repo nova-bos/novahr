@@ -28,11 +28,17 @@ export function toCSV(
 
 /**
  * Triggers a browser file download for the given CSV string.
+ *
+ * A UTF-8 byte order mark (BOM) is prepended so Microsoft Excel detects the
+ * encoding and opens the file cleanly (Rand symbols, accented names, and other
+ * non-ASCII text stay intact). We have no xlsx library in the dependency tree,
+ * so a BOM-tagged .csv is the reliable, dependency-free way to hand a report to
+ * Excel. Other spreadsheet tools ignore the BOM.
  * @param csv      The CSV content string
  * @param filename The suggested filename (without extension)
  */
 export function downloadCSV(csv: string, filename: string): void {
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob(["﻿", csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;

@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useScopedEmployees, useScopedLeaveRequests } from "@/lib/auth/scope";
-import { useCustomHolidays } from "@/lib/store/hooks";
+import { useCustomHolidays, useCurrentTenant } from "@/lib/store/hooks";
 import { SA_PUBLIC_HOLIDAYS } from "@/lib/leave/business-days";
 import { getInitials, leaveTypeLabel } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -97,18 +97,34 @@ function LeaveChip({ entry }: { entry: DayEntry }) {
   );
 }
 
+function BirthdayChip({ names }: { names: string[] }) {
+  const label = names.join(", ");
+  return (
+    <span
+      title={`Birthday: ${label}`}
+      className="flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-[11px] font-medium"
+      style={{ backgroundColor: "#f59e0b22", color: "#b45309" }}
+    >
+      <span aria-hidden>&#127874;</span>
+      <span className="truncate">{label}</span>
+    </span>
+  );
+}
+
 function DayCell({
   date,
   inMonth,
   isToday,
   entries,
   holiday,
+  birthdays,
 }: {
   date: Date;
   inMonth: boolean;
   isToday: boolean;
   entries: DayEntry[];
   holiday?: { name: string; custom: boolean };
+  birthdays?: string[];
 }) {
   const visible = entries.slice(0, MAX_VISIBLE_PER_DAY);
   const overflow = entries.slice(MAX_VISIBLE_PER_DAY);
@@ -144,6 +160,9 @@ function DayCell({
         )}
       </div>
       <div className="flex flex-col gap-1">
+        {birthdays && birthdays.length > 0 ? (
+          <BirthdayChip names={birthdays} />
+        ) : null}
         {visible.map((entry) => (
           <LeaveChip key={entry.request.id} entry={entry} />
         ))}
@@ -229,6 +248,7 @@ export function LeaveCalendar() {
   const requests = useScopedLeaveRequests();
   const employees = useScopedEmployees();
   const customHolidays = useCustomHolidays();
+  const tenant = useCurrentTenant();
 
   const today = React.useMemo(() => new Date(), []);
   const [cursor, setCursor] = React.useState(
@@ -287,6 +307,22 @@ export function LeaveCalendar() {
     }
     return map;
   }, [visibleRequests, employeeById]);
+
+  // Birthday markers: day/month only, never year. One entry per employee with a
+  // dateOfBirth, keyed by "MM-DD" so they repeat every year. Only shown when the
+  // tenant setting is on. Only active employees are included.
+  const birthdaysByMonthDay = React.useMemo(() => {
+    if (!tenant.showBirthdaysOnCalendar) return new Map<string, string[]>();
+    const map = new Map<string, string[]>();
+    for (const emp of employees) {
+      if (emp.status === "terminated" || !emp.dateOfBirth) continue;
+      const dob = emp.dateOfBirth.slice(5, 10); // "MM-DD"
+      const names = map.get(dob) ?? [];
+      names.push(emp.preferredName ?? emp.firstName);
+      map.set(dob, names);
+    }
+    return map;
+  }, [employees, tenant.showBirthdaysOnCalendar]);
 
   const holidayMap = React.useMemo(
     () => buildCalendarHolidayMap(cursor.getFullYear(), customHolidays),
@@ -362,16 +398,20 @@ export function LeaveCalendar() {
                   {day}
                 </div>
               ))}
-              {gridDays.map((date) => (
-                <DayCell
-                  key={date.toISOString()}
-                  date={date}
-                  inMonth={date.getMonth() === cursor.getMonth()}
-                  isToday={isSameDay(date, today)}
-                  entries={entriesByDay.get(toDayNumber(date)) ?? []}
-                  holiday={holidayMap.get(toIsoDate(date))}
-                />
-              ))}
+              {gridDays.map((date) => {
+                const monthDay = `${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+                return (
+                  <DayCell
+                    key={date.toISOString()}
+                    date={date}
+                    inMonth={date.getMonth() === cursor.getMonth()}
+                    isToday={isSameDay(date, today)}
+                    entries={entriesByDay.get(toDayNumber(date)) ?? []}
+                    holiday={holidayMap.get(toIsoDate(date))}
+                    birthdays={birthdaysByMonthDay.get(monthDay)}
+                  />
+                );
+              })}
             </div>
           </div>
         </div>

@@ -69,6 +69,8 @@ export function makeEmployeeRow(overrides: Partial<EmployeeWithBalances> = {}): 
     foreignNational: false,
     hasDisability: false,
     onboarding: null,
+    terminatedAt: null,
+    terminationReason: null,
     createdAt: new Date("2024-01-15T00:00:00Z"),
     updatedAt: new Date("2024-01-15T00:00:00Z"),
     leaveBalances: [
@@ -110,6 +112,7 @@ export function makeTenantRow(overrides: Partial<PrismaTenant> = {}): PrismaTena
     currentPeriodEnd: null,
     billingMemberCount: null,
     billingAmountKobo: null,
+    showBirthdaysOnCalendar: false,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     updatedAt: new Date("2026-01-01T00:00:00Z"),
     ...overrides,

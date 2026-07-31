@@ -86,6 +86,7 @@ describe("mapTenant", () => {
       currentPeriodEnd: null,
       billingMemberCount: null,
       billingAmountKobo: null,
+      showBirthdaysOnCalendar: false,
       createdAt: new Date("2026-01-01T00:00:00Z"),
       updatedAt: new Date("2026-01-01T00:00:00Z"),
     };
@@ -114,6 +115,7 @@ describe("mapTenant", () => {
       currentPeriodEnd: null,
       paystackCustomerCode: null,
       paystackSubscriptionCode: null,
+      showBirthdaysOnCalendar: false,
     });
   });
 });
@@ -184,6 +186,8 @@ describe("mapEmployee", () => {
     foreignNational: false,
     hasDisability: false,
     onboarding: null,
+    terminatedAt: null,
+    terminationReason: null,
     createdAt: new Date("2024-01-15T00:00:00Z"),
     updatedAt: new Date("2024-01-15T00:00:00Z"),
     leaveBalances: [],
@@ -403,6 +407,8 @@ describe("mapPayrollRun", () => {
     approvedBy: null,
     approvedAt: null,
     approvalNote: null,
+    runType: "regular",
+    runReason: null,
   };
 
   it("maps an unprocessed run with no processedOn timestamp", () => {

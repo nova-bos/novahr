@@ -57,10 +57,14 @@ export async function terminateEmployeeAction(
     const remainingAnnual = annualBalance ? Math.max(0, annualEntitlement - annualBalance.used) : 0;
     const leavePayout = remainingAnnual * dailyRate;
 
-    // Set terminated status
+    // Set terminated status and record the termination date and reason.
     await tx.employee.update({
       where: { id: input.employeeId },
-      data: { status: "terminated" },
+      data: {
+        status: "terminated",
+        terminatedAt: new Date(input.terminationDate),
+        terminationReason: input.reason,
+      },
     });
 
     // Deactivate payroll profile

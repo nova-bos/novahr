@@ -50,7 +50,13 @@ export function CurrentRunCard() {
   const [isStarting, startStartTransition] = React.useTransition();
   const [isFinalizing, startFinalizeTransition] = React.useTransition();
 
-  const run = runs.find((r) => r.status === "scheduled" || r.status === "processing");
+  // The "current run" card only ever drives the regular monthly run. Off-cycle
+  // runs (bonus or correction runs) are managed from their own detail page, so
+  // they must never hijack this card. A null runType is treated as regular.
+  const run = runs.find(
+    (r) =>
+      (r.status === "scheduled" || r.status === "processing") && (r.runType ?? "regular") === "regular"
+  );
 
   if (!run) return null;
 

@@ -1,5 +1,40 @@
 import type { LeaveType } from "@/lib/types";
 
+/**
+ * BCEA section 22 sick-leave entitlement for the first 6 months of service.
+ *
+ * During the first 6 calendar months a new employee may only take 1 day of
+ * sick leave per 26 working days worked (BCEA s.22(2)). After 6 months the
+ * full 36-month cycle of 30 working days (for a 5-day week) applies.
+ *
+ * Returns the number of sick leave days the employee is entitled to use as of
+ * `asOf`. Callers should compare this to the employee's current sick leave
+ * balance to determine how many days remain available.
+ *
+ * @param startDate ISO date string of the employee's start date.
+ * @param cycleDays The full sick-leave cycle entitlement (default 30 for a
+ *   five-day-week employee under the BCEA).
+ * @param asOf Date to evaluate against (defaults to today).
+ */
+export function sickLeaveEntitlement(params: {
+  startDate: string;
+  cycleDays?: number;
+  asOf?: Date;
+}): number {
+  const { startDate, cycleDays = 30 } = params;
+  const asOf = params.asOf ?? new Date();
+  const months = completedMonths(new Date(startDate), asOf);
+  if (months >= 6) {
+    // Past the first 6 months: full 36-month cycle entitlement.
+    return cycleDays;
+  }
+  // First 6 months: 1 day per 26 working days.
+  // Working days = months * ~21.67 (261 / 12). We use 26-day periods.
+  const workingDaysApprox = months * (261 / 12);
+  const periodsCompleted = Math.floor(workingDaysApprox / 26);
+  return Math.min(cycleDays, periodsCompleted);
+}
+
 export type LeaveAccrualMethod = "upfront" | "accrual";
 
 // Leave types that accrue monthly under the accrual method. In SA only annual

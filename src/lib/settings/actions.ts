@@ -425,3 +425,16 @@ export async function testNetcashKeyAction(
     };
   }
 }
+
+export async function updateTenantCalendarSettingsAction(input: {
+  showBirthdaysOnCalendar: boolean;
+}): Promise<void> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
+  await runAsTenant(tenantId, async (tx) => {
+    await tx.tenant.update({
+      where: { id: tenantId },
+      data: { showBirthdaysOnCalendar: input.showBirthdaysOnCalendar },
+    });
+  });
+}

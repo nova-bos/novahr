@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   BanknoteArrowDown,
   CreditCard,
+  Megaphone,
   type LucideIcon,
 } from "lucide-react";
 import type { AppUser } from "@/lib/auth/types";
@@ -36,6 +37,7 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "Employees", href: "/employees", icon: Users },
         { title: "Payroll", href: "/payroll", icon: Wallet },
         { title: "Leave", href: "/leave", icon: CalendarRange },
+        { title: "Announcements", href: "/announcements", icon: Megaphone },
         { title: "Compliance", href: "/compliance", icon: ShieldCheck },
         { title: "Deductions", href: "/deductions", icon: BanknoteArrowDown },
         { title: "Reports", href: "/reports", icon: BarChart3 },
@@ -48,12 +50,14 @@ export function getNavItems(user: AppUser | null): NavItem[] {
         { title: "My Team", href: "/employees", icon: Users },
         { title: "My Payslips", href: "/payroll", icon: Wallet },
         { title: "Leave", href: "/leave", icon: CalendarRange },
+        { title: "Announcements", href: "/announcements", icon: Megaphone },
       ];
     case "employee":
       return [
         { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
         { title: "My Payslips", href: "/payroll", icon: Wallet },
         { title: "Leave", href: "/leave", icon: CalendarRange },
+        { title: "Announcements", href: "/announcements", icon: Megaphone },
       ];
     case "exco":
       return [
