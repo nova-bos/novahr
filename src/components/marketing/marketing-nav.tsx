@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
 import { appLink } from "@/lib/marketing/app-link";
 import { Logo } from "@/components/layout/logo";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const NAV_LINKS = [
 
 export function MarketingNav() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     function handleScroll() {
@@ -49,14 +51,45 @@ export function MarketingNav() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" className="hidden md:inline-flex" asChild>
             <Link href={appLink("/login")}>Sign in</Link>
           </Button>
-          <Button size="sm" asChild>
+          <Button size="sm" className="hidden md:inline-flex" asChild>
             <Link href={appLink("/signup")}>Get started</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
       </div>
+
+      {menuOpen && (
+        <div className="border-t bg-background/95 px-4 pb-4 md:hidden">
+          <nav className="flex flex-col gap-1 pt-2">
+            {NAV_LINKS.map((link) => (
+              <Button key={link.href} variant="ghost" size="sm" className="justify-start" asChild>
+                <Link href={link.href} onClick={() => setMenuOpen(false)}>
+                  {link.label}
+                </Link>
+              </Button>
+            ))}
+          </nav>
+          <div className="mt-3 flex flex-col gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link href={appLink("/login")} onClick={() => setMenuOpen(false)}>Sign in</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href={appLink("/signup")} onClick={() => setMenuOpen(false)}>Get started</Link>
+            </Button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

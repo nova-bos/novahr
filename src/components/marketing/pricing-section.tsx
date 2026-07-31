@@ -16,7 +16,7 @@ const FEATURES = [
   "Payroll processing",
   "Leave management",
   "Compliance tracking",
-  "NetCash integration",
+  "Netcash integration",
   "EMP201 returns",
   "Employment equity",
   "Reports and analytics",
@@ -53,8 +53,8 @@ export function PricingSection() {
       </div>
 
       {/* Examples table */}
-      <div className="rounded-2xl border overflow-hidden mb-8">
-        <table className="w-full text-sm">
+      <div className="rounded-2xl border overflow-x-auto mb-8">
+        <table className="w-full min-w-[480px] text-sm">
           <thead className="bg-muted/50">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-muted-foreground">Active members</th>

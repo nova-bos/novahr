@@ -151,6 +151,10 @@ export async function completePayrollRunRecord(
       const payDateStr = toDateOnly(run.payDate);
       const eligible = employees.filter((e) => e.status !== "terminated" && e.startDate <= payDateStr);
 
+      if (eligible.length === 0) {
+        throw new Error("There are no eligible employees for this payroll run. Add employees and try again.");
+      }
+
       const totalAnnualPayroll = sum(eligible, (e) => e.salary.annualGross);
       const isSDLLiable = totalAnnualPayroll >= 500_000;
 
@@ -523,17 +527,19 @@ export async function completePayrollRunRecord(
   // Only send payslip emails if the run went straight to completed (no approval required)
   if (payrollRun.status === "completed") {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-    for (const payslip of newPayslips) {
-      const emp = eligible.find((e) => e.id === payslip.employeeId);
-      if (!emp) continue;
-      void sendPayslipEmail({
-        recipientEmail: emp.email,
-        employeeName: `${emp.firstName} ${emp.lastName}`,
-        period: payslip.period,
-        netPay: payslip.netPay,
-        appUrl,
-      });
-    }
+    await Promise.allSettled(
+      newPayslips.map(async (payslip) => {
+        const emp = eligible.find((e) => e.id === payslip.employeeId);
+        if (!emp) return;
+        await sendPayslipEmail({
+          recipientEmail: emp.email,
+          employeeName: `${emp.firstName} ${emp.lastName}`,
+          period: payslip.period,
+          netPay: payslip.netPay,
+          appUrl,
+        });
+      })
+    );
 
     // Roll the run up into the EMP201 (and PAYE/UIF/SDL) compliance records.
     // Best-effort: a compliance hiccup must not fail payroll completion.

@@ -137,7 +137,7 @@ export async function GET(req: NextRequest) {
           update: { status: "failed", amountKobo, paystackChargeId },
         });
         if (tenant.paystackBillingEmail) {
-          void sendPaymentFailedEmail({
+          await sendPaymentFailedEmail({
             recipientEmail: tenant.paystackBillingEmail,
             companyName: tenant.name,
             amountRands: amountRands,
@@ -155,7 +155,7 @@ export async function GET(req: NextRequest) {
         const lastAmountRands = tenant.billingAmountKobo != null
           ? tenant.billingAmountKobo / 100
           : 0;
-        void sendPaymentFailedEmail({
+        await sendPaymentFailedEmail({
           recipientEmail: tenant.paystackBillingEmail,
           companyName: tenant.name,
           amountRands: lastAmountRands,
