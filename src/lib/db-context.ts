@@ -1,5 +1,5 @@
 import { prisma } from "./prisma";
-import type { Prisma } from "@prisma/client";
+import type { TenantTransactionClient } from "./prisma";
 
 /**
  * Runs `fn` inside a Prisma transaction with the Postgres session variable
@@ -15,7 +15,7 @@ import type { Prisma } from "@prisma/client";
  */
 export async function runAsTenant<T>(
   tenantId: string,
-  fn: (tx: Prisma.TransactionClient) => Promise<T>
+  fn: (tx: TenantTransactionClient) => Promise<T>
 ): Promise<T> {
   return prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT set_config('app.tenant_id', ${tenantId}, true)`;

@@ -84,7 +84,7 @@ export default function PaiaManualPage() {
               ],
               [
                 "Security measures",
-                "Encryption in transit and at rest, tenant isolation, role-based access control, MFA for administrators, audit logging, daily backups; see POPIA Compliance Statement",
+                "Encryption in transit and at rest, tenant isolation, role-based administrative access controls on a least-privilege basis, audit logging, daily backups; see POPIA Compliance Statement",
               ],
             ],
           },

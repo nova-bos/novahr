@@ -2,7 +2,7 @@
 
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant, requireActiveSubscription } from "@/lib/auth/require";
-import type { Prisma } from "@prisma/client";
+import type { TenantTransactionClient } from "@/lib/prisma";
 
 export interface EmployeeNumberConfig {
   prefix: string;
@@ -96,7 +96,7 @@ export async function retroactivelyRenumberEmployeesAction(
  */
 export async function claimNextEmployeeNumber(
   tenantId: string,
-  tx: Prisma.TransactionClient
+  tx: TenantTransactionClient
 ): Promise<string> {
   const config = await tx.employeeNumberConfig.upsert({
     where: { tenantId },

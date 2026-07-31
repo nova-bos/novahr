@@ -358,6 +358,81 @@ export async function generateEmp201FromRunAction(
   });
 }
 
+export interface EtiScheduleRow {
+  employeeName: string;
+  employeeNumber: string;
+  idNumber: string;
+  period: string;
+  etiMonth: number;
+  band: "First 12 months" | "Second 12 months";
+  monthlyRemuneration: number;
+  hoursWorked: number;
+  amount: number;
+}
+
+/**
+ * Per-employee ETI supporting schedule for a period. One row per qualifying
+ * employee, drawn from the EtiClaim ledger joined to the payslip's gross pay
+ * and the employee record. This is the audit trail an employer hands to SARS
+ * to support the ETI figure claimed on the EMP201. Read-only and tenant-scoped.
+ * Employee ID numbers decrypt transparently via the Prisma layer.
+ */
+export async function getEtiScheduleAction(
+  tenantId: string,
+  period: string
+): Promise<EtiScheduleRow[]> {
+  await requireTenant(tenantId, "hr", "exco");
+  return runAsTenant(tenantId, async (tx) => {
+    const claims = await tx.etiClaim.findMany({
+      where: { tenantId, period },
+      include: {
+        employee: {
+          select: {
+            firstName: true,
+            lastName: true,
+            employeeNumber: true,
+            idNumber: true,
+          },
+        },
+      },
+    });
+
+    // Gross pay per employee for this period comes from the most recent
+    // completed run's payslips, so the schedule shows the remuneration the ETI
+    // was calculated on. Hours are the ETI-standard 160-hour month.
+    const run = await tx.payrollRun.findFirst({
+      where: { tenantId, period, status: "completed" },
+      orderBy: { processedOn: "desc" },
+      select: { id: true },
+    });
+    const payslips = run
+      ? await tx.payslip.findMany({
+          where: { runId: run.id, tenantId },
+          select: { employeeId: true, grossPay: true },
+        })
+      : [];
+    const grossByEmployee = new Map(payslips.map((p) => [p.employeeId, p.grossPay.toNumber()]));
+
+    const round2 = (v: number) => Math.round(v * 100) / 100;
+    return claims
+      .filter((c) => c.employee)
+      .map((c) => ({
+        employeeName: `${c.employee!.firstName} ${c.employee!.lastName}`,
+        employeeNumber: c.employee!.employeeNumber,
+        idNumber: c.employee!.idNumber,
+        period: c.period,
+        etiMonth: c.qualifyingMonth,
+        band: (c.qualifyingMonth <= 12 ? "First 12 months" : "Second 12 months") as
+          | "First 12 months"
+          | "Second 12 months",
+        monthlyRemuneration: round2(grossByEmployee.get(c.employeeId) ?? 0),
+        hoursWorked: 160,
+        amount: round2(c.amount.toNumber()),
+      }))
+      .sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  });
+}
+
 /**
  * Fetches the EMP201 consolidated record for a given period, or null.
  */

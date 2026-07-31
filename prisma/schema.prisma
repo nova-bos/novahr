@@ -847,3 +847,14 @@ model EtiClaim {
   @@index([tenantId])
   @@index([employeeId])
 }
+
+/// Shared fixed-window rate-limit counters. Backs the security rate limiter so
+/// limits hold across serverless instances instead of per warm instance. Not
+/// tenant-scoped: the key namespaces the protected action and identifier (IP,
+/// tenant or session), e.g. "login:203.0.113.7".
+model RateLimit {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+  updatedAt   DateTime @updatedAt
+}

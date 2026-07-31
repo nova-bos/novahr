@@ -53,8 +53,10 @@ const PERIOD = "2026-03"; // last day 2026-03-31
 // SARS ETI guide. If someone edits a band, rate or threshold, these fail.
 describe("calculateEti — first 12 qualifying months", () => {
   it("pays 60% in the lowest band", () => {
+    // R2,000 sits below the NMW monthly floor (R4,606.40), so the band-math
+    // check here overrides the floor to isolate the 60% first-band calculation.
     const r = calculateEti(
-      { period: PERIOD, monthlyRemuneration: 2000, monthsAlreadyClaimed: 0 },
+      { period: PERIOD, monthlyRemuneration: 2000, monthsAlreadyClaimed: 0, minMonthlyWage: 0 },
       makeEmployee()
     );
     expect(r.qualifies).toBe(true);
@@ -64,7 +66,7 @@ describe("calculateEti — first 12 qualifying months", () => {
 
   it("pays the flat maximum in the middle band", () => {
     const r = calculateEti(
-      { period: PERIOD, monthlyRemuneration: 3500, monthsAlreadyClaimed: 0 },
+      { period: PERIOD, monthlyRemuneration: 3500, monthsAlreadyClaimed: 0, minMonthlyWage: 0 },
       makeEmployee()
     );
     expect(r.amount).toBeCloseTo(1500, 2);
@@ -83,7 +85,7 @@ describe("calculateEti — first 12 qualifying months", () => {
 describe("calculateEti — second 12 qualifying months", () => {
   it("pays half the flat maximum", () => {
     const r = calculateEti(
-      { period: PERIOD, monthlyRemuneration: 3500, monthsAlreadyClaimed: 12 },
+      { period: PERIOD, monthlyRemuneration: 3500, monthsAlreadyClaimed: 12, minMonthlyWage: 0 },
       makeEmployee()
     );
     expect(r.qualifyingMonth).toBe(13);
@@ -109,14 +111,73 @@ describe("deriveDateOfBirthFromSaId", () => {
 
   it("lets ETI derive age from the id when dateOfBirth is absent", () => {
     const r = calculateEti(
-      { period: PERIOD, monthlyRemuneration: 3500, monthsAlreadyClaimed: 0 },
+      { period: PERIOD, monthlyRemuneration: 3500, monthsAlreadyClaimed: 0, minMonthlyWage: 0 },
       { idNumber: "0006155800081", startDate: "2024-01-01" } // age 25, no dateOfBirth
     );
     expect(r.qualifies).toBe(true);
   });
 });
 
+describe("calculateEti — 160-hour rule and NMW floor", () => {
+  it("grosses up sub-160-hour remuneration and apportions the ETI back down", () => {
+    // 80 hours at R2,500 -> grossedUp = 2500 * 160/80 = R5,000 (passes floor),
+    // middle band ETI = R1,500 on the grossed-up figure, apportioned:
+    // 1500 * 80/160 = R750.
+    const r = calculateEti(
+      { period: PERIOD, monthlyRemuneration: 2500, monthsAlreadyClaimed: 0, hoursWorked: 80 },
+      makeEmployee()
+    );
+    expect(r.qualifies).toBe(true);
+    expect(r.amount).toBeCloseTo(750, 2);
+  });
+
+  it("reproduces the full-month amount when hoursWorked is exactly 160", () => {
+    const withHours = calculateEti(
+      { period: PERIOD, monthlyRemuneration: 5000, monthsAlreadyClaimed: 0, hoursWorked: 160 },
+      makeEmployee()
+    );
+    const withoutHours = calculateEti(
+      { period: PERIOD, monthlyRemuneration: 5000, monthsAlreadyClaimed: 0 },
+      makeEmployee()
+    );
+    expect(withHours.amount).toBe(withoutHours.amount);
+  });
+
+  it("disqualifies a sub-minimum-wage employee against the NMW floor", () => {
+    // R4,000 for a full month sits below the R4,606.40 NMW monthly floor.
+    const r = calculateEti(
+      { period: PERIOD, monthlyRemuneration: 4000, monthsAlreadyClaimed: 0 },
+      makeEmployee()
+    );
+    expect(r.qualifies).toBe(false);
+    expect(r.disqualifications).toContain("below_minimum_wage");
+  });
+
+  it("applies the NMW floor to the grossed-up figure for part-month work", () => {
+    // 80 hours at R2,000 -> grossedUp = R4,000, still below the R4,606.40 floor.
+    const r = calculateEti(
+      { period: PERIOD, monthlyRemuneration: 2000, monthsAlreadyClaimed: 0, hoursWorked: 80 },
+      makeEmployee()
+    );
+    expect(r.disqualifications).toContain("below_minimum_wage");
+  });
+});
+
 describe("calculateEti — disqualifications", () => {
+  it("emits employment_type_excluded when the employer is barred", () => {
+    const r = calculateEti(
+      {
+        period: PERIOD,
+        monthlyRemuneration: 5000,
+        monthsAlreadyClaimed: 0,
+        employmentExcluded: true,
+      },
+      makeEmployee()
+    );
+    expect(r.qualifies).toBe(false);
+    expect(r.disqualifications).toContain("employment_type_excluded");
+  });
+
   it("rejects employees at or above the remuneration ceiling", () => {
     const r = calculateEti(
       { period: PERIOD, monthlyRemuneration: 7500, monthsAlreadyClaimed: 0 },

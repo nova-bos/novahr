@@ -17,7 +17,7 @@ export async function GET() {
   // this can never be used to send mail to arbitrary recipients.
   const to = session.email;
 
-  const rate = checkRateLimit(session.tenantId, { name: "email-test", limit: 5, windowMs: 10 * 60 * 1000 });
+  const rate = await checkRateLimit(session.tenantId, { name: "email-test", limit: 5, windowMs: 10 * 60 * 1000 });
   if (!rate.allowed) {
     return NextResponse.json({ error: "Too many test emails. Try again in a few minutes." }, { status: 429 });
   }

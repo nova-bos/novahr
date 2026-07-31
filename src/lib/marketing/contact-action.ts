@@ -18,7 +18,7 @@ export interface ContactFormResult {
 export async function submitContactFormAction(
   data: ContactFormInput
 ): Promise<ContactFormResult> {
-  const rate = checkRateLimit(await clientKey(), { name: "contact-form", limit: 5, windowMs: 60 * 60 * 1000 });
+  const rate = await checkRateLimit(await clientKey(), { name: "contact-form", limit: 5, windowMs: 60 * 60 * 1000 });
   if (!rate.allowed) {
     return { success: false, error: "Too many messages sent. Please try again later or email us directly." };
   }
