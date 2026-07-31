@@ -94,6 +94,15 @@ function annualPaye(annualTaxable: Decimal, dateOfBirth?: string): Decimal {
   return Decimal.max(tax.minus(totalRebate(dateOfBirth)), 0);
 }
 
+/**
+ * Annual PAYE for a given annual taxable income, after brackets and age rebates.
+ * Exposed so callers (and the annual-payment delta method) can reuse the exact
+ * same bracket/rebate logic. Returns a plain number of rands.
+ */
+export function annualTaxFor(annualTaxable: number, dateOfBirth?: string): number {
+  return annualPaye(new Decimal(annualTaxable), dateOfBirth).toNumber();
+}
+
 export interface PayrollBreakdown {
   basicSalary: number;
   earnings: PayslipLineItem[];
@@ -112,6 +121,29 @@ export interface PayrollBreakdown {
   taxRebateAnnual: number;
 }
 
+/**
+ * A single variable-pay component supplied to the calculator for one employee
+ * for one run (Phase 4). `amount` is always the final rand value: hours-based
+ * components (overtime, sunday time, and so on) must have their
+ * quantity x rate x statutory multiplier resolved to `amount` upstream. The
+ * calculator only ever consumes `amount`; quantity/rate ride along for display.
+ *
+ * taxTreatment:
+ *   "regular"        -> annualises like normal income (x12), raising annualised
+ *                       taxable income and PAYE. Overtime, commission, shift,
+ *                       standby, sunday, public holiday, allowances.
+ *   "annual_payment" -> taxed via the SARS non-recurring delta method (see
+ *                       annualPaymentPaye). Bonus, 13th cheque, back pay.
+ */
+export interface PayrollInputValue {
+  componentType: string;
+  label: string;
+  amount: number;
+  taxTreatment: "regular" | "annual_payment";
+  quantity?: number;
+  rate?: number;
+}
+
 export interface PayrollOptions {
   isSDLLiable?: boolean;
   unpaidLeaveDays?: number;
@@ -119,6 +151,9 @@ export interface PayrollOptions {
   // Per-tenant statutory configuration from PayrollSettings. Falls back to
   // STATUTORY_DEFAULTS so client-side projections stay correct without a fetch.
   statutory?: StatutorySettings;
+  // Optional variable-pay lines for this employee for this run. When absent or
+  // empty, the calculation is byte-for-byte identical to the salaried path.
+  inputs?: PayrollInputValue[];
 }
 
 export function calculateMonthlyPayroll(
@@ -131,7 +166,24 @@ export function calculateMonthlyPayroll(
     unpaidLeaveDays = 0,
     workingDaysInMonth = 21,
     statutory = STATUTORY_DEFAULTS,
+    inputs = [],
   } = options;
+
+  // Split variable-pay lines by tax treatment. Regular components annualise with
+  // normal income; annual-payment components are taxed via the SARS delta method.
+  // Custom cash deductions (deduction_custom) are post-tax and excluded from both
+  // taxable buckets; they are handled as net-pay deductions further down.
+  const earningInputs = inputs.filter((i) => i.componentType !== "deduction_custom");
+  const regularInputs = earningInputs.filter((i) => i.taxTreatment !== "annual_payment");
+  const annualPaymentInputs = earningInputs.filter((i) => i.taxTreatment === "annual_payment");
+  const regularInputTotal = regularInputs.reduce(
+    (sum, i) => sum.plus(i.amount),
+    new Decimal(0)
+  );
+  const annualPaymentTotal = annualPaymentInputs.reduce(
+    (sum, i) => sum.plus(i.amount),
+    new Decimal(0)
+  );
 
   const freq = salary.payFrequency in DIVISORS ? (salary.payFrequency as keyof typeof DIVISORS) : "monthly";
   const divisor = DIVISORS[freq];
@@ -145,8 +197,24 @@ export function calculateMonthlyPayroll(
   if (salary.travelAllowance) earnings.push({ label: "Travel Allowance", amount: travelMonthly.toNumber() });
   if (salary.housingAllowance) earnings.push({ label: "Housing Allowance", amount: housingMonthly.toNumber() });
 
-  // grossPay is the contractual amount before the unpaid deduction
-  const grossPay = basicSalary.plus(travelMonthly).plus(housingMonthly).toDecimalPlaces(2);
+  // Variable-pay earning lines (both regular and annual-payment) appear on the
+  // payslip as their own lines and are part of cash gross. Deduction-type custom
+  // components are handled separately below and never appear here.
+  for (const input of inputs) {
+    if (input.componentType === "deduction_custom") continue;
+    earnings.push({ label: input.label, amount: new Decimal(input.amount).toDecimalPlaces(2).toNumber() });
+  }
+  // Custom cash deductions supplied as variable inputs (post-tax).
+  const customDeductionInputs = inputs.filter((i) => i.componentType === "deduction_custom");
+
+  // grossPay is the contractual amount before the unpaid deduction, plus all
+  // variable cash components (regular and annual-payment) for the month.
+  const grossPay = basicSalary
+    .plus(travelMonthly)
+    .plus(housingMonthly)
+    .plus(regularInputTotal)
+    .plus(annualPaymentTotal)
+    .toDecimalPlaces(2);
 
   // Unpaid leave reduces the effective pay base used for all tax/levy calculations
   const unpaidDeduction = unpaidLeaveDays > 0
@@ -168,10 +236,13 @@ export function calculateMonthlyPayroll(
   // plus taxable fringe benefits, minus s11F pension
   const travelInclusion = salary.hasLogbook ? new Decimal("0.20") : new Decimal("0.80");
   const travelTaxable = travelMonthly.times(travelInclusion);
+  // Regular variable components raise the annualised taxable income exactly like
+  // normal income: they are added to the monthly remuneration before x divisor.
   const annualRemuneration = adjustedBasic
     .plus(travelTaxable)
     .plus(housingMonthly)
     .plus(taxableBenefitsMonthly)
+    .plus(regularInputTotal)
     .times(divisor);
 
   const pensionMonthly = salary.pensionContributionPct
@@ -207,10 +278,32 @@ export function calculateMonthlyPayroll(
     isMedicalMember && salary.medicalAidDependants != null
       ? monthlyMatc(salary.medicalAidDependants).times(12)
       : new Decimal(0);
-  const paye = Decimal.max(annualPAYE.minus(matcAnnual), 0).dividedBy(divisor).toDecimalPlaces(2);
+  const regularPaye = Decimal.max(annualPAYE.minus(matcAnnual), 0).dividedBy(divisor);
 
-  // Leviable remuneration for UIF and SDL includes taxable fringe benefits.
-  const leviableGross = adjustedGross.plus(taxableBenefitsMonthly);
+  // Annual-payment components (bonus, 13th cheque, back pay) are taxed once off,
+  // NOT annualised. The SARS non-recurring method taxes them at the employee's
+  // marginal position: PAYE on the component equals the extra annual tax it
+  // creates, i.e. tax_on(annualTaxable + component) - tax_on(annualTaxable),
+  // using the same bracket/rebate logic (annualPaye). This whole delta is added
+  // to the month's PAYE. When there is no annual payment the delta is zero, so
+  // the salaried monthly path is unchanged.
+  const annualPaymentPaye = annualPaymentTotal.greaterThan(0)
+    ? Decimal.max(
+        annualPaye(annualTaxable.plus(annualPaymentTotal), employee.dateOfBirth).minus(
+          annualPaye(annualTaxable, employee.dateOfBirth)
+        ),
+        0
+      )
+    : new Decimal(0);
+
+  const paye = regularPaye.plus(annualPaymentPaye).toDecimalPlaces(2);
+
+  // Leviable remuneration for UIF and SDL includes taxable fringe benefits and
+  // all variable cash components (both regular and annual-payment) for the month.
+  const leviableGross = adjustedGross
+    .plus(taxableBenefitsMonthly)
+    .plus(regularInputTotal)
+    .plus(annualPaymentTotal);
 
   // UIF: employee and employer each contribute at the configured rate on
   // remuneration up to the monthly ceiling; both scale with pay frequency.
@@ -250,6 +343,12 @@ export function calculateMonthlyPayroll(
 
   if (salary.medicalAid) {
     deductions.push({ label: "Medical Aid", amount: salary.medicalAid });
+  }
+
+  // Custom post-tax cash deductions captured as variable inputs. Appended last so
+  // the salaried no-inputs deduction ordering stays byte-for-byte identical.
+  for (const input of customDeductionInputs) {
+    deductions.push({ label: input.label, amount: new Decimal(input.amount).toDecimalPlaces(2).toNumber() });
   }
 
   const totalDeductions = deductions

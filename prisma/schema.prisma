@@ -206,6 +206,7 @@ model Tenant {
   complianceRecords  ComplianceRecord[]
   bankExports        BankExport[]
   payrollItems       PayrollItem[]
+  payrollInputs      PayrollInput[]
   salaryHistory      EmployeeSalaryHistory[]
   invites            Invite[]
   employeeNumberConfig  EmployeeNumberConfig?
@@ -276,6 +277,16 @@ model Employee {
   salaryAnnualGross            Decimal @db.Decimal(15, 2)
   salaryCurrency                String       @default("ZAR")
   salaryPayFrequency             PayFrequency @default(monthly)
+  // Wage basis for variable pay (Phase 4). "salaried" is the default and keeps
+  // the salaried monthly calculation byte-for-byte unchanged. Wage-based types
+  // ("hourly" | "daily" | "weekly") drive the per-run capture helpers only;
+  // rates below are consumed upstream to compute component amounts.
+  wageType                     String       @default("salaried")
+  hourlyRate                   Decimal? @db.Decimal(15, 2)
+  dailyRate                    Decimal? @db.Decimal(15, 2)
+  weeklyRate                   Decimal? @db.Decimal(15, 2)
+  // Ordinary hours per month for hourly staff. When unset, 173.33 is used.
+  ordinaryHoursPerMonth        Decimal? @db.Decimal(15, 2)
   salaryTravelAllowance           Decimal? @db.Decimal(15, 2)
   salaryHousingAllowance           Decimal? @db.Decimal(15, 2)
   salaryPensionContributionPct     Float?
@@ -342,6 +353,7 @@ model Employee {
   payrollProfile PayrollProfile?
   salaryHistory  EmployeeSalaryHistory[]
   payrollItems   PayrollItem[]
+  payrollInputs  PayrollInput[]
   documents      EmployeeDocument[]
   deductions     EmployeeDeduction[]
   etiClaims      EtiClaim[]
@@ -480,6 +492,7 @@ model PayrollRun {
 
   payslips     Payslip[]
   bankExports  BankExport[]
+  payrollInputs PayrollInput[]
   approvedBy   String?
   approvedAt   DateTime?
   approvalNote String?
@@ -718,6 +731,32 @@ model PayrollItem {
   @@index([tenantId])
   @@index([payslipId])
   @@index([employeeId])
+}
+
+// Variable pay captured against an open payroll run (Phase 4). Each row is one
+// component for one employee: overtime, commission, an allowance, a bonus, and
+// so on. componentType drives IRP5 mapping and multiplier semantics; amount is
+// always the final rand value the calculator consumes. taxTreatment decides
+// whether the amount annualises like regular income ("regular") or is taxed via
+// the SARS non-recurring delta method ("annual_payment").
+model PayrollInput {
+  id            String     @id @default(cuid())
+  tenantId      String
+  tenant        Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  payrollRunId  String
+  payrollRun    PayrollRun @relation(fields: [payrollRunId], references: [id], onDelete: Cascade)
+  employeeId    String
+  employee      Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  componentType String
+  label         String
+  quantity      Decimal? @db.Decimal(15, 2)
+  rate          Decimal? @db.Decimal(15, 2)
+  amount        Decimal @db.Decimal(15, 2)
+  taxTreatment  String     @default("regular")
+  createdAt     DateTime   @default(now())
+
+  @@index([tenantId])
+  @@index([payrollRunId])
 }
 
 model Invite {

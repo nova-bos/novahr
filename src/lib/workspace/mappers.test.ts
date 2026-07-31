@@ -146,6 +146,11 @@ describe("mapEmployee", () => {
     salaryMedicalAid: null,
     salaryRetirementAnnuity: null,
     salaryEmployerBenefits: null,
+    wageType: "salaried",
+    hourlyRate: null,
+    dailyRate: null,
+    weeklyRate: null,
+    ordinaryHoursPerMonth: null,
     bankName: "Standard Bank",
     bankAccountNumber: "1234567890",
     bankBranchCode: "051001",
@@ -224,6 +229,7 @@ describe("mapEmployee", () => {
       housingAllowance: 5_000,
       pensionContributionPct: 0.075,
       medicalAid: 2_500,
+      wageType: "salaried",
     });
     expect(employee.bankDetails).toEqual({
       bank: "Standard Bank",

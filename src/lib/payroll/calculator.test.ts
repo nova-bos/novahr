@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildPayslip, calculateMonthlyPayroll, incrementPeriod } from "./calculator";
+import { annualTaxFor, buildPayslip, calculateMonthlyPayroll, incrementPeriod } from "./calculator";
+import type { PayrollInputValue } from "./calculator";
 import type { Employee, SalaryInfo } from "@/lib/types";
 
 function makeEmployee(salary: SalaryInfo, dateOfBirth?: string): Employee {
@@ -510,6 +511,100 @@ describe("golden master: LifeCheq 2026/27 reconciliation", () => {
   });
   it("net pay = R48,762.65", () => {
     expect(breakdown.netPay).toBeCloseTo(48_762.65, 2);
+  });
+});
+
+// ---- PHASE 4: variable, wage-based and commission pay ----
+describe("variable pay inputs", () => {
+  const baseSalary: SalaryInfo = {
+    annualGross: 600_000, // R50,000 / month
+    currency: "ZAR",
+    payFrequency: "monthly",
+  };
+
+  it("re-asserts the golden no-inputs case is unchanged when inputs is empty", () => {
+    const employee = makeEmployee(baseSalary);
+    const withEmpty = calculateMonthlyPayroll(employee, { inputs: [] });
+    const without = calculateMonthlyPayroll(employee);
+    expect(withEmpty).toEqual(without);
+    // Spot-check the known salaried figures.
+    expect(withEmpty.paye).toBe(11_075.58);
+    expect(withEmpty.grossPay).toBe(50_000);
+    expect(withEmpty.netPay).toBe(38_747.30);
+  });
+
+  it("taxes a 13th cheque via the SARS non-recurring delta method, not x12", () => {
+    // annualTaxable for R50,000/month = 600,000. A R40,000 13th cheque is taxed
+    // as tax_on(640,000) - tax_on(600,000), added once to the month's PAYE.
+    const employee = makeEmployee(baseSalary);
+    const inputs: PayrollInputValue[] = [
+      { componentType: "thirteenth_cheque", label: "13th Cheque", amount: 40_000, taxTreatment: "annual_payment" },
+    ];
+    const b = calculateMonthlyPayroll(employee, { inputs });
+    const baseline = calculateMonthlyPayroll(employee);
+
+    const expectedDelta = annualTaxFor(640_000) - annualTaxFor(600_000);
+    // The bonus PAYE added this month equals the marginal delta.
+    expect(b.paye - baseline.paye).toBeCloseTo(expectedDelta, 2);
+
+    // Far less than the naive x12 annualisation would charge. Annualising a
+    // R40,000 once-off as if it recurred monthly would push annual taxable to
+    // 600,000 + 40,000*12 = 1,080,000 and tax the whole slice at 41%.
+    const naiveX12 = annualTaxFor(600_000 + 40_000 * 12) - annualTaxFor(600_000);
+    const naiveMonthly = naiveX12 / 12;
+    expect(b.paye - baseline.paye).toBeLessThan(naiveMonthly);
+
+    // Delta at 40,000 fully inside the 36% bracket: 40,000 * 0.36 = 14,400.
+    expect(expectedDelta).toBeCloseTo(14_400, 2);
+
+    // The 13th cheque is cash: gross and net rise by the bonus less its PAYE.
+    expect(b.grossPay).toBe(90_000);
+    expect(b.netPay).toBeCloseTo(baseline.netPay + 40_000 - expectedDelta, 2);
+    // Appears as its own earning line.
+    expect(b.earnings.find((e) => e.label === "13th Cheque")).toEqual({ label: "13th Cheque", amount: 40_000 });
+  });
+
+  it("raises PAYE via normal annualisation for an overtime line", () => {
+    // R5,000 overtime this month annualises: taxable 600,000 -> 660,000.
+    const employee = makeEmployee(baseSalary);
+    const inputs: PayrollInputValue[] = [
+      { componentType: "overtime", label: "Overtime", amount: 5_000, taxTreatment: "regular", quantity: 20, rate: 250 },
+    ];
+    const b = calculateMonthlyPayroll(employee, { inputs });
+    const baseline = calculateMonthlyPayroll(employee);
+
+    // PAYE rises by (annualTax(660,000) - annualTax(600,000)) / 12.
+    const expectedMonthlyPaye = (annualTaxFor(660_000) - annualTaxFor(600_000)) / 12;
+    expect(b.paye - baseline.paye).toBeCloseTo(expectedMonthlyPaye, 2);
+    expect(b.grossPay).toBe(55_000);
+    expect(b.earnings.find((e) => e.label === "Overtime")).toEqual({ label: "Overtime", amount: 5_000 });
+  });
+
+  it("raises PAYE via normal annualisation for a commission line", () => {
+    const employee = makeEmployee(baseSalary);
+    const inputs: PayrollInputValue[] = [
+      { componentType: "commission", label: "Commission", amount: 8_000, taxTreatment: "regular" },
+    ];
+    const b = calculateMonthlyPayroll(employee, { inputs });
+    const baseline = calculateMonthlyPayroll(employee);
+
+    const expectedMonthlyPaye = (annualTaxFor(696_000) - annualTaxFor(600_000)) / 12;
+    expect(b.paye - baseline.paye).toBeCloseTo(expectedMonthlyPaye, 2);
+    expect(b.grossPay).toBe(58_000);
+  });
+
+  it("applies a custom cash deduction post-tax without changing PAYE", () => {
+    const employee = makeEmployee(baseSalary);
+    const inputs: PayrollInputValue[] = [
+      { componentType: "deduction_custom", label: "Staff Purchase", amount: 1_200, taxTreatment: "regular" },
+    ];
+    const b = calculateMonthlyPayroll(employee, { inputs });
+    const baseline = calculateMonthlyPayroll(employee);
+
+    expect(b.paye).toBe(baseline.paye); // deduction is post-tax
+    expect(b.grossPay).toBe(baseline.grossPay); // not cash income
+    expect(b.netPay).toBeCloseTo(baseline.netPay - 1_200, 2);
+    expect(b.deductions.find((d) => d.label === "Staff Purchase")).toEqual({ label: "Staff Purchase", amount: 1_200 });
   });
 });
 

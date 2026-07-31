@@ -78,6 +78,68 @@ export function StepCompensation({ form, setForm, errors }: StepProps) {
               <FieldError message={errors.annualGross} />
             </div>
             <div className="space-y-1.5">
+              <Label htmlFor="wageType">Wage basis</Label>
+              <Select
+                value={form.wageType}
+                onValueChange={(value) =>
+                  setForm((f) => ({ ...f, wageType: value as NewEmployeeForm["wageType"] }))
+                }
+              >
+                <SelectTrigger id="wageType" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="salaried">Salaried (monthly)</SelectItem>
+                  <SelectItem value="hourly">Hourly</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Salaried keeps the standard monthly calculation. Wage-based types feed variable pay
+                capture on each run.
+              </p>
+            </div>
+            {form.wageType === "hourly" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="hourlyRate">Hourly rate (R / hour)</Label>
+                <Input
+                  id="hourlyRate"
+                  type="number"
+                  min={0}
+                  value={form.hourlyRate}
+                  onChange={(e) => setForm((f) => ({ ...f, hourlyRate: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            ) : null}
+            {form.wageType === "daily" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="dailyRate">Daily rate (R / day)</Label>
+                <Input
+                  id="dailyRate"
+                  type="number"
+                  min={0}
+                  value={form.dailyRate}
+                  onChange={(e) => setForm((f) => ({ ...f, dailyRate: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            ) : null}
+            {form.wageType === "weekly" ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="weeklyRate">Weekly rate (R / week)</Label>
+                <Input
+                  id="weeklyRate"
+                  type="number"
+                  min={0}
+                  value={form.weeklyRate}
+                  onChange={(e) => setForm((f) => ({ ...f, weeklyRate: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            ) : null}
+            <div className="space-y-1.5">
               <Label htmlFor="travelAllowance">Travel allowance (R / month) <OptionalTag /></Label>
               <Input
                 id="travelAllowance"
