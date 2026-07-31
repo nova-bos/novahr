@@ -19,6 +19,7 @@ export function Hero() {
       {/* Background: brand wash + structural grid (no imagery) */}
       <div className="absolute inset-0 -z-10" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.07] via-primary/[0.02] to-transparent" />
+        <div className="absolute left-1/2 top-0 -translate-x-1/2 h-72 w-72 rounded-full bg-gold/[0.06] blur-3xl" />
         <div
           className="absolute inset-0"
           style={{
@@ -56,7 +57,7 @@ export function Hero() {
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
             {TRUST_POINTS.map((point) => (
               <span key={point} className="flex items-center gap-1.5">
-                <CheckCircle2 className="size-4 text-primary" aria-hidden="true" />
+                <CheckCircle2 className="size-4 text-gold" aria-hidden="true" />
                 {point}
               </span>
             ))}

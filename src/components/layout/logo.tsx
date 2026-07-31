@@ -37,7 +37,7 @@ export function Logo({ height = 24, className }: LogoProps) {
         className="font-semibold tracking-tight"
         style={{ fontSize: `${fontSize}px`, lineHeight: 1 }}
       >
-        Nova<span style={{ color: "var(--primary)" }}>HR</span>
+        Nova<span style={{ color: "var(--gold)" }}>HR</span>
       </span>
     </span>
   );
