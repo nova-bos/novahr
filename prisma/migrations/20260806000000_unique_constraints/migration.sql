@@ -18,8 +18,8 @@ WHERE id NOT IN (
   ORDER BY "tenantId", email, "createdAt" DESC
 );
 
--- Add unique constraint: one employee number per tenant
-CREATE UNIQUE INDEX "Employee_tenantId_employeeNumber_key" ON "Employee"("tenantId", "employeeNumber");
+-- Add unique constraint: one employee number per tenant (idempotent)
+CREATE UNIQUE INDEX IF NOT EXISTS "Employee_tenantId_employeeNumber_key" ON "Employee"("tenantId", "employeeNumber");
 
--- Add unique constraint: one pending invite per email per tenant
-CREATE UNIQUE INDEX "Invite_tenantId_email_key" ON "Invite"("tenantId", email);
+-- Add unique constraint: one invite per email per tenant (idempotent)
+CREATE UNIQUE INDEX IF NOT EXISTS "Invite_tenantId_email_key" ON "Invite"("tenantId", email);
