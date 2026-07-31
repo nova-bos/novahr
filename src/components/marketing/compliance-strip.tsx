@@ -11,7 +11,7 @@ export function ComplianceStrip() {
           {ITEMS.map((item) => (
             <span
               key={item}
-              className="rounded-full border border-gold/20 bg-gold/[0.04] px-3.5 py-1.5 text-sm font-medium text-foreground/80"
+              className="rounded-full border bg-background px-3.5 py-1.5 text-sm font-medium text-foreground/80"
             >
               {item}
             </span>

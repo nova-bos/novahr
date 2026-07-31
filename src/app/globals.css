@@ -34,8 +34,6 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
-  --color-gold-foreground: var(--gold-foreground);
-  --color-gold: var(--gold);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -93,8 +91,6 @@ html {
   --chart-3: oklch(0.78 0.15 85);
   --chart-4: oklch(0.636 0.16 305);
   --chart-5: oklch(0.58 0.045 258);
-  --gold: oklch(0.74 0.16 78);
-  --gold-foreground: oklch(0.27 0.07 78);
   --radius: 0.75rem;
   --surface: oklch(0.99 0.002 250);
   --sidebar: oklch(0.965 0.005 255);
@@ -147,8 +143,6 @@ html {
   --sidebar-accent-foreground: oklch(0.96 0.004 250);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.72 0.20 213);
-  --gold: oklch(0.82 0.15 78);
-  --gold-foreground: oklch(0.27 0.07 78);
 }
 
 @layer base {

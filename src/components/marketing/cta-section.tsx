@@ -10,10 +10,6 @@ export function CtaSection() {
           className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/10 to-transparent"
           aria-hidden="true"
         />
-        <div
-          className="absolute right-0 top-0 -z-10 h-48 w-48 translate-x-1/3 -translate-y-1/3 rounded-full bg-gold/[0.12] blur-2xl"
-          aria-hidden="true"
-        />
         <h2 className="mx-auto max-w-2xl text-3xl font-bold tracking-tight text-balance sm:text-4xl">
           Ready to simplify HR and payroll?
         </h2>
