@@ -32,6 +32,16 @@ describe("saIdNumber", () => {
   it("rejects non-digit characters", () => {
     expect(saIdNumber.safeParse("800101500908A").success).toBe(false);
   });
+
+  it("rejects an invalid citizenship digit", () => {
+    // Same date and sequence, citizenship digit 2 (valid Luhn) is not 0 or 1
+    expect(saIdNumber.safeParse("8001015009285").success).toBe(false);
+  });
+
+  it("rejects 29 February in a non-leap year even with a valid checksum", () => {
+    // 010229: 29 Feb 1901, not a leap year
+    expect(saIdNumber.safeParse("0102295009082").success).toBe(false);
+  });
 });
 
 describe("saPhone", () => {

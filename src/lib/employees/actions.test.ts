@@ -110,7 +110,7 @@ describe("createEmployeeRecord", () => {
           ]),
         },
       }),
-      include: { leaveBalances: true },
+      include: { leaveBalances: true, qualifications: true, customFieldValues: true },
     });
     expect(mockPrisma.activityItem.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ type: "hire", message: "joined as Software Engineer" }),
@@ -176,7 +176,7 @@ describe("updateEmployeeRecord", () => {
         emergencyContactRelationship: "Sister",
         emergencyContactPhone: "+27 82 000 0000",
       },
-      include: { leaveBalances: true },
+      include: { leaveBalances: true, qualifications: true, customFieldValues: true },
     });
     expect(result.id).toBe(updatedRow.id);
   });
@@ -191,7 +191,7 @@ describe("updateEmployeeRecord", () => {
     expect(mockPrisma.employee.update).toHaveBeenCalledWith({
       where: { id: "emp-1" },
       data: { jobTitle: "Team Lead" },
-      include: { leaveBalances: true },
+      include: { leaveBalances: true, qualifications: true, customFieldValues: true },
     });
   });
 });

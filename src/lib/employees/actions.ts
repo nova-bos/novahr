@@ -103,11 +103,47 @@ export async function createEmployeeRecord(
         bankBranchCode: employee.bankDetails.branchCode,
         bankAccountType: employee.bankDetails.accountType,
         taxNumber: employee.taxNumber,
+        idType: employee.idType ?? "sa_id",
         idNumber: employee.idNumber,
+        passportNumber: employee.passportNumber ?? null,
+        nationality: employee.nationality ?? null,
+        dateOfBirth: employee.dateOfBirth ? new Date(employee.dateOfBirth) : null,
+        gender: employee.gender ?? null,
+        maritalStatus: employee.maritalStatus ?? null,
         address: employee.address,
         emergencyContactName: employee.emergencyContact.name,
         emergencyContactRelationship: employee.emergencyContact.relationship,
         emergencyContactPhone: employee.emergencyContact.phone,
+        nextOfKinName: employee.nextOfKin?.name ?? null,
+        nextOfKinRelationship: employee.nextOfKin?.relationship ?? null,
+        nextOfKinPhone: employee.nextOfKin?.phone ?? null,
+        nextOfKinAddress: employee.nextOfKin?.address ?? null,
+        emergencyContactSameAsNextOfKin: employee.emergencyContactSameAsNextOfKin ?? false,
+        skills: employee.skills ?? [],
+        languages: employee.languages ?? [],
+        qualifications: employee.qualifications?.length
+          ? {
+              create: employee.qualifications.map((q) => ({
+                tenantId: session.tenantId,
+                type: q.type,
+                name: q.name,
+                institution: q.institution ?? null,
+                yearCompleted: q.yearCompleted ?? null,
+                expiresAt: q.expiresAt ? new Date(q.expiresAt) : null,
+              })),
+            }
+          : undefined,
+        customFieldValues: employee.customFields?.length
+          ? {
+              create: employee.customFields
+                .filter((f) => f.value.trim() !== "")
+                .map((f) => ({
+                  tenantId: session.tenantId,
+                  definitionId: f.definitionId,
+                  value: f.value,
+                })),
+            }
+          : undefined,
         onboarding: employee.onboarding as Prisma.InputJsonValue | undefined,
         leaveBalances: {
           create: (Object.keys(leaveTotals) as LeaveType[]).map((type) => ({
@@ -117,7 +153,7 @@ export async function createEmployeeRecord(
           })),
         },
       },
-      include: { leaveBalances: true },
+      include: { leaveBalances: true, qualifications: true, customFieldValues: true },
     });
 
     const activity = await tx.activityItem.create({
@@ -159,14 +195,39 @@ export async function updateEmployeeRecord(
   const session = await requireRole("hr");
   await requireActiveSubscription(session.tenantId);
   const tenantId = session.tenantId;
-  // leaveBalances and onboarding are not Prisma columns; strip them before building the update payload
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { salary, bankDetails, emergencyContact, leaveBalances, onboarding, startDate, ...rest } = updates;
+  // These are not plain scalar Employee columns; strip them before building the
+  // update payload. They are mapped onto columns or child rows below.
+  const {
+    salary,
+    bankDetails,
+    emergencyContact,
+    nextOfKin,
+    qualifications,
+    customFields,
+    dateOfBirth,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    leaveBalances,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onboarding,
+    startDate,
+    ...rest
+  } = updates;
 
   const data: Prisma.EmployeeUpdateInput = { ...rest };
 
   if (startDate !== undefined) {
     data.startDate = new Date(startDate);
+  }
+
+  if (dateOfBirth !== undefined) {
+    data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+  }
+
+  if (nextOfKin !== undefined) {
+    data.nextOfKinName = nextOfKin?.name ?? null;
+    data.nextOfKinRelationship = nextOfKin?.relationship ?? null;
+    data.nextOfKinPhone = nextOfKin?.phone ?? null;
+    data.nextOfKinAddress = nextOfKin?.address ?? null;
   }
 
   if (salary) {
@@ -210,6 +271,15 @@ export async function updateEmployeeRecord(
     if (emergencyContact.phone !== undefined) data.emergencyContactPhone = emergencyContact.phone;
   }
 
+  // Next-of-kin mirror: when the caller marks the emergency contact as the same
+  // as the next of kin, copy the next-of-kin values into the emergency-contact
+  // columns so downstream code that reads emergencyContact keeps working.
+  if (updates.emergencyContactSameAsNextOfKin === true && nextOfKin) {
+    data.emergencyContactName = nextOfKin.name;
+    data.emergencyContactRelationship = nextOfKin.relationship;
+    data.emergencyContactPhone = nextOfKin.phone;
+  }
+
   return runAsTenant(tenantId, async (tx) => {
     // Track salary changes for history. The tenant filter also guards the
     // update below against cross-tenant ids.
@@ -237,10 +307,47 @@ export async function updateEmployeeRecord(
       });
     }
 
+    // Qualifications are replaced wholesale when the caller passes an explicit
+    // list (the edit UI always sends the full set). Undefined means "leave as is".
+    if (qualifications !== undefined) {
+      await tx.employeeQualification.deleteMany({ where: { employeeId: id, tenantId } });
+      const rows = qualifications.filter((q) => q.name.trim() !== "");
+      if (rows.length > 0) {
+        await tx.employeeQualification.createMany({
+          data: rows.map((q) => ({
+            tenantId,
+            employeeId: id,
+            type: q.type,
+            name: q.name,
+            institution: q.institution ?? null,
+            yearCompleted: q.yearCompleted ?? null,
+            expiresAt: q.expiresAt ? new Date(q.expiresAt) : null,
+          })),
+        });
+      }
+    }
+
+    // Custom field values are upserted by definition; a blank value removes it.
+    if (customFields !== undefined) {
+      for (const field of customFields) {
+        if (field.value.trim() === "") {
+          await tx.employeeCustomFieldValue.deleteMany({
+            where: { employeeId: id, definitionId: field.definitionId, tenantId },
+          });
+          continue;
+        }
+        await tx.employeeCustomFieldValue.upsert({
+          where: { employeeId_definitionId: { employeeId: id, definitionId: field.definitionId } },
+          create: { tenantId, employeeId: id, definitionId: field.definitionId, value: field.value },
+          update: { value: field.value },
+        });
+      }
+    }
+
     const updated = await tx.employee.update({
       where: { id },
       data,
-      include: { leaveBalances: true },
+      include: { leaveBalances: true, qualifications: true, customFieldValues: true },
     });
 
     if (bankFieldsChanged) {

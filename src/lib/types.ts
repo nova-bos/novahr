@@ -63,6 +63,32 @@ export interface EmergencyContact {
   phone: string;
 }
 
+export interface NextOfKin {
+  name: string;
+  relationship: string;
+  phone: string;
+  address: string;
+}
+
+export type IdType = "sa_id" | "passport";
+export type Gender = "male" | "female" | "other";
+export type MaritalStatus = "single" | "married" | "divorced" | "widowed" | "life_partner";
+
+export interface EmployeeQualification {
+  id: string;
+  // degree | diploma | certificate | licence
+  type: string;
+  name: string;
+  institution?: string;
+  yearCompleted?: number;
+  expiresAt?: string;
+}
+
+export interface CustomFieldValue {
+  definitionId: string;
+  value: string;
+}
+
 /**
  * An employer-paid benefit (e.g. an employer-owned income protection policy).
  * It is not cash paid to the employee, so it never appears in gross earnings or
@@ -129,10 +155,21 @@ export interface Employee {
   salary: SalaryInfo;
   bankDetails: BankDetails;
   taxNumber: string;
+  idType?: IdType;
   idNumber: string;
+  passportNumber?: string;
+  nationality?: string;
   dateOfBirth?: string;
+  gender?: Gender;
+  maritalStatus?: MaritalStatus;
   address: string;
   emergencyContact: EmergencyContact;
+  nextOfKin?: NextOfKin;
+  emergencyContactSameAsNextOfKin?: boolean;
+  skills?: string[];
+  languages?: string[];
+  qualifications?: EmployeeQualification[];
+  customFields?: CustomFieldValue[];
   equityRace?: EquityRace;
   equityGender?: EquityGender;
   occupationalLevel?: OccupationalLevel;
@@ -383,6 +420,18 @@ export interface NotificationItem {
   // optimistically-added notifications to the same rules the workspace query uses.
   audienceRole?: string | null;
   recipientEmployeeId?: string | null;
+}
+
+export type CustomFieldType = "text" | "number" | "date" | "select";
+
+export interface TenantCustomFieldDefinition {
+  id: string;
+  tenantId: string;
+  label: string;
+  fieldType: CustomFieldType;
+  options?: string[];
+  sortOrder: number;
+  isActive: boolean;
 }
 
 export interface CustomHoliday {

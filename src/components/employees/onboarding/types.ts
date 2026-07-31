@@ -7,18 +7,47 @@ import {
 } from "@/lib/schemas/employee";
 import { SA_BANKS } from "@/lib/services/netcash/helpers";
 
+export interface QualificationRow {
+  type: string;
+  name: string;
+  institution: string;
+  yearCompleted: string;
+  expiresAt: string;
+}
+
+export interface CustomFieldEntry {
+  definitionId: string;
+  value: string;
+}
+
 export interface NewEmployeeForm {
   firstName: string;
   lastName: string;
   preferredName: string;
   email: string;
   phone: string;
+  idType: "sa_id" | "passport";
   idNumber: string;
+  passportNumber: string;
+  nationality: string;
+  dateOfBirth: string;
+  gender: "male" | "female" | "other" | "";
+  maritalStatus: "single" | "married" | "divorced" | "widowed" | "life_partner" | "";
   taxNumber: string;
   address: string;
+  nextOfKinName: string;
+  nextOfKinRelationship: string;
+  nextOfKinPhone: string;
+  nextOfKinAddress: string;
+  emergencyContactSameAsNextOfKin: boolean;
   emergencyName: string;
   emergencyRelationship: string;
   emergencyPhone: string;
+
+  skills: string[];
+  languages: string[];
+  qualifications: QualificationRow[];
+  customFields: CustomFieldEntry[];
 
   jobTitle: string;
   department: string;
@@ -51,12 +80,28 @@ export function emptyForm(defaults: { location: string; bank: string }): NewEmpl
     preferredName: "",
     email: "",
     phone: "",
+    idType: "sa_id",
     idNumber: "",
+    passportNumber: "",
+    nationality: "",
+    dateOfBirth: "",
+    gender: "",
+    maritalStatus: "",
     taxNumber: "",
     address: "",
+    nextOfKinName: "",
+    nextOfKinRelationship: "",
+    nextOfKinPhone: "",
+    nextOfKinAddress: "",
+    emergencyContactSameAsNextOfKin: false,
     emergencyName: "",
     emergencyRelationship: "",
     emergencyPhone: "",
+
+    skills: [],
+    languages: [],
+    qualifications: [],
+    customFields: [],
 
     jobTitle: "",
     department: "",
@@ -105,14 +150,24 @@ export function validateStep(step: StepId, form: NewEmployeeForm): FieldErrors {
 
 export function isStepValid(step: StepId, form: NewEmployeeForm): boolean {
   switch (step) {
-    case "personal":
+    case "personal": {
+      const identityComplete =
+        form.idType === "passport"
+          ? Boolean(
+              form.passportNumber.trim() &&
+                form.nationality.trim() &&
+                form.dateOfBirth.trim() &&
+                form.gender
+            )
+          : Boolean(form.idNumber.trim());
       return Boolean(
         form.firstName.trim() &&
           form.lastName.trim() &&
           form.email.trim() &&
           form.phone.trim() &&
-          form.idNumber.trim()
+          identityComplete
       );
+    }
     case "role":
       return Boolean(form.jobTitle.trim() && form.location.trim() && form.startDate);
     case "compensation":

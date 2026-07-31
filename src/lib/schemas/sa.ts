@@ -15,14 +15,28 @@ function luhnCheck(id: string): boolean {
   return sum % 10 === 0;
 }
 
+// Validates the date of birth encoded in digits 1-6 as a real calendar date
+// (rejects e.g. 31 February), using a sliding century window.
+function hasRealDateOfBirth(id: string): boolean {
+  const yy = parseInt(id.slice(0, 2), 10);
+  const mm = parseInt(id.slice(2, 4), 10);
+  const dd = parseInt(id.slice(4, 6), 10);
+  const currentYY = new Date().getFullYear() % 100;
+  const year = (yy <= currentYY ? 2000 : 1900) + yy;
+  const date = new Date(Date.UTC(year, mm - 1, dd));
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === mm - 1 &&
+    date.getUTCDate() === dd
+  );
+}
+
 export const saIdNumber = z
   .string()
   .regex(/^\d{13}$/, "SA ID must be 13 digits")
-  .refine((id) => {
-    const mm = parseInt(id.slice(2, 4), 10);
-    const dd = parseInt(id.slice(4, 6), 10);
-    return mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31;
-  }, "SA ID contains an invalid date of birth")
+  .refine(hasRealDateOfBirth, "SA ID contains an invalid date of birth")
+  // Citizenship digit (position 11) must be 0 (citizen) or 1 (permanent resident).
+  .refine((id) => id[10] === "0" || id[10] === "1", "SA ID has an invalid citizenship digit")
   .refine(luhnCheck, "SA ID number is invalid");
 
 // Accepts 0XXXXXXXXX (10 digits) or +27XXXXXXXXX (12 chars). Spaces and

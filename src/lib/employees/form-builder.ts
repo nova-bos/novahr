@@ -1,6 +1,6 @@
 import { AVATAR_COLORS, defaultLeaveBalances, onboardingPlan } from "@/demo/employees";
 import { getInitials } from "@/lib/format";
-import type { Employee, Tenant } from "@/lib/types";
+import type { Employee, Gender, MaritalStatus, Tenant } from "@/lib/types";
 import type { NewEmployeeForm } from "@/components/employees/onboarding/types";
 import { dateOfBirthFromIdNumber } from "@/lib/workspace/mappers";
 
@@ -49,15 +49,70 @@ export function buildEmployeeFromForm(
       validatedAt: null,
     },
     taxNumber: form.taxNumber.trim(),
-    idNumber: form.idNumber.trim(),
-    dateOfBirth: dateOfBirthFromIdNumber(form.idNumber.trim()),
+    idType: form.idType,
+    idNumber: form.idType === "sa_id" ? form.idNumber.trim() : "",
+    passportNumber: form.idType === "passport" ? form.passportNumber.trim() || undefined : undefined,
+    nationality: form.idType === "passport" ? form.nationality.trim() || undefined : undefined,
+    // SA-ID holders: derive from the ID. Passport holders: use the entered date.
+    dateOfBirth:
+      form.idType === "sa_id"
+        ? dateOfBirthFromIdNumber(form.idNumber.trim())
+        : form.dateOfBirth.trim() || undefined,
+    gender: (form.gender || undefined) as Gender | undefined,
+    maritalStatus: (form.maritalStatus || undefined) as MaritalStatus | undefined,
     address: form.address.trim(),
-    emergencyContact: {
-      name: form.emergencyName.trim(),
-      relationship: form.emergencyRelationship.trim(),
-      phone: form.emergencyPhone.trim(),
-    },
+    emergencyContact: buildEmergencyContact(form),
+    nextOfKin: hasNextOfKin(form)
+      ? {
+          name: form.nextOfKinName.trim(),
+          relationship: form.nextOfKinRelationship.trim(),
+          phone: form.nextOfKinPhone.trim(),
+          address: form.nextOfKinAddress.trim(),
+        }
+      : undefined,
+    emergencyContactSameAsNextOfKin: form.emergencyContactSameAsNextOfKin,
+    skills: form.skills.map((s) => s.trim()).filter(Boolean),
+    languages: form.languages.map((l) => l.trim()).filter(Boolean),
+    qualifications: form.qualifications
+      .filter((q) => q.name.trim() !== "")
+      .map((q) => ({
+        id: `q-${Math.random().toString(36).slice(2, 10)}`,
+        type: q.type || "certificate",
+        name: q.name.trim(),
+        institution: q.institution.trim() || undefined,
+        yearCompleted: q.yearCompleted.trim() ? Number(q.yearCompleted) : undefined,
+        expiresAt: q.expiresAt.trim() || undefined,
+      })),
+    customFields: form.customFields
+      .filter((f) => f.value.trim() !== "")
+      .map((f) => ({ definitionId: f.definitionId, value: f.value.trim() })),
     leaveBalances: defaultLeaveBalances(),
     onboarding: onboardingPlan(0, form.startDate, form.buddy.trim() || undefined),
+  };
+}
+
+function hasNextOfKin(form: NewEmployeeForm): boolean {
+  return Boolean(
+    form.nextOfKinName.trim() ||
+      form.nextOfKinRelationship.trim() ||
+      form.nextOfKinPhone.trim() ||
+      form.nextOfKinAddress.trim()
+  );
+}
+
+// When the emergency contact is the same as the next of kin, mirror the
+// next-of-kin values so downstream consumers of emergencyContact keep working.
+function buildEmergencyContact(form: NewEmployeeForm) {
+  if (form.emergencyContactSameAsNextOfKin) {
+    return {
+      name: form.nextOfKinName.trim(),
+      relationship: form.nextOfKinRelationship.trim(),
+      phone: form.nextOfKinPhone.trim(),
+    };
+  }
+  return {
+    name: form.emergencyName.trim(),
+    relationship: form.emergencyRelationship.trim(),
+    phone: form.emergencyPhone.trim(),
   };
 }

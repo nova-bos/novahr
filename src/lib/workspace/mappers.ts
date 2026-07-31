@@ -27,6 +27,15 @@ import type {
 
 export type EmployeeWithBalances = Prisma.EmployeeGetPayload<{ include: { leaveBalances: true } }>;
 
+// Optional relations the mapper reads when they have been included. They are
+// not part of the base include so existing queries keep working unchanged.
+type EmployeeQualificationRow = Prisma.EmployeeQualificationGetPayload<object>;
+type EmployeeCustomFieldValueRow = Prisma.EmployeeCustomFieldValueGetPayload<object>;
+type EmployeeRelations = {
+  qualifications?: EmployeeQualificationRow[];
+  customFieldValues?: EmployeeCustomFieldValueRow[];
+};
+
 export function toDateOnly(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
@@ -95,6 +104,12 @@ export function dateOfBirthFromIdNumber(idNumber: string): string | undefined {
 }
 
 export function mapEmployee(row: EmployeeWithBalances): Employee {
+  const rel = row as EmployeeWithBalances & EmployeeRelations;
+  // Date of birth: for SA-ID holders it is derived from the ID; for passport
+  // holders (or any row that stored one explicitly) use the persisted column.
+  const derivedDob =
+    row.idType === "passport" ? undefined : dateOfBirthFromIdNumber(row.idNumber);
+  const dateOfBirth = row.dateOfBirth ? toDateOnly(row.dateOfBirth) : derivedDob;
   return {
     id: row.id,
     tenantId: row.tenantId,
@@ -134,14 +149,43 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
       validatedAt: row.bankValidatedAt?.toISOString() ?? null,
     },
     taxNumber: row.taxNumber,
+    idType: (row.idType as Employee["idType"]) ?? "sa_id",
     idNumber: row.idNumber,
-    dateOfBirth: dateOfBirthFromIdNumber(row.idNumber),
+    passportNumber: row.passportNumber ?? undefined,
+    nationality: row.nationality ?? undefined,
+    dateOfBirth,
+    gender: (row.gender as Employee["gender"]) ?? undefined,
+    maritalStatus: (row.maritalStatus as Employee["maritalStatus"]) ?? undefined,
     address: row.address,
     emergencyContact: {
       name: row.emergencyContactName,
       relationship: row.emergencyContactRelationship,
       phone: row.emergencyContactPhone,
     },
+    nextOfKin:
+      row.nextOfKinName || row.nextOfKinRelationship || row.nextOfKinPhone || row.nextOfKinAddress
+        ? {
+            name: row.nextOfKinName ?? "",
+            relationship: row.nextOfKinRelationship ?? "",
+            phone: row.nextOfKinPhone ?? "",
+            address: row.nextOfKinAddress ?? "",
+          }
+        : undefined,
+    emergencyContactSameAsNextOfKin: row.emergencyContactSameAsNextOfKin ?? false,
+    skills: row.skills ?? [],
+    languages: row.languages ?? [],
+    qualifications: rel.qualifications?.map((q) => ({
+      id: q.id,
+      type: q.type,
+      name: q.name,
+      institution: q.institution ?? undefined,
+      yearCompleted: q.yearCompleted ?? undefined,
+      expiresAt: q.expiresAt ? toDateOnly(q.expiresAt) : undefined,
+    })),
+    customFields: rel.customFieldValues?.map((v) => ({
+      definitionId: v.definitionId,
+      value: v.value,
+    })),
     equityRace: row.equityRace ?? undefined,
     equityGender: row.equityGender ?? undefined,
     occupationalLevel: row.occupationalLevel ?? undefined,
