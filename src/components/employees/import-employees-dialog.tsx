@@ -23,9 +23,12 @@ import {
 } from "@/components/ui/table";
 import {
   importEmployeesFromCsvAction,
+  previewEmployeeImportAction,
+  exportEmployeeTemplateAction,
   type ImportRowError,
+  type ImportPreview,
 } from "@/lib/employees/import-actions";
-import { buildTemplateCsv, parseCsv, type CsvRow } from "@/lib/employees/import-columns";
+import { parseCsv, type CsvRow } from "@/lib/employees/import-columns";
 
 // Compact set of columns shown in the preview table (the CSV itself carries far
 // more). Kept short so the preview stays readable.
@@ -40,20 +43,12 @@ const PREVIEW_COLUMNS: { key: string; label: string }[] = [
 
 const PREVIEW_LIMIT = 5;
 
-function downloadTemplate() {
-  const blob = new Blob([buildTemplateCsv()], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "employee-import-template.csv";
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 type Phase = "idle" | "preview" | "importing" | "done";
 
 interface DoneState {
   imported: number;
+  created: number;
+  updated: number;
   errors: ImportRowError[];
 }
 
@@ -67,13 +62,16 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
   const [phase, setPhase] = React.useState<Phase>("idle");
   const [rows, setRows] = React.useState<CsvRow[]>([]);
   const [fileName, setFileName] = React.useState<string>("");
+  const [preview, setPreview] = React.useState<ImportPreview | null>(null);
   const [result, setResult] = React.useState<DoneState | null>(null);
+  const [downloading, setDownloading] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   function reset() {
     setPhase("idle");
     setRows([]);
     setFileName("");
+    setPreview(null);
     setResult(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
@@ -81,6 +79,24 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) reset();
     onOpenChange(nextOpen);
+  }
+
+  async function downloadTemplate() {
+    setDownloading(true);
+    try {
+      const csv = await exportEmployeeTemplateAction();
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "employee-import-template.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Couldn't build the template. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -95,6 +111,10 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
       const parsed = parseCsv(text);
       setRows(parsed);
       setPhase("preview");
+      // Classify creates vs updates vs errors against the current workforce.
+      previewEmployeeImportAction(parsed)
+        .then(setPreview)
+        .catch(() => setPreview(null));
     };
     reader.readAsText(file);
   }
@@ -108,13 +128,16 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
       setPhase("done");
       if (res.imported > 0) {
         onImportComplete();
-        toast.success(
-          `${res.imported} ${res.imported === 1 ? "employee" : "employees"} imported successfully`
-        );
+        const parts: string[] = [];
+        if (res.created > 0) parts.push(`${res.created} created`);
+        if (res.updated > 0) parts.push(`${res.updated} updated`);
+        toast.success(`Import complete: ${parts.join(", ")}`);
       }
     } catch (err) {
       setResult({
         imported: 0,
+        created: 0,
+        updated: 0,
         errors: [
           {
             row: 0,
@@ -136,11 +159,13 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
         <DialogHeader>
           <DialogTitle>Import employees from CSV</DialogTitle>
           <DialogDescription>
-            Upload a CSV to add multiple employees at once, with the same details
-            as manual onboarding. Download the template for the full set of
-            columns. Required: first name, last name, email, phone, SA ID number,
-            job title, start date, annual gross salary, bank, account number and
-            branch code.
+            Upload a CSV to add or update employees in bulk. Download the template
+            to get your current workforce pre-filled: rows keep their employee
+            number and are updated on re-import, while a blank employee number
+            creates a new person (with an auto-assigned number). Required: first
+            name, last name, email, phone, SA ID number (or passport details), job
+            title, start date, annual gross salary, bank, account number and branch
+            code.
           </DialogDescription>
         </DialogHeader>
 
@@ -150,12 +175,18 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-medium">Download template</p>
                 <p className="text-xs text-muted-foreground">
-                  Start from our pre-formatted CSV template.
+                  Your current workforce, pre-filled in the import columns. Edit and
+                  re-upload to update, or add rows for new starters.
                 </p>
               </div>
-              <Button variant="outline" size="sm" onClick={downloadTemplate}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void downloadTemplate()}
+                disabled={downloading}
+              >
                 <Download />
-                Template
+                {downloading ? "Preparing..." : "Template"}
               </Button>
             </div>
 
@@ -207,6 +238,36 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
               </Button>
             </div>
 
+            {preview ? (
+              <div className="flex flex-wrap gap-2 text-xs">
+                <span className="rounded-md bg-success/10 px-2 py-1 font-medium text-success">
+                  {preview.creates} to create
+                </span>
+                <span className="rounded-md bg-primary/10 px-2 py-1 font-medium text-primary">
+                  {preview.updates} to update
+                </span>
+                {preview.errors.length > 0 ? (
+                  <span className="rounded-md bg-destructive/10 px-2 py-1 font-medium text-destructive">
+                    {preview.errors.length} {preview.errors.length === 1 ? "error" : "errors"}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+
+            {preview && preview.errors.length > 0 ? (
+              <ul className="max-h-32 overflow-y-auto rounded-lg border border-border p-2 text-xs space-y-1">
+                {preview.errors.map((err, idx) => (
+                  <li key={idx} className="flex gap-2 text-muted-foreground">
+                    <span className="shrink-0 font-medium text-foreground">
+                      Row {err.row}
+                      {err.field !== "general" ? ` (${err.field})` : ""}:
+                    </span>
+                    {err.message}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
             <div className="overflow-x-auto rounded-lg border border-border">
               <Table className="min-w-[520px]">
                 <TableHeader>
@@ -255,8 +316,17 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
               <div className="flex items-center gap-3 rounded-lg border border-success/20 bg-success/10 p-3">
                 <CheckCircle className="size-4 shrink-0 text-success" />
                 <p className="text-sm text-success">
-                  {result.imported} {result.imported === 1 ? "employee" : "employees"} imported
-                  successfully.
+                  {[
+                    result.created > 0
+                      ? `${result.created} ${result.created === 1 ? "employee" : "employees"} created`
+                      : null,
+                    result.updated > 0
+                      ? `${result.updated} ${result.updated === 1 ? "employee" : "employees"} updated`
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" and ")}
+                  .
                 </p>
               </div>
             )}

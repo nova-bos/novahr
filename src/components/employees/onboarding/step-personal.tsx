@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import { dobFromSaId, genderFromSaId } from "@/lib/schemas/sa-id";
 import { saIdNumber } from "@/lib/schemas/sa";
 import { formatDate } from "@/lib/format";
+import { listCustomFieldDefinitionsAction } from "@/lib/custom-fields/actions";
+import type { TenantCustomFieldDefinition } from "@/lib/types";
 import type { FieldErrors } from "@/lib/schemas/employee";
 import type { NewEmployeeForm, QualificationRow } from "./types";
 
@@ -145,6 +147,89 @@ function ChipList({
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * Renders the tenant's active custom-field definitions as inputs, writing into
+ * form.customFields. Renders nothing when the tenant has no custom fields.
+ */
+function CustomFieldsCard({
+  form,
+  setForm,
+}: {
+  form: NewEmployeeForm;
+  setForm: React.Dispatch<React.SetStateAction<NewEmployeeForm>>;
+}) {
+  const [definitions, setDefinitions] = React.useState<TenantCustomFieldDefinition[] | null>(null);
+
+  React.useEffect(() => {
+    let active = true;
+    listCustomFieldDefinitionsAction()
+      .then((defs) => {
+        if (active) setDefinitions(defs.filter((d) => d.isActive));
+      })
+      .catch(() => {
+        if (active) setDefinitions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function valueFor(definitionId: string): string {
+    return form.customFields.find((f) => f.definitionId === definitionId)?.value ?? "";
+  }
+
+  function setValue(definitionId: string, value: string) {
+    setForm((f) => {
+      const others = f.customFields.filter((x) => x.definitionId !== definitionId);
+      return { ...f, customFields: [...others, { definitionId, value }] };
+    });
+  }
+
+  if (!definitions || definitions.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          Additional information <OptionalTag />
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {definitions.map((d) => (
+            <div key={d.id} className="space-y-1.5">
+              <Label htmlFor={`cf-${d.id}`}>{d.label}</Label>
+              {d.fieldType === "select" ? (
+                <Select value={valueFor(d.id) || undefined} onValueChange={(v) => setValue(d.id, v)}>
+                  <SelectTrigger id={`cf-${d.id}`} className="w-full">
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(d.options ?? []).map((opt) => (
+                      <SelectItem key={opt} value={opt}>
+                        {opt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id={`cf-${d.id}`}
+                  type={
+                    d.fieldType === "number" ? "number" : d.fieldType === "date" ? "date" : "text"
+                  }
+                  value={valueFor(d.id)}
+                  onChange={(e) => setValue(d.id, e.target.value)}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -530,7 +615,7 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
               {form.qualifications.map((q, i) => (
                 <div
                   key={i}
-                  className="grid items-end gap-3 rounded-lg border border-border p-3 sm:grid-cols-[9rem_1fr_1fr_6rem_auto]"
+                  className="grid items-end gap-3 rounded-lg border border-border p-3 sm:grid-cols-[8rem_1fr_1fr_5rem_9rem_auto]"
                 >
                   <div className="space-y-1">
                     <Label className="text-xs">Type</Label>
@@ -575,6 +660,15 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                       onChange={(e) => updateQualification(i, { yearCompleted: e.target.value })}
                     />
                   </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Expiry</Label>
+                    <Input
+                      type="date"
+                      value={q.expiresAt}
+                      aria-label="Qualification expiry date"
+                      onChange={(e) => updateQualification(i, { expiresAt: e.target.value })}
+                    />
+                  </div>
                   <Button
                     type="button"
                     variant="ghost"
@@ -605,6 +699,8 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
           </div>
         </CardContent>
       </Card>
+
+      <CustomFieldsCard form={form} setForm={setForm} />
     </div>
   );
 }

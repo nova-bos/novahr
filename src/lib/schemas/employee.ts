@@ -113,6 +113,8 @@ export const editEmployeeProfileSchema = z.object({
   email: z.email("Enter a valid email address"),
   phone: saPhone,
   emergencyPhone: optionalSaPhone,
+  // Next-of-kin phone is optional but, when supplied, must be a valid SA number.
+  nextOfKinPhone: optionalSaPhone,
 });
 
 export const editEmployeeCompensationSchema = z.object({

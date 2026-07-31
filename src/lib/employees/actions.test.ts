@@ -16,6 +16,14 @@ const mockPrisma = vi.hoisted(() => {
       upsert: vi.fn().mockResolvedValue({ prefix: "EMP", separator: "-", padLength: 4, nextNumber: 2 }),
     },
     employeeSalaryHistory: { create: vi.fn() },
+    employeeQualification: {
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+      createMany: vi.fn().mockResolvedValue({ count: 0 }),
+    },
+    employeeCustomFieldValue: {
+      deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
+      upsert: vi.fn(),
+    },
     tenantLeavePolicy: { findUnique: vi.fn().mockResolvedValue(null) },
     activityItem: { create: vi.fn() },
     notificationItem: { create: vi.fn() },
@@ -334,5 +342,102 @@ describe("toggleOnboardingStepRecord", () => {
 
     expect(result.activity).toBeUndefined();
     expect(mockPrisma.activityItem.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("createEmployeeRecord qualifications and skills", () => {
+  it("writes qualification rows and the skills/languages arrays", async () => {
+    const input = makeEmployee({
+      status: "active",
+      skills: ["Payroll", "Excel"],
+      languages: ["English", "isiZulu"],
+      qualifications: [
+        {
+          id: "q1",
+          type: "degree",
+          name: "BCom Accounting",
+          institution: "UCT",
+          yearCompleted: 2019,
+          expiresAt: undefined,
+        },
+      ],
+    });
+    const createdRow = makeEmployeeRow({ status: "active" });
+    mockPrisma.employee.create.mockResolvedValue(createdRow);
+    mockPrisma.activityItem.create.mockResolvedValue(makeActivityRow());
+    mockPrisma.notificationItem.create.mockResolvedValue(makeNotificationRow());
+
+    await createEmployeeRecord(input);
+
+    expect(mockPrisma.employee.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          skills: ["Payroll", "Excel"],
+          languages: ["English", "isiZulu"],
+          qualifications: {
+            create: [
+              expect.objectContaining({
+                type: "degree",
+                name: "BCom Accounting",
+                institution: "UCT",
+                yearCompleted: 2019,
+              }),
+            ],
+          },
+        }),
+      })
+    );
+  });
+});
+
+describe("updateEmployeeRecord qualifications", () => {
+  it("replaces qualifications wholesale, skipping blank rows", async () => {
+    mockPrisma.employee.findFirst.mockResolvedValue(makeEmployeeRow());
+    mockPrisma.employee.update.mockResolvedValue(makeEmployeeRow());
+
+    await updateEmployeeRecord("emp-1", {
+      qualifications: [
+        { id: "", type: "diploma", name: "IT Diploma", institution: "Wits", yearCompleted: 2020 },
+        { id: "", type: "certificate", name: "", institution: "" },
+      ],
+    });
+
+    expect(mockPrisma.employeeQualification.deleteMany).toHaveBeenCalledWith({
+      where: { employeeId: "emp-1", tenantId: "novatech" },
+    });
+    expect(mockPrisma.employeeQualification.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          employeeId: "emp-1",
+          tenantId: "novatech",
+          name: "IT Diploma",
+          type: "diploma",
+        }),
+      ],
+    });
+  });
+
+  it("persists next-of-kin fields onto their columns", async () => {
+    mockPrisma.employee.findFirst.mockResolvedValue(makeEmployeeRow());
+    mockPrisma.employee.update.mockResolvedValue(makeEmployeeRow());
+
+    await updateEmployeeRecord("emp-1", {
+      gender: "female",
+      maritalStatus: "married",
+      nextOfKin: { name: "Sipho", relationship: "Brother", phone: "0821234567", address: "Soweto" },
+    });
+
+    expect(mockPrisma.employee.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          gender: "female",
+          maritalStatus: "married",
+          nextOfKinName: "Sipho",
+          nextOfKinRelationship: "Brother",
+          nextOfKinPhone: "0821234567",
+          nextOfKinAddress: "Soweto",
+        }),
+      })
+    );
   });
 });

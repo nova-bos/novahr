@@ -5,6 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Employee } from "@/lib/types";
 import { ProfileHeader } from "./profile-header";
 import { ProfileOverview } from "./profile-overview";
+import { ProfileQualifications } from "./profile-qualifications";
+import { ProfileCustomFields } from "./profile-custom-fields";
 import { ProfileCompensation } from "./profile-compensation";
 import { ProfileLeave } from "./profile-leave";
 import { ProfileDeductions } from "./profile-deductions";
@@ -51,6 +53,8 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
 
             <TabsContent value="overview" className="mt-4 flex flex-col gap-6">
               <ProfileOverview employee={employee} />
+              <ProfileQualifications employee={employee} />
+              <ProfileCustomFields employee={employee} />
               <ProfileEquity employee={employee} />
             </TabsContent>
             <TabsContent value="compensation" className="mt-4 flex flex-col gap-6">

@@ -1,9 +1,34 @@
-import { Briefcase, Calendar, Hash, MapPin, Phone, Shield, User } from "lucide-react";
+import {
+  Briefcase,
+  Calendar,
+  Globe,
+  Hash,
+  Heart,
+  MapPin,
+  Phone,
+  Shield,
+  User,
+  Users,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { employmentTypeLabel, formatDate } from "@/lib/format";
 import { useEmployee } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
+
+const GENDER_LABELS: Record<string, string> = {
+  male: "Male",
+  female: "Female",
+  other: "Other",
+};
+
+const MARITAL_LABELS: Record<string, string> = {
+  single: "Single",
+  married: "Married",
+  divorced: "Divorced",
+  widowed: "Widowed",
+  life_partner: "Life partner",
+};
 
 function InfoRow({
   icon: Icon,
@@ -29,6 +54,11 @@ function InfoRow({
 
 export function ProfileOverview({ employee }: { employee: Employee }) {
   const manager = useEmployee(employee.managerId);
+  const isPassport = employee.idType === "passport";
+  const genderLabel = employee.gender ? GENDER_LABELS[employee.gender] ?? employee.gender : "";
+  const maritalLabel = employee.maritalStatus
+    ? MARITAL_LABELS[employee.maritalStatus] ?? employee.maritalStatus
+    : "";
 
   return (
     <div className="flex flex-col gap-6">
@@ -64,15 +94,59 @@ export function ProfileOverview({ employee }: { employee: Employee }) {
         </CardHeader>
         <CardContent>
           <div className="grid gap-5 sm:grid-cols-2">
-            <InfoRow icon={Hash} label="ID number" value={employee.idNumber} />
-            <InfoRow icon={Hash} label="Tax number" value={employee.taxNumber} />
+            {isPassport ? (
+              <>
+                <InfoRow
+                  icon={Hash}
+                  label="Passport number"
+                  value={employee.passportNumber || "Not provided"}
+                />
+                <InfoRow
+                  icon={Globe}
+                  label="Nationality"
+                  value={employee.nationality || "Not provided"}
+                />
+              </>
+            ) : (
+              <InfoRow icon={Hash} label="ID number" value={employee.idNumber} />
+            )}
+            <InfoRow
+              icon={Calendar}
+              label="Date of birth"
+              value={employee.dateOfBirth ? formatDate(employee.dateOfBirth) : "Not provided"}
+            />
+            <InfoRow icon={User} label="Gender" value={genderLabel || "Not provided"} />
+            <InfoRow icon={Heart} label="Marital status" value={maritalLabel || "Not provided"} />
+            <InfoRow icon={Hash} label="Tax number" value={employee.taxNumber || "Not provided"} />
           </div>
           <Separator className="my-5" />
           <div className="grid gap-5 sm:grid-cols-2">
-            <InfoRow icon={MapPin} label="Residential address" value={employee.address} />
+            <InfoRow icon={MapPin} label="Residential address" value={employee.address || "Not provided"} />
           </div>
         </CardContent>
       </Card>
+
+      {employee.nextOfKin ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Next of kin</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <InfoRow icon={Users} label="Name" value={employee.nextOfKin.name || "Not provided"} />
+              <InfoRow
+                icon={Shield}
+                label="Relationship"
+                value={employee.nextOfKin.relationship || "Not provided"}
+              />
+              <InfoRow icon={Phone} label="Phone" value={employee.nextOfKin.phone || "Not provided"} />
+              {employee.nextOfKin.address ? (
+                <InfoRow icon={MapPin} label="Address" value={employee.nextOfKin.address} />
+              ) : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>
@@ -80,13 +154,13 @@ export function ProfileOverview({ employee }: { employee: Employee }) {
         </CardHeader>
         <CardContent>
           <div className="grid gap-5 sm:grid-cols-3">
-            <InfoRow icon={User} label="Name" value={employee.emergencyContact.name} />
+            <InfoRow icon={User} label="Name" value={employee.emergencyContact.name || "Not provided"} />
             <InfoRow
               icon={Shield}
               label="Relationship"
-              value={employee.emergencyContact.relationship}
+              value={employee.emergencyContact.relationship || "Not provided"}
             />
-            <InfoRow icon={Phone} label="Phone" value={employee.emergencyContact.phone} />
+            <InfoRow icon={Phone} label="Phone" value={employee.emergencyContact.phone || "Not provided"} />
           </div>
         </CardContent>
       </Card>
