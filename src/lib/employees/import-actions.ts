@@ -45,7 +45,15 @@ export interface ImportPreview {
   errors: ImportRowError[];
 }
 
-const EMPLOYMENT_TYPES: EmploymentType[] = ["full_time", "part_time", "contract"];
+const EMPLOYMENT_TYPES: EmploymentType[] = [
+  "full_time",
+  "part_time",
+  "contract",
+  "temporary",
+  "casual",
+  "learnership",
+  "internship",
+];
 const PAY_FREQUENCIES: PayFrequency[] = ["monthly", "biweekly", "weekly"];
 const RACES: EquityRace[] = ["african", "coloured", "indian", "white", "other"];
 const GENDERS: EquityGender[] = ["male", "female", "other"];
@@ -166,7 +174,10 @@ function validateRow(row: CsvRow, rowNumber: number): ImportRowError[] {
     add("startDate", "Start date must be a valid date (YYYY-MM-DD).");
 
   if (row.employmentType?.trim() && !(EMPLOYMENT_TYPES as string[]).includes(normEnum(row.employmentType)))
-    add("employmentType", "Employment type must be full_time, part_time or contract.");
+    add(
+      "employmentType",
+      "Employment type must be one of: full_time, part_time, contract, temporary, casual, learnership, internship."
+    );
 
   if (row.payFrequency?.trim() && !(PAY_FREQUENCIES as string[]).includes(normEnum(row.payFrequency)))
     add("payFrequency", "Pay frequency must be monthly, biweekly or weekly.");

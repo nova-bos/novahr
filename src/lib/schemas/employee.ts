@@ -23,7 +23,18 @@ export const personalStepSchema = z
     dateOfBirth: z.string().default(""),
     gender: z.enum(["male", "female", "other", ""]).default(""),
     maritalStatus: z
-      .enum(["single", "married", "divorced", "widowed", "life_partner", ""])
+      .enum([
+        "single",
+        "married",
+        "customary_marriage",
+        "civil_union",
+        "life_partner",
+        "engaged",
+        "separated",
+        "divorced",
+        "widowed",
+        "",
+      ])
       .default(""),
     taxNumber: z.string().refine(
       (v) => v === "" || /^\d{10}$/.test(v),
@@ -71,7 +82,15 @@ export const personalStepSchema = z
 export const roleStepSchema = z.object({
   jobTitle: z.string().min(1, "Job title is required"),
   department: z.string(),
-  employmentType: z.enum(["full_time", "part_time", "contract"]),
+  employmentType: z.enum([
+    "full_time",
+    "part_time",
+    "contract",
+    "temporary",
+    "casual",
+    "learnership",
+    "internship",
+  ]),
   startDate: z.string().min(1, "Start date is required"),
   location: z.string().min(1, "Work location is required"),
   managerId: z.string(),

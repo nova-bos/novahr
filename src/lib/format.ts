@@ -1,3 +1,6 @@
+import type { EmploymentType } from "@/lib/types";
+import { EMPLOYMENT_TYPE_LABELS } from "@/lib/config/employee-options";
+
 export function formatCurrency(
   amount: number,
   currency = "ZAR",
@@ -73,15 +76,8 @@ export function formatMonthShort(period: string): string {
   return new Intl.DateTimeFormat("en-ZA", { month: "short" }).format(d);
 }
 
-export function employmentTypeLabel(type: "full_time" | "part_time" | "contract"): string {
-  switch (type) {
-    case "full_time":
-      return "Full-time";
-    case "part_time":
-      return "Part-time";
-    case "contract":
-      return "Contract";
-  }
+export function employmentTypeLabel(type: EmploymentType): string {
+  return EMPLOYMENT_TYPE_LABELS[type] ?? type;
 }
 
 export function leaveTypeLabel(

@@ -19,13 +19,7 @@ import { useApp } from "@/lib/store/app-provider";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { formatDate } from "@/lib/format";
 import type { Employee, EmployeeQualification } from "@/lib/types";
-
-const QUALIFICATION_TYPES = [
-  { value: "degree", label: "Degree" },
-  { value: "diploma", label: "Diploma" },
-  { value: "certificate", label: "Certificate" },
-  { value: "licence", label: "Licence" },
-] as const;
+import { QUALIFICATION_TYPES } from "@/lib/config/employee-options";
 
 interface EditRow {
   type: string;

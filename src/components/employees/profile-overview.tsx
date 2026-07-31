@@ -15,20 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { employmentTypeLabel, formatDate } from "@/lib/format";
 import { useEmployee } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
-
-const GENDER_LABELS: Record<string, string> = {
-  male: "Male",
-  female: "Female",
-  other: "Other",
-};
-
-const MARITAL_LABELS: Record<string, string> = {
-  single: "Single",
-  married: "Married",
-  divorced: "Divorced",
-  widowed: "Widowed",
-  life_partner: "Life partner",
-};
+import { GENDER_LABELS, MARITAL_LABELS } from "@/lib/config/employee-options";
 
 function InfoRow({
   icon: Icon,

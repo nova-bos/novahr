@@ -90,9 +90,11 @@ describe("formatMonthYear / formatMonthShort", () => {
 
 describe("employmentTypeLabel", () => {
   it("maps each employment type to its label", () => {
-    expect(employmentTypeLabel("full_time")).toBe("Full-time");
+    expect(employmentTypeLabel("full_time")).toBe("Full-time (permanent)");
     expect(employmentTypeLabel("part_time")).toBe("Part-time");
-    expect(employmentTypeLabel("contract")).toBe("Contract");
+    expect(employmentTypeLabel("contract")).toBe("Fixed-term contract");
+    expect(employmentTypeLabel("temporary")).toBe("Temporary");
+    expect(employmentTypeLabel("learnership")).toBe("Learnership");
   });
 });
 

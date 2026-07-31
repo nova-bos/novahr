@@ -29,6 +29,11 @@ import {
 import { useApp } from "@/lib/store/app-provider";
 import { useActiveBranches, useDepartments, useEmployees, useTenantId } from "@/lib/store/hooks";
 import { getPayrollSettingsAction } from "@/lib/settings/actions";
+import {
+  EMPLOYMENT_TYPE_OPTIONS,
+  GENDER_OPTIONS,
+  MARITAL_OPTIONS,
+} from "@/lib/config/employee-options";
 import type {
   Employee,
   EmployerBenefit,
@@ -37,26 +42,6 @@ import type {
   Gender,
   MaritalStatus,
 } from "@/lib/types";
-
-const EMPLOYMENT_TYPES: { value: EmploymentType; label: string }[] = [
-  { value: "full_time", label: "Full-time" },
-  { value: "part_time", label: "Part-time" },
-  { value: "contract", label: "Contract" },
-];
-
-const GENDER_OPTIONS: { value: Gender; label: string }[] = [
-  { value: "male", label: "Male" },
-  { value: "female", label: "Female" },
-  { value: "other", label: "Other" },
-];
-
-const MARITAL_OPTIONS: { value: MaritalStatus; label: string }[] = [
-  { value: "single", label: "Single" },
-  { value: "married", label: "Married" },
-  { value: "divorced", label: "Divorced" },
-  { value: "widowed", label: "Widowed" },
-  { value: "life_partner", label: "Life partner" },
-];
 
 const STATUSES: { value: EmploymentStatus; label: string }[] = [
   { value: "active", label: "Active" },
@@ -350,7 +335,6 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                     <Label htmlFor="gender">Gender {form.idType === "sa_id" ? null : <OptionalTag />}</Label>
                     <Select
                       value={form.gender || undefined}
-                      disabled={form.idType === "sa_id"}
                       onValueChange={(value) => setForm((f) => ({ ...f, gender: value as Gender }))}
                     >
                       <SelectTrigger id="gender" className="w-full">
@@ -365,7 +349,9 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                       </SelectContent>
                     </Select>
                     {form.idType === "sa_id" ? (
-                      <p className="text-xs text-muted-foreground">Derived from the ID number.</p>
+                      <p className="text-xs text-muted-foreground">
+                        Auto-filled from the ID number. Change it if needed.
+                      </p>
                     ) : null}
                   </div>
                   <div className="space-y-1.5">
@@ -473,7 +459,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent>
-                        {EMPLOYMENT_TYPES.map((type) => (
+                        {EMPLOYMENT_TYPE_OPTIONS.map((type) => (
                           <SelectItem key={type.value} value={type.value}>
                             {type.label}
                           </SelectItem>

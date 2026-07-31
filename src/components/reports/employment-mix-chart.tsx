@@ -18,6 +18,10 @@ const TYPE_COLORS: Record<EmploymentType, string> = {
   full_time: "var(--chart-1)",
   part_time: "var(--chart-2)",
   contract: "var(--chart-3)",
+  temporary: "var(--chart-4)",
+  casual: "var(--chart-5)",
+  learnership: "var(--chart-1)",
+  internship: "var(--chart-2)",
 };
 
 export function EmploymentMixChart() {

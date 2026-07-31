@@ -11,13 +11,8 @@ import {
 import type { FieldErrors } from "@/lib/schemas/employee";
 import { useActiveBranches, useDepartments, useEmployees } from "@/lib/store/hooks";
 import type { EmploymentType } from "@/lib/types";
+import { EMPLOYMENT_TYPE_OPTIONS } from "@/lib/config/employee-options";
 import type { NewEmployeeForm } from "./types";
-
-const EMPLOYMENT_TYPES: { value: EmploymentType; label: string }[] = [
-  { value: "full_time", label: "Full-time" },
-  { value: "part_time", label: "Part-time" },
-  { value: "contract", label: "Contract" },
-];
 
 interface StepProps {
   form: NewEmployeeForm;
@@ -108,7 +103,7 @@ export function StepRole({ form, setForm, errors }: StepProps) {
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  {EMPLOYMENT_TYPES.map((type) => (
+                  {EMPLOYMENT_TYPE_OPTIONS.map((type) => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
                     </SelectItem>
