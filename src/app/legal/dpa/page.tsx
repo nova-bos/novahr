@@ -110,7 +110,7 @@ export default function DpaPage() {
             "Logical multi-tenant isolation enforced at the database layer (row-level security keyed on tenant ID) and application layer;",
             "Role-based access control within the Service (Employee, Manager, HR Admin, Executive roles);",
             "Authentication via Supabase Auth with hashed credentials; support for strong password policy;",
-            "Least-privilege access to production systems, restricted to authorised NovaHR personnel with multi-factor authentication;",
+            "Least-privilege access to production systems, restricted to authorised NovaHR personnel;",
             "Audit logging of administrative and payroll actions within the Service;",
             "Daily automated database backups with documented restoration procedures;",
             "Secure development practices: code review, automated testing (unit and integration), CI gates before deployment;",
