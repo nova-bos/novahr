@@ -42,6 +42,7 @@ const mockSession = vi.hoisted(() => ({
     name: "Lerato Dlamini",
     email: "hr@novatech.co.za",
     employeeId: undefined as string | undefined,
+    branchScopeId: undefined as string | undefined,
   },
 }));
 
@@ -54,10 +55,20 @@ vi.mock("@/lib/auth/require", () => ({
 }));
 
 
-import { completePayrollRunRecord, startPayrollRunRecord } from "./actions";
+import { completePayrollRunRecord, setPayrollRunBranchAction, startPayrollRunRecord } from "./actions";
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Reset the acting session to a full-access HR admin (no branch scope).
+  mockSession.current = {
+    id: "user-1",
+    tenantId: "novatech",
+    role: "hr",
+    name: "Lerato Dlamini",
+    email: "hr@novatech.co.za",
+    employeeId: undefined,
+    branchScopeId: undefined,
+  };
 });
 
 function makePayrollRunRow(overrides: Record<string, unknown> = {}) {
@@ -341,5 +352,118 @@ describe("completePayrollRunRecord", () => {
 
     expect(result.nextRun).toBeUndefined();
     expect(mockPrisma.payrollRun.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("branch-scoped payroll eligibility", () => {
+  // Wire up just enough for completePayrollRunRecord to run to completion so we
+  // can inspect the employee.findMany filter it uses for eligibility.
+  function setupForRun(run: Record<string, unknown>) {
+    const tenant = makeTenantRow({ id: "novatech", payDay: 25 });
+    const branchEmployee = makeEmployeeRow({
+      id: "emp-cpt",
+      status: "active",
+      startDate: new Date("2024-01-15T00:00:00Z"),
+      branchId: "branch-cpt",
+      salaryAnnualGross: new Prisma.Decimal(600_000),
+    });
+    mockPrisma.payrollRun.findFirstOrThrow.mockResolvedValue(run);
+    mockPrisma.tenant.findUniqueOrThrow.mockResolvedValue(tenant);
+    mockPrisma.employee.findMany.mockResolvedValue([branchEmployee]);
+    mockPrisma.payrollRun.findUnique.mockResolvedValue(null);
+    mockPrisma.payslip.createMany.mockResolvedValue({ count: 1 });
+    mockPrisma.payrollRun.update.mockResolvedValue(
+      makePayrollRunRow({ status: "completed", employeeCount: 1, ...run })
+    );
+    mockPrisma.payrollRun.create.mockResolvedValue(
+      makePayrollRunRow({ id: "novatech-run-2026-07", period: "2026-07", status: "scheduled" })
+    );
+    mockPrisma.activityItem.create.mockResolvedValue({
+      id: "activity-1",
+      tenantId: "novatech",
+      type: "payroll_run",
+      message: "processed payroll for June 2026",
+      actor: "Lerato Dlamini",
+      employeeId: null,
+      timestamp: new Date("2026-06-25T08:00:00Z"),
+    });
+    mockPrisma.notificationItem.create.mockResolvedValue({
+      id: "notif-1",
+      tenantId: "novatech",
+      title: "Payslips published",
+      description: "June 2026 payslips have been generated for 1 employees.",
+      timestamp: new Date("2026-06-25T08:00:00Z"),
+      read: false,
+      type: "success",
+    });
+  }
+
+  it("filters eligibility to the run's branch when branchId is set", async () => {
+    setupForRun(makePayrollRunRow({ status: "processing", branchId: "branch-cpt" }));
+
+    await completePayrollRunRecord("novatech-run-2026-06");
+
+    expect(mockPrisma.employee.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { tenantId: "novatech", branchId: "branch-cpt" },
+      })
+    );
+  });
+
+  it("includes all employees (no branch filter) for a null-branch run", async () => {
+    setupForRun(makePayrollRunRow({ status: "processing", branchId: null }));
+
+    await completePayrollRunRecord("novatech-run-2026-06");
+
+    expect(mockPrisma.employee.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { tenantId: "novatech" } })
+    );
+  });
+
+  it("constrains a branch-scoped admin to their branch on a null-branch run", async () => {
+    mockSession.current.branchScopeId = "branch-cpt";
+    setupForRun(makePayrollRunRow({ status: "processing", branchId: null }));
+
+    await completePayrollRunRecord("novatech-run-2026-06");
+
+    expect(mockPrisma.employee.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { tenantId: "novatech", branchId: "branch-cpt" },
+      })
+    );
+  });
+});
+
+describe("setPayrollRunBranchAction", () => {
+  it("sets the branch on a scheduled run after validating it belongs to the tenant", async () => {
+    mockPrisma.payrollRun.findFirst.mockResolvedValue(
+      makePayrollRunRow({ status: "scheduled" })
+    );
+    (mockPrisma as unknown as { branch: { findFirst: ReturnType<typeof vi.fn> } }).branch = {
+      findFirst: vi.fn().mockResolvedValue({ id: "branch-cpt" }),
+    };
+    mockPrisma.payrollRun.update.mockResolvedValue(
+      makePayrollRunRow({ status: "scheduled", branchId: "branch-cpt" })
+    );
+    mockPrisma.payslip.findMany.mockResolvedValue([]);
+
+    const result = await setPayrollRunBranchAction("novatech-run-2026-06", "branch-cpt");
+
+    expect(result.branchId).toBe("branch-cpt");
+    expect(mockPrisma.payrollRun.update).toHaveBeenCalledWith({
+      where: { id: "novatech-run-2026-06" },
+      data: { branchId: "branch-cpt" },
+    });
+  });
+
+  it("refuses to change the branch once the run is no longer scheduled", async () => {
+    mockPrisma.payrollRun.findFirst.mockResolvedValue(
+      makePayrollRunRow({ status: "processing" })
+    );
+
+    await expect(
+      setPayrollRunBranchAction("novatech-run-2026-06", "branch-cpt")
+    ).rejects.toThrow(/before the run is started/);
+    expect(mockPrisma.payrollRun.update).not.toHaveBeenCalled();
   });
 });

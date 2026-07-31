@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { FieldErrors } from "@/lib/schemas/employee";
-import { useDepartments, useEmployees } from "@/lib/store/hooks";
+import { useActiveBranches, useDepartments, useEmployees } from "@/lib/store/hooks";
 import type { EmploymentType } from "@/lib/types";
 import type { NewEmployeeForm } from "./types";
 
@@ -33,6 +33,7 @@ function FieldError({ message }: { message?: string }) {
 export function StepRole({ form, setForm, errors }: StepProps) {
   const departments = useDepartments();
   const employees = useEmployees();
+  const branches = useActiveBranches();
 
   return (
     <div className="flex flex-col gap-6">
@@ -72,6 +73,29 @@ export function StepRole({ form, setForm, errors }: StepProps) {
               </Select>
               <FieldError message={errors.department} />
             </div>
+            {branches.length > 0 ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="branch">Branch <OptionalTag /></Label>
+                <Select
+                  value={form.branchId || "none"}
+                  onValueChange={(value) =>
+                    setForm((f) => ({ ...f, branchId: value === "none" ? "" : value }))
+                  }
+                >
+                  <SelectTrigger id="branch" className="w-full">
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Head office / whole company</SelectItem>
+                    {branches.map((branch) => (
+                      <SelectItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : null}
             <div className="space-y-1.5">
               <Label htmlFor="employmentType">Employment type</Label>
               <Select

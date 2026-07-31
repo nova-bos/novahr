@@ -12,6 +12,7 @@ const mockPrisma = vi.hoisted(() => ({
     create: vi.fn(),
     update: vi.fn(),
   },
+  branch: { findMany: vi.fn().mockResolvedValue([]) },
   tenantLeavePolicy: { findUnique: vi.fn().mockResolvedValue(null) },
   employeeNumberConfig: {
     upsert: vi.fn().mockResolvedValue({ prefix: "EMP", separator: "-", padLength: 4, nextNumber: 2 }),
@@ -71,6 +72,7 @@ function baseRow(overrides: Partial<CsvRow> = {}): CsvRow {
 beforeEach(() => {
   vi.clearAllMocks();
   mockPrisma.tenantLeavePolicy.findUnique.mockResolvedValue(null);
+  mockPrisma.branch.findMany.mockResolvedValue([]);
 });
 
 describe("importEmployeesFromCsvAction upsert", () => {

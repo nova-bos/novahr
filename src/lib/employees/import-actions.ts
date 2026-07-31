@@ -276,16 +276,39 @@ export async function importEmployeesFromCsvAction(
   // (for manager links and duplicate-email detection).
   const numberToId = new Map<string, string>();
   const emailToId = new Map<string, string>();
+  // Branch lookup, keyed by lowercased code and name, so a "branch" cell may
+  // match either. Only active branches are matchable. Empty stays null (head
+  // office). An unmatched value is reported as a per-row error.
+  const branchKeyToId = new Map<string, string>();
   await runAsTenant(tenantId, async (tx) => {
-    const existing = await tx.employee.findMany({
-      where: { tenantId },
-      select: { id: true, email: true, employeeNumber: true },
-    });
+    const [existing, branches] = await Promise.all([
+      tx.employee.findMany({
+        where: { tenantId },
+        select: { id: true, email: true, employeeNumber: true },
+      }),
+      tx.branch.findMany({
+        where: { tenantId, isActive: true },
+        select: { id: true, name: true, code: true },
+      }),
+    ]);
     for (const e of existing) {
       emailToId.set(e.email.toLowerCase(), e.id);
       numberToId.set(e.employeeNumber.trim().toLowerCase(), e.id);
     }
+    for (const b of branches) {
+      branchKeyToId.set(b.name.trim().toLowerCase(), b.id);
+      if (b.code?.trim()) branchKeyToId.set(b.code.trim().toLowerCase(), b.id);
+    }
   });
+
+  /** Resolve a "branch" cell to a branchId, or throw when it does not match. */
+  function resolveBranchId(row: CsvRow): string | null {
+    const raw = row.branch?.trim();
+    if (!raw) return null;
+    const id = branchKeyToId.get(raw.toLowerCase());
+    if (!id) throw new Error(`Branch "${raw}" was not found. Use an existing branch code or name.`);
+    return id;
+  }
 
   const errors: ImportRowError[] = [];
   // A row targets an existing employee when its employeeNumber matches one.
@@ -334,6 +357,12 @@ export async function importEmployeesFromCsvAction(
   for (const { row, rowNumber, existingId } of validRows) {
     try {
       const data = mapRowToData(row);
+      // Optional branch: resolve by code or name. Unmatched values throw and are
+      // captured by the catch below as a per-row error. On update we only touch
+      // branchId when the cell is provided, so blank cells never clear a branch.
+      const resolvedBranchId = resolveBranchId(row);
+      if (row.branch?.trim()) data.branchId = resolvedBranchId;
+      else if (!existingId) data.branchId = null;
       if (existingId) {
         await runAsTenant(tenantId, async (tx) => {
           const emp = await tx.employee.update({
@@ -507,17 +536,21 @@ export async function exportEmployeeTemplateAction(): Promise<string> {
   const session = await requireRole("hr");
   const tenantId = session.tenantId;
 
-  const employees = await runAsTenant(tenantId, (tx) =>
-    tx.employee.findMany({
-      where: { tenantId },
-      orderBy: { employeeNumber: "asc" },
-    })
+  const [employees, branchRows] = await runAsTenant(tenantId, (tx) =>
+    Promise.all([
+      tx.employee.findMany({
+        where: { tenantId },
+        orderBy: { employeeNumber: "asc" },
+      }),
+      tx.branch.findMany({ where: { tenantId }, select: { id: true, name: true } }),
+    ])
   );
 
   // managerId is a plain column (no Prisma relation), so resolve manager emails
   // via a lookup over the same result set.
   const emailById = new Map<string, string>();
   for (const e of employees) emailById.set(e.id, e.email);
+  const branchNameById = new Map(branchRows.map((b) => [b.id, b.name]));
 
   const headers = IMPORT_COLUMNS.map((c) => c.key);
 
@@ -545,6 +578,7 @@ export async function exportEmployeeTemplateAction(): Promise<string> {
       taxNumber: e.taxNumber ?? "",
       jobTitle: e.jobTitle,
       department: e.department,
+      branch: e.branchId ? branchNameById.get(e.branchId) ?? "" : "",
       employmentType: e.employmentType,
       startDate: toDateStr(e.startDate),
       location: e.location,

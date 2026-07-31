@@ -1,6 +1,7 @@
 import { accruedEntitlement } from "@/lib/leave/accrual";
 import type {
   ActivityItem as PrismaActivityItem,
+  Branch as PrismaBranch,
   Department as PrismaDepartment,
   LeaveRequest as PrismaLeaveRequest,
   NotificationItem as PrismaNotificationItem,
@@ -12,6 +13,7 @@ import type {
 import type {
   ActivityItem,
   BankDetails,
+  Branch,
   DaySelection,
   Department,
   Employee,
@@ -130,6 +132,7 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
     startDate: toDateOnly(row.startDate),
     location: row.location,
     managerId: row.managerId ?? undefined,
+    branchId: row.branchId ?? undefined,
     salary: {
       annualGross: decToNumber(row.salaryAnnualGross),
       currency: row.salaryCurrency,
@@ -228,6 +231,19 @@ export function mapDepartment(row: PrismaDepartment): Department {
   };
 }
 
+export function mapBranch(row: PrismaBranch): Branch {
+  return {
+    id: row.id,
+    tenantId: row.tenantId,
+    name: row.name,
+    code: row.code ?? undefined,
+    address: row.address ?? undefined,
+    city: row.city ?? undefined,
+    isDefault: row.isDefault,
+    isActive: row.isActive,
+  };
+}
+
 export function mapLeaveRequest(row: PrismaLeaveRequest): LeaveRequest {
   return {
     id: row.id,
@@ -284,6 +300,7 @@ export function mapPayrollRun(row: PrismaPayrollRun, payslipIds: string[]): Payr
     label: row.label,
     payDate: toDateOnly(row.payDate),
     status: row.status,
+    branchId: row.branchId ?? undefined,
     totalGross: decToNumber(row.totalGross),
     totalDeductions: decToNumber(row.totalDeductions),
     totalNet: decToNumber(row.totalNet),

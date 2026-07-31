@@ -8,6 +8,7 @@ import { leavePolicies } from "@/lib/config/leave";
 import { getPayrollConfig } from "@/lib/config/payroll";
 import type {
   ActivityItem,
+  Branch,
   CustomHoliday,
   Department,
   Employee,
@@ -70,6 +71,17 @@ export function useEmployee(id: string | undefined): Employee | undefined {
 
 export function useDepartments(): Department[] {
   return useApp().state.departments;
+}
+
+/** All branches for the tenant, including deactivated ones. */
+export function useBranches(): Branch[] {
+  return useApp().state.branches;
+}
+
+/** Active branches only. The branch selector/filter hides entirely when empty. */
+export function useActiveBranches(): Branch[] {
+  const { state } = useApp();
+  return React.useMemo(() => state.branches.filter((b) => b.isActive), [state.branches]);
 }
 
 export function useLeaveRequests(): LeaveRequest[] {

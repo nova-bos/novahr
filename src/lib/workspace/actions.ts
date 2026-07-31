@@ -5,6 +5,7 @@ import { runAsTenant } from "@/lib/db-context";
 import { requireUser } from "@/lib/auth/require";
 import type {
   ActivityItem,
+  Branch,
   CustomHoliday,
   Department,
   Employee,
@@ -17,6 +18,7 @@ import type {
 } from "@/lib/types";
 import {
   mapActivityItem,
+  mapBranch,
   mapDepartment,
   mapEmployee,
   mapLeaveRequest,
@@ -31,6 +33,7 @@ export interface TenantWorkspace {
   currentTenant: Tenant;
   employees: Employee[];
   departments: Department[];
+  branches: Branch[];
   leaveRequests: LeaveRequest[];
   payrollRuns: PayrollRun[];
   payslips: Payslip[];
@@ -104,12 +107,22 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
         : { tenantId, id: "__never__" };
     }
 
-    const [tenant, payrollSettings, employeeRows, departmentRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows, customHolidayRows, leaveReviewerRows] =
+    // Branch scope for admins: when the signed-in user is limited to a branch,
+    // the employee query is additionally filtered to that branch (plus the
+    // whole-company / head-office employees whose branchId is null). This is an
+    // extra filter inside the tenant boundary and never widens visibility.
+    const branchScopeId = session.branchScopeId;
+    const employeeWhere: Prisma.EmployeeWhereInput = branchScopeId
+      ? { tenantId, branchId: branchScopeId }
+      : { tenantId };
+
+    const [tenant, payrollSettings, employeeRows, departmentRows, branchRows, leaveRequestRows, payrollRunRows, payslipRows, activityRows, notificationRows, customHolidayRows, leaveReviewerRows] =
       await Promise.all([
         tx.tenant.findUnique({ where: { id: tenantId } }),
         tx.payrollSettings.findUnique({ where: { tenantId }, select: { payslipLogoUrl: true } }),
-        tx.employee.findMany({ where: { tenantId }, include: { leaveBalances: true } }),
+        tx.employee.findMany({ where: employeeWhere, include: { leaveBalances: true } }),
         tx.department.findMany({ where: { tenantId } }),
+        tx.branch.findMany({ where: { tenantId }, orderBy: { name: "asc" } }),
         tx.leaveRequest.findMany({ where: { tenantId } }),
         tx.payrollRun.findMany({ where: { tenantId } }),
         tx.payslip.findMany({ where: { tenantId } }),
@@ -182,6 +195,7 @@ export async function getTenantWorkspace(): Promise<TenantWorkspace | null> {
       currentTenant: mapTenant(tenant, payrollSettings?.payslipLogoUrl),
       employees,
       departments: departmentRows.map(mapDepartment),
+      branches: branchRows.map(mapBranch),
       leaveRequests,
       payrollRuns,
       payslips,

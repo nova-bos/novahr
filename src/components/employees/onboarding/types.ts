@@ -51,6 +51,7 @@ export interface NewEmployeeForm {
 
   jobTitle: string;
   department: string;
+  branchId: string;
   employmentType: EmploymentType;
   startDate: string;
   location: string;
@@ -110,6 +111,7 @@ export function emptyForm(defaults: { location: string; bank: string }): NewEmpl
 
     jobTitle: "",
     department: "",
+    branchId: "",
     employmentType: "full_time",
     startDate: new Date().toISOString().slice(0, 10),
     location: defaults.location,

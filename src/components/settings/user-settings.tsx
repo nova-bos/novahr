@@ -41,11 +41,13 @@ import {
   removeUserAccessAction,
   revokeInviteAction,
   updateUserRoleAction,
+  updateUserBranchScopeAction,
   type InviteRow,
   type TenantUserRow,
 } from "@/lib/invites/actions";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useApp } from "@/lib/store/app-provider";
+import { useActiveBranches } from "@/lib/store/hooks";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -505,6 +507,7 @@ function EmployeePicker({
 export function UserSettings() {
   const { state } = useApp();
   const { user: currentUser } = useAuth();
+  const branches = useActiveBranches();
   const [users, setUsers] = React.useState<TenantUserRow[]>([]);
   const [invites, setInvites] = React.useState<InviteRow[]>([]);
   const [uninvitableIds, setUninvitableIds] = React.useState<Set<string>>(new Set());
@@ -678,6 +681,23 @@ export function UserSettings() {
     }
   }
 
+  async function handleUpdateBranchScope(userId: string, branchScopeId: string | null) {
+    setUpdatingRoleId(userId);
+    try {
+      const result = await updateUserBranchScopeAction(userId, branchScopeId);
+      if (result.error) {
+        toast.error("Couldn't update branch access", { description: result.error });
+      } else {
+        toast.success(branchScopeId ? "Limited to branch" : "Branch limit removed");
+        await refresh();
+      }
+    } catch {
+      toast.error("Couldn't update branch access");
+    } finally {
+      setUpdatingRoleId(null);
+    }
+  }
+
   async function handleRemoveAccess() {
     if (!removingUser) return;
     setRemoveConfirming(true);
@@ -763,9 +783,16 @@ export function UserSettings() {
                   {isUpdating ? (
                     <Loader2 className="size-4 shrink-0 animate-spin text-muted-foreground" />
                   ) : (
-                    <Badge variant="outline" className="shrink-0 font-normal">
-                      {ROLE_BADGE[user.role] ?? user.role}
-                    </Badge>
+                    <>
+                      {user.branchScopeId ? (
+                        <Badge variant="secondary" className="shrink-0 font-normal">
+                          {branches.find((b) => b.id === user.branchScopeId)?.name ?? "Branch"}
+                        </Badge>
+                      ) : null}
+                      <Badge variant="outline" className="shrink-0 font-normal">
+                        {ROLE_BADGE[user.role] ?? user.role}
+                      </Badge>
+                    </>
                   )}
                   {!isSelf && (
                     <DropdownMenu>
@@ -801,6 +828,37 @@ export function UserSettings() {
                             ))}
                           </DropdownMenuSubContent>
                         </DropdownMenuSub>
+                        {branches.length > 0 ? (
+                          <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                              <ChevronRight className="size-3.5" />
+                              Limit to branch
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem
+                                disabled={!user.branchScopeId}
+                                onSelect={() => void handleUpdateBranchScope(user.id, null)}
+                              >
+                                Whole company
+                                {!user.branchScopeId && (
+                                  <Check className="ml-auto size-3.5 text-primary" />
+                                )}
+                              </DropdownMenuItem>
+                              {branches.map((b) => (
+                                <DropdownMenuItem
+                                  key={b.id}
+                                  disabled={user.branchScopeId === b.id}
+                                  onSelect={() => void handleUpdateBranchScope(user.id, b.id)}
+                                >
+                                  {b.name}
+                                  {user.branchScopeId === b.id && (
+                                    <Check className="ml-auto size-3.5 text-primary" />
+                                  )}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuSubContent>
+                          </DropdownMenuSub>
+                        ) : null}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"

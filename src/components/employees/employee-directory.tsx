@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useScopedEmployees } from "@/lib/auth/scope";
+import { useActiveBranches } from "@/lib/store/hooks";
 import { employmentTypeLabel, getInitials } from "@/lib/format";
 import { Currency } from "@/components/ui/currency";
 import { StatusBadge } from "./status-badge";
@@ -38,10 +39,12 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 
 export function EmployeeDirectory() {
   const employees = useScopedEmployees();
+  const branches = useActiveBranches();
   const router = useRouter();
 
   const [search, setSearch] = React.useState("");
   const [department, setDepartment] = React.useState("all");
+  const [branch, setBranch] = React.useState("all");
   const [status, setStatus] = React.useState("active");
   const [showTerminated, setShowTerminated] = React.useState(false);
 
@@ -58,6 +61,9 @@ export function EmployeeDirectory() {
         return true;
       })
       .filter((e) => (department === "all" ? true : e.department === department))
+      .filter((e) =>
+        branch === "all" ? true : branch === "none" ? !e.branchId : e.branchId === branch
+      )
       .filter((e) => (status === "all" ? true : e.status === status))
       .filter((e) => {
         if (!query) return true;
@@ -65,7 +71,7 @@ export function EmployeeDirectory() {
         return haystack.includes(query);
       })
       .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
-  }, [employees, department, status, search, showTerminated]);
+  }, [employees, department, branch, status, search, showTerminated]);
 
   return (
     <Card>
@@ -94,6 +100,22 @@ export function EmployeeDirectory() {
                 ))}
               </SelectContent>
             </Select>
+            {branches.length > 0 ? (
+              <Select value={branch} onValueChange={setBranch}>
+                <SelectTrigger className="flex-1 sm:w-44 sm:flex-none">
+                  <SelectValue placeholder="Branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All branches</SelectItem>
+                  <SelectItem value="none">Head office</SelectItem>
+                  {branches.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : null}
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
                 <SelectValue placeholder="Status" />

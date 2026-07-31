@@ -44,6 +44,8 @@ export interface TenantUserRow {
   initials: string;
   avatarColor: string;
   employeeId?: string;
+  /** Null means whole-company access; set means limited to that branch. */
+  branchScopeId?: string;
 }
 
 function mapInvite(row: {
@@ -257,7 +259,42 @@ export async function listTenantUsersAction(): Promise<TenantUserRow[]> {
     initials: u.initials,
     avatarColor: u.avatarColor,
     employeeId: u.employeeId ?? undefined,
+    branchScopeId: u.branchScopeId ?? undefined,
   }));
+}
+
+/**
+ * Limits (or unrestricts) an admin to a single branch. Null clears the scope
+ * so the user regains whole-company access. The branch, when provided, must
+ * belong to the tenant. Additive: an unset scope is the current behaviour.
+ */
+export async function updateUserBranchScopeAction(
+  userId: string,
+  branchScopeId: string | null
+): Promise<{ success: boolean; error?: string }> {
+  const session = await requireRole("hr");
+
+  return runAsTenant(session.tenantId, async (tx) => {
+    const target = await tx.user.findFirst({
+      where: { id: userId, tenantId: session.tenantId },
+      select: { id: true },
+    });
+    if (!target) return { success: false, error: "User not found." };
+
+    if (branchScopeId != null) {
+      const branch = await tx.branch.findFirst({
+        where: { id: branchScopeId, tenantId: session.tenantId },
+        select: { id: true },
+      });
+      if (!branch) return { success: false, error: "Branch not found." };
+    }
+
+    await tx.user.updateMany({
+      where: { id: userId, tenantId: session.tenantId },
+      data: { branchScopeId },
+    });
+    return { success: true };
+  });
 }
 
 /**

@@ -54,5 +54,6 @@ export async function getCurrentUserProfile(): Promise<AppUser | null> {
     employeeId: profile.employeeId ?? undefined,
     avatarColor: profile.avatarColor,
     initials: profile.initials,
+    branchScopeId: profile.branchScopeId ?? undefined,
   };
 }

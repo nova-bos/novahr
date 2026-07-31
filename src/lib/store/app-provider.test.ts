@@ -160,6 +160,7 @@ function makeWorkspace(overrides: Partial<TenantWorkspace> = {}): TenantWorkspac
     currentTenant: makeTenant(),
     employees: [makeEmployee()],
     departments: [],
+    branches: [],
     leaveRequests: [],
     payrollRuns: [],
     payslips: [],

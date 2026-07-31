@@ -17,11 +17,16 @@ export function useScopedEmployees(): Employee[] {
 
   return React.useMemo(() => {
     if (!user) return [];
-    if (user.role === "hr" || user.role === "exco") return employees;
+    // Branch-scoped admins only see their branch. The server already filters the
+    // workspace to this branch; this mirrors it client-side for defence in depth.
+    const scoped = user.branchScopeId
+      ? employees.filter((e) => e.branchId === user.branchScopeId)
+      : employees;
+    if (user.role === "hr" || user.role === "exco") return scoped;
     if (user.role === "manager") {
-      return employees.filter((e) => e.id === user.employeeId || e.managerId === user.employeeId);
+      return scoped.filter((e) => e.id === user.employeeId || e.managerId === user.employeeId);
     }
-    return employees.filter((e) => e.id === user.employeeId);
+    return scoped.filter((e) => e.id === user.employeeId);
   }, [employees, user]);
 }
 

@@ -36,6 +36,7 @@ export const IMPORT_COLUMNS: ImportColumn[] = [
   { key: "taxNumber", label: "Tax number", required: false, example: "1234567890", hint: "10 digits" },
   { key: "jobTitle", label: "Job title", required: true, example: "Software Engineer" },
   { key: "department", label: "Department", required: false, example: "Engineering", hint: "Defaults to General" },
+  { key: "branch", label: "Branch", required: false, example: "", hint: "Branch code or name; must match an existing branch. Leave blank for head office" },
   { key: "employmentType", label: "Employment type", required: false, example: "full_time", hint: "full_time, part_time or contract" },
   { key: "startDate", label: "Start date", required: true, example: "2024-01-15", hint: "YYYY-MM-DD" },
   { key: "location", label: "Work location", required: false, example: "Johannesburg" },
