@@ -98,7 +98,9 @@ export async function requireActiveSubscription(tenantId: string): Promise<void>
 
     if (tenant.subscriptionStatus === "past_due") {
       const GRACE_MS = 3 * 24 * 60 * 60 * 1000;
-      if (!tenant.currentPeriodEnd || now.getTime() - tenant.currentPeriodEnd.getTime() <= GRACE_MS) return;
+      // Fail closed on a null period: only grant the grace window when a
+      // currentPeriodEnd actually exists.
+      if (tenant.currentPeriodEnd && now.getTime() - tenant.currentPeriodEnd.getTime() <= GRACE_MS) return;
       throw new Error("Your payment is overdue. Visit Billing to update your payment method.");
     }
   }

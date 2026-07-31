@@ -2,7 +2,7 @@
 
 import { ComplianceStatus, ComplianceType, Prisma } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
-import { requireTenant } from "@/lib/auth/require";
+import { requireTenant, requireActiveSubscription } from "@/lib/auth/require";
 import { getComplianceDueDate, calculateSdl, isSdlLiable } from "./utils";
 import {
   applyEti,
@@ -150,6 +150,7 @@ export async function generateComplianceFromRunAction(
   payrollRunId: string
 ): Promise<{ paye: ComplianceRecordRow; uif: ComplianceRecordRow; sdl: ComplianceRecordRow }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   return runAsTenant(tenantId, async (tx) => {
     const run = await tx.payrollRun.findFirstOrThrow({ where: { id: payrollRunId, tenantId } });
     const period = run.period;
@@ -292,6 +293,7 @@ export async function generateEmp201FromRunAction(
   payrollRunId: string
 ): Promise<ComplianceRecordRow> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   await generateComplianceFromRunAction(tenantId, payrollRunId);
   return runAsTenant(tenantId, async (tx) => {
     const run = await tx.payrollRun.findFirstOrThrow({ where: { id: payrollRunId, tenantId } });
@@ -382,6 +384,7 @@ export async function generateEmp201ForPeriodAction(
   period: string
 ): Promise<ComplianceRecordRow> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   const runId = await runAsTenant(tenantId, async (tx) => {
     const run = await tx.payrollRun.findFirst({
       where: { tenantId, period, status: "completed" },
@@ -405,6 +408,7 @@ export async function markComplianceSubmittedAction(
   reference: string
 ): Promise<ComplianceRecordRow> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   return runAsTenant(tenantId, async (tx) => {
     const updated = await tx.complianceRecord.updateMany({
       where: { id: recordId, tenantId },

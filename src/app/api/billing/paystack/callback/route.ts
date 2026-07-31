@@ -72,8 +72,37 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
 
-    // Email the HR admin who subscribed
-    if (isSubscriptionInit && customerEmail) {
+    // Record the initial charge in the ledger. Idempotent on the Paystack
+    // reference: a replayed callback finds the existing row and does not resend
+    // the activation email.
+    let ledgerWasCreated = false;
+    if (isSubscriptionInit) {
+      const period = new Date().toISOString().slice(0, 7);
+      const existingCharge = await prisma.billingCharge.findUnique({
+        where: { reference },
+        select: { id: true },
+      });
+      ledgerWasCreated = !existingCharge;
+      await prisma.billingCharge.upsert({
+        where: { reference },
+        create: {
+          tenantId,
+          reference,
+          period,
+          amountKobo: amountKobo ?? 0,
+          status: "success",
+          chargeType: "subscription_init",
+        },
+        update: {
+          status: "success",
+          ...(amountKobo != null ? { amountKobo } : {}),
+        },
+      });
+    }
+
+    // Email the HR admin who subscribed. Guarded on the ledger being a fresh
+    // create so a replayed callback never sends a duplicate activation email.
+    if (isSubscriptionInit && customerEmail && ledgerWasCreated) {
       void (async () => {
         try {
           const tenant = await prisma.tenant.findUnique({

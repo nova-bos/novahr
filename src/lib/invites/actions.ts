@@ -6,7 +6,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { runAsTenant } from "@/lib/db-context";
 import { checkRateLimit, clientKey } from "@/lib/security/rate-limit";
-import { requireRole } from "@/lib/auth/require";
+import { requireRole, requireActiveSubscription } from "@/lib/auth/require";
 import { sendInviteEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/app-url";
 import type { UserRole } from "@prisma/client";
@@ -88,6 +88,7 @@ export async function createInviteAction(input: {
   employeeId?: string;
 }): Promise<{ invite?: InviteRow; inviteUrl?: string; emailSent?: boolean; error?: string }> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
 
   const inviteRate = checkRateLimit(session.tenantId, { name: "invite-create", limit: 20, windowMs: 60 * 60 * 1000 });
   if (!inviteRate.allowed) {

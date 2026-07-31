@@ -2,7 +2,7 @@
 
 import { createClient as createSupabaseAdminClient } from "@supabase/supabase-js";
 import { runAsTenant } from "@/lib/db-context";
-import { requireRole } from "@/lib/auth/require";
+import { requireRole, requireActiveSubscription } from "@/lib/auth/require";
 import { sendTerminationEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { accruedEntitlement } from "@/lib/leave/accrual";
@@ -20,6 +20,7 @@ export async function terminateEmployeeAction(
   input: TerminationInput
 ): Promise<{ success: boolean; error?: string }> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
 
   const [linkedUser, tenantRow, employeeRow] = await Promise.all([
     prisma.user.findFirst({

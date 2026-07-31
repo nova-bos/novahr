@@ -1,7 +1,7 @@
 "use server";
 
 import { runAsTenant } from "@/lib/db-context";
-import { requireRole, requireTenant } from "@/lib/auth/require";
+import { requireRole, requireTenant, requireActiveSubscription } from "@/lib/auth/require";
 import { encryptServiceKey } from "@/lib/crypto/service-keys";
 import { prisma } from "@/lib/prisma";
 import { isValidServiceKey } from "@/lib/services/netcash/auth";
@@ -16,6 +16,7 @@ export async function uploadPayslipLogoAction(
   formData: FormData
 ): Promise<{ success: boolean; url?: string; error?: string }> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
   const file = formData.get("file");
   if (!(file instanceof File)) return { success: false, error: "No file provided." };
   if (file.size > MAX_LOGO_BYTES) return { success: false, error: "Logo must be under 2 MB." };
@@ -44,6 +45,7 @@ export async function uploadPayslipLogoAction(
 
 export async function deletePayslipLogoAction(): Promise<{ success: boolean; error?: string }> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
   const supabase = createAdminClient();
   const extensions = ["png", "jpg", "jpeg", "gif", "webp", "svg"];
   await Promise.allSettled(
@@ -151,6 +153,7 @@ export async function updateTaxSettingsAction(
   }
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({
@@ -170,6 +173,7 @@ export async function updateTaxFlagsAction(
   data: { uifEnabled: boolean; sdlEnabled: boolean }
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({
@@ -192,6 +196,7 @@ export async function updateBenefitSettingsAction(
   }
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({
@@ -215,6 +220,7 @@ export async function updateStatutoryReferencesAction(
   }
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     await runAsTenant(tenantId, async (tx) => {
       const existing = await tx.payrollSettings.findUnique({ where: { tenantId }, select: { payrollConfiguredAt: true } });
@@ -306,6 +312,7 @@ export async function updatePayslipSettingsAction(
   }
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     await runAsTenant(tenantId, async (tx) => {
       return tx.payrollSettings.upsert({
@@ -349,6 +356,7 @@ export async function updateNetcashSettingsAction(
   }
 ): Promise<{ success: boolean; error?: string }> {
   await requireTenant(tenantId, "hr");
+  await requireActiveSubscription(tenantId);
   try {
     const update: Record<string, string | null> = {};
     const changed: string[] = [];

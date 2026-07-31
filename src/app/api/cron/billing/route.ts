@@ -13,7 +13,7 @@ function addOneMonth(date: Date): Date {
   return next;
 }
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
@@ -65,7 +65,10 @@ export async function POST(req: NextRequest) {
 
       const amountRands = calculateMonthlyAmount(memberCount);
       const amountKobo = amountRands * 100;
-      const reference = `novahr_renewal_${tenant.id}_${Date.now()}`;
+      // Deterministic reference: Paystack dedups on it, and a same-month re-run
+      // upserts the same ledger row rather than double-charging.
+      const period = now.toISOString().slice(0, 7);
+      const reference = `novahr_renewal_${tenant.id}_${period}`;
 
       const charge = await chargeAuthorization({
         authorizationCode: tenant.paystackAuthCode!,
@@ -75,27 +78,63 @@ export async function POST(req: NextRequest) {
         metadata: {
           tenantId: tenant.id,
           memberCount,
-          period: now.toISOString().slice(0, 7),
+          period,
           type: "subscription_renewal",
         },
       });
 
+      // chargeAuthorization returns the transaction reference, not a numeric
+      // charge id; the deterministic reference is our idempotency key.
+      const paystackChargeId: string | null = charge.reference ?? null;
+
       if (charge.status === "success") {
         const nextPeriodEnd = addOneMonth(tenant.currentPeriodEnd ?? now);
-        await prisma.tenant.update({
-          where: { id: tenant.id },
-          data: {
-            subscriptionStatus: "active",
-            currentPeriodEnd: nextPeriodEnd,
-            billingMemberCount: memberCount,
-            billingAmountKobo: amountKobo,
-          },
-        });
+        await prisma.$transaction([
+          prisma.tenant.update({
+            where: { id: tenant.id },
+            data: {
+              subscriptionStatus: "active",
+              currentPeriodEnd: nextPeriodEnd,
+              billingMemberCount: memberCount,
+              billingAmountKobo: amountKobo,
+            },
+          }),
+          prisma.billingCharge.upsert({
+            where: { reference },
+            create: {
+              tenantId: tenant.id,
+              reference,
+              period,
+              amountKobo,
+              status: "success",
+              chargeType: "subscription_renewal",
+              paystackChargeId,
+            },
+            update: {
+              status: "success",
+              amountKobo,
+              paystackChargeId,
+            },
+          }),
+        ]);
         results.push({ tenantId: tenant.id, status: "charged", amount: amountRands });
       } else {
         await prisma.tenant.update({
           where: { id: tenant.id },
           data: { subscriptionStatus: "past_due" },
+        });
+        await prisma.billingCharge.upsert({
+          where: { reference },
+          create: {
+            tenantId: tenant.id,
+            reference,
+            period,
+            amountKobo,
+            status: "failed",
+            chargeType: "subscription_renewal",
+            paystackChargeId,
+          },
+          update: { status: "failed", amountKobo, paystackChargeId },
         });
         if (tenant.paystackBillingEmail) {
           void sendPaymentFailedEmail({
@@ -155,4 +194,9 @@ export async function POST(req: NextRequest) {
 
   console.log(`[billing-cron] Processed ${dueTenants.length} renewals, ${expiredCanceled.length} downgrades:`, results);
   return NextResponse.json({ processed: dueTenants.length + expiredCanceled.length, results });
+}
+
+// Vercel Cron invokes via GET; POST is kept for manual triggering.
+export async function POST(req: NextRequest) {
+  return GET(req);
 }

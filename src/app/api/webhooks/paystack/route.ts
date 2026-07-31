@@ -26,7 +26,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     .update(body)
     .digest("hex");
 
-  if (hash !== sig) {
+  // Constant-time comparison to avoid leaking signature bytes via timing.
+  // timingSafeEqual throws on unequal-length buffers, so guard both first.
+  if (!sig || sig.length !== hash.length) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
+  }
+  const hashBuffer = Buffer.from(hash);
+  const sigBuffer = Buffer.from(sig);
+  if (
+    hashBuffer.length !== sigBuffer.length ||
+    !crypto.timingSafeEqual(hashBuffer, sigBuffer)
+  ) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -42,15 +52,54 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     switch (eventType) {
       case "charge.success": {
-        // Only handle subscription charges: data.plan is present for subscription charges.
+        const meta = data.metadata as Record<string, unknown> | undefined;
+        const type = meta?.type as string | undefined;
         const plan = data.plan as Record<string, string> | undefined;
-        if (!plan?.plan_code) break;
 
-        const tenantId = (data.metadata as Record<string, string> | undefined)?.tenantId;
+        const tenantId = meta?.tenantId as string | undefined;
         const subscriptionCode =
           (data.subscription_code as string | undefined) ??
           ((data.subscription as Record<string, string> | undefined)?.subscription_code);
         const customerCode = (data.customer as Record<string, string> | undefined)?.customer_code;
+
+        // Charge-authorization renewals (and inits) carry no plan, only our
+        // metadata. Reconcile them here so a charge the cron/callback missed
+        // still marks the tenant active and lands in the ledger.
+        if (type === "subscription_renewal" || type === "subscription_init") {
+          const tenant = await findTenant(tenantId, subscriptionCode);
+          if (!tenant) break;
+
+          const reference = data.reference as string | undefined;
+          const amountKobo = data.amount != null ? Number(data.amount) : 0;
+          const period =
+            (meta?.period as string | undefined) ?? new Date().toISOString().slice(0, 7);
+
+          await prisma.tenant.update({
+            where: { id: tenant.id },
+            data: { subscriptionStatus: "active" },
+          });
+
+          // Idempotent on the charge reference: period advancement is left to
+          // the cron/callback so we never double-advance currentPeriodEnd.
+          if (reference) {
+            await prisma.billingCharge.upsert({
+              where: { reference },
+              create: {
+                tenantId: tenant.id,
+                reference,
+                period,
+                amountKobo,
+                status: "success",
+                chargeType: type,
+              },
+              update: { status: "success" },
+            });
+          }
+          break;
+        }
+
+        // Legacy subscription-plan charges: data.plan is present.
+        if (!plan?.plan_code) break;
 
         const tenant = await findTenant(tenantId, subscriptionCode);
         if (!tenant) break;

@@ -157,6 +157,7 @@ export async function updateEmployeeRecord(
   updates: Partial<Employee>
 ): Promise<Employee> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
   const tenantId = session.tenantId;
   // leaveBalances and onboarding are not Prisma columns; strip them before building the update payload
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

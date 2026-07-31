@@ -2,7 +2,7 @@
 
 import type { EquityGender, EquityRace, OccupationalLevel } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireRole, requireTenant } from "@/lib/auth/require";
+import { requireRole, requireTenant, requireActiveSubscription } from "@/lib/auth/require";
 import { buildEquityReport, type EquityReport } from "./employment-equity";
 
 /**
@@ -50,6 +50,7 @@ export async function updateEmployeeEquityAction(
   input: EquityUpdateInput
 ): Promise<{ ok?: boolean; error?: string }> {
   const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
   const employee = await prisma.employee.findFirst({
     where: { id: employeeId, tenantId: session.tenantId },
     select: { id: true },
