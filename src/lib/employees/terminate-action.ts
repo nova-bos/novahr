@@ -132,7 +132,7 @@ export async function terminateEmployeeAction(
 
   // Notify the employee of their termination
   if (employeeRow) {
-    void sendTerminationEmail({
+    await sendTerminationEmail({
       recipientEmail: employeeRow.email,
       employeeName: `${employeeRow.firstName} ${employeeRow.lastName}`,
       terminationDate: input.terminationDate,

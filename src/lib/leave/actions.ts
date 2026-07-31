@@ -88,7 +88,7 @@ export async function createLeaveRequestRecord(
   });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  void sendLeaveRequestEmail({
+  await sendLeaveRequestEmail({
     recipientEmails: hrUsers.map((u) => u.email),
     employeeName: result.actor,
     leaveType: input.type,
@@ -287,7 +287,7 @@ export async function decideLeaveRequestRecord(
   });
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  void sendLeaveDecisionEmail({
+  await sendLeaveDecisionEmail({
     recipientEmail: inner.recipientEmail,
     employeeName: inner.employeeName,
     leaveType: inner.leaveType,
@@ -407,28 +407,26 @@ export async function cancelLeaveRequestRecord(id: string): Promise<{
   });
 
   // Email HR users so they know to stop waiting on this request.
-  void (async () => {
-    try {
-      const hrUsers = await prisma.user.findMany({
-        where: { tenantId, role: "hr" },
-        select: { email: true },
+  try {
+    const hrUsers = await prisma.user.findMany({
+      where: { tenantId, role: "hr" },
+      select: { email: true },
+    });
+    const hrEmails = hrUsers.map((u) => u.email).filter(Boolean);
+    if (hrEmails.length > 0) {
+      await sendLeaveCancellationEmail({
+        recipientEmails: hrEmails,
+        employeeName: result.employeeName,
+        leaveType: result.leaveType,
+        days: result.days,
+        startDate: result.startDate,
+        endDate: result.endDate,
+        appUrl: process.env.NEXT_PUBLIC_APP_URL,
       });
-      const hrEmails = hrUsers.map((u) => u.email).filter(Boolean);
-      if (hrEmails.length > 0) {
-        await sendLeaveCancellationEmail({
-          recipientEmails: hrEmails,
-          employeeName: result.employeeName,
-          leaveType: result.leaveType,
-          days: result.days,
-          startDate: result.startDate,
-          endDate: result.endDate,
-          appUrl: process.env.NEXT_PUBLIC_APP_URL,
-        });
-      }
-    } catch (err) {
-      console.error("[leave] cancel email failed", err);
     }
-  })();
+  } catch (err) {
+    console.error("[leave] cancel email failed", err);
+  }
 
   return {
     leaveRequest: mapLeaveRequest(result.leaveRequest),
@@ -458,11 +456,10 @@ export async function requestLeaveDocumentationRecord(leaveRequestId: string): P
       },
     });
 
-    void (async () => {
-      try {
-        const { Resend } = await import("resend");
-        const key = process.env.RESEND_API_KEY;
-        if (!key) return;
+    try {
+      const { Resend } = await import("resend");
+      const key = process.env.RESEND_API_KEY;
+      if (key) {
         const client = new Resend(key);
         const from = process.env.RESEND_FROM ?? "NovaHR <no-reply@novabos.co.za>";
         const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://hr.novabos.co.za";
@@ -476,9 +473,9 @@ export async function requestLeaveDocumentationRecord(leaveRequestId: string): P
 <p><a href="${appUrl}/leave">View my leave requests</a></p>
 <p>The NovaHR team</p>`,
         });
-      } catch (err) {
-        console.error("[leave] supporting-documents email failed:", err instanceof Error ? err.message : err);
       }
-    })();
+    } catch (err) {
+      console.error("[leave] supporting-documents email failed:", err instanceof Error ? err.message : err);
+    }
   });
 }

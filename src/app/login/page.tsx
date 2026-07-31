@@ -41,7 +41,7 @@ const DemoAccountsPanel = dynamic(
 
 const FEATURES: { icon: LucideIcon; label: string }[] = [
   { icon: Wallet, label: "Run payroll with automatic PAYE, UIF and SDL" },
-  { icon: Banknote, label: "Pay salaries straight to the bank with NetCash" },
+  { icon: Banknote, label: "Pay salaries straight to the bank with Netcash" },
   { icon: CalendarRange, label: "Track leave balances, requests and approvals" },
   { icon: ShieldCheck, label: "Stay compliant with EMP201, employment equity and POPIA" },
   { icon: Users, label: "A tailored view for every role in your organisation" },

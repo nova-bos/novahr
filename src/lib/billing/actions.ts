@@ -56,14 +56,11 @@ export async function createSubscription(): Promise<{ url: string } | { error: s
 export async function reactivateSubscription(): Promise<{ ok: true } | { error: string }> {
   try {
     const user = await requireRole("hr");
-    console.log("[reactivate] user.tenantId:", user.tenantId);
 
     const tenant = await prisma.tenant.findUnique({
       where: { id: user.tenantId },
       select: { plan: true, subscriptionStatus: true, currentPeriodEnd: true },
     });
-
-    console.log("[reactivate] tenant:", JSON.stringify(tenant));
 
     if (!tenant) return { error: "Tenant not found." };
     if (tenant.plan !== "subscribed" && tenant.plan !== "enterprise") {
@@ -77,8 +74,6 @@ export async function reactivateSubscription(): Promise<{ ok: true } | { error: 
       where: { id: user.tenantId },
       data: { subscriptionStatus: "active" },
     });
-
-    console.log("[reactivate] success — status flipped to active");
     return { ok: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Unknown error";

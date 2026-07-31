@@ -58,18 +58,20 @@ export async function approvePayrollRunAction(
 
     // Send payslip emails now that the run is approved
     const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-    for (const ps of payslips) {
-      const empRow = employeeById.get(ps.employeeId);
-      if (!empRow) continue;
-      const emp = mapEmployee(empRow);
-      void sendPayslipEmail({
-        recipientEmail: emp.email,
-        employeeName: `${emp.firstName} ${emp.lastName}`,
-        period: ps.period,
-        netPay: ps.netPay.toNumber(),
-        appUrl,
-      });
-    }
+    await Promise.allSettled(
+      payslips.map(async (ps) => {
+        const empRow = employeeById.get(ps.employeeId);
+        if (!empRow) return;
+        const emp = mapEmployee(empRow);
+        await sendPayslipEmail({
+          recipientEmail: emp.email,
+          employeeName: `${emp.firstName} ${emp.lastName}`,
+          period: ps.period,
+          netPay: ps.netPay.toNumber(),
+          appUrl,
+        });
+      })
+    );
 
     return { payrollRun: mapPayrollRun(updated, payslips.map((p) => p.id)) };
   });

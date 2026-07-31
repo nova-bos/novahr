@@ -406,6 +406,7 @@ model Employee {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([tenantId, employeeNumber])
   @@index([tenantId])
 }
 
@@ -830,6 +831,7 @@ model Invite {
   acceptedAt DateTime?
   createdAt  DateTime     @default(now())
 
+  @@unique([tenantId, email])
   @@index([tenantId])
 }
 
