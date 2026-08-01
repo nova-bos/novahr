@@ -13,6 +13,7 @@ import { ProfileDeductions } from "./profile-deductions";
 import { ProfileDocuments } from "./profile-documents";
 import { ProfileEquity } from "./profile-equity";
 import { ProfileDisciplinary } from "./profile-disciplinary";
+import { ProfilePerformance } from "./profile-performance";
 import { ProfileLetters } from "./profile-letters";
 import { ProfilePrivacy } from "./profile-privacy";
 import { ProfileOnboarding } from "./profile-onboarding";
@@ -47,6 +48,7 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
                 <TabsTrigger value="compensation">Compensation</TabsTrigger>
                 <TabsTrigger value="leave">Leave</TabsTrigger>
                 <TabsTrigger value="documents">Documents</TabsTrigger>
+                <TabsTrigger value="performance">Performance</TabsTrigger>
                 <TabsTrigger value="disciplinary">Disciplinary</TabsTrigger>
                 {employee.onboarding ? (
                   <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
@@ -70,6 +72,9 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
             <TabsContent value="documents" className="mt-4 flex flex-col gap-6">
               <ProfileDocuments employee={employee} />
               <ProfileLetters employee={employee} />
+            </TabsContent>
+            <TabsContent value="performance" className="mt-4">
+              <ProfilePerformance employee={employee} />
             </TabsContent>
             <TabsContent value="disciplinary" className="mt-4">
               <ProfileDisciplinary employee={employee} />
