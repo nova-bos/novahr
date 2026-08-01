@@ -89,6 +89,7 @@ export async function createEmployeeRecord(
         location: employee.location,
         managerId: employee.managerId,
         branchId: employee.branchId ?? null,
+        costCentreId: employee.costCentreId ?? null,
         salaryAnnualGross: employee.salary.annualGross,
         salaryCurrency: employee.salary.currency,
         salaryPayFrequency: employee.salary.payFrequency,
@@ -229,6 +230,11 @@ export async function updateEmployeeRecord(
 
   if (probationEndDate !== undefined) {
     data.probationEndDate = probationEndDate ? new Date(probationEndDate) : null;
+  }
+
+  // An empty cost-centre id means "unassigned"; store null, not an empty string.
+  if (typeof data.costCentreId === "string" && data.costCentreId === "") {
+    data.costCentreId = null;
   }
 
   if (dateOfBirth !== undefined) {

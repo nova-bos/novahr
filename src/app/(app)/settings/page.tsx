@@ -14,6 +14,7 @@ import { PayslipStudio } from "@/components/settings/payslip-studio";
 import { LeavePolicySettings } from "@/components/settings/leave-policy-settings";
 import { BirthdayCalendarSettings } from "@/components/settings/birthday-calendar-settings";
 import { DepartmentSettings } from "@/components/settings/department-settings";
+import { OrgCataloguesSettings } from "@/components/settings/org-catalogues-settings";
 import { BranchSettings } from "@/components/settings/branch-settings";
 import { UserSettings } from "@/components/settings/user-settings";
 import { NotificationSettings } from "@/components/settings/notification-settings";
@@ -103,8 +104,9 @@ export default function SettingsPage() {
         <TabsContent value="users" className="mt-4">
           <UserSettings />
         </TabsContent>
-        <TabsContent value="departments" className="mt-4">
+        <TabsContent value="departments" className="mt-4 flex flex-col gap-6">
           <DepartmentSettings />
+          <OrgCataloguesSettings />
         </TabsContent>
         <TabsContent value="branches" className="mt-4">
           <BranchSettings />

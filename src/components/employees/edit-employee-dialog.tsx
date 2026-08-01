@@ -30,6 +30,12 @@ import { useApp } from "@/lib/store/app-provider";
 import { useActiveBranches, useDepartments, useEmployees, useTenantId } from "@/lib/store/hooks";
 import { getPayrollSettingsAction } from "@/lib/settings/actions";
 import {
+  listCostCentresAction,
+  listJobPositionsAction,
+  type CostCentreDto,
+  type JobPositionDto,
+} from "@/lib/org-catalogues/actions";
+import {
   EMPLOYMENT_TYPE_OPTIONS,
   GENDER_OPTIONS,
   MARITAL_OPTIONS,
@@ -93,6 +99,14 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
     }
   }, [open, employee]);
 
+  const [costCentres, setCostCentres] = React.useState<CostCentreDto[]>([]);
+  const [jobPositions, setJobPositions] = React.useState<JobPositionDto[]>([]);
+  React.useEffect(() => {
+    if (!open) return;
+    listCostCentresAction().then(setCostCentres).catch(() => setCostCentres([]));
+    listJobPositionsAction().then(setJobPositions).catch(() => setJobPositions([]));
+  }, [open]);
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
@@ -129,6 +143,7 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
         jobTitle: form.jobTitle,
         department: form.department,
         branchId: form.branchId || undefined,
+        costCentreId: form.costCentreId,
         employmentType: form.employmentType,
         status: form.status,
         // Clear the probation date when the employee is no longer on probation.
@@ -398,9 +413,39 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                     <Label htmlFor="jobTitle">Job title</Label>
                     <Input
                       id="jobTitle"
+                      list="job-position-options"
                       value={form.jobTitle}
                       onChange={(e) => setForm((f) => ({ ...f, jobTitle: e.target.value }))}
                     />
+                    {jobPositions.length > 0 ? (
+                      <datalist id="job-position-options">
+                        {jobPositions.map((p) => (
+                          <option key={p.id} value={p.title} />
+                        ))}
+                      </datalist>
+                    ) : null}
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="costCentre">Cost centre <OptionalTag /></Label>
+                    <Select
+                      value={form.costCentreId || "none"}
+                      onValueChange={(value) =>
+                        setForm((f) => ({ ...f, costCentreId: value === "none" ? "" : value }))
+                      }
+                    >
+                      <SelectTrigger id="costCentre" className="w-full">
+                        <SelectValue placeholder="Select cost centre" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Unassigned</SelectItem>
+                        {costCentres.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                            {c.code ? ` (${c.code})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="startDate">Start date</Label>
@@ -852,6 +897,7 @@ function buildFormState(employee: Employee) {
     jobTitle: employee.jobTitle,
     department: employee.department,
     branchId: employee.branchId ?? "",
+    costCentreId: employee.costCentreId ?? "",
     employmentType: employee.employmentType,
     status: employee.status,
     probationEndDate: employee.probationEndDate ?? "",

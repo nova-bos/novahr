@@ -135,6 +135,7 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
     location: row.location,
     managerId: row.managerId ?? undefined,
     branchId: row.branchId ?? undefined,
+    costCentreId: row.costCentreId ?? undefined,
     salary: {
       annualGross: decToNumber(row.salaryAnnualGross),
       currency: row.salaryCurrency,

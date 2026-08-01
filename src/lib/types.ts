@@ -180,6 +180,8 @@ export interface Employee {
   managerId?: string;
   /** Optional branch. Undefined/null means whole company / head office. */
   branchId?: string;
+  /** Optional cost centre id for payroll cost allocation. */
+  costCentreId?: string;
   salary: SalaryInfo;
   bankDetails: BankDetails;
   taxNumber: string;
