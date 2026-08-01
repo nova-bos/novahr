@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Download, Upload, SlidersHorizontal } from "lucide-react";
+import { Loader2, Plus, Trash2, Download, Upload, SlidersHorizontal, Repeat } from "lucide-react";
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -40,6 +41,7 @@ import {
   removeVariablePayInputAction,
   type VariablePayInputDto,
 } from "@/lib/payroll/variable-pay-actions";
+import { applyRecurringInputsToRunAction } from "@/lib/payroll/recurring-input-actions";
 import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { formatCurrency } from "@/lib/format";
 import type { Employee, PayrollRun } from "@/lib/types";
@@ -70,6 +72,27 @@ export function VariablePayCard({ run }: Props) {
   const fileRef = React.useRef<HTMLInputElement>(null);
 
   const isClosed = run.status === "completed" || run.status === "awaiting_approval";
+  const [applyingRecurring, setApplyingRecurring] = React.useState(false);
+
+  async function handleApplyRecurring() {
+    setApplyingRecurring(true);
+    try {
+      const { added } = await applyRecurringInputsToRunAction(run.id);
+      const fresh = await listVariablePayInputsAction(run.id);
+      setInputs(fresh);
+      toast.success(
+        added > 0
+          ? `${added} recurring component${added === 1 ? "" : "s"} added.`
+          : "No new recurring components to add."
+      );
+    } catch (err) {
+      toast.error("Could not apply recurring components", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setApplyingRecurring(false);
+    }
+  }
 
   React.useEffect(() => {
     let active = true;
@@ -272,6 +295,20 @@ export function VariablePayCard({ run }: Props) {
           Add overtime, commission, allowances, bonuses and once-off deductions for this run. These
           apply when you finalise. {formatCurrency(totalVariable)} captured so far.
         </CardDescription>
+        {!isClosed ? (
+          <CardAction>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={applyingRecurring}
+              onClick={handleApplyRecurring}
+            >
+              {applyingRecurring ? <Loader2 className="size-4 animate-spin" /> : <Repeat className="size-4" />}
+              Add recurring components
+            </Button>
+          </CardAction>
+        ) : null}
       </CardHeader>
       <CardContent className="space-y-6">
         {!isClosed ? (

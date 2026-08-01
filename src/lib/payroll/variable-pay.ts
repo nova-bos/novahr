@@ -53,6 +53,20 @@ export const COMPONENT_BY_TYPE = new Map(COMPONENT_DEFINITIONS.map((d) => [d.typ
 export const COMPONENT_TYPES = COMPONENT_DEFINITIONS.map((d) => d.type);
 
 /**
+ * Components valid as recurring monthly items: fixed-amount, regularly-taxed
+ * earnings and deductions. Hours-based components (overtime, Sunday time) and
+ * annual-payment components (bonus, 13th cheque) vary per period and are
+ * excluded.
+ */
+export function isRecurringComponentType(type: string): boolean {
+  const def = COMPONENT_BY_TYPE.get(type);
+  return !!def && def.kind !== "hours" && def.taxTreatment === "regular";
+}
+
+/** The component definitions that may be set up as recurring. */
+export const RECURRING_COMPONENTS = COMPONENT_DEFINITIONS.filter((d) => isRecurringComponentType(d.type));
+
+/**
  * Resolves the final rand amount for a component. Hours-based components use
  * quantity x rate x multiplier; everything else uses the explicit amount.
  */
