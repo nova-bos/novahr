@@ -1,7 +1,6 @@
 "use client";
 
-import { Building2, Download, TrendingUp, UserPlus, Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Building2, TrendingUp, UserPlus, Users } from "lucide-react";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -17,7 +16,7 @@ import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency } from "@/lib/format";
 import { Currency } from "@/components/ui/currency";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
-import { toCSV, downloadCSV } from "@/lib/export/csv";
+import { ExportButton } from "@/components/ui/export-button";
 import { HeadcountChart } from "./headcount-chart";
 import { EmploymentMixChart } from "./employment-mix-chart";
 
@@ -98,18 +97,17 @@ export function WorkforceReport() {
     return rows;
   })();
 
-  function handleExportDepartments() {
-    const csv = toCSV(
-      ["Department", "Headcount", "Monthly Cost (ZAR)", "Annual Budget (ZAR)", "Budget Utilization (%)"],
-      departmentRows.map(({ dept, headcount, cost, annualCost, utilization }) => [
+  function buildDepartmentExport() {
+    return {
+      headers: ["Department", "Headcount", "Monthly Cost (ZAR)", "Annual Budget (ZAR)", "Budget Utilization (%)"],
+      rows: departmentRows.map(({ dept, headcount, cost, annualCost, utilization }) => [
         dept.name,
         headcount,
         cost.toFixed(2),
         annualCost.toFixed(2),
         Math.round(utilization),
-      ])
-    );
-    downloadCSV(csv, `workforce-report-${new Date().toISOString().slice(0, 10)}`);
+      ]),
+    };
   }
 
   return (
@@ -125,10 +123,11 @@ export function WorkforceReport() {
         <CardHeader>
           <CardTitle>Department cost summary</CardTitle>
           <CardAction>
-            <Button variant="outline" size="sm" onClick={handleExportDepartments}>
-              <Download className="size-4" />
-              Export CSV
-            </Button>
+            <ExportButton
+              build={buildDepartmentExport}
+              filename={`workforce-report-${new Date().toISOString().slice(0, 10)}`}
+              sheetName="Department costs"
+            />
           </CardAction>
         </CardHeader>
         <CardContent>

@@ -40,6 +40,7 @@ import {
 } from "@/lib/payroll/register";
 import { GL_JOURNAL_HEADERS, glJournalToRows } from "@/lib/payroll/gl-journal";
 import { toCSV, downloadCSV } from "@/lib/export/csv";
+import { ExportButton } from "@/components/ui/export-button";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant } from "@/lib/store/hooks";
 import { PayrollStatusBadge } from "./payroll-status-badge";
@@ -118,13 +119,6 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
       }
     });
   }, [run.id, run.status]);
-
-  function handleRegisterCsv() {
-    if (!register) return;
-    const csv = toCSV([...PAYROLL_REGISTER_HEADERS], payrollRegisterToRows(register));
-    downloadCSV(csv, `payroll-register-${run.period}`);
-    toast.success("Payroll register exported", { description: `payroll-register-${run.period}.csv downloaded.` });
-  }
 
   function handleGlJournal() {
     startGlExportTransition(async () => {
@@ -376,16 +370,17 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
               <Download className="mr-2 size-4" />
               {bulkDownloading ? (bulkProgress ?? "Generating...") : "Download all payslips"}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRegisterCsv}
+            <ExportButton
+              label="Register"
+              filename={`payroll-register-${run.period}`}
+              sheetName="Payroll register"
               disabled={!register}
-              className="flex-1 sm:flex-none"
-            >
-              <Download className="mr-2 size-4" />
-              Register CSV
-            </Button>
+              build={() =>
+                register
+                  ? { headers: [...PAYROLL_REGISTER_HEADERS], rows: payrollRegisterToRows(register) }
+                  : { headers: [], rows: [] }
+              }
+            />
             <Button
               variant="outline"
               size="sm"
@@ -649,10 +644,16 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <CardTitle>Payroll register</CardTitle>
-              <Button variant="outline" size="sm" onClick={handleRegisterCsv} disabled={!register}>
-                <Download className="mr-2 size-4" />
-                Export CSV
-              </Button>
+              <ExportButton
+                filename={`payroll-register-${run.period}`}
+                sheetName="Payroll register"
+                disabled={!register}
+                build={() =>
+                  register
+                    ? { headers: [...PAYROLL_REGISTER_HEADERS], rows: payrollRegisterToRows(register) }
+                    : { headers: [], rows: [] }
+                }
+              />
             </div>
           </CardHeader>
           <CardContent>
