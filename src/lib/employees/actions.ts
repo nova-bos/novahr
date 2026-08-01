@@ -297,6 +297,41 @@ export async function updateEmployeeRecord(
     // update below against cross-tenant ids.
     const existing = await tx.employee.findFirst({ where: { id, tenantId } });
     if (!existing) throw new Error("Employee not found.");
+
+    // Capture structured promotion/transfer history from role, department and
+    // branch changes so the profile shows an employment timeline, not just a
+    // free-text activity log.
+    const historyEvents: { type: string; field: string; oldValue: string; newValue: string }[] = [];
+    if (updates.jobTitle !== undefined && updates.jobTitle !== existing.jobTitle) {
+      historyEvents.push({
+        type: "promotion",
+        field: "Job title",
+        oldValue: existing.jobTitle,
+        newValue: updates.jobTitle,
+      });
+    }
+    if (updates.department !== undefined && updates.department !== existing.department) {
+      historyEvents.push({
+        type: "transfer",
+        field: "Department",
+        oldValue: existing.department,
+        newValue: updates.department,
+      });
+    }
+    if (updates.branchId !== undefined && (updates.branchId ?? null) !== existing.branchId) {
+      const ids = [existing.branchId, updates.branchId ?? null].filter(Boolean) as string[];
+      const branchRows = ids.length
+        ? await tx.branch.findMany({ where: { tenantId, id: { in: ids } }, select: { id: true, name: true } })
+        : [];
+      const branchName = (bid: string | null) =>
+        bid ? branchRows.find((b) => b.id === bid)?.name ?? bid : "Head office";
+      historyEvents.push({
+        type: "transfer",
+        field: "Branch",
+        oldValue: branchName(existing.branchId),
+        newValue: branchName(updates.branchId ?? null),
+      });
+    }
     const salaryChanged =
       (salary?.annualGross !== undefined && salary.annualGross !== existing?.salaryAnnualGross.toNumber()) ||
       (salary?.payFrequency !== undefined && salary.payFrequency !== existing?.salaryPayFrequency);
@@ -370,6 +405,31 @@ export async function updateEmployeeRecord(
           tenantId,
           type: "settings_updated",
           message: `updated banking details for ${updated.firstName} ${updated.lastName}`,
+          actor: session.name,
+          employeeId: id,
+        },
+      });
+    }
+
+    for (const event of historyEvents) {
+      await tx.employeeHistoryEvent.create({
+        data: {
+          tenantId,
+          employeeId: id,
+          type: event.type,
+          field: event.field,
+          oldValue: event.oldValue,
+          newValue: event.newValue,
+          changedBy: session.name,
+        },
+      });
+    }
+    if (historyEvents.some((e) => e.field === "Job title")) {
+      await tx.activityItem.create({
+        data: {
+          tenantId,
+          type: "promotion",
+          message: `updated the role of ${updated.firstName} ${updated.lastName} to ${updated.jobTitle}`,
           actor: session.name,
           employeeId: id,
         },

@@ -16,6 +16,8 @@ const mockPrisma = vi.hoisted(() => {
       upsert: vi.fn().mockResolvedValue({ prefix: "EMP", separator: "-", padLength: 4, nextNumber: 2 }),
     },
     employeeSalaryHistory: { create: vi.fn() },
+    employeeHistoryEvent: { create: vi.fn() },
+    branch: { findMany: vi.fn().mockResolvedValue([]) },
     employeeQualification: {
       deleteMany: vi.fn().mockResolvedValue({ count: 0 }),
       createMany: vi.fn().mockResolvedValue({ count: 0 }),
