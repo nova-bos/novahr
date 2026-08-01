@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft, Banknote, Download, Loader2, Receipt, ReceiptText, Send, Wallet } from "lucide-react";
+import { ArrowLeft, Banknote, Download, Loader2, Lock, LockOpen, Receipt, ReceiptText, Send, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -31,7 +31,11 @@ import { usePlan } from "@/lib/plan/use-plan";
 import { generateBankExportCsvAction, generateNetcashNifAction, submitNetcashBatchAction } from "@/lib/bank-exports/actions";
 import { getPayslipSettingsAction } from "@/lib/settings/actions";
 import { approvePayrollRunAction, rejectPayrollApprovalAction } from "@/lib/payroll/approval-actions";
-import { cancelPayrollRunRecord } from "@/lib/payroll/actions";
+import {
+  cancelPayrollRunRecord,
+  lockPayrollRunAction,
+  unlockPayrollRunAction,
+} from "@/lib/payroll/actions";
 import { getGlJournalAction, getPayrollRegisterAction } from "@/lib/payroll/report-actions";
 import {
   PAYROLL_REGISTER_HEADERS,
@@ -63,6 +67,7 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
   const [isApproving, startApproveTransition] = React.useTransition();
   const [isRejecting, startRejectTransition] = React.useTransition();
   const [isCancelling, startCancelTransition] = React.useTransition();
+  const [isLockToggling, startLockTransition] = React.useTransition();
   const [confirmApproveOpen, setConfirmApproveOpen] = React.useState(false);
   const [confirmSubmitOpen, setConfirmSubmitOpen] = React.useState(false);
   const [confirmCancelOpen, setConfirmCancelOpen] = React.useState(false);
@@ -162,6 +167,30 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
         toast.info("Payroll sent back for review. Payslips were cleared so you can re-run it.");
       } catch (err) {
         toast.error("Could not reject payroll", {
+          description: err instanceof Error ? err.message : "Please try again.",
+        });
+      }
+    });
+  }
+
+  const isLocked = Boolean(run.lockedAt);
+
+  function handleToggleLock() {
+    startLockTransition(async () => {
+      try {
+        if (isLocked) {
+          await unlockPayrollRunAction(run.id);
+          reloadWorkspace();
+          toast.success("Payroll run unlocked", { description: "Corrections are possible again." });
+        } else {
+          await lockPayrollRunAction(run.id);
+          reloadWorkspace();
+          toast.success("Payroll run locked", {
+            description: "It cannot be cancelled or reversed until unlocked.",
+          });
+        }
+      } catch (err) {
+        toast.error("Could not update the lock", {
           description: err instanceof Error ? err.message : "Please try again.",
         });
       }
@@ -504,7 +533,32 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
         </div>
       ) : null}
 
-      {run.status === "completed" || run.status === "awaiting_approval" ? (
+      {run.status === "completed" ? (
+        <div className="flex items-start justify-between gap-4 rounded-lg border border-border bg-muted/30 p-4">
+          <div>
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              {isLocked ? <Lock className="size-4" /> : <LockOpen className="size-4" />}
+              {isLocked ? "This run is locked" : "Lock this run"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {isLocked
+                ? `Locked${run.lockedBy ? ` by ${run.lockedBy}` : ""}. It cannot be cancelled or reversed until unlocked.`
+                : "Locking finalises the run so it cannot be cancelled or reversed by mistake. You can unlock it later if a correction is genuinely needed."}
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleToggleLock}
+            disabled={isLockToggling}
+            className="shrink-0"
+          >
+            {isLockToggling ? "Saving..." : isLocked ? "Unlock run" : "Lock run"}
+          </Button>
+        </div>
+      ) : null}
+
+      {(run.status === "completed" || run.status === "awaiting_approval") && !isLocked ? (
         <div className="flex items-start justify-between gap-4 rounded-lg border border-destructive/30 bg-destructive/5 p-4">
           <div>
             <p className="text-sm font-semibold text-destructive">Made a mistake, or need to add or remove someone?</p>

@@ -648,6 +648,9 @@ export async function cancelPayrollRunRecord(runId: string): Promise<{
     if (run.status !== "completed" && run.status !== "awaiting_approval") {
       throw new Error("Only a completed or awaiting-approval run can be cancelled.");
     }
+    if (run.lockedAt) {
+      throw new Error("This run is locked. Unlock it before making corrections.");
+    }
     // Once the batch is with Netcash the money has moved: block cancellation.
     const exported = await tx.bankExport.findFirst({
       where: { payrollRunId: runId, status: "exported" },
@@ -695,5 +698,70 @@ export async function cancelPayrollRunRecord(runId: string): Promise<{
       cancelledPayslipIds,
       activity: mapActivityItem(activity),
     };
+  });
+}
+
+/**
+ * Explicitly locks a completed payroll run so it cannot be cancelled/reversed
+ * until unlocked. A deliberate control on finalised payroll, separate from the
+ * soft "completed" status.
+ */
+export async function lockPayrollRunAction(
+  runId: string
+): Promise<{ payrollRun: PayrollRun; activity: ActivityItem }> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
+  return runAsTenant(tenantId, async (tx) => {
+    const run = await tx.payrollRun.findFirst({ where: { id: runId, tenantId } });
+    if (!run) throw new Error("Payroll run not found.");
+    if (run.status !== "completed") throw new Error("Only a completed run can be locked.");
+    if (run.lockedAt) throw new Error("This run is already locked.");
+
+    const updated = await tx.payrollRun.update({
+      where: { id: runId },
+      data: { lockedAt: new Date(), lockedBy: session.name },
+    });
+    const payslipIds = (
+      await tx.payslip.findMany({ where: { runId, tenantId }, select: { id: true } })
+    ).map((p) => p.id);
+    const activity = await tx.activityItem.create({
+      data: {
+        tenantId,
+        type: "payroll_run",
+        message: `locked the ${formatMonthYear(run.period)} payroll run`,
+        actor: session.name,
+      },
+    });
+    return { payrollRun: mapPayrollRun(updated, payslipIds), activity: mapActivityItem(activity) };
+  });
+}
+
+/** Unlocks a locked payroll run so corrections (reversal) become possible again. */
+export async function unlockPayrollRunAction(
+  runId: string
+): Promise<{ payrollRun: PayrollRun; activity: ActivityItem }> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
+  return runAsTenant(tenantId, async (tx) => {
+    const run = await tx.payrollRun.findFirst({ where: { id: runId, tenantId } });
+    if (!run) throw new Error("Payroll run not found.");
+    if (!run.lockedAt) throw new Error("This run is not locked.");
+
+    const updated = await tx.payrollRun.update({
+      where: { id: runId },
+      data: { lockedAt: null, lockedBy: null },
+    });
+    const payslipIds = (
+      await tx.payslip.findMany({ where: { runId, tenantId }, select: { id: true } })
+    ).map((p) => p.id);
+    const activity = await tx.activityItem.create({
+      data: {
+        tenantId,
+        type: "payroll_run",
+        message: `unlocked the ${formatMonthYear(run.period)} payroll run`,
+        actor: session.name,
+      },
+    });
+    return { payrollRun: mapPayrollRun(updated, payslipIds), activity: mapActivityItem(activity) };
   });
 }

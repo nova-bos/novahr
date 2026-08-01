@@ -407,6 +407,8 @@ describe("mapPayrollRun", () => {
     approvedBy: null,
     approvedAt: null,
     approvalNote: null,
+    lockedAt: null,
+    lockedBy: null,
     runType: "regular",
     runReason: null,
   };
