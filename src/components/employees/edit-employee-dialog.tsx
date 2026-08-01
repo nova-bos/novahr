@@ -34,6 +34,7 @@ import {
   GENDER_OPTIONS,
   MARITAL_OPTIONS,
 } from "@/lib/config/employee-options";
+import { DatePicker } from "@/components/ui/date-picker";
 import type {
   Employee,
   EmployerBenefit,
@@ -319,13 +320,16 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                     <Label htmlFor="dateOfBirth">
                       Date of birth {form.idType === "sa_id" ? null : <OptionalTag />}
                     </Label>
-                    <Input
+                    <DatePicker
                       id="dateOfBirth"
-                      type="date"
                       value={form.dateOfBirth}
-                      readOnly={form.idType === "sa_id"}
+                      onValueChange={(v) => setForm((f) => ({ ...f, dateOfBirth: v }))}
+                      placeholder="Select date of birth"
                       disabled={form.idType === "sa_id"}
-                      onChange={(e) => setForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
+                      captionLayout="dropdown"
+                      fromYear={new Date().getFullYear() - 100}
+                      toYear={new Date().getFullYear()}
+                      disableFuture
                     />
                     {form.idType === "sa_id" ? (
                       <p className="text-xs text-muted-foreground">Derived from the ID number.</p>
@@ -398,11 +402,14 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="startDate">Start date</Label>
-                    <Input
+                    <DatePicker
                       id="startDate"
-                      type="date"
                       value={form.startDate}
-                      onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                      onValueChange={(v) => setForm((f) => ({ ...f, startDate: v }))}
+                      placeholder="Select start date"
+                      captionLayout="dropdown"
+                      fromYear={new Date().getFullYear() - 50}
+                      toYear={new Date().getFullYear() + 1}
                     />
                   </div>
                   <div className="space-y-1.5">

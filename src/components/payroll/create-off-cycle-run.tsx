@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -106,11 +107,14 @@ export function CreateOffCycleRun() {
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="offcycle-paydate">Pay date</Label>
-            <Input
+            <DatePicker
               id="offcycle-paydate"
-              type="date"
               value={payDate}
-              onChange={(e) => setPayDate(e.target.value)}
+              onValueChange={setPayDate}
+              placeholder="Select pay date"
+              captionLayout="dropdown"
+              fromYear={new Date().getFullYear() - 1}
+              toYear={new Date().getFullYear() + 1}
             />
           </div>
           <div className="flex flex-col gap-1.5">

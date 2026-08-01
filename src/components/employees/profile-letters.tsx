@@ -6,6 +6,7 @@ import { FileText, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -111,11 +112,14 @@ export function ProfileLetters({ employee }: { employee: Employee }) {
                 Hearing date{" "}
                 <span className="text-xs text-muted-foreground">(optional)</span>
               </Label>
-              <Input
+              <DatePicker
                 id="letter-hearing"
-                type="date"
                 value={hearingDate}
-                onChange={(e) => setHearingDate(e.target.value)}
+                onValueChange={setHearingDate}
+                placeholder="Select hearing date"
+                captionLayout="dropdown"
+                fromYear={new Date().getFullYear() - 1}
+                toYear={new Date().getFullYear() + 2}
               />
             </div>
           </>

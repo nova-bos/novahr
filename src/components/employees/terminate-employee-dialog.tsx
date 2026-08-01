@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
@@ -108,22 +109,28 @@ export function TerminateEmployeeDialog({
           <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="term-date">Termination date</Label>
-              <Input
+              <DatePicker
                 id="term-date"
-                type="date"
                 value={terminationDate}
-                onChange={(e) => setTerminationDate(e.target.value)}
+                onValueChange={setTerminationDate}
+                placeholder="Select termination date"
                 disabled={saving}
+                captionLayout="dropdown"
+                fromYear={new Date().getFullYear() - 2}
+                toYear={new Date().getFullYear() + 1}
               />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="final-pay">Final pay date</Label>
-              <Input
+              <DatePicker
                 id="final-pay"
-                type="date"
                 value={finalPayDate}
-                onChange={(e) => setFinalPayDate(e.target.value)}
+                onValueChange={setFinalPayDate}
+                placeholder="Select final pay date"
                 disabled={saving}
+                captionLayout="dropdown"
+                fromYear={new Date().getFullYear() - 2}
+                toYear={new Date().getFullYear() + 1}
               />
             </div>
             <div className="space-y-1.5">

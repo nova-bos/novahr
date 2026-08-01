@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -143,12 +144,15 @@ function CustomHolidayManager() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="holiday-date" className="text-xs">Date</Label>
-            <Input
+            <DatePicker
               id="holiday-date"
-              type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onValueChange={setDate}
+              placeholder="Select date"
               className="h-9 text-sm"
+              captionLayout="dropdown"
+              fromYear={new Date().getFullYear() - 1}
+              toYear={new Date().getFullYear() + 5}
             />
           </div>
         </div>

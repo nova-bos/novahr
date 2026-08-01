@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
 import { cn } from "@/lib/utils";
 import { dobFromSaId, genderFromSaId } from "@/lib/schemas/sa-id";
 import { saIdNumber } from "@/lib/schemas/sa";
@@ -412,11 +413,15 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="dateOfBirth">Date of birth</Label>
-                <Input
+                <DatePicker
                   id="dateOfBirth"
-                  type="date"
                   value={form.dateOfBirth}
-                  onChange={(e) => setForm((f) => ({ ...f, dateOfBirth: e.target.value }))}
+                  onValueChange={(v) => setForm((f) => ({ ...f, dateOfBirth: v }))}
+                  placeholder="Select date of birth"
+                  captionLayout="dropdown"
+                  fromYear={new Date().getFullYear() - 100}
+                  toYear={new Date().getFullYear()}
+                  disableFuture
                 />
                 <FieldError message={errors.dateOfBirth} />
               </div>
@@ -655,11 +660,13 @@ export function StepPersonal({ form, setForm, errors }: StepProps) {
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">Expiry</Label>
-                    <Input
-                      type="date"
+                    <DatePicker
                       value={q.expiresAt}
-                      aria-label="Qualification expiry date"
-                      onChange={(e) => updateQualification(i, { expiresAt: e.target.value })}
+                      onValueChange={(v) => updateQualification(i, { expiresAt: v })}
+                      placeholder="Expiry"
+                      captionLayout="dropdown"
+                      fromYear={new Date().getFullYear() - 20}
+                      toYear={new Date().getFullYear() + 30}
                     />
                   </div>
                   <Button
