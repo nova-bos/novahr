@@ -310,6 +310,9 @@ model Employee {
   employmentType EmploymentType
   status         EmploymentStatus @default(active)
   startDate      DateTime
+  // Optional probation end date. Drives the "confirm or extend" reminder while
+  // status is probation. Null means no probation tracked.
+  probationEndDate DateTime?
   location       String
   managerId      String?
   // Optional branch assignment. Null means "whole company / head office"

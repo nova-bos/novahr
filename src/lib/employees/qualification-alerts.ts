@@ -67,6 +67,56 @@ export async function getExpiringQualificationsAction(
   });
 }
 
+export interface EndingProbation {
+  employeeId: string;
+  employeeName: string;
+  employeeNumber: string;
+  probationEndDate: string;
+  daysUntilEnd: number;
+}
+
+/**
+ * Employees on probation whose probation ends within `withinDays` days (default
+ * 60), or has already passed. HR should confirm or extend these.
+ */
+export async function getEndingProbationsAction(withinDays = 60): Promise<EndingProbation[]> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
+
+  return runAsTenant(tenantId, async (tx) => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + withinDays);
+
+    const rows = await tx.employee.findMany({
+      where: { tenantId, status: "probation", probationEndDate: { lte: cutoff, not: null } },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        employeeNumber: true,
+        probationEndDate: true,
+      },
+      orderBy: { probationEndDate: "asc" },
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return rows.map((r) => {
+      const end = new Date(r.probationEndDate!);
+      end.setHours(0, 0, 0, 0);
+      const daysUntilEnd = Math.round((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return {
+        employeeId: r.id,
+        employeeName: `${r.firstName} ${r.lastName}`,
+        employeeNumber: r.employeeNumber,
+        probationEndDate: r.probationEndDate!.toISOString().slice(0, 10),
+        daysUntilEnd,
+      };
+    });
+  });
+}
+
 export interface ExpiringDocument {
   documentId: string;
   employeeId: string;
