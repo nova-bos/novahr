@@ -27,7 +27,7 @@ export default function ReportsPage() {
             <TabsTrigger value="workforce">Workforce</TabsTrigger>
             <TabsTrigger value="leave">Leave</TabsTrigger>
             <TabsTrigger value="equity">Equity</TabsTrigger>
-            <TabsTrigger value="expiries">Expiries</TabsTrigger>
+            <TabsTrigger value="expiries">Reminders</TabsTrigger>
             <TabsTrigger value="structure">Structure</TabsTrigger>
           </TabsList>
         </div>

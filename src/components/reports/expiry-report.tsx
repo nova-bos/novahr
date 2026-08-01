@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CalendarClock, FileWarning, GraduationCap } from "lucide-react";
+import { CalendarClock, FileWarning, GraduationCap, UserCheck } from "lucide-react";
 
 import {
   Card,
@@ -26,6 +26,7 @@ import { formatDate } from "@/lib/format";
 import {
   getExpiringQualificationsAction,
   getExpiringDocumentsAction,
+  getEndingProbationsAction,
 } from "@/lib/employees/qualification-alerts";
 
 interface Row {
@@ -33,7 +34,7 @@ interface Row {
   employeeId: string;
   employeeName: string;
   employeeNumber: string;
-  kind: "Qualification" | "Document";
+  kind: "Qualification" | "Document" | "Probation";
   category: string;
   name: string;
   expiresAt: string;
@@ -58,10 +59,25 @@ export function ExpiryReport() {
   useEffect(() => {
     let active = true;
     // Look 90 days ahead so HR sees what is coming up, not only imminent items.
-    Promise.all([getExpiringQualificationsAction(90), getExpiringDocumentsAction(90)])
-      .then(([quals, docs]) => {
+    Promise.all([
+      getExpiringQualificationsAction(90),
+      getExpiringDocumentsAction(90),
+      getEndingProbationsAction(90),
+    ])
+      .then(([quals, docs, probations]) => {
         if (!active) return;
         const merged: Row[] = [
+          ...probations.map((p) => ({
+            key: `p-${p.employeeId}`,
+            employeeId: p.employeeId,
+            employeeName: p.employeeName,
+            employeeNumber: p.employeeNumber,
+            kind: "Probation" as const,
+            category: "confirm or extend",
+            name: "Probation review",
+            expiresAt: p.probationEndDate,
+            daysUntilExpiry: p.daysUntilEnd,
+          })),
           ...quals.map((q) => ({
             key: `q-${q.qualificationId}`,
             employeeId: q.employeeId,
@@ -124,11 +140,11 @@ export function ExpiryReport() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base">
           <CalendarClock className="size-4 text-muted-foreground" />
-          Expiring documents and qualifications
+          Reminders: expiries and probation reviews
         </CardTitle>
         <CardDescription>
-          Company-wide view of documents and qualifications expiring within 90 days, or already
-          expired. {counts.expired} expired, {counts.soon} due within 30 days.
+          Company-wide view of documents and qualifications expiring within 90 days, plus probation
+          reviews due, or already past. {counts.expired} overdue, {counts.soon} due within 30 days.
         </CardDescription>
         <CardAction>
           <ExportButton
@@ -144,7 +160,7 @@ export function ExpiryReport() {
           <p className="py-8 text-center text-sm text-muted-foreground">Loading expiries...</p>
         ) : rows.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            Nothing is expiring in the next 90 days.
+            Nothing needs attention in the next 90 days.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -172,6 +188,8 @@ export function ExpiryReport() {
                       <div className="flex items-center gap-2">
                         {row.kind === "Qualification" ? (
                           <GraduationCap className="size-4 text-muted-foreground" />
+                        ) : row.kind === "Probation" ? (
+                          <UserCheck className="size-4 text-muted-foreground" />
                         ) : (
                           <FileWarning className="size-4 text-muted-foreground" />
                         )}

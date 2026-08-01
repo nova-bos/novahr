@@ -174,6 +174,8 @@ export interface Employee {
   employmentType: EmploymentType;
   status: EmploymentStatus;
   startDate: string;
+  /** Optional probation end date (YYYY-MM-DD). Undefined means none tracked. */
+  probationEndDate?: string;
   location: string;
   managerId?: string;
   /** Optional branch. Undefined/null means whole company / head office. */

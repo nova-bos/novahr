@@ -131,6 +131,8 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
         branchId: form.branchId || undefined,
         employmentType: form.employmentType,
         status: form.status,
+        // Clear the probation date when the employee is no longer on probation.
+        probationEndDate: form.status === "probation" ? form.probationEndDate || undefined : "",
         location: form.location,
         email: form.email,
         phone: form.phone,
@@ -494,6 +496,20 @@ export function EditEmployeeDialog({ employee, open, onOpenChange }: EditEmploye
                       </SelectContent>
                     </Select>
                   </div>
+                  {form.status === "probation" ? (
+                    <div className="space-y-1.5">
+                      <Label htmlFor="probationEnd">Probation ends <OptionalTag /></Label>
+                      <DatePicker
+                        id="probationEnd"
+                        value={form.probationEndDate}
+                        onValueChange={(v) => setForm((f) => ({ ...f, probationEndDate: v }))}
+                        placeholder="Select probation end date"
+                        captionLayout="dropdown"
+                        fromYear={new Date().getFullYear() - 1}
+                        toYear={new Date().getFullYear() + 2}
+                      />
+                    </div>
+                  ) : null}
                   <div className="space-y-1.5">
                     <Label htmlFor="location">Location <OptionalTag /></Label>
                     <Input
@@ -838,6 +854,7 @@ function buildFormState(employee: Employee) {
     branchId: employee.branchId ?? "",
     employmentType: employee.employmentType,
     status: employee.status,
+    probationEndDate: employee.probationEndDate ?? "",
     location: employee.location,
     email: employee.email,
     phone: employee.phone,

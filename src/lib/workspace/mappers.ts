@@ -131,6 +131,7 @@ export function mapEmployee(row: EmployeeWithBalances): Employee {
     employmentType: row.employmentType,
     status: row.status,
     startDate: toDateOnly(row.startDate),
+    probationEndDate: row.probationEndDate ? toDateOnly(row.probationEndDate) : undefined,
     location: row.location,
     managerId: row.managerId ?? undefined,
     branchId: row.branchId ?? undefined,

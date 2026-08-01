@@ -4,6 +4,14 @@ import type { Employee, Gender, MaritalStatus, Tenant } from "@/lib/types";
 import type { NewEmployeeForm } from "@/components/employees/onboarding/types";
 import { dateOfBirthFromIdNumber } from "@/lib/workspace/mappers";
 
+/** Returns the date three months after the given YYYY-MM-DD, as YYYY-MM-DD. */
+function threeMonthsAfter(startDate: string): string | undefined {
+  const start = new Date(startDate);
+  if (Number.isNaN(start.getTime())) return undefined;
+  start.setMonth(start.getMonth() + 3);
+  return start.toISOString().slice(0, 10);
+}
+
 export function buildEmployeeFromForm(
   form: NewEmployeeForm,
   tenant: Tenant,
@@ -25,6 +33,9 @@ export function buildEmployeeFromForm(
     employmentType: form.employmentType,
     status: "probation",
     startDate: form.startDate,
+    // Default probation to three months after the start date; HR can adjust or
+    // clear it on the profile.
+    probationEndDate: threeMonthsAfter(form.startDate),
     location: form.location.trim(),
     managerId: form.managerId || undefined,
     branchId: form.branchId || undefined,

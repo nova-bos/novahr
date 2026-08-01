@@ -85,6 +85,7 @@ export async function createEmployeeRecord(
         employmentType: employee.employmentType,
         status: employee.status,
         startDate: new Date(employee.startDate),
+        probationEndDate: employee.probationEndDate ? new Date(employee.probationEndDate) : null,
         location: employee.location,
         managerId: employee.managerId,
         branchId: employee.branchId ?? null,
@@ -216,6 +217,7 @@ export async function updateEmployeeRecord(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onboarding,
     startDate,
+    probationEndDate,
     ...rest
   } = updates;
 
@@ -223,6 +225,10 @@ export async function updateEmployeeRecord(
 
   if (startDate !== undefined) {
     data.startDate = new Date(startDate);
+  }
+
+  if (probationEndDate !== undefined) {
+    data.probationEndDate = probationEndDate ? new Date(probationEndDate) : null;
   }
 
   if (dateOfBirth !== undefined) {
