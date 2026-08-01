@@ -6,7 +6,7 @@ import { AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -153,11 +153,15 @@ export function ProfileDisciplinary({ employee }: { employee: Employee }) {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="disc-issued">Date issued</Label>
-                  <Input
+                  <DatePicker
                     id="disc-issued"
-                    type="date"
                     value={issuedAt}
-                    onChange={(e) => setIssuedAt(e.target.value)}
+                    onValueChange={setIssuedAt}
+                    placeholder="Select date issued"
+                    captionLayout="dropdown"
+                    fromYear={new Date().getFullYear() - 5}
+                    toYear={new Date().getFullYear()}
+                    disableFuture
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
@@ -165,12 +169,14 @@ export function ProfileDisciplinary({ employee }: { employee: Employee }) {
                     Expiry date{" "}
                     <span className="text-xs text-muted-foreground">(optional)</span>
                   </Label>
-                  <Input
+                  <DatePicker
                     id="disc-expires"
-                    type="date"
                     value={expiresAt}
-                    onChange={(e) => setExpiresAt(e.target.value)}
+                    onValueChange={setExpiresAt}
                     placeholder="Leave blank if this does not expire"
+                    captionLayout="dropdown"
+                    fromYear={new Date().getFullYear() - 5}
+                    toYear={new Date().getFullYear() + 5}
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -306,11 +307,13 @@ export function ProfileQualifications({ employee }: { employee: Employee }) {
                     </div>
                     <div className="space-y-1">
                       <Label className="text-xs">Expiry</Label>
-                      <Input
-                        type="date"
+                      <DatePicker
                         value={q.expiresAt}
-                        aria-label="Qualification expiry date"
-                        onChange={(e) => updateRow(i, { expiresAt: e.target.value })}
+                        onValueChange={(v) => updateRow(i, { expiresAt: v })}
+                        placeholder="Expiry"
+                        captionLayout="dropdown"
+                        fromYear={new Date().getFullYear() - 20}
+                        toYear={new Date().getFullYear() + 30}
                       />
                     </div>
                     <Button

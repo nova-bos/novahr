@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
@@ -175,11 +176,14 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
               </div>
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="doc-expiry">Expiry date <OptionalTag /></Label>
-                <Input
+                <DatePicker
                   id="doc-expiry"
-                  type="date"
                   value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
+                  onValueChange={setExpiresAt}
+                  placeholder="Select expiry date"
+                  captionLayout="dropdown"
+                  fromYear={new Date().getFullYear() - 20}
+                  toYear={new Date().getFullYear() + 30}
                 />
               </div>
               <div className="flex flex-col gap-1.5">

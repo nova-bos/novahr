@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Label, OptionalTag } from "@/components/ui/label";
 import {
   Select,
@@ -113,11 +114,14 @@ export function StepRole({ form, setForm, errors }: StepProps) {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="startDate">Start date</Label>
-              <Input
+              <DatePicker
                 id="startDate"
-                type="date"
                 value={form.startDate}
-                onChange={(e) => setForm((f) => ({ ...f, startDate: e.target.value }))}
+                onValueChange={(v) => setForm((f) => ({ ...f, startDate: v }))}
+                placeholder="Select start date"
+                captionLayout="dropdown"
+                fromYear={new Date().getFullYear() - 50}
+                toYear={new Date().getFullYear() + 1}
               />
               <FieldError message={errors.startDate} />
             </div>

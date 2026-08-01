@@ -2,7 +2,7 @@ import { Calendar, CalendarClock, Mail, Phone, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { formatCurrency, formatDate, leaveTypeLabel, plural } from "@/lib/format";
+import { formatCurrency, formatDate, plural } from "@/lib/format";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { useLeaveRequests } from "@/lib/store/hooks";
 import type { Employee } from "@/lib/types";
