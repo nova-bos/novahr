@@ -14,6 +14,7 @@ import { ComplianceOverviewCards } from "@/components/compliance/compliance-over
 import { ComplianceRecordsTable } from "@/components/compliance/compliance-records-table";
 import { Emp201Panel } from "@/components/compliance/emp201-panel";
 import { Emp501Panel } from "@/components/compliance/emp501-panel";
+import { CoidaPanel } from "@/components/compliance/coida-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ComplianceRecordRow } from "@/lib/compliance/actions";
 
@@ -112,6 +113,7 @@ function ComplianceContent() {
             <TabsList>
               <TabsTrigger value="monthly">Monthly (EMP201)</TabsTrigger>
               <TabsTrigger value="year-end">Year-end (IRP5 / EMP501)</TabsTrigger>
+              <TabsTrigger value="coida">Annual (COIDA)</TabsTrigger>
             </TabsList>
             <TabsContent value="monthly" className="mt-4 flex flex-col gap-6">
               {user?.tenantId && (
@@ -136,6 +138,9 @@ function ComplianceContent() {
             </TabsContent>
             <TabsContent value="year-end" className="mt-4">
               {user?.tenantId && <Emp501Panel tenantId={user.tenantId} />}
+            </TabsContent>
+            <TabsContent value="coida" className="mt-4">
+              {user?.tenantId && <CoidaPanel tenantId={user.tenantId} />}
             </TabsContent>
           </Tabs>
         )}
