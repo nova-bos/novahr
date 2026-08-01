@@ -42,6 +42,7 @@ export interface EmployeeDocumentRow {
   sizeBytes: number;
   expiresAt: string | null;
   uploadedBy: string | null;
+  version: number;
   createdAt: string;
 }
 
@@ -55,6 +56,7 @@ function mapDoc(d: {
   sizeBytes: number;
   expiresAt: Date | null;
   uploadedBy: string | null;
+  version: number;
   createdAt: Date;
 }): EmployeeDocumentRow {
   return {
@@ -67,6 +69,7 @@ function mapDoc(d: {
     sizeBytes: d.sizeBytes,
     expiresAt: d.expiresAt ? d.expiresAt.toISOString() : null,
     uploadedBy: d.uploadedBy,
+    version: d.version,
     createdAt: d.createdAt.toISOString(),
   };
 }
@@ -80,8 +83,34 @@ export async function listEmployeeDocuments(
 ): Promise<EmployeeDocumentRow[]> {
   const user = await requireEmployeeScope(employeeId);
   const docs = await prisma.employeeDocument.findMany({
-    where: { employeeId, tenantId: user.tenantId },
+    where: { employeeId, tenantId: user.tenantId, isCurrent: true },
     orderBy: { createdAt: "desc" },
+  });
+  return docs.map(mapDoc);
+}
+
+/**
+ * Returns every version of a document (the given current version plus its
+ * superseded predecessors), newest first. Scoped like the document itself.
+ */
+export async function listEmployeeDocumentVersions(
+  documentId: string
+): Promise<EmployeeDocumentRow[]> {
+  const user = await requireUser();
+  const current = await prisma.employeeDocument.findFirst({
+    where: { id: documentId, tenantId: user.tenantId },
+    select: { employeeId: true, name: true, category: true },
+  });
+  if (!current) return [];
+  await requireEmployeeScope(current.employeeId);
+  const docs = await prisma.employeeDocument.findMany({
+    where: {
+      tenantId: user.tenantId,
+      employeeId: current.employeeId,
+      name: current.name,
+      category: current.category,
+    },
+    orderBy: { version: "desc" },
   });
   return docs.map(mapDoc);
 }
@@ -131,19 +160,45 @@ export async function uploadEmployeeDocument(
     .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
   if (uploadError) return { error: "Upload failed. Please try again." };
 
-  const created = await prisma.employeeDocument.create({
-    data: {
+  // Auto-version: if a current document with the same name and category already
+  // exists for this employee, this upload becomes its next version and the old
+  // one is retained as history (isCurrent = false).
+  const prior = await prisma.employeeDocument.findFirst({
+    where: {
       tenantId: session.tenantId,
       employeeId,
-      name,
       category,
-      storagePath: path,
-      fileName: file.name,
-      mimeType: file.type || "application/octet-stream",
-      sizeBytes: file.size,
-      expiresAt,
-      uploadedBy: session.name ?? null,
+      name: { equals: name, mode: "insensitive" },
+      isCurrent: true,
     },
+    orderBy: { version: "desc" },
+    select: { id: true, version: true },
+  });
+
+  const created = await prisma.$transaction(async (tx) => {
+    if (prior) {
+      await tx.employeeDocument.update({
+        where: { id: prior.id },
+        data: { isCurrent: false },
+      });
+    }
+    return tx.employeeDocument.create({
+      data: {
+        tenantId: session.tenantId,
+        employeeId,
+        name,
+        category,
+        storagePath: path,
+        fileName: file.name,
+        mimeType: file.type || "application/octet-stream",
+        sizeBytes: file.size,
+        expiresAt,
+        uploadedBy: session.name ?? null,
+        version: prior ? prior.version + 1 : 1,
+        isCurrent: true,
+        previousVersionId: prior?.id ?? null,
+      },
+    });
   });
   return { document: mapDoc(created) };
 }
@@ -181,12 +236,22 @@ export async function deleteEmployeeDocument(
   const session = await requireRole("hr");
   const doc = await prisma.employeeDocument.findFirst({
     where: { id: documentId, tenantId: session.tenantId },
-    select: { id: true, storagePath: true },
+    select: { id: true, storagePath: true, isCurrent: true, previousVersionId: true },
   });
   if (!doc) return { error: "Document not found." };
 
   const supabase = createAdminClient();
   await supabase.storage.from(BUCKET).remove([doc.storagePath]);
-  await prisma.employeeDocument.deleteMany({ where: { id: doc.id, tenantId: session.tenantId } });
+  await prisma.$transaction(async (tx) => {
+    // If the current version is deleted, promote its predecessor so the document
+    // still appears in the list with its history intact.
+    if (doc.isCurrent && doc.previousVersionId) {
+      await tx.employeeDocument.updateMany({
+        where: { id: doc.previousVersionId, tenantId: session.tenantId },
+        data: { isCurrent: true },
+      });
+    }
+    await tx.employeeDocument.deleteMany({ where: { id: doc.id, tenantId: session.tenantId } });
+  });
   return { ok: true };
 }

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { FileText, Download, Trash2, Upload, AlertTriangle } from "lucide-react";
+import { FileText, Download, Trash2, Upload, AlertTriangle, History } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,7 @@ import {
   deleteEmployeeDocument,
   getEmployeeDocumentUrl,
   listEmployeeDocuments,
+  listEmployeeDocumentVersions,
   uploadEmployeeDocument,
   type EmployeeDocumentRow,
 } from "@/lib/employees/documents";
@@ -63,6 +64,8 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
   const [uploading, setUploading] = React.useState(false);
   const [downloadingId, setDownloadingId] = React.useState<string | null>(null);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [versionsFor, setVersionsFor] = React.useState<string | null>(null);
+  const [versions, setVersions] = React.useState<EmployeeDocumentRow[]>([]);
   const [name, setName] = React.useState("");
   const [category, setCategory] = React.useState("contract");
   const [expiresAt, setExpiresAt] = React.useState("");
@@ -100,13 +103,30 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
         toast.error(res.error ?? "Upload failed");
         return;
       }
-      setDocs((prev) => [res.document!, ...prev]);
+      // Reload so a re-upload of the same name correctly supersedes the prior
+      // version in the list rather than showing both.
+      setDocs(await listEmployeeDocuments(employee.id));
       setName("");
       setExpiresAt("");
       if (fileRef.current) fileRef.current.value = "";
-      toast.success("Document uploaded");
+      toast.success(
+        res.document.version > 1 ? `New version (v${res.document.version}) saved` : "Document uploaded"
+      );
     } finally {
       setUploading(false);
+    }
+  }
+
+  async function toggleVersions(doc: EmployeeDocumentRow) {
+    if (versionsFor === doc.id) {
+      setVersionsFor(null);
+      return;
+    }
+    setVersionsFor(doc.id);
+    try {
+      setVersions(await listEmployeeDocumentVersions(doc.id));
+    } catch {
+      toast.error("Could not load versions");
     }
   }
 
@@ -218,12 +238,16 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
               {docs.map((doc) => {
                 const exp = expiryState(doc.expiresAt);
                 return (
-                  <li key={doc.id} className="flex items-center gap-3 py-3">
+                  <li key={doc.id} className="flex flex-col gap-2 py-3">
+                  <div className="flex items-center gap-3">
                     <FileText className="size-5 shrink-0 text-muted-foreground" />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="truncate font-medium">{doc.name}</span>
                         <Badge variant="outline">{CATEGORY_LABELS[doc.category] ?? doc.category}</Badge>
+                        {doc.version > 1 && (
+                          <Badge variant="secondary">v{doc.version}</Badge>
+                        )}
                         {exp === "expired" && (
                           <Badge variant="destructive" className="gap-1">
                             <AlertTriangle className="size-3" /> Expired
@@ -241,6 +265,12 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
                         {doc.uploadedBy ? ` · by ${doc.uploadedBy}` : ""}
                       </p>
                     </div>
+                    {doc.version > 1 && (
+                      <Button variant="ghost" size="sm" onClick={() => toggleVersions(doc)}>
+                        <History />
+                        <span className="sr-only">Version history</span>
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -262,6 +292,31 @@ export function ProfileDocuments({ employee }: { employee: Employee }) {
                         <span className="sr-only">{deletingId === doc.id ? "Deleting..." : "Delete"}</span>
                       </Button>
                     )}
+                  </div>
+                  {versionsFor === doc.id && (
+                    <div className="ml-8 flex flex-col gap-1 rounded-lg border border-border/60 bg-muted/20 p-2">
+                      <p className="text-xs font-medium text-muted-foreground">Version history</p>
+                      {versions
+                        .filter((v) => v.id !== doc.id)
+                        .map((v) => (
+                          <div key={v.id} className="flex items-center justify-between gap-2 text-xs">
+                            <span className="text-muted-foreground">
+                              v{v.version} · {formatSize(v.sizeBytes)} · {formatDate(v.createdAt)}
+                              {v.uploadedBy ? ` · ${v.uploadedBy}` : ""}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2"
+                              onClick={() => handleDownload(v)}
+                              disabled={downloadingId === v.id}
+                            >
+                              <Download className="size-3" /> Download
+                            </Button>
+                          </div>
+                        ))}
+                    </div>
+                  )}
                   </li>
                 );
               })}

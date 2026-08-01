@@ -977,6 +977,12 @@ model EmployeeDocument {
   sizeBytes   Int                      @default(0)
   expiresAt   DateTime?
   uploadedBy  String?
+  // Version history. Re-uploading a document with the same name and category
+  // supersedes the prior one: the old row keeps isCurrent = false, the new row
+  // increments version and links back via previousVersionId.
+  version           Int      @default(1)
+  isCurrent         Boolean  @default(true)
+  previousVersionId String?
   createdAt   DateTime                 @default(now())
   updatedAt   DateTime                 @updatedAt
 
