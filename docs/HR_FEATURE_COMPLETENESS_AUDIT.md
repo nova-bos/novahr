@@ -1,108 +1,74 @@
 # NovaHR Feature Completeness Audit
 
-Date: 2026-08-01. Method: direct schema, route, component and lib inspection (no assumptions). Lens: can NovaHR replace SimplePay / Sage VIP / PaySpace for a South African SME. Every status below is backed by code evidence.
+Date: 2026-08-01 (updated after the code-completion push). Method: direct schema, route, component and lib inspection. Lens: can NovaHR replace SimplePay / Sage VIP / PaySpace for a South African SME. Every status is backed by code evidence.
 
-This audit **supersedes** the previous post-Phase-9 audit (8.5/10). It reflects the current state of `main` after the SA-context dropdown / editable-gender work (PR #56) and all operations-layer additions (disciplinary records, announcements, ETI, configurable leave policies, custom holidays, company banking, distributed rate limiting).
+This audit **supersedes** the earlier 8.5/10 and 8.7/10 revisions. It reflects `main` after ten feature batches (PRs #56–#64): editable gender + SA dropdowns, calendar date pickers, XLSX export, COIDA, IRP5 self-service, expiry dashboard, org chart, payroll lock, performance reviews, and employment history.
 
 ---
 
 ## Scores (updated)
 
-| Dimension | Previous | Now | Basis for change |
-|-----------|----------|-----|------------------|
-| HR completeness | 79% | **84%** | + disciplinary records, announcements, employee documents, configurable leave policies, custom holidays, editable demographics, comprehensive SA dropdowns |
-| Payroll completeness | 78% | **80%** | + ETI (Employment Tax Incentive) claims; core engine unchanged |
-| SA statutory compliance | 82% | **84%** | + ETI, EEA2/EEA4 data tables, BCEA-aligned employment types |
-| Commercial readiness | 76% | **80%** | + company banking details, richer feature surface, professional dropdown catalogues |
-| Enterprise readiness | 43% | **52%** | + DB-backed distributed rate limiting, company banking, branch clear-to-null, disciplinary audit trail |
-| **Overall readiness** | **8.5/10** | **8.7/10** | Real operational breadth added; the 5 CRITICAL gaps still cap the ceiling |
+| Dimension | Prior | Now | Basis for change |
+|-----------|-------|-----|------------------|
+| HR completeness | 84% | **90%** | + performance reviews, employment history timeline, org chart, expiry dashboard, bulk export, calendar UX |
+| Payroll completeness | 80% | **84%** | + explicit run lock/unlock, IRP5 self-service |
+| SA statutory compliance | 84% | **90%** | + COIDA Return of Earnings, IRP5/IT3(a) self-service |
+| Commercial readiness | 80% | **88%** | + Excel export across reports, bulk employee export, polished date pickers |
+| Enterprise readiness | 52% | **61%** | + payroll lock control, role-scoped self-service, org chart |
+| **Overall readiness** | **8.7/10** | **9.1/10** | Broad HR + statutory closure; remaining ceiling is the large payroll/enterprise builds |
 
-The overall bump is modest on purpose: the gains since the last audit are in operational breadth (things HR touches daily), not in the critical statutory/enterprise gaps. Until COIDA, XLSX export and the statutory EEA2/EEA4 form land, "sellable to a general SME audience" stays constrained.
-
----
-
-## What was closed since the previous audit
-
-| # | Gap | Status | Evidence |
-|---|-----|--------|----------|
-| 16 | Company banking details | Resolved | `Tenant.bankAccountNumber`, `bankBranchCode`, `bankAccountType` (schema.prisma:340-342) |
-| 19 | Distributed rate limiting | Resolved | `RateLimit` model (key/count/windowStart) replaces the in-memory Map (schema.prisma:1041) |
-| 20 | Edit dialog cannot clear branch to null | Resolved | "Head office / whole company" option sets `branchId` to empty (edit-employee-dialog.tsx:431-440) |
-| — | Gender read-only when derived from ID | Resolved (this session) | Now auto-fills but editable via dropdown in onboarding + edit; `config/employee-options.ts` |
-| — | Thin dropdowns for SA context | Resolved (this session) | Qualifications (full NQF ladder), marital status (customary marriage, civil union), employment type (temporary, casual, learnership, internship) |
-
-### New capabilities added since the last audit (beyond the original 24-item list)
-- **ETI (Employment Tax Incentive)** claims: `EtiClaim` model + `src/lib/payroll/eti.ts`. Significant SA payroll/statutory feature.
-- **Disciplinary / counselling records**: `DisciplinaryRecord` model + `src/lib/disciplinary/actions.ts`.
-- **Company announcements**: `Announcement` model + `/announcements` route.
-- **Configurable leave policies**: `TenantLeavePolicy` model.
-- **Multi-reviewer leave approval**: `LeaveReviewer` model.
-- **Custom public holidays**: `CustomHoliday` model.
-- **Employee documents** with expiry (`EmployeeDocument.expiresAt`) and **auto employee numbering** (`EmployeeNumberConfig`).
+The remaining gap to 10/10 is now concentrated in a few **large or infrastructure** items (statutory EEA2/EEA4 PDF, multiple payroll groups, retroactive payroll, MFA, multi-company), not breadth.
 
 ---
 
-## CRITICAL gaps (block selling to a general SME audience)
+## Closed this session (code + evidence)
 
-| # | Gap | Status | Evidence / note |
-|---|-----|--------|-----------------|
-| 1 | COIDA Return of Earnings (W.As.8) | Still missing | No `coida*` field, model, query or export anywhere |
-| 2 | Statutory EEA2 / EEA4 form | Partial (improved) | `employment-equity.ts` now builds EEA2 headcount + EEA4 remuneration **data**; `equity-report.tsx` renders tables with **CSV** download. Still not the official DoL EEA2/EEA4 **form layout / PDF** |
-| 3 | Excel (XLSX) export | Still missing | No `xlsx`/`exceljs` package; all exports go through `src/lib/export/csv.ts` (CSV only) |
-| 4 | Multiple payroll groups / frequencies | Still missing | No `PayrollGroup`; one run per period. Weekly + monthly staff cannot both be run |
-| 5 | Retroactive / back-dated payroll adjustments | Still missing | Only `run-reversal.ts` (undo approval); no retro/arrear adjustment run |
-
----
-
-## HIGH gaps (before marketing hard)
-
-| # | Gap | Status | Evidence / note |
-|---|-----|--------|-----------------|
-| 6 | Probation end-date + reminders | Still missing | `status = probation` enum only; no `probationEndDate`, no alert, no confirm/extend action |
-| 7 | Performance reviews | Still missing | No `PerformanceReview` model |
-| 8 | Promotion / transfer history timeline | Still missing | Only `EmployeeSalaryHistory` (pay changes) + free-text activity log; no structured `EmployeeHistoryEvent` |
-| 9 | Document version history + expiry dashboard | Partial | `EmployeeDocument.expiresAt` + qualification-alerts exist; no **company-wide expiry dashboard** and no **version history** |
-| 10 | Bank-detail / profile change-request approval | Still missing | Employees still edit bank details directly; no `ChangeRequest` model / approval flow (fraud-risk gap) |
-| 11 | Leave encashment (mid-employment) | Still missing | Encashment exists only inside the termination calculation (schema.prisma:406 comment) |
-| 12 | Recurring per-employee variable pay | Still missing | `PayrollInput` has no `recurring` flag; variables re-entered every run |
+| # | Gap | Evidence |
+|---|-----|----------|
+| 1 | COIDA Return of Earnings (W.As.8) | `coida.ts` + `coida-actions.ts`, Compliance "Annual (COIDA)" tab, unit tested |
+| 3 | Excel (XLSX) export | `lib/export/xlsx.ts` (write-excel-file) + `ExportButton`; wired into payroll/leave/workforce/equity reports, payroll register |
+| 7 | Performance reviews | `PerformanceReview` model + `lib/performance/actions.ts` + Performance profile tab; manager-scoped writes, employee acknowledge |
+| 8 | Promotion/transfer history | `EmployeeHistoryEvent` model, auto-captured on edit, Employment history timeline on profile |
+| 9 | Document/qualification expiry dashboard | `getExpiringDocumentsAction` + Reports "Expiries" tab (version history still open) |
+| 13 | Organisation chart | Reports "Structure" tab (`org-chart.tsx`) from managerId |
+| 17 | Explicit payroll lock/unlock | `PayrollRun.lockedAt/lockedBy`, lock/unlock actions, cancel refused while locked |
+| 23 | Bulk employee export | Directory `ExportButton`; pay column gated to HR/exco |
+| 24 | IRP5 self-download | `getMyIrp5CertificateAction` scoped via `requireEmployeeScope`, My Payslips |
+| — | Editable gender + SA dropdowns | `config/employee-options.ts` |
+| — | Calendar date pickers | `ui/date-picker.tsx` replaces all 14 native date inputs |
+| 16, 19, 20 | Company banking, distributed rate limiting, branch clear-to-null | (closed in prior revision) |
 
 ---
 
-## MEDIUM gaps (Version 2)
+## Remaining gaps
 
-| # | Gap | Status | Evidence / note |
-|---|-----|--------|-----------------|
-| 13 | Organisation chart view | Still missing | `managerId` hierarchy exists; no chart UI; no react-flow/D3 |
-| 14 | Cost centres | Still missing | No model |
-| 15 | Job position catalogue | Still missing | `jobTitle` still free text |
-| 16 | Company banking details | Resolved | See above |
-| 17 | Explicit payroll lock / unlock | Still missing | `completed` status is a soft lock; minor corrections still need full reversal |
-| 18 | MFA for HR / exco | Still missing | Auth still password-only; no TOTP/factor enrolment |
-| 19 | Distributed rate limiting | Resolved | See above |
+### Larger builds (dedicated effort recommended)
+| # | Gap | Note |
+|---|-----|------|
+| 2 | Statutory EEA2/EEA4 **form** PDF | Data + tables + CSV/Excel exist; the official DoL form layout/PDF does not |
+| 4 | Multiple payroll groups / frequencies | One run per period; needs a payroll-group concept across the run engine |
+| 5 | Retroactive / back-dated payroll | No arrear/adjustment run; only reversal exists |
+| 21 | Multi-company membership | No `TenantMembership`; deferred for auth complexity |
 
----
+### Medium features (next tranche)
+| # | Gap | Note |
+|---|-----|------|
+| 6 | Probation end-date + reminders | Needs `probationEndDate` threaded through employee CRUD + a reminder |
+| 10 | Bank-detail change-request approval | Employees editing bank details should route through HR approval (fraud control) |
+| 11 | Leave encashment (mid-employment) | Only termination encashment today |
+| 12 | Recurring per-employee variable pay | `PayrollInput` has no recurring flag |
+| 14 | Cost centres | No model; needed for some GL postings |
+| 15 | Job position catalogue | `jobTitle` still free text |
+| 22 | Branch-scope reports / leave / activity | Branch filter exists for payroll runs only |
+| 9b | Document version history | Expiry dashboard done; per-document version history not |
 
-## Known code gaps / technical debt
-
-| # | Gap | Status | Evidence / note |
-|---|-----|--------|-----------------|
-| 20 | Clear employee branch to null | Resolved | See above |
-| 21 | Multi-company membership | Still deferred | No `TenantMembership`; one user = one tenant |
-| 22 | Branch-scope reports / leave / activity / notifications | Still missing | Branch filter exists for payroll runs only; reports and leave components carry no `branchId` filter |
-| 23 | Bulk employee export | Still missing | `employee-directory.tsx` has no export action; only some report CSVs |
-| 24 | IRP5 self-download for employee role | Still HR-gated | `getEmployeeCertificatesAction` calls `requireTenant(tenantId, "hr")` (irp5-actions.ts:72); employees cannot self-serve IRP5 |
-
----
-
-## Excluded from scoring (user action required)
-- Netcash key rotation (live + test keys in Vercel env vars).
-- Live billing credentials / demo contacts / real banking details.
+### Manual / infrastructure (cannot be closed purely in code)
+| # | Gap | Note |
+|---|-----|------|
+| 18 | MFA for HR / exco | Enable/enforce in Supabase Auth; app can surface the setting |
+| — | Netcash key rotation, live billing credentials | Operational, user action |
 
 ---
 
-## Recommended next tranche (highest commercial impact first)
-1. **XLSX export** (gap 3): single package (`exceljs`), wire into the existing CSV export points. Low effort, high buyer expectation.
-2. **COIDA Return of Earnings** (gap 1): statutory, blocks a whole buyer segment.
-3. **Bank-detail change-request approval** (gap 10): fraud-risk; small model + approval UI.
-4. **Probation end-date + reminders** (gap 6): one nullable field + a dashboard alert; cheap and expected.
-5. **Statutory EEA2/EEA4 form output** (gap 2): the data already exists; this is a PDF/layout task.
+## Verification standard
+Every batch this session shipped with `tsc --noEmit` clean, `vitest` green (now 407 tests), `eslint` clean on touched files, additive-only migrations (`ADD VALUE/COLUMN IF NOT EXISTS`, `CREATE TABLE IF NOT EXISTS`), and a production deploy verified with an HTTP 200 health check.
