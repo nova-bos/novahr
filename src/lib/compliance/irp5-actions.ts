@@ -2,7 +2,7 @@
 
 import { ComplianceType } from "@prisma/client";
 import { runAsTenant } from "@/lib/db-context";
-import { requireTenant } from "@/lib/auth/require";
+import { requireTenant, requireEmployeeScope } from "@/lib/auth/require";
 import { buildIrp5, taxYearPeriods, type Irp5Certificate, type Irp5Input } from "./irp5";
 import { dateOfBirthFromIdNumber } from "@/lib/workspace/mappers";
 
@@ -184,11 +184,11 @@ function ccyymmdd(date: string | undefined | null): string {
  * line. Source codes and the generated certificate number MUST be verified
  * against the current SARS PAYE BRS before real issuing or filing.
  */
-export async function getIrp5CertificateDataAction(
+async function buildIrp5FullCertificates(
   tenantId: string,
-  taxYear: string
+  taxYear: string,
+  onlyEmployeeId?: string
 ): Promise<Irp5FullCertificate[]> {
-  await requireTenant(tenantId, "hr");
   const periods = taxYearPeriods(taxYear);
   const yearOfAssessment = Number(taxYear.split("/")[1]);
   const periodOfReconciliation = `${yearOfAssessment}02`;
@@ -203,7 +203,7 @@ export async function getIrp5CertificateDataAction(
         select: { payeReferenceNumber: true, uifReferenceNumber: true, sdlReferenceNumber: true },
       }),
       tx.payslip.findMany({
-        where: { tenantId, period: { in: periods } },
+        where: { tenantId, period: { in: periods }, ...(onlyEmployeeId ? { employeeId: onlyEmployeeId } : {}) },
         select: {
           employeeId: true,
           period: true,
@@ -318,6 +318,34 @@ export async function getIrp5CertificateDataAction(
     results.sort((a, b) => a.employee.surname.localeCompare(b.employee.surname));
     return results;
   });
+}
+
+/**
+ * Full IRP5/IT3(a) certificate data for every employee (HR only). See
+ * `buildIrp5FullCertificates` for the caveat on source codes and certificate
+ * numbers.
+ */
+export async function getIrp5CertificateDataAction(
+  tenantId: string,
+  taxYear: string
+): Promise<Irp5FullCertificate[]> {
+  await requireTenant(tenantId, "hr");
+  return buildIrp5FullCertificates(tenantId, taxYear);
+}
+
+/**
+ * The signed-in employee's own IRP5/IT3(a) certificate for a tax year, for
+ * self-service download. Scoped via `requireEmployeeScope`, so an employee can
+ * only ever fetch their own certificate (HR and the person's manager may also
+ * fetch it). Returns null when there is no payroll data for that year.
+ */
+export async function getMyIrp5CertificateAction(
+  employeeId: string,
+  taxYear: string
+): Promise<Irp5FullCertificate | null> {
+  const user = await requireEmployeeScope(employeeId);
+  const [certificate] = await buildIrp5FullCertificates(user.tenantId, taxYear, employeeId);
+  return certificate ?? null;
 }
 
 export interface Emp501Reconciliation {
