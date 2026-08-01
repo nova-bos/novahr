@@ -556,6 +556,12 @@ model PayrollRun {
   approvedAt   DateTime?
   approvalNote String?
 
+  // Explicit lock on a completed run. When lockedAt is set the run cannot be
+  // cancelled/reversed until it is unlocked, giving HR a deliberate control over
+  // finalised payroll separate from the soft "completed" status.
+  lockedAt     DateTime?
+  lockedBy     String?
+
   @@index([tenantId])
 }
 

@@ -300,6 +300,9 @@ export interface PayrollRun {
   approvedBy?: string;
   approvedAt?: string;
   approvalNote?: string;
+  /** Set when a completed run is explicitly locked against reversal. */
+  lockedAt?: string;
+  lockedBy?: string;
 }
 
 export interface Department {

@@ -317,6 +317,8 @@ export function mapPayrollRun(row: PrismaPayrollRun, payslipIds: string[]): Payr
     approvedBy: row.approvedBy ?? undefined,
     approvedAt: row.approvedAt ? toTimestamp(row.approvedAt) : undefined,
     approvalNote: row.approvalNote ?? undefined,
+    lockedAt: row.lockedAt ? toTimestamp(row.lockedAt) : undefined,
+    lockedBy: row.lockedBy ?? undefined,
   };
 }
 
