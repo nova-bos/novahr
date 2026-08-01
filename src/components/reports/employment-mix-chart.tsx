@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
-import { useEmployees } from "@/lib/store/hooks";
+import { useReportEmployees } from "./reports-branch-context";
 import { employmentTypeLabel } from "@/lib/format";
 import type { EmploymentType } from "@/lib/types";
 
@@ -25,7 +25,7 @@ const TYPE_COLORS: Record<EmploymentType, string> = {
 };
 
 export function EmploymentMixChart() {
-  const employees = useEmployees();
+  const employees = useReportEmployees();
   const active = employees.filter((e) => e.status !== "terminated");
 
   const data = React.useMemo(() => {

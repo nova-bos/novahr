@@ -12,7 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useEmployees, useLeaveRequests } from "@/lib/store/hooks";
+import { useLeaveRequests } from "@/lib/store/hooks";
+import { useReportEmployees } from "./reports-branch-context";
 import { leaveTypeLabel, plural } from "@/lib/format";
 import { ExportButton } from "@/components/ui/export-button";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
@@ -23,7 +24,7 @@ const TYPES: LeaveType[] = ["annual", "sick", "family", "unpaid"];
 
 export function LeaveReport() {
   const requests = useLeaveRequests();
-  const employees = useEmployees();
+  const employees = useReportEmployees();
   const active = employees.filter((e) => e.status !== "terminated");
 
   const approved = requests.filter((r) => r.status === "approved");

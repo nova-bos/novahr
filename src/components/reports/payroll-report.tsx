@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { usePayrollRuns } from "@/lib/store/hooks";
+import { useReportRuns } from "./reports-branch-context";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/format";
 import { Currency } from "@/components/ui/currency";
 import { ExportButton } from "@/components/ui/export-button";
@@ -20,7 +20,7 @@ import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-gr
 import { PayrollCompositionChart } from "./payroll-composition-chart";
 
 export function PayrollReport() {
-  const runs = usePayrollRuns();
+  const runs = useReportRuns();
   const router = useRouter();
   const completed = runs.filter((r) => r.status === "completed");
   const sorted = completed.slice().sort((a, b) => (a.period < b.period ? 1 : -1));
