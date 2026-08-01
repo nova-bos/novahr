@@ -377,6 +377,26 @@ export interface DisciplinaryRecord {
   createdAt: string;
 }
 
+export type PerformanceReviewStatus = "draft" | "acknowledged";
+
+export interface PerformanceReview {
+  id: string;
+  tenantId: string;
+  employeeId: string;
+  cycle: string;
+  reviewDate: string;
+  /** Overall rating, 1 (well below) to 5 (outstanding). */
+  rating: number;
+  strengths?: string | null;
+  improvements?: string | null;
+  goals?: string | null;
+  reviewer: string;
+  status: PerformanceReviewStatus;
+  acknowledgedAt?: string | null;
+  createdBy: string;
+  createdAt: string;
+}
+
 export interface Announcement {
   id: string;
   tenantId: string;
