@@ -1,9 +1,17 @@
 "use client";
 
 import * as React from "react";
-import { Banknote, CalendarClock, FileText, FileX, Wallet } from "lucide-react";
+import { toast } from "sonner";
+import { Banknote, CalendarClock, Download, FileText, FileX, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -17,9 +25,16 @@ import { useCurrentEmployee } from "@/lib/auth/scope";
 import { usePayrollRuns, usePayslipsByEmployee } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/format";
+import { getCurrentTaxYear } from "@/lib/compliance/utils";
+import { getMyIrp5CertificateAction } from "@/lib/compliance/irp5-actions";
 import { Currency } from "@/components/ui/currency";
 import type { Payslip } from "@/lib/types";
 import { PayslipDialog } from "./payslip-dialog";
+
+function taxYearOptions(): string[] {
+  const start = Number(getCurrentTaxYear().split("/")[0]);
+  return [0, 1, 2].map((back) => `${start - back}/${start - back + 1}`);
+}
 
 export function MyPayslips() {
   const employee = useCurrentEmployee();
@@ -28,6 +43,41 @@ export function MyPayslips() {
 
   const [selected, setSelected] = React.useState<Payslip | null>(null);
   const [open, setOpen] = React.useState(false);
+  const [taxYear, setTaxYear] = React.useState(getCurrentTaxYear());
+  const [downloadingIrp5, setDownloadingIrp5] = React.useState(false);
+
+  async function downloadIrp5() {
+    if (!employee) return;
+    setDownloadingIrp5(true);
+    try {
+      const [{ pdf }, { Irp5Document }, cert] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/lib/compliance/irp5-pdf"),
+        getMyIrp5CertificateAction(employee.id, taxYear),
+      ]);
+      if (!cert) {
+        toast.error("No certificate available", {
+          description: `There is no payroll data for ${taxYear}.`,
+        });
+        return;
+      }
+      const blob = await pdf(<Irp5Document cert={cert} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `${cert.certificate.type}-${cert.employee.surname}-${taxYear.replace("/", "-")}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error("Could not generate certificate", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setDownloadingIrp5(false);
+    }
+  }
 
   if (!employee) return null;
 
@@ -70,6 +120,36 @@ export function MyPayslips() {
   return (
     <div className="flex flex-col gap-6">
       <StatCardGrid stats={stats} />
+      <Card>
+        <CardHeader>
+          <CardTitle>Tax certificate (IRP5 / IT3(a))</CardTitle>
+          <CardAction className="flex items-center gap-2">
+            <Select value={taxYear} onValueChange={setTaxYear}>
+              <SelectTrigger className="w-36" size="sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {taxYearOptions().map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={downloadIrp5} disabled={downloadingIrp5}>
+              <Download className="size-4" />
+              {downloadingIrp5 ? "Generating..." : "Download"}
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Download your annual tax certificate for a completed tax year. Figures are drawn from
+            your published payslips.
+          </p>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <CardTitle>Payslip history</CardTitle>
