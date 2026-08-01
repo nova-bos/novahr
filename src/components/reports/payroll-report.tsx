@@ -1,8 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Banknote, Download, FileText, History, ShieldCheck, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Banknote, FileText, History, ShieldCheck, Wallet } from "lucide-react";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -15,7 +14,7 @@ import {
 import { usePayrollRuns } from "@/lib/store/hooks";
 import { formatCurrency, formatDate, formatMonthYear } from "@/lib/format";
 import { Currency } from "@/components/ui/currency";
-import { toCSV, downloadCSV } from "@/lib/export/csv";
+import { ExportButton } from "@/components/ui/export-button";
 import { PayrollStatusBadge } from "@/components/payroll/payroll-status-badge";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import { PayrollCompositionChart } from "./payroll-composition-chart";
@@ -26,10 +25,10 @@ export function PayrollReport() {
   const completed = runs.filter((r) => r.status === "completed");
   const sorted = completed.slice().sort((a, b) => (a.period < b.period ? 1 : -1));
 
-  function handleExport() {
-    const csv = toCSV(
-      ["Period", "Pay Date", "Status", "Employees", "Gross (ZAR)", "PAYE (ZAR)", "UIF (ZAR)", "Net (ZAR)"],
-      sorted.map((r) => [
+  function buildExport() {
+    return {
+      headers: ["Period", "Pay Date", "Status", "Employees", "Gross (ZAR)", "PAYE (ZAR)", "UIF (ZAR)", "Net (ZAR)"],
+      rows: sorted.map((r) => [
         formatMonthYear(r.period),
         formatDate(r.payDate),
         r.status,
@@ -38,9 +37,8 @@ export function PayrollReport() {
         r.totalPaye.toFixed(2),
         r.totalUif.toFixed(2),
         r.totalNet.toFixed(2),
-      ])
-    );
-    downloadCSV(csv, `payroll-report-${new Date().toISOString().slice(0, 10)}`);
+      ]),
+    };
   }
 
   const ytdGross = completed.reduce((sum, r) => sum + r.totalGross, 0);
@@ -89,10 +87,12 @@ export function PayrollReport() {
         <CardHeader>
           <CardTitle>Payroll run history</CardTitle>
           <CardAction>
-            <Button variant="outline" size="sm" onClick={handleExport} disabled={sorted.length === 0}>
-              <Download className="size-4" />
-              Export CSV
-            </Button>
+            <ExportButton
+              build={buildExport}
+              filename={`payroll-report-${new Date().toISOString().slice(0, 10)}`}
+              sheetName="Payroll runs"
+              disabled={sorted.length === 0}
+            />
           </CardAction>
         </CardHeader>
         <CardContent>

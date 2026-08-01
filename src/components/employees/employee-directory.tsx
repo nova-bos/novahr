@@ -24,9 +24,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useScopedEmployees } from "@/lib/auth/scope";
+import { useAuth } from "@/lib/auth/auth-provider";
 import { useActiveBranches } from "@/lib/store/hooks";
-import { employmentTypeLabel, getInitials } from "@/lib/format";
+import { employmentTypeLabel, formatDate, getInitials } from "@/lib/format";
 import { Currency } from "@/components/ui/currency";
+import { ExportButton } from "@/components/ui/export-button";
 import { StatusBadge } from "./status-badge";
 
 const STATUS_OPTIONS: { value: string; label: string }[] = [
@@ -40,7 +42,12 @@ const STATUS_OPTIONS: { value: string; label: string }[] = [
 export function EmployeeDirectory() {
   const employees = useScopedEmployees();
   const branches = useActiveBranches();
+  const { user } = useAuth();
   const router = useRouter();
+
+  // Salary is sensitive; only HR / exco may include it in a bulk export even
+  // though the per-row figure is visible in the directory table.
+  const canExportPay = user?.role === "hr" || user?.role === "exco";
 
   const [search, setSearch] = React.useState("");
   const [department, setDepartment] = React.useState("all");
@@ -72,6 +79,41 @@ export function EmployeeDirectory() {
       })
       .sort((a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
   }, [employees, department, branch, status, search, showTerminated]);
+
+  function buildExport() {
+    const branchName = (id?: string | null) =>
+      id ? branches.find((b) => b.id === id)?.name ?? "" : "Head office";
+    const headers = [
+      "Employee no.",
+      "First name",
+      "Last name",
+      "Email",
+      "Job title",
+      "Department",
+      "Branch",
+      "Employment type",
+      "Status",
+      "Start date",
+    ];
+    if (canExportPay) headers.push("Annual gross (ZAR)");
+    const rows = filtered.map((e) => {
+      const row: (string | number | null | undefined)[] = [
+        e.employeeNumber,
+        e.firstName,
+        e.lastName,
+        e.email,
+        e.jobTitle,
+        e.department,
+        branchName(e.branchId),
+        employmentTypeLabel(e.employmentType),
+        e.status,
+        e.startDate ? formatDate(e.startDate) : "",
+      ];
+      if (canExportPay) row.push(e.salary.annualGross.toFixed(2));
+      return row;
+    });
+    return { headers, rows };
+  }
 
   return (
     <Card>
@@ -143,6 +185,13 @@ export function EmployeeDirectory() {
             />
             Show terminated
           </label>
+          <ExportButton
+            build={buildExport}
+            filename={`employees-${new Date().toISOString().slice(0, 10)}`}
+            sheetName="Employees"
+            label="Export"
+            disabled={filtered.length === 0}
+          />
         </div>
 
         {filtered.length === 0 ? (

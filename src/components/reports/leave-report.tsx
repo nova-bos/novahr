@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CalendarCheck, CheckCircle2, Clock, Download, Gauge } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CalendarCheck, CheckCircle2, Clock, Gauge } from "lucide-react";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { useEmployees, useLeaveRequests } from "@/lib/store/hooks";
 import { leaveTypeLabel, plural } from "@/lib/format";
-import { toCSV, downloadCSV } from "@/lib/export/csv";
+import { ExportButton } from "@/components/ui/export-button";
 import { StatCardGrid, type StatItem } from "@/components/dashboard/stat-card-grid";
 import type { LeaveType } from "@/lib/types";
 import { LeaveUsageChart } from "./leave-usage-chart";
@@ -52,18 +51,17 @@ export function LeaveReport() {
   const overallUtilization =
     balanceRows.reduce((sum, r) => sum + r.utilization, 0) / balanceRows.length;
 
-  function handleExport() {
-    const csv = toCSV(
-      ["Leave Type", "Avg. Entitlement (days)", "Avg. Used (days)", "Avg. Remaining (days)", "Utilization (%)"],
-      balanceRows.map((row) => [
+  function buildExport() {
+    return {
+      headers: ["Leave Type", "Avg. Entitlement (days)", "Avg. Used (days)", "Avg. Remaining (days)", "Utilization (%)"],
+      rows: balanceRows.map((row) => [
         leaveTypeLabel(row.type),
         row.avgTotal.toFixed(1),
         row.avgUsed.toFixed(1),
         row.avgRemaining.toFixed(1),
         Math.round(row.utilization),
-      ])
-    );
-    downloadCSV(csv, `leave-report-${new Date().toISOString().slice(0, 10)}`);
+      ]),
+    };
   }
 
   const stats: StatItem[] = [
@@ -107,10 +105,11 @@ export function LeaveReport() {
         <CardHeader>
           <CardTitle>Leave balance utilization</CardTitle>
           <CardAction>
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="size-4" />
-              Export CSV
-            </Button>
+            <ExportButton
+              build={buildExport}
+              filename={`leave-report-${new Date().toISOString().slice(0, 10)}`}
+              sheetName="Leave utilization"
+            />
           </CardAction>
         </CardHeader>
         <CardContent>
