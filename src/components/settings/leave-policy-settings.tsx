@@ -65,7 +65,18 @@ export function LeavePolicySettings() {
   const [annualCarryover, setAnnualCarryover] = React.useState(true);
   const [annualMaxCarryoverDays, setAnnualMaxCarryoverDays] = React.useState("10");
   const [sickRequireDocDays, setSickRequireDocDays] = React.useState("2");
+  const [maternityPaid, setMaternityPaid] = React.useState(false);
+  const [parentalPaid, setParentalPaid] = React.useState(false);
+  const [adoptionPaid, setAdoptionPaid] = React.useState(false);
+  const [commissioningPaid, setCommissioningPaid] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
+
+  const familyPaidControls = [
+    { label: "Maternity leave", checked: maternityPaid, onChange: setMaternityPaid },
+    { label: "Parental leave", checked: parentalPaid, onChange: setParentalPaid },
+    { label: "Adoption leave", checked: adoptionPaid, onChange: setAdoptionPaid },
+    { label: "Commissioning parental leave", checked: commissioningPaid, onChange: setCommissioningPaid },
+  ] as const;
 
   React.useEffect(() => {
     getLeavePolicyAction(tenant.id).then((p) => {
@@ -81,6 +92,10 @@ export function LeavePolicySettings() {
       setAnnualCarryover(p.annualCarryover);
       setAnnualMaxCarryoverDays(numericState(p.annualMaxCarryoverDays));
       setSickRequireDocDays(numericState(p.sickRequireDocDays));
+      setMaternityPaid(p.maternityPaid);
+      setParentalPaid(p.parentalPaid);
+      setAdoptionPaid(p.adoptionPaid);
+      setCommissioningPaid(p.commissioningPaid);
     });
   }, [tenant.id]);
 
@@ -97,6 +112,10 @@ export function LeavePolicySettings() {
     setAnnualCarryover(POLICY_DEFAULTS.annualCarryover);
     setAnnualMaxCarryoverDays(POLICY_DEFAULTS.annualMaxCarryoverDays);
     setSickRequireDocDays(POLICY_DEFAULTS.sickRequireDocDays);
+    setMaternityPaid(false);
+    setParentalPaid(false);
+    setAdoptionPaid(false);
+    setCommissioningPaid(false);
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -115,6 +134,10 @@ export function LeavePolicySettings() {
       annualCarryover,
       annualMaxCarryoverDays: Number(annualMaxCarryoverDays),
       sickRequireDocDays: Number(sickRequireDocDays),
+      maternityPaid,
+      parentalPaid,
+      adoptionPaid,
+      commissioningPaid,
     });
     setSaving(false);
     if (result.success) {
@@ -227,6 +250,30 @@ export function LeavePolicySettings() {
                 />
               </div>
             ) : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Family leave payment</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-xl border border-border/50 bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+              Under the BCEA, statutory family leave is unpaid by the employer: the employee claims
+              benefits from the UIF. Turn a type on if your company pays the employee during that
+              leave as a benefit.
+            </div>
+            {familyPaidControls.map((control) => (
+              <div key={control.label} className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-medium">Employer pays during {control.label.toLowerCase()}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {control.checked ? "Shown as paid on the policy." : "Shown as unpaid (UIF)."}
+                  </p>
+                </div>
+                <Switch checked={control.checked} onCheckedChange={control.onChange} disabled={saving} />
+              </div>
+            ))}
           </CardContent>
         </Card>
 
