@@ -229,6 +229,7 @@ model Tenant {
   disciplinaryRecords    DisciplinaryRecord[]
   announcements          Announcement[]
   performanceReviews     PerformanceReview[]
+  historyEvents          EmployeeHistoryEvent[]
 }
 
 // A physical or organisational branch (site, office, region) within a tenant.
@@ -403,6 +404,7 @@ model Employee {
   customFieldValues EmployeeCustomFieldValue[]
   disciplinaryRecords DisciplinaryRecord[]
   performanceReviews  PerformanceReview[]
+  historyEvents       EmployeeHistoryEvent[]
 
   // Termination. terminatedAt is set when employment ends; it drives the
   // termination letter template and leave encashment calculation.
@@ -1079,6 +1081,29 @@ model DisciplinaryRecord {
 
   @@index([tenantId])
   @@index([tenantId, employeeId])
+}
+
+// A structured change in an employee's employment: a promotion (job title), or
+// a transfer (department or branch). Auto-captured when HR edits the employee.
+// Additive: no existing data depends on this model.
+model EmployeeHistoryEvent {
+  id            String   @id @default(cuid())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  // promotion | transfer
+  type          String
+  // Human-readable field that changed, e.g. "Job title", "Department", "Branch".
+  field         String
+  oldValue      String?
+  newValue      String?
+  changedBy     String
+  effectiveDate DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([employeeId])
 }
 
 // A performance review for an employee within a named cycle. Additive: no

@@ -14,6 +14,7 @@ import { ProfileDocuments } from "./profile-documents";
 import { ProfileEquity } from "./profile-equity";
 import { ProfileDisciplinary } from "./profile-disciplinary";
 import { ProfilePerformance } from "./profile-performance";
+import { ProfileHistory } from "./profile-history";
 import { ProfileLetters } from "./profile-letters";
 import { ProfilePrivacy } from "./profile-privacy";
 import { ProfileOnboarding } from "./profile-onboarding";
@@ -60,6 +61,7 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
               <ProfileOverview employee={employee} />
               <ProfileQualifications employee={employee} />
               <ProfileCustomFields employee={employee} />
+              <ProfileHistory employee={employee} />
               <ProfileEquity employee={employee} />
             </TabsContent>
             <TabsContent value="compensation" className="mt-4 flex flex-col gap-6">
