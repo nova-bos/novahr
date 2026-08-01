@@ -16,6 +16,10 @@ export interface LeavePolicyData {
   annualCarryover: boolean;
   annualMaxCarryoverDays: number;
   sickRequireDocDays: number;
+  maternityPaid: boolean;
+  parentalPaid: boolean;
+  adoptionPaid: boolean;
+  commissioningPaid: boolean;
 }
 
 // SA statutory minimums
@@ -47,6 +51,10 @@ const DEFAULTS: LeavePolicyData = {
   annualCarryover: true,
   annualMaxCarryoverDays: 10,
   sickRequireDocDays: 2,
+  maternityPaid: false,
+  parentalPaid: false,
+  adoptionPaid: false,
+  commissioningPaid: false,
 };
 
 export async function getLeavePolicyAction(tenantId: string): Promise<LeavePolicyData> {

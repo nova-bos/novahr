@@ -942,6 +942,13 @@ model TenantLeavePolicy {
   annualCarryover         Boolean  @default(false)
   annualMaxCarryoverDays  Float    @default(5)
   sickRequireDocDays      Int      @default(2)
+  // Whether the employer pays the employee during statutory family leave. The
+  // BCEA does not require this (the employee claims from the UIF), so these
+  // default to false; a company that offers paid family leave sets them true.
+  maternityPaid           Boolean  @default(false)
+  parentalPaid            Boolean  @default(false)
+  adoptionPaid            Boolean  @default(false)
+  commissioningPaid       Boolean  @default(false)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 }
