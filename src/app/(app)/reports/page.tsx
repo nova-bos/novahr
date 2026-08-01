@@ -6,6 +6,8 @@ import { PayrollReport } from "@/components/reports/payroll-report";
 import { WorkforceReport } from "@/components/reports/workforce-report";
 import { LeaveReport } from "@/components/reports/leave-report";
 import { EquityReport } from "@/components/reports/equity-report";
+import { ExpiryReport } from "@/components/reports/expiry-report";
+import { OrgChart } from "@/components/reports/org-chart";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 
 export default function ReportsPage() {
@@ -25,6 +27,8 @@ export default function ReportsPage() {
             <TabsTrigger value="workforce">Workforce</TabsTrigger>
             <TabsTrigger value="leave">Leave</TabsTrigger>
             <TabsTrigger value="equity">Equity</TabsTrigger>
+            <TabsTrigger value="expiries">Expiries</TabsTrigger>
+            <TabsTrigger value="structure">Structure</TabsTrigger>
           </TabsList>
         </div>
         <TabsContent value="payroll" className="mt-4">
@@ -38,6 +42,12 @@ export default function ReportsPage() {
         </TabsContent>
         <TabsContent value="equity" className="mt-4">
           <EquityReport />
+        </TabsContent>
+        <TabsContent value="expiries" className="mt-4">
+          <ExpiryReport />
+        </TabsContent>
+        <TabsContent value="structure" className="mt-4">
+          <OrgChart />
         </TabsContent>
       </Tabs>
     </div>

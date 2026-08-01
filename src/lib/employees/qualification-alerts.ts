@@ -66,3 +66,64 @@ export async function getExpiringQualificationsAction(
       });
   });
 }
+
+export interface ExpiringDocument {
+  documentId: string;
+  employeeId: string;
+  employeeName: string;
+  employeeNumber: string;
+  category: string;
+  name: string;
+  expiresAt: string;
+  daysUntilExpiry: number;
+}
+
+/**
+ * Returns employee documents that expire within `withinDays` days (default 60).
+ * Only documents with an expiresAt date are considered; already-expired ones are
+ * included with a negative daysUntilExpiry. Terminated employees are excluded.
+ */
+export async function getExpiringDocumentsAction(
+  withinDays = 60
+): Promise<ExpiringDocument[]> {
+  const session = await requireRole("hr");
+  const tenantId = session.tenantId;
+
+  return runAsTenant(tenantId, async (tx) => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + withinDays);
+
+    const rows = await tx.employeeDocument.findMany({
+      where: { tenantId, expiresAt: { lte: cutoff } },
+      include: {
+        employee: {
+          select: { id: true, firstName: true, lastName: true, employeeNumber: true, status: true },
+        },
+      },
+      orderBy: { expiresAt: "asc" },
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return rows
+      .filter((r) => r.employee.status !== "terminated")
+      .map((r) => {
+        const expiry = new Date(r.expiresAt!);
+        expiry.setHours(0, 0, 0, 0);
+        const daysUntilExpiry = Math.round(
+          (expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        return {
+          documentId: r.id,
+          employeeId: r.employeeId,
+          employeeName: `${r.employee.firstName} ${r.employee.lastName}`,
+          employeeNumber: r.employee.employeeNumber,
+          category: r.category,
+          name: r.name,
+          expiresAt: r.expiresAt!.toISOString().slice(0, 10),
+          daysUntilExpiry,
+        };
+      });
+  });
+}
