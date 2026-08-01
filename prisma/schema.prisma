@@ -230,6 +230,8 @@ model Tenant {
   announcements          Announcement[]
   performanceReviews     PerformanceReview[]
   historyEvents          EmployeeHistoryEvent[]
+  jobPositions           JobPosition[]
+  costCentres            CostCentre[]
 }
 
 // A physical or organisational branch (site, office, region) within a tenant.
@@ -319,6 +321,8 @@ model Employee {
   // (current behaviour). Plain scalar (no Prisma relation) so the existing
   // checked employee-update path is unaffected.
   branchId       String?
+  // Optional cost centre for payroll cost allocation. Plain scalar id.
+  costCentreId   String?
 
   salaryAnnualGross            Decimal @db.Decimal(15, 2)
   salaryCurrency                String       @default("ZAR")
@@ -525,6 +529,34 @@ model Department {
   headId      String?
   color       String
   budget      Decimal @db.Decimal(15, 2)
+
+  @@index([tenantId])
+}
+
+// Canonical job-position catalogue (title + optional grade/band). Used to
+// standardise the free-text job title at capture. Additive.
+model JobPosition {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  title     String
+  grade     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+// Cost centre for allocating payroll cost. Optionally assigned per employee.
+// Additive.
+model CostCentre {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  code      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
 
   @@index([tenantId])
 }

@@ -22,6 +22,7 @@ export function makeEmployeeRow(overrides: Partial<EmployeeWithBalances> = {}): 
     status: "active",
     startDate: new Date("2024-01-15T00:00:00Z"),
     probationEndDate: null,
+    costCentreId: null,
     location: "Cape Town",
     managerId: null,
     branchId: null,
