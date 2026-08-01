@@ -10,6 +10,7 @@ import { ProfileCustomFields } from "./profile-custom-fields";
 import { ProfileCompensation } from "./profile-compensation";
 import { ProfileLeave } from "./profile-leave";
 import { ProfileDeductions } from "./profile-deductions";
+import { ProfileRecurringPay } from "./profile-recurring-pay";
 import { ProfileDocuments } from "./profile-documents";
 import { ProfileEquity } from "./profile-equity";
 import { ProfileDisciplinary } from "./profile-disciplinary";
@@ -66,6 +67,7 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
             </TabsContent>
             <TabsContent value="compensation" className="mt-4 flex flex-col gap-6">
               <ProfileCompensation employee={employee} />
+              <ProfileRecurringPay employee={employee} />
               <ProfileDeductions employee={employee} />
             </TabsContent>
             <TabsContent value="leave" className="mt-4">
