@@ -10,11 +10,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
-import { useDepartments, useEmployees } from "@/lib/store/hooks";
+import { useDepartments } from "@/lib/store/hooks";
+import { useReportEmployees } from "./reports-branch-context";
 
 export function HeadcountChart() {
   const departments = useDepartments();
-  const employees = useEmployees();
+  const employees = useReportEmployees();
 
   const data = React.useMemo(() => {
     const deptRows = departments

@@ -8,6 +8,7 @@ import { LeaveReport } from "@/components/reports/leave-report";
 import { EquityReport } from "@/components/reports/equity-report";
 import { ExpiryReport } from "@/components/reports/expiry-report";
 import { OrgChart } from "@/components/reports/org-chart";
+import { ReportsBranchProvider } from "@/components/reports/reports-branch-context";
 import { useRoleGuard } from "@/lib/auth/use-role-guard";
 
 export default function ReportsPage() {
@@ -20,6 +21,7 @@ export default function ReportsPage() {
         title="Reports"
         description="Payroll, headcount and leave analytics for your workspace."
       />
+      <ReportsBranchProvider>
       <Tabs defaultValue="payroll">
         <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <TabsList className="inline-flex min-w-max w-full">
@@ -50,6 +52,7 @@ export default function ReportsPage() {
           <OrgChart />
         </TabsContent>
       </Tabs>
+      </ReportsBranchProvider>
     </div>
   );
 }

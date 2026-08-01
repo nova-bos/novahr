@@ -11,7 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useDepartments, useEmployees } from "@/lib/store/hooks";
+import { useDepartments } from "@/lib/store/hooks";
+import { useReportEmployees } from "./reports-branch-context";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import { formatCurrency } from "@/lib/format";
 import { Currency } from "@/components/ui/currency";
@@ -32,7 +33,7 @@ function averageTenureYears(startDates: string[]): number {
 }
 
 export function WorkforceReport() {
-  const employees = useEmployees();
+  const employees = useReportEmployees();
   const departments = useDepartments();
 
   const active = employees.filter((e) => e.status !== "terminated");

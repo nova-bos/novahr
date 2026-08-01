@@ -14,7 +14,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { usePayrollRuns } from "@/lib/store/hooks";
+import { useReportRuns } from "./reports-branch-context";
 import { formatAxisCurrency, formatCurrencyCompact, formatMonthShort } from "@/lib/format";
 
 const chartConfig = {
@@ -24,7 +24,7 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function PayrollCompositionChart() {
-  const runs = usePayrollRuns();
+  const runs = useReportRuns();
   const completed = runs.filter((r) => r.status === "completed");
 
   const data = completed.map((run) => ({
