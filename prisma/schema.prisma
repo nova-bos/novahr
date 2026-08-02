@@ -233,6 +233,7 @@ model Tenant {
   jobPositions           JobPosition[]
   costCentres            CostCentre[]
   recurringPayrollInputs RecurringPayrollInput[]
+  memberships            TenantMembership[]
 }
 
 // A physical or organisational branch (site, office, region) within a tenant.
@@ -292,6 +293,29 @@ model User {
   branchScopeId           String?
   createdAt               DateTime  @default(now())
 
+  memberships             TenantMembership[]
+
+  @@index([tenantId])
+}
+
+// A user's access to a tenant. A user may hold memberships in several tenants
+// (multi-company). The User row's tenantId/role/employeeId/branchScopeId mirror
+// the CURRENTLY ACTIVE membership, so every existing tenant-scoped query is
+// unchanged; switching tenant copies the chosen membership onto the User.
+model TenantMembership {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role          UserRole @default(hr)
+  employeeId    String?
+  branchScopeId String?
+  title         String?
+  createdAt     DateTime @default(now())
+
+  @@unique([userId, tenantId])
+  @@index([userId])
   @@index([tenantId])
 }
 
