@@ -13,6 +13,7 @@ import { updateUserProfileAction } from "@/lib/auth/profile-actions";
 import { createClient } from "@/lib/supabase/client";
 import { CloseAccountCard } from "@/components/settings/close-account-card";
 import { AppearanceSettings } from "@/components/settings/appearance-settings";
+import { MfaSettings } from "@/components/settings/mfa-settings";
 
 const AVATAR_COLORS = [
   "#4C6FFF",
@@ -161,6 +162,8 @@ export default function AccountPage() {
           </Button>
         </CardContent>
       </Card>
+
+      <MfaSettings />
 
       <AppearanceSettings />
 
