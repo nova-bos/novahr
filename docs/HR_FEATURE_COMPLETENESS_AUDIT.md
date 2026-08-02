@@ -2,7 +2,7 @@
 
 Date: 2026-08-02. Method: direct schema, route, component and lib inspection. Lens: can NovaHR replace SimplePay / Sage VIP / PaySpace for a South African SME. Every status is backed by code evidence.
 
-This audit supersedes the prior revisions (8.5 → 8.7 → 9.1). It reflects `main` after the code-completion push (PRs #56–#71): all CRITICAL/HIGH/MEDIUM code gaps closed except the four **large builds** and MFA.
+This audit supersedes the prior revisions (8.5 → 8.7 → 9.1 → 9.4). It reflects `main` after the full push (PRs #56–#74). All code-side gaps are closed except two genuinely large builds (payroll-group weekly scheduling, multi-company auth).
 
 ---
 
@@ -10,14 +10,14 @@ This audit supersedes the prior revisions (8.5 → 8.7 → 9.1). It reflects `ma
 
 | Dimension | Prior | Now | Basis for change |
 |-----------|-------|-----|------------------|
-| HR completeness | 90% | **93%** | + probation tracking, job/cost catalogues, recurring pay, leave encashment, document versions |
-| Payroll completeness | 84% | **88%** | + recurring variable pay, leave encashment, payroll lock |
-| SA statutory compliance | 90% | **91%** | + configurable employer-paid family leave (BCEA/UIF correct default) |
-| Commercial readiness | 88% | **90%** | + branch-scoped reports, catalogues, calendar/UX polish |
-| Enterprise readiness | 61% | **66%** | + cost centres, branch-scoped reporting, payroll lock control |
-| **Overall readiness** | **9.1/10** | **9.4/10** | All contained code gaps closed; remaining is the large/infra work |
+| HR completeness | 93% | **93%** | (stable) |
+| Payroll completeness | 88% | **90%** | + retroactive back-pay (arrears) |
+| SA statutory compliance | 91% | **94%** | + statutory EEA2/EEA4 form PDF |
+| Commercial readiness | 90% | **91%** | + EEA PDF, back-pay |
+| Enterprise readiness | 66% | **70%** | + TOTP two-factor enrolment |
+| **Overall readiness** | **9.4/10** | **9.6/10** | Only two large builds remain |
 
-The remaining 0.6 is concentrated in four **large builds** and one **infrastructure** item, not breadth.
+The remaining 0.4 is two **large builds** plus MFA **enforcement** (a Supabase dashboard setting), not breadth.
 
 ---
 
@@ -49,21 +49,24 @@ Code evidence: `updateEmployeeRecord` is `requireRole("hr")`. Employees **cannot
 
 ---
 
-## Remaining — large builds (next session)
+## Closed — large builds (PRs #72–#74)
 
-| # | Gap | Note |
-|---|-----|------|
-| 2 | Statutory EEA2/EEA4 **form** PDF | Data + tables + CSV/Excel exist; the official DoL form layout/PDF does not |
-| 4 | Multiple payroll groups / frequencies | One run per period; needs a payroll-group concept across the run engine |
-| 5 | Retroactive / back-dated payroll | No arrear/adjustment run; only reversal exists |
-| 21 | Multi-company membership | No `TenantMembership`; deferred for auth complexity |
+| # | Gap | Evidence |
+|---|-----|----------|
+| 2 | Statutory EEA2/EEA4 form PDF | `equity-forms.ts` (unit tested) + `equity-pdf.tsx`; download on Reports > Equity |
+| 5 | Retroactive back-pay (arrears) | `back-pay-actions.ts` + compensation-tab dialog; adds a SARS annual-payment line to the open run |
+| 18 | MFA (TOTP enrolment) | `mfa-settings.tsx` on the account page via Supabase Auth MFA |
+
+## Remaining — genuinely large (dedicated, tested efforts)
+
+| # | Gap | Why not rushed |
+|---|-----|----------------|
+| 4 | Multiple payroll **groups / weekly cadence** | The calculator already does per-frequency math (`DIVISORS = monthly:12, biweekly:26, weekly:52`), but the run engine schedules **one run per period**. Proper weekly/biweekly staff need multiple runs per month with their own pay dates and periods. Rushing this risks paying weekly staff incorrectly on a live system. Needs a pay-group model + scheduler + tests. |
+| 21 | Multi-company membership | `TenantMembership` + session switching is a substantial auth change (tenant resolution touches every scoped query). Deferred by design for auth safety. |
 
 ## Remaining — infrastructure / manual
-
-| # | Gap | Note |
-|---|-----|------|
-| 18 | MFA for HR / exco | Enable/enforce in Supabase Auth; app can surface the setting |
-| — | Netcash key rotation, live billing credentials | Operational, user action |
+- MFA **enforcement** (require 2FA for HR/exco): a Supabase Auth policy/dashboard setting; per-user enrolment UI is now shipped.
+- Netcash key rotation, live billing credentials: operational, user action.
 
 ---
 
