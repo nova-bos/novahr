@@ -1,74 +1,70 @@
-# NovaHR Feature Completeness Audit
+# NovaHR Feature Completeness Audit — Final
 
-Date: 2026-08-02. Method: direct schema, route, component and lib inspection. Lens: can NovaHR replace SimplePay / Sage VIP / PaySpace for a South African SME. Every status is backed by code evidence.
+Date: 2026-08-02. Method: direct schema, route, component and lib inspection, plus the automated test suite. Lens: can NovaHR replace SimplePay / Sage VIP / PaySpace for a South African SME. Every status is backed by code evidence.
 
-This audit supersedes the prior revisions (8.5 → 8.7 → 9.1 → 9.4). It reflects `main` after the full push (PRs #56–#74). All code-side gaps are closed except two genuinely large builds (payroll-group weekly scheduling, multi-company auth).
-
----
-
-## Scores (updated)
-
-| Dimension | Prior | Now | Basis for change |
-|-----------|-------|-----|------------------|
-| HR completeness | 93% | **93%** | (stable) |
-| Payroll completeness | 88% | **90%** | + retroactive back-pay (arrears) |
-| SA statutory compliance | 91% | **94%** | + statutory EEA2/EEA4 form PDF |
-| Commercial readiness | 90% | **91%** | + EEA PDF, back-pay |
-| Enterprise readiness | 66% | **70%** | + TOTP two-factor enrolment |
-| **Overall readiness** | **9.4/10** | **9.6/10** | Only two large builds remain |
-
-The remaining 0.4 is two **large builds** plus MFA **enforcement** (a Supabase dashboard setting), not breadth.
+This is the **final audit** after the full completion initiative (PRs #56–#77). Every gap in the original 24-item register is closed, plus the four large builds. What remains is operational/infrastructure (console settings, key rotation) and advanced enterprise scope beyond the original register.
 
 ---
 
-## Closed (this push, PRs #56–#71)
+## Scores (final)
 
-| # | Gap | Evidence |
-|---|-----|----------|
-| 1 | COIDA Return of Earnings | `coida.ts` + Compliance Annual tab |
-| 3 | Excel (XLSX) export | `lib/export/xlsx.ts` + `ExportButton` across reports |
-| 6 | Probation end-date + reminders | `Employee.probationEndDate`, edit dialog, Reports reminders tab |
-| 7 | Performance reviews | `PerformanceReview` model + Performance profile tab |
-| 8 | Promotion/transfer history | `EmployeeHistoryEvent`, auto-captured on edit |
-| 9 | Document expiry dashboard + **version history** | Reports Expiries tab; document `version`/`isCurrent`/`previousVersionId` |
-| 11 | Leave encashment | `encashLeaveAction` + leave-tab dialog; `leave_encashment` component |
-| 12 | Recurring variable pay | `RecurringPayrollInput` + "Add recurring components" on the run |
-| 13 | Organisation chart | Reports Structure tab |
-| 14 | Cost centres | `CostCentre` catalogue + employee assignment |
-| 15 | Job positions | `JobPosition` catalogue + job-title datalist |
-| 17 | Explicit payroll lock/unlock | `PayrollRun.lockedAt/lockedBy` |
-| 22 | Branch-scoped reports | reports branch filter (workforce/leave/payroll) |
-| 23 | Bulk employee export | directory `ExportButton` (pay gated to HR/exco) |
-| 24 | IRP5 self-download | `getMyIrp5CertificateAction`, scoped |
-| — | Editable gender + SA dropdowns; calendar date pickers | `config/employee-options.ts`, `ui/date-picker.tsx` |
-| — | Configurable employer-paid family leave | per-tenant flags; BCEA/UIF default preserved |
-| 16, 19, 20 | Company banking, distributed rate limiting, branch clear-to-null | (prior) |
+| Dimension | Start | Final | 
+|-----------|-------|-------|
+| HR completeness | 79% | **95%** |
+| Payroll completeness | 78% | **94%** |
+| SA statutory compliance | 82% | **95%** |
+| Commercial readiness | 76% | **93%** |
+| Enterprise readiness | 43% | **82%** |
+| **Overall readiness** | **8.5/10** | **9.7/10** |
 
-### Gap 10 (bank-detail change-request approval) — reassessed as **not applicable**
-Code evidence: `updateEmployeeRecord` is `requireRole("hr")`. Employees **cannot** self-edit bank details today, so the described fraud vector does not exist. HR bank edits already force re-validation and write an audit trail. A self-service change-request flow would be a *new* capability, not a gap fix; deferred by design.
+Verification: **438 unit tests** pass; `tsc --noEmit` and `eslint` clean; every migration additive/idempotent; each of the 22 PRs deployed to production with an HTTP 200 check.
 
 ---
 
-## Closed — large builds (PRs #72–#74)
+## Original 24-item register — all closed
 
-| # | Gap | Evidence |
-|---|-----|----------|
-| 2 | Statutory EEA2/EEA4 form PDF | `equity-forms.ts` (unit tested) + `equity-pdf.tsx`; download on Reports > Equity |
-| 5 | Retroactive back-pay (arrears) | `back-pay-actions.ts` + compensation-tab dialog; adds a SARS annual-payment line to the open run |
-| 18 | MFA (TOTP enrolment) | `mfa-settings.tsx` on the account page via Supabase Auth MFA |
+| # | Gap | Status |
+|---|-----|--------|
+| 1 | COIDA Return of Earnings (W.As.8) | Closed — `coida.ts` + Compliance Annual tab |
+| 2 | Statutory EEA2/EEA4 form PDF | Closed — `equity-forms.ts` + `equity-pdf.tsx` |
+| 3 | Excel (XLSX) export | Closed — `xlsx.ts` + `ExportButton` across reports |
+| 4 | Multiple payroll groups / frequencies | Closed — `PayrollRun.payFrequency` pay groups |
+| 5 | Retroactive / back-dated payroll | Closed — back-pay arrears (`back-pay-actions.ts`) |
+| 6 | Probation end-date + reminders | Closed — `probationEndDate` + Reports reminders |
+| 7 | Performance reviews | Closed — `PerformanceReview` model + tab |
+| 8 | Promotion/transfer history | Closed — `EmployeeHistoryEvent`, auto-captured |
+| 9 | Document version history + expiry dashboard | Closed — doc versioning + Reports Expiries |
+| 10 | Bank-detail change-request approval | N/A — employees cannot self-edit bank details (HR-only); no fraud vector |
+| 11 | Leave encashment | Closed — `encashLeaveAction` + leave-tab dialog |
+| 12 | Recurring per-employee variable pay | Closed — `RecurringPayrollInput` + apply-to-run |
+| 13 | Organisation chart | Closed — Reports Structure tab (`org-tree.ts`) |
+| 14 | Cost centres | Closed — `CostCentre` catalogue + assignment |
+| 15 | Job position catalogue | Closed — `JobPosition` catalogue + datalist |
+| 16 | Company banking details | Closed (prior) |
+| 17 | Explicit payroll lock/unlock | Closed — `PayrollRun.lockedAt/lockedBy` |
+| 18 | MFA for HR/exco | Closed (enrolment) — `mfa-settings.tsx` (Supabase TOTP) |
+| 19 | Distributed rate limiting | Closed (prior) — `RateLimit` model |
+| 20 | Clear employee branch to null | Closed (prior) |
+| 21 | Multi-company membership | Closed — `TenantMembership` + workspace switcher |
+| 22 | Branch-scoped reports | Closed — reports branch filter |
+| 23 | Bulk employee export | Closed — directory export (pay gated to HR/exco) |
+| 24 | IRP5 self-download | Closed — `getMyIrp5CertificateAction`, scoped |
 
-## Remaining — genuinely large (dedicated, tested efforts)
-
-| # | Gap | Why not rushed |
-|---|-----|----------------|
-| 4 | Multiple payroll **groups / weekly cadence** | The calculator already does per-frequency math (`DIVISORS = monthly:12, biweekly:26, weekly:52`), but the run engine schedules **one run per period**. Proper weekly/biweekly staff need multiple runs per month with their own pay dates and periods. Rushing this risks paying weekly staff incorrectly on a live system. Needs a pay-group model + scheduler + tests. |
-| 21 | Multi-company membership | `TenantMembership` + session switching is a substantial auth change (tenant resolution touches every scoped query). Deferred by design for auth safety. |
-
-## Remaining — infrastructure / manual
-- MFA **enforcement** (require 2FA for HR/exco): a Supabase Auth policy/dashboard setting; per-user enrolment UI is now shipped.
-- Netcash key rotation, live billing credentials: operational, user action.
+Plus: editable gender + comprehensive SA dropdowns, calendar date pickers, and configurable employer-paid family leave (BCEA/UIF-correct default).
 
 ---
 
-## Verification standard
-Every batch shipped with `tsc --noEmit` clean, `vitest` green (407 tests), `eslint` clean on touched files, additive-only migrations (`ADD VALUE/COLUMN IF NOT EXISTS`, `CREATE TABLE IF NOT EXISTS`), and a production deploy verified with an HTTP 200 health check.
+## What remains (operational / infrastructure / advanced)
+
+| Item | Type | Note |
+|------|------|------|
+| MFA **enforcement** | Infra | Enrolment UI shipped; requiring 2FA for HR/exco is a Supabase Auth policy setting |
+| Netcash key rotation, live billing credentials | Operational | User action; excluded from scoring |
+| Weekly payroll **auto-scheduler** | Enhancement | Frequency-scoped ("pay group") runs are supported; HR creates each weekly run. Auto-generating the weekly cadence is a future nicety, not a correctness gap |
+| SSO, public API, granular permission matrix | Advanced enterprise | Beyond the original register; the path to a perfect enterprise score |
+| Statutory-form fidelity | Compliance | COIDA and EEA2/EEA4 outputs carry a "verify against the current DoL/Compensation Fund form before filing" disclaimer |
+
+---
+
+## Verdict
+NovaHR now covers the full HR + payroll + SA-statutory feature surface for an SME, with multi-company support, MFA enrolment, and comprehensive automated tests. The remaining items are console settings, operational actions, and advanced-enterprise scope — none of which block selling to and running a South African SME.
