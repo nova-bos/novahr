@@ -11,6 +11,7 @@ import { ProfileCompensation } from "./profile-compensation";
 import { ProfileLeave } from "./profile-leave";
 import { ProfileDeductions } from "./profile-deductions";
 import { ProfileRecurringPay } from "./profile-recurring-pay";
+import { BackPayDialog } from "./back-pay-dialog";
 import { ProfileDocuments } from "./profile-documents";
 import { ProfileEquity } from "./profile-equity";
 import { ProfileDisciplinary } from "./profile-disciplinary";
@@ -66,6 +67,9 @@ export function EmployeeProfile({ employee }: { employee: Employee }) {
               <ProfileEquity employee={employee} />
             </TabsContent>
             <TabsContent value="compensation" className="mt-4 flex flex-col gap-6">
+              <div className="flex justify-end">
+                <BackPayDialog employee={employee} />
+              </div>
               <ProfileCompensation employee={employee} />
               <ProfileRecurringPay employee={employee} />
               <ProfileDeductions employee={employee} />
