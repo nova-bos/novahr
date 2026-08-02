@@ -1,9 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, leaveTypeLabel, plural } from "@/lib/format";
 import { useLeaveRequests } from "@/lib/store/hooks";
 import type { Employee, LeaveStatus } from "@/lib/types";
+import { LeaveEncashmentDialog } from "./leave-encashment-dialog";
 
 const STATUS_STYLES: Record<LeaveStatus, string> = {
   pending: "bg-warning/10 text-warning",
@@ -28,6 +29,9 @@ export function ProfileLeave({ employee }: { employee: Employee }) {
       <Card>
         <CardHeader>
           <CardTitle>Leave balances</CardTitle>
+          <CardAction>
+            <LeaveEncashmentDialog employee={employee} />
+          </CardAction>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-4">

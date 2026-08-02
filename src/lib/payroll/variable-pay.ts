@@ -45,6 +45,8 @@ export const COMPONENT_DEFINITIONS: ComponentDefinition[] = [
   { type: "bonus", label: "Bonus", taxTreatment: "annual_payment", kind: "earning", hint: "Bonus taxed via the SARS non-recurring method." },
   { type: "thirteenth_cheque", label: "13th Cheque", taxTreatment: "annual_payment", kind: "earning", hint: "13th cheque taxed via the SARS non-recurring method." },
   { type: "deduction_custom", label: "Deduction", taxTreatment: "regular", kind: "deduction", hint: "Custom post-tax cash deduction." },
+  // Added only via the leave-encashment flow, not the manual dropdown or recurring.
+  { type: "leave_encashment", label: "Leave Encashment", taxTreatment: "regular", kind: "earning", hint: "Payout of accrued leave days." },
 ];
 
 export const COMPONENT_BY_TYPE = new Map(COMPONENT_DEFINITIONS.map((d) => [d.type, d]));
@@ -60,8 +62,13 @@ export const COMPONENT_TYPES = COMPONENT_DEFINITIONS.map((d) => d.type);
  */
 export function isRecurringComponentType(type: string): boolean {
   const def = COMPONENT_BY_TYPE.get(type);
-  return !!def && def.kind !== "hours" && def.taxTreatment === "regular";
+  return (
+    !!def && def.kind !== "hours" && def.taxTreatment === "regular" && type !== "leave_encashment"
+  );
 }
+
+/** Component types captured through the generic manual variable-pay dropdown. */
+export const MANUAL_COMPONENTS = COMPONENT_DEFINITIONS.filter((d) => d.type !== "leave_encashment");
 
 /** The component definitions that may be set up as recurring. */
 export const RECURRING_COMPONENTS = COMPONENT_DEFINITIONS.filter((d) => isRecurringComponentType(d.type));

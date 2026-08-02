@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEmployees } from "@/lib/store/hooks";
 import { calculateMonthlyPayroll } from "@/lib/payroll/calculator";
 import type { PayrollInputValue } from "@/lib/payroll/calculator";
-import { COMPONENT_DEFINITIONS, COMPONENT_BY_TYPE, resolveInputAmount, toInputValue } from "@/lib/payroll/variable-pay";
+import { COMPONENT_DEFINITIONS, MANUAL_COMPONENTS, COMPONENT_BY_TYPE, resolveInputAmount, toInputValue } from "@/lib/payroll/variable-pay";
 import {
   addVariablePayInputAction,
   applyVariablePayCsvAction,
@@ -342,7 +342,7 @@ export function VariablePayCard({ run }: Props) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {COMPONENT_DEFINITIONS.map((d) => (
+                    {MANUAL_COMPONENTS.map((d) => (
                       <SelectItem key={d.type} value={d.type}>
                         {d.label}
                       </SelectItem>
