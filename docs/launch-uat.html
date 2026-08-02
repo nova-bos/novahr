@@ -160,7 +160,8 @@
         <div class="co a">
           <span class="tag">Company A</span><h3>Ironwood Freight (Pty) Ltd</h3>
           <ul>
-            <li><b>Size</b> ~25 staff, SDL liable (over R500k)</li>
+            <li><b>Size</b> 25 staff, SDL liable (over R500k)</li>
+            <li><b>Onboard</b> Bulk upload the provided spreadsheet</li>
             <li><b>Branches</b> Johannesburg HQ and Durban depot</li>
             <li><b>Pay</b> Monthly office staff and weekly drivers</li>
             <li><b>Benefits</b> Pension 7.5% and medical aid</li>
@@ -184,7 +185,7 @@
         <div class="co c">
           <span class="tag">Company C</span><h3>Ubuntu Community Health NPC</h3>
           <ul>
-            <li><b>Size</b> ~15 staff, non profit</li>
+            <li><b>Size</b> 6 staff, non profit (hand entered)</li>
             <li><b>Pay</b> Monthly, ETI eligible young staff</li>
             <li><b>Equity</b> Designated groups, a person with a disability</li>
             <li><b>People</b> Learnership, internship, fixed term</li>
@@ -213,9 +214,18 @@
 
       <p class="hint" style="margin-bottom:10px">Every field the onboarding wizard asks for is listed per person (email is the only thing you supply yourself). Salaries are given as <b>annual gross</b> (what the Compensation step asks for). Phone, tax number, address and next of kin are dummy but format valid.</p>
 
-      <h3 style="font-size:13px;margin:10px 0 8px">Company A &middot; Ironwood Freight (add these 5, then 3 of your own to pass 25 staff / R500k)</h3>
+      <h3 style="font-size:13px;margin:10px 0 8px">Company A &middot; Ironwood Freight (bulk upload, 25 employees)</h3>
+      <div class="card" style="background:var(--indigo-soft);border-color:#c7d2fe;margin-bottom:12px">
+        <p style="font-size:13px;margin-bottom:6px"><b>This is the bulk-upload test.</b> Do not hand enter Company A. Instead:</p>
+        <ol style="font-size:12px;color:var(--slate);padding-left:18px;line-height:1.7">
+          <li>Create the two branches first: <b>Johannesburg HQ</b> and <b>Durban depot</b> (the file references them by name).</li>
+          <li>Employees &gt; Import. Download the app template to compare if you like, then import the provided file <b>docs/company-a-employees.csv</b> (25 rows: 9 monthly office/ops, 16 weekly drivers, valid SA IDs, banking, managers, equity, one person with a disability). It opens and edits in Excel; the importer reads CSV (Excel &gt; Save As &gt; CSV if you edit it).</li>
+          <li>Review the preview, fix any flagged rows, confirm the import.</li>
+        </ol>
+        <p class="hint" style="margin-top:6px">Expected: all 25 import, reporting lines resolve by manager email, drivers land on the weekly frequency and Durban depot, and headcount/annual payroll now exceed 25 / R500k so SDL applies. Five notable rows are shown below for reference (they are already in the file).</p>
+      </div>
 
-      <div class="emp"><div class="emp-h"><b>Nomsa Dlamini</b><span class="pill a">A</span></div>
+      <div class="emp"><div class="emp-h"><b>Nomsa Dlamini</b><span class="pill a">A</span> <span class="hint">in the import file</span></div>
         <div class="emp-l"><b>Personal</b> Preferred Nomsa &middot; Phone 082 345 6712 &middot; Tax 1234567890 &middot; SA ID 8803120812085 (derives Female, 12 Mar 1988) &middot; Married &middot; 14 Oak Ave, Sandton, 2196 &middot; Next of kin Bongani Dlamini (Spouse) 083 111 2233 &middot; Emergency same as next of kin</div>
         <div class="emp-l"><b>Role</b> HR Manager &middot; Admin &middot; Johannesburg HQ &middot; Full-time &middot; Start 2019-02-01 &middot; Location Johannesburg &middot; No manager</div>
         <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R456 000 &middot; Pension 7.5% &middot; Medical aid R2 500 &middot; Bank FNB, acc 62234567891, branch 250655, Cheque</div>
@@ -388,22 +398,28 @@ const PHASES = [
    {id:'4.1', role:'hr', step:'Add cost centres by programme (Clinic, Outreach). Confirm SDL liable if payroll over R500k.', exp:'Saves.'},
    {id:'4.2', role:'hr', step:'Invite a colleague as an Exco (read only) and another as a Manager.', exp:'Invites send with a link. Roles assigned.'},
  ]},
- {id:'P5', title:'Employee lifecycle (use the roster above)', co:'A', items:[
-   {id:'5.1', role:'hr', step:'Onboarding wizard: add Nomsa Dlamini. Enter SA ID 8803120812085. Do NOT type date of birth or gender.', exp:'Gender auto derives Female and date of birth 12 March 1988. Gender is a dropdown you can override to Other. ID passes validation.'},
-   {id:'5.2', role:'hr', step:'Try a broken ID: enter 8803120812080 (wrong check digit), then correct it back to ...085.', exp:'Invalid ID is rejected with a clear message. The valid one is accepted.'},
-   {id:'5.3', role:'hr', step:'Finish Nomsa: role HR Manager, Admin, JHB HQ, full-time, start 2019-02-01, salary R38 000, pension 7.5%, medical R2 500, marital status Married. Add a Bachelor\'s Degree (expiry next year), skills, a language, and a next of kin different from the emergency contact. Set equity African / Female / Senior management.', exp:'Review step shows a correct summary. Saves. Profile shows all fields.'},
-   {id:'5.4', role:'hr', step:'Add Pieter, Aisha (all monthly). For Aisha add a travel allowance R2 000. Set Nomsa as Aisha\'s manager and Pieter as manager of the drivers.', exp:'Reporting lines set. Travel allowance captured.'},
-   {id:'5.5', role:'hr', step:'Add the weekly drivers Sipho (9206185327081) and Johannes (8502095019086): wage basis weekly, weekly rate R3 200 / R3 000, Durban depot, cost centre Operations.', exp:'Saved on weekly frequency and Durban branch. Sipho derives Male, 18 June 1992.'},
-   {id:'5.6', role:'hr', step:'Company B: add Tendai Moyo as a foreign national on a passport (ZN1234567, Zimbabwe). Enter DOB 1990-04-22 and gender Male by hand.', exp:'Passport path works, no SA ID required, foreign national can be flagged for equity.'},
-   {id:'5.7', role:'hr', step:'Company C: add Kabelo, Naledi (person with disability), Ayesha, Farai (passport, fixed-term) with the roster values and equity fields.', exp:'Learnership, internship and fixed-term types available. Disability and foreign-national flags set.'},
-   {id:'5.8', role:'hr', step:'Add 3 more staff to Company A so headcount exceeds 25 and annual payroll exceeds R500 000.', exp:'Directory shows the full roster. SDL will now apply to Company A.'},
-   {id:'5.9', role:'hr', step:'Edit Aisha: promote her job title to Senior Administrator, then move her department to Operations, then set a branch.', exp:'The Employment history timeline on her profile records a promotion and transfers with old and new values.'},
-   {id:'5.10', role:'hr', step:'On Aisha upload a document named "Employment contract" (any PDF), then upload a different PDF with the same name and category.', exp:'The second becomes version 2, version 1 is kept in history and still downloadable.'},
-   {id:'5.11', role:'hr', step:'A newly hired employee is on probation: set the probation end date to 3 months after start, then later change status to Active.', exp:'Date editable while on probation, cleared when confirmed. Ending probations appear in Reports > Reminders.'},
-   {id:'5.12', role:'hr', step:'Add a performance review for Aisha (rating 4, strengths and goals) and a disciplinary record (verbal warning) on another employee.', exp:'Both save on the profile. As a manager you can only review your own direct reports.'},
-   {id:'5.13', role:'hr', step:'Add a tenant custom field (Settings) such as "T-shirt size", then set it on an employee.', exp:'Custom field appears on every profile and saves.'},
-   {id:'5.14', role:'hr', step:'Bulk import a few employees from the CSV template (include one deliberately bad row), then bulk export the directory to Excel.', exp:'Import validates and reports the bad row clearly. Export is an .xlsx; salary column present only for HR/exco.'},
-   {id:'5.15', role:'hr', step:'Terminate Johannes with a termination date, final pay date and reason, encashing any remaining leave.', exp:'Status becomes terminated, leave encashment on exit is offered, a termination letter can be generated. He drops out of active payroll.'},
+ {id:'P5', title:'Onboarding: bulk upload (Company A)', co:'A', items:[
+   {id:'5.1', role:'hr', step:'Create the two Company A branches first: Johannesburg HQ and Durban depot (Settings > Branches).', exp:'Both branches exist so the import can match them by name.'},
+   {id:'5.2', role:'hr', step:'Employees > Import. Import the provided file docs/company-a-employees.csv (25 employees).', exp:'Preview lists 25 rows, no validation errors, all import. Directory shows 25 staff.'},
+   {id:'5.3', role:'hr', step:'Edit the file first to break one row (e.g. blank an email or corrupt an ID) and import again, or add a bad row to a copy.', exp:'The importer flags exactly the bad row with a clear reason and imports the rest, or blocks with a readable error.'},
+   {id:'5.4', role:'hr', step:'Spot check the imported data: open Pieter and a driver. Confirm managers resolved by email, drivers are on the weekly frequency and Durban depot, and the person with a disability is flagged.', exp:'Reporting lines correct, weekly and branch set, equity and disability imported.'},
+   {id:'5.5', role:'hr', step:'Bulk export the Company A directory to Excel.', exp:'An .xlsx downloads with all 25, salary column present (you are HR). Round trips the imported data.'},
+ ]},
+ {id:'P5b', title:'Onboarding: wizard and edge cases (Company C and B)', co:'C', items:[
+   {id:'5b.1', role:'hr', step:'Company C wizard: add Zanele Khumalo. Enter SA ID 7505200610088. Do NOT type date of birth or gender.', exp:'Gender auto derives Female and date of birth 20 May 1975. Gender is a dropdown you can override to Other. ID passes validation.'},
+   {id:'5b.2', role:'hr', step:'Try a broken ID: change the last digit to a wrong check digit, then correct it back.', exp:'Invalid ID is rejected with a clear message. The valid one is accepted.'},
+   {id:'5b.3', role:'hr', step:'Finish Zanele with the roster values (Programme Director, Clinic, R504 000, married status, address, next of kin different from emergency, equity African / Female / Senior management). Add a Bachelor\'s Degree with an expiry, a skill and a language.', exp:'Review step shows a correct summary. Profile shows every field.'},
+   {id:'5b.4', role:'hr', step:'Add Kabelo, Naledi (tick Has disability), Ayesha with their roster values. Confirm Internship and Learnership employment types are selectable.', exp:'All save. Disability flag set on Naledi. Learnership/internship types available.'},
+   {id:'5b.5', role:'hr', step:'Passport path: add Farai Ncube (Company C, ZP7654321) and Tendai Moyo (Company B, ZN1234567) as foreign nationals. Enter DOB and gender by hand and tick foreign national.', exp:'Passport path works with no SA ID, foreign national flagged for equity. Farai is a fixed-term contract.'},
+   {id:'5b.6', role:'hr', step:'Set reporting lines in Company C: make Zanele the manager of Kabelo, Naledi and Ayesha. Give Zanele\'s user the Manager role and one person the Employee role.', exp:'Org chart and manager scoping will now work.'},
+ ]},
+ {id:'P5c', title:'Employee records: edits, documents, reviews', co:'Any', items:[
+   {id:'5c.1', role:'hr', step:'Edit an imported Company A employee: promote the job title, then change the department, then change the branch.', exp:'The Employment history timeline records a promotion and transfers with old and new values.'},
+   {id:'5c.2', role:'hr', step:'On any employee upload a document named "Employment contract" (any PDF), then upload a different PDF with the same name and category.', exp:'The second becomes version 2, version 1 is kept in history and still downloadable.'},
+   {id:'5c.3', role:'hr', step:'A new hire on probation: set the probation end date to 3 months after start, then later change status to Active.', exp:'Date editable while on probation, cleared when confirmed. Ending probations appear in Reports > Reminders.'},
+   {id:'5c.4', role:'hr', step:'Add a performance review for Kabelo (rating 4, strengths and goals) and a disciplinary record (verbal warning) on another employee.', exp:'Both save on the profile. As a manager you can only review your own direct reports.'},
+   {id:'5c.5', role:'hr', step:'Add a tenant custom field (Settings) such as "T-shirt size", then set it on an employee.', exp:'Custom field appears on every profile and saves.'},
+   {id:'5c.6', role:'hr', step:'Terminate an imported driver with a termination date, final pay date and reason, encashing any remaining leave.', exp:'Status becomes terminated, leave encashment on exit offered, a termination letter can be generated. He drops out of active payroll.'},
  ]},
  {id:'P6', title:'Leave management', co:'A', items:[
    {id:'6.1', role:'employee', step:'As an employee request annual leave including a half day and a non contiguous date.', exp:'Day picker supports half days and gaps, respects weekends and public holidays.'},
