@@ -4,6 +4,7 @@ import type { EquityGender, EquityRace, OccupationalLevel } from "@prisma/client
 import { prisma } from "@/lib/prisma";
 import { requireRole, requireTenant, requireActiveSubscription } from "@/lib/auth/require";
 import { buildEquityReport, type EquityReport } from "./employment-equity";
+import { buildEquityForms, type EquityForms } from "./equity-forms";
 
 /**
  * Builds the Employment Equity report (EEA2 headcount and EEA4 remuneration)
@@ -34,6 +35,41 @@ export async function getEmploymentEquityReportAction(
       annualGross: e.salaryAnnualGross.toNumber(),
     }))
   );
+}
+
+/**
+ * Builds the statutory EEA2/EEA4 form data (workforce profile and income
+ * differentials) plus the company name, for PDF generation.
+ */
+export async function getEquityFormsAction(
+  tenantId: string
+): Promise<{ forms: EquityForms; companyName: string }> {
+  await requireTenant(tenantId, "hr", "exco");
+  const [tenant, employees] = await Promise.all([
+    prisma.tenant.findUnique({ where: { id: tenantId }, select: { name: true, legalName: true } }),
+    prisma.employee.findMany({
+      where: { tenantId, status: { not: "terminated" } },
+      select: {
+        equityRace: true,
+        equityGender: true,
+        occupationalLevel: true,
+        foreignNational: true,
+        hasDisability: true,
+        salaryAnnualGross: true,
+      },
+    }),
+  ]);
+  const forms = buildEquityForms(
+    employees.map((e) => ({
+      race: e.equityRace ?? undefined,
+      gender: e.equityGender ?? undefined,
+      level: e.occupationalLevel ?? undefined,
+      foreignNational: e.foreignNational,
+      hasDisability: e.hasDisability,
+      annualGross: e.salaryAnnualGross.toNumber(),
+    }))
+  );
+  return { forms, companyName: tenant?.legalName || tenant?.name || "Company" };
 }
 
 export interface EquityUpdateInput {
