@@ -432,6 +432,34 @@ describe("branch-scoped payroll eligibility", () => {
       })
     );
   });
+
+  it("filters eligibility to the run's pay frequency when set (pay group)", async () => {
+    setupForRun(
+      makePayrollRunRow({ status: "processing", branchId: null, payFrequency: "weekly" })
+    );
+
+    await completePayrollRunRecord("novatech-run-2026-06");
+
+    expect(mockPrisma.employee.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { tenantId: "novatech", salaryPayFrequency: "weekly" },
+      })
+    );
+  });
+
+  it("combines branch and pay-frequency scope", async () => {
+    setupForRun(
+      makePayrollRunRow({ status: "processing", branchId: "branch-cpt", payFrequency: "monthly" })
+    );
+
+    await completePayrollRunRecord("novatech-run-2026-06");
+
+    expect(mockPrisma.employee.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { tenantId: "novatech", branchId: "branch-cpt", salaryPayFrequency: "monthly" },
+      })
+    );
+  });
 });
 
 describe("setPayrollRunBranchAction", () => {

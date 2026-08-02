@@ -47,6 +47,7 @@ import { toCSV, downloadCSV } from "@/lib/export/csv";
 import { ExportButton } from "@/components/ui/export-button";
 import { useApp } from "@/lib/store/app-provider";
 import { useCurrentTenant } from "@/lib/store/hooks";
+import { Badge } from "@/components/ui/badge";
 import { PayrollStatusBadge } from "./payroll-status-badge";
 import { PayslipDialog } from "./payslip-dialog";
 import { VariablePayCard } from "./variable-pay-card";
@@ -378,9 +379,15 @@ export function PayrollRunDetail({ run }: { run: PayrollRun }) {
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold tracking-tight">{run.label}</h2>
             <PayrollStatusBadge status={run.status} />
+            {run.payFrequency ? (
+              <Badge variant="secondary">
+                {{ monthly: "Monthly", biweekly: "Fortnightly", weekly: "Weekly" }[run.payFrequency]}{" "}
+                pay group
+              </Badge>
+            ) : null}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Pay date {formatDateLong(run.payDate)}

@@ -53,6 +53,7 @@ export function CreateOffCycleRun() {
   const [payDate, setPayDate] = React.useState(defaultPayDate);
   const [reason, setReason] = React.useState("");
   const [branchId, setBranchId] = React.useState<string>("all");
+  const [frequency, setFrequency] = React.useState<string>("all");
   const [isSaving, startSaveTransition] = React.useTransition();
 
   function handleCreate() {
@@ -63,6 +64,8 @@ export function CreateOffCycleRun() {
           payDate,
           reason: reason.trim() || undefined,
           branchId: branchId === "all" ? null : branchId,
+          payFrequency:
+            frequency === "all" ? null : (frequency as "monthly" | "biweekly" | "weekly"),
         });
         setOpen(false);
         setReason("");
@@ -91,8 +94,9 @@ export function CreateOffCycleRun() {
         <DialogHeader>
           <DialogTitle>Create an off-cycle run</DialogTitle>
           <DialogDescription>
-            An ad-hoc run outside the normal monthly schedule, for a bonus run or a correction. It
-            finalises independently and does not affect your regular monthly run.
+            An ad-hoc run outside the normal monthly schedule, for a bonus, a correction, or a
+            separate pay group (e.g. weekly-paid staff). It finalises independently of your regular
+            monthly run.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 py-2">
@@ -125,6 +129,23 @@ export function CreateOffCycleRun() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="offcycle-frequency">Pay group</Label>
+            <Select value={frequency} onValueChange={setFrequency}>
+              <SelectTrigger id="offcycle-frequency">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All employees</SelectItem>
+                <SelectItem value="monthly">Monthly-paid only</SelectItem>
+                <SelectItem value="biweekly">Fortnightly-paid only</SelectItem>
+                <SelectItem value="weekly">Weekly-paid only</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Scope the run to a pay frequency so weekly and monthly staff are paid separately.
+            </p>
           </div>
           {branches.length > 0 ? (
             <div className="flex flex-col gap-1.5">

@@ -1,6 +1,6 @@
 "use server";
 
-import type { Prisma } from "@prisma/client";
+import type { Prisma, PayFrequency } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole, requireActiveSubscription } from "@/lib/auth/require";
@@ -116,9 +116,12 @@ export async function completePayrollRunRecord(
           : session.branchScopeId
             ? { branchId: session.branchScopeId }
             : {};
+      // Pay-frequency scope: a frequency-scoped run (a "pay group") only pays
+      // employees on that frequency, so weekly and monthly staff run separately.
+      const frequencyFilter = run.payFrequency ? { salaryPayFrequency: run.payFrequency } : {};
       const [employeeRows, payrollProfiles] = await Promise.all([
         tx.employee.findMany({
-          where: { tenantId: run.tenantId, ...branchFilter },
+          where: { tenantId: run.tenantId, ...branchFilter, ...frequencyFilter },
           include: { leaveBalances: true },
         }),
         tx.payrollProfile.findMany({
@@ -572,6 +575,7 @@ export async function createOffCyclePayrollRunAction(input: {
   payDate: string;
   reason?: string;
   branchId?: string | null;
+  payFrequency?: PayFrequency | null;
 }): Promise<PayrollRun> {
   const session = await requireRole("hr");
   await requireActiveSubscription(session.tenantId);
@@ -582,6 +586,10 @@ export async function createOffCyclePayrollRunAction(input: {
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.payDate)) {
     throw new Error("Pay date must be a valid date.");
+  }
+  const payFrequency = input.payFrequency ?? null;
+  if (payFrequency && !["monthly", "biweekly", "weekly"].includes(payFrequency)) {
+    throw new Error("Invalid pay frequency.");
   }
 
   return runAsTenant(tenantId, async (tx) => {
@@ -600,9 +608,14 @@ export async function createOffCyclePayrollRunAction(input: {
     }
 
     const reason = input.reason?.trim() || undefined;
+    const freqLabel = payFrequency
+      ? { monthly: "monthly", biweekly: "fortnightly", weekly: "weekly" }[payFrequency]
+      : null;
     const label = reason
-      ? `${formatMonthYear(input.period)} off-cycle: ${reason}`
-      : `${formatMonthYear(input.period)} off-cycle run`;
+      ? `${formatMonthYear(input.period)} ${freqLabel ? `${freqLabel} ` : "off-cycle: "}${reason}`
+      : freqLabel
+        ? `${formatMonthYear(input.period)} ${freqLabel} run`
+        : `${formatMonthYear(input.period)} off-cycle run`;
 
     // A distinct id so an off-cycle run never collides with the regular
     // "{tenant}-run-{period}" scheduled run for the same period.
@@ -619,6 +632,7 @@ export async function createOffCyclePayrollRunAction(input: {
         runType: "off_cycle",
         runReason: reason,
         branchId,
+        payFrequency,
       },
     });
 

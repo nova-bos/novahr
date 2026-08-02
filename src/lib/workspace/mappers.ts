@@ -306,6 +306,7 @@ export function mapPayrollRun(row: PrismaPayrollRun, payslipIds: string[]): Payr
     payDate: toDateOnly(row.payDate),
     status: row.status,
     branchId: row.branchId ?? undefined,
+    payFrequency: row.payFrequency ?? undefined,
     runType: (row.runType as "regular" | "off_cycle" | null) ?? undefined,
     runReason: row.runReason ?? undefined,
     totalGross: decToNumber(row.totalGross),
