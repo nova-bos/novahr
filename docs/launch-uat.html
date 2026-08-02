@@ -58,6 +58,13 @@
   .matrix th{background:#f8fafc;font-weight:600}
   .matrix td.y{color:var(--green);font-weight:600}
   .matrix td.n{color:var(--muted)}
+  .emp{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
+  .emp-h{font-size:13px;margin-bottom:5px;display:flex;align-items:center;gap:8px}
+  .emp-h b{font-size:14px}
+  .pill{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:99px}
+  .pill.a{background:var(--indigo-soft);color:var(--indigo)} .pill.b{background:var(--amber-soft);color:var(--amber)} .pill.c{background:var(--green-soft);color:var(--green)}
+  .emp-l{font-size:12px;color:var(--slate);padding:2px 0;line-height:1.55}
+  .emp-l b{color:var(--ink);display:inline-block;min-width:64px}
   .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
   .toolbar input[type=search]{flex:1;min-width:160px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
   .fbtn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--slate)}
@@ -200,6 +207,112 @@
       </table>
     </div>
 
+    <div class="card">
+      <h2>Test data to enter</h2>
+      <p class="hint" style="margin-bottom:10px">Use exactly these values so results are reproducible and the derived fields and payroll can be checked. All SA ID numbers below are valid (real date, gender digit, Luhn check). Banking uses SA universal branch codes; account numbers are format valid dummies.</p>
+
+      <p class="hint" style="margin-bottom:10px">Every field the onboarding wizard asks for is listed per person (email is the only thing you supply yourself). Salaries are given as <b>annual gross</b> (what the Compensation step asks for). Phone, tax number, address and next of kin are dummy but format valid.</p>
+
+      <h3 style="font-size:13px;margin:10px 0 8px">Company A &middot; Ironwood Freight (add these 5, then 3 of your own to pass 25 staff / R500k)</h3>
+
+      <div class="emp"><div class="emp-h"><b>Nomsa Dlamini</b><span class="pill a">A</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Nomsa &middot; Phone 082 345 6712 &middot; Tax 1234567890 &middot; SA ID 8803120812085 (derives Female, 12 Mar 1988) &middot; Married &middot; 14 Oak Ave, Sandton, 2196 &middot; Next of kin Bongani Dlamini (Spouse) 083 111 2233 &middot; Emergency same as next of kin</div>
+        <div class="emp-l"><b>Role</b> HR Manager &middot; Admin &middot; Johannesburg HQ &middot; Full-time &middot; Start 2019-02-01 &middot; Location Johannesburg &middot; No manager</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R456 000 &middot; Pension 7.5% &middot; Medical aid R2 500 &middot; Bank FNB, acc 62234567891, branch 250655, Cheque</div>
+        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Senior management &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Pieter van der Merwe</b><span class="pill a">A</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Pieter &middot; Phone 083 512 8890 &middot; Tax 2233445566 &middot; SA ID 7907255081084 (derives Male, 25 Jul 1979) &middot; Married &middot; 8 Rivonia Rd, Sandton, 2196 &middot; Next of kin Anel van der Merwe (Spouse) 082 700 1122 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Operations Director &middot; Operations &middot; Johannesburg HQ &middot; Full-time &middot; Start 2017-06-15 &middot; Location Johannesburg &middot; No manager</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R660 000 &middot; Pension 7.5% &middot; Medical aid R3 000 &middot; Bank Standard Bank, acc 10087654321, branch 051001, Cheque</div>
+        <div class="emp-l"><b>Equity</b> White &middot; Male &middot; Top management &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Aisha Patel</b><span class="pill a">A</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Aisha &middot; Phone 084 220 5567 &middot; Tax 3344556677 &middot; SA ID 9511031234088 (derives Female, 3 Nov 1995) &middot; Single &middot; 22 Grove St, Rosebank, 2196 &middot; Next of kin Rahul Patel (Father) 083 445 9900 &middot; Emergency Rahul Patel (Father) 083 445 9900</div>
+        <div class="emp-l"><b>Role</b> Office Administrator &middot; Admin &middot; Johannesburg HQ &middot; Full-time &middot; Start 2022-03-01 &middot; Location Johannesburg &middot; Manager Nomsa Dlamini</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R222 000 &middot; Travel allowance R2 000 &middot; Bank Capitec, acc 1567890123, branch 470010, Savings</div>
+        <div class="emp-l"><b>Equity</b> Indian &middot; Female &middot; Skilled technical &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Sipho Nkosi</b><span class="pill a">A</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Sipho &middot; Phone 073 118 4432 &middot; Tax 4455667788 &middot; SA ID 9206185327081 (derives Male, 18 Jun 1992) &middot; Single &middot; 45 Umbilo Rd, Durban, 4001 &middot; Next of kin Thandi Nkosi (Sister) 072 556 3321 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Driver (grade C1) &middot; Operations &middot; Durban depot &middot; Full-time &middot; Start 2021-08-09 &middot; Location Durban &middot; Manager Pieter van der Merwe &middot; Cost centre Operations</div>
+        <div class="emp-l"><b>Pay</b> Weekly &middot; Weekly rate R3 200 &middot; Annual gross R166 400 &middot; Bank FNB, acc 62555443322, branch 250655, Cheque</div>
+        <div class="emp-l"><b>Equity</b> African &middot; Male &middot; Semi-skilled &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Johannes Botha</b><span class="pill a">A</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Johan &middot; Phone 076 990 2213 &middot; Tax 5566778899 &middot; SA ID 8502095019086 (derives Male, 9 Feb 1985) &middot; Married &middot; 12 Berea Rd, Durban, 4001 &middot; Next of kin Marie Botha (Spouse) 082 334 7788 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Driver &middot; Operations &middot; Durban depot &middot; Full-time &middot; Start 2020-01-20 &middot; Location Durban &middot; Manager Pieter van der Merwe &middot; Cost centre Operations</div>
+        <div class="emp-l"><b>Pay</b> Weekly &middot; Weekly rate R3 000 &middot; Annual gross R156 000 &middot; Bank Nedbank, acc 1987650012, branch 198765, Cheque</div>
+        <div class="emp-l"><b>Equity</b> White &middot; Male &middot; Semi-skilled &middot; Not foreign &middot; No disability</div></div>
+
+      <h3 style="font-size:13px;margin:14px 0 8px">Company B &middot; Thuli's Kitchen (add these 3)</h3>
+
+      <div class="emp"><div class="emp-h"><b>Thulisile Mahlangu</b><span class="pill b">B</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Thuli &middot; Phone 082 668 1190 &middot; Tax 6677889900 &middot; SA ID 8309140451086 (derives Female, 14 Sep 1983) &middot; Married &middot; 30 Vilakazi St, Soweto, 1804 &middot; Next of kin Sibusiso Mahlangu (Spouse) 083 221 6655 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Owner / Head Baker &middot; Department Operations &middot; Head office &middot; Full-time &middot; Start 2020-05-01 &middot; Location Soweto &middot; No manager</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R180 000 &middot; No pension &middot; No medical aid &middot; Bank Capitec, acc 1345678901, branch 470010, Savings</div>
+        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Skilled technical &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Lerato Molefe</b><span class="pill b">B</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Lerato &middot; Phone 071 445 9087 &middot; Tax 7788990011 &middot; SA ID 9812302088082 (derives Female, 30 Dec 1998) &middot; Single &middot; 5 Main Rd, Soweto, 1804 &middot; Next of kin Palesa Molefe (Mother) 072 889 4410 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Cashier &middot; Department Operations &middot; Head office &middot; Full-time &middot; Start 2023-01-15 &middot; Location Soweto &middot; Manager Thulisile Mahlangu</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R90 000 &middot; No pension/medical &middot; Bank Capitec, acc 1456789012, branch 470010, Savings &middot; UIF should be R75.00</div>
+        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Semi-skilled &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Tendai Moyo</b><span class="pill b">B</span> <span class="hint">passport path</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Tendai &middot; Phone 074 002 7781 &middot; Tax (leave blank) &middot; Passport ZN1234567, nationality Zimbabwean &middot; Enter DOB 1990-04-22 and gender Male by hand &middot; Single &middot; 18 Church St, Johannesburg, 2001 &middot; Next of kin Rudo Moyo (Sister) 073 556 8890 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Baker's Assistant &middot; Department Operations &middot; Head office &middot; Full-time &middot; Start 2022-09-01 &middot; Location Soweto &middot; Manager Thulisile Mahlangu</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R96 000 &middot; No pension/medical &middot; Bank FNB, acc 62998877665, branch 250655, Cheque</div>
+        <div class="emp-l"><b>Equity</b> Foreign national (tick) &middot; Male &middot; Semi-skilled &middot; No disability</div></div>
+
+      <h3 style="font-size:13px;margin:14px 0 8px">Company C &middot; Ubuntu Community Health NPC (add these 5, plus invite Themba as Exco)</h3>
+
+      <div class="emp"><div class="emp-h"><b>Zanele Khumalo</b><span class="pill c">C</span> <span class="hint">give her user the Manager role</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Zanele &middot; Phone 082 110 3345 &middot; Tax 8899001122 &middot; SA ID 7505200610088 (derives Female, 20 May 1975) &middot; Divorced &middot; 7 Florida Rd, Durban, 4001 &middot; Next of kin Nkosi Khumalo (Son) 083 667 2210 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Programme Director &middot; Clinic &middot; Head office &middot; Full-time &middot; Start 2016-04-01 &middot; Location Durban &middot; No manager</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R504 000 &middot; Bank Standard Bank, acc 10011223344, branch 051001, Cheque</div>
+        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Senior management &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Kabelo Sithole</b><span class="pill c">C</span> <span class="hint">ETI eligible</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Kabelo &middot; Phone 073 889 1120 &middot; Tax 9900112233 &middot; SA ID 0301155140082 (derives Male, 15 Jan 2003) &middot; Single &middot; 3 Hope St, Pinetown, 3610 &middot; Next of kin Lindiwe Sithole (Mother) 072 445 8890 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Community Health Worker &middot; Outreach &middot; Head office &middot; Full-time &middot; Start 2024-02-01 &middot; Location Durban &middot; Manager Zanele Khumalo &middot; Cost centre Outreach</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R54 000 &middot; Bank Capitec, acc 1567012345, branch 470010, Savings &middot; UIF should be R45.00</div>
+        <div class="emp-l"><b>Equity</b> African &middot; Male &middot; Semi-skilled &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Naledi Mokoena</b><span class="pill c">C</span> <span class="hint">ETI, disability</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Naledi &middot; Phone 071 220 6654 &middot; Tax 1011121314 &middot; SA ID 0408081902087 (derives Female, 8 Aug 2004) &middot; Single &middot; 9 Smith St, Durban, 4001 &middot; Next of kin Kagiso Mokoena (Father) 083 112 9987 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Intern &middot; Clinic &middot; Head office &middot; Internship &middot; Start 2025-01-15 &middot; Location Durban &middot; Manager Zanele Khumalo &middot; Cost centre Clinic</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R48 000 &middot; Bank Capitec, acc 1578123456, branch 470010, Savings</div>
+        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Semi-skilled &middot; Not foreign &middot; Disability YES</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Ayesha Adams</b><span class="pill c">C</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Ayesha &middot; Phone 076 334 2098 &middot; Tax 1213141516 &middot; SA ID 9603033070089 (derives Female, 3 Mar 1996) &middot; Single &middot; 21 Rose St, Chatsworth, 4092 &middot; Next of kin Fatima Adams (Mother) 072 667 3345 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Admin Learner &middot; Clinic &middot; Head office &middot; Learnership &middot; Start 2025-02-01 &middot; Location Durban &middot; Manager Zanele Khumalo &middot; Cost centre Clinic</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R60 000 &middot; Bank FNB, acc 62445667788, branch 250655, Cheque</div>
+        <div class="emp-l"><b>Equity</b> Coloured &middot; Female &middot; Skilled technical &middot; Not foreign &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Farai Ncube</b><span class="pill c">C</span> <span class="hint">passport, fixed-term</span></div>
+        <div class="emp-l"><b>Personal</b> Preferred Farai &middot; Phone 074 556 1123 &middot; Tax 1314151617 &middot; Passport ZP7654321, nationality Zimbabwean &middot; Enter DOB 1988-11-11 and gender Male by hand &middot; Married &middot; 40 Ridge Rd, Durban, 4001 &middot; Next of kin Chipo Ncube (Spouse) 073 889 5567 &middot; Emergency same</div>
+        <div class="emp-l"><b>Role</b> Professional Nurse &middot; Clinic &middot; Head office &middot; Fixed-term contract &middot; Start 2024-06-01 &middot; Location Durban &middot; Manager Zanele Khumalo</div>
+        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R336 000 &middot; Bank Standard Bank, acc 10099887766, branch 051001, Cheque</div>
+        <div class="emp-l"><b>Equity</b> Foreign national (tick) &middot; Male &middot; Professional / mid &middot; No disability</div></div>
+
+      <div class="emp"><div class="emp-h"><b>Themba Zulu</b><span class="pill c">C</span> <span class="hint">user only, no employee record needed</span></div>
+        <div class="emp-l"><b>Invite</b> Invite by email as an <b style="min-width:0">Exco</b> (read only) user. SA ID for reference if you also add him as an employee: 7010105500088 (Male, 10 Oct 1970).</div></div>
+
+      <h3 style="font-size:13px;margin:14px 0 8px">Scenario inputs (use these exact amounts)</h3>
+      <ul style="font-size:12px;color:var(--slate);line-height:1.7;padding-left:16px">
+        <li><b>Variable pay (Company A, Aisha, monthly run):</b> Overtime 10 hours at R120/hour (expect R1 800 = 10 &times; 120 &times; 1.5), Commission R2 500, Bonus R5 000 (annual payment method), post-tax deduction R300.</li>
+        <li><b>Recurring component:</b> Pieter, permanent Commission R2 000/month.</li>
+        <li><b>Back pay / arrears:</b> Nomsa, monthly shortfall R2 000 &times; 3 months = R6 000.</li>
+        <li><b>Leave encashment:</b> Aisha, encash 2 annual days.</li>
+        <li><b>Unpaid leave (Company B):</b> Lerato, 3 unpaid working days inside the current month (expect a pro-rata reduction and lower PAYE).</li>
+        <li><b>Public holiday:</b> add a custom holiday named "Company founders day" on any weekday next month.</li>
+        <li><b>UIF checks:</b> Nomsa, Pieter, Aisha earn above the R17 712 ceiling so employee UIF should be exactly <b>R177.12</b>; Lerato R7 500 &rarr; <b>R75.00</b>; Kabelo R4 500 &rarr; <b>R45.00</b>.</li>
+        <li><b>SDL check:</b> Company A (over R500k/yr) charges SDL 1%; Company B (under R500k) charges no SDL.</li>
+      </ul>
+    </div>
+
     <div class="toolbar">
       <input type="search" id="q" placeholder="Search test cases..." oninput="applyView()" />
       <button class="fbtn active" data-f="all" onclick="setFilter('all')">All</button>
@@ -275,17 +388,22 @@ const PHASES = [
    {id:'4.1', role:'hr', step:'Add cost centres by programme (Clinic, Outreach). Confirm SDL liable if payroll over R500k.', exp:'Saves.'},
    {id:'4.2', role:'hr', step:'Invite a colleague as an Exco (read only) and another as a Manager.', exp:'Invites send with a link. Roles assigned.'},
  ]},
- {id:'P5', title:'Employee lifecycle', co:'A', items:[
-   {id:'5.1', role:'hr', step:'Onboarding wizard: add a monthly salaried office employee with a valid SA ID (e.g. 9001015009087). Do not type the date of birth or gender.', exp:'Date of birth and gender auto derive from the ID. Gender is a dropdown you can still override to Other.'},
-   {id:'5.2', role:'hr', step:'On the same wizard add qualifications (Bachelor\'s Degree with an expiry), skills, languages, and a next of kin distinct from the emergency contact.', exp:'All captured. Review step shows a correct summary.'},
-   {id:'5.3', role:'hr', step:'Add a weekly paid driver (wage basis and weekly rate, assign to Durban branch and a cost centre).', exp:'Saved on the weekly frequency and Durban branch.'},
-   {id:'5.4', role:'hr', step:'Company B: add a foreign national on a passport (nationality, passport number, manual date of birth and gender).', exp:'Passport path works, foreign national flag available.'},
-   {id:'5.5', role:'hr', step:'Edit an employee: change their job title, then their department, then their branch.', exp:'An Employment history timeline records a promotion and transfers with old and new values.'},
-   {id:'5.6', role:'hr', step:'Upload a document (contract), then upload another file with the same name and category.', exp:'The second becomes version 2, the first is kept as history and downloadable.'},
-   {id:'5.7', role:'hr', step:'Employee on probation: set or adjust the probation end date, then later change status to active.', exp:'Date editable while on probation, cleared when confirmed. Ending probations show in Reports reminders.'},
-   {id:'5.8', role:'hr', step:'Add a performance review (rating and notes) for a direct report, and a disciplinary record.', exp:'Both save. A manager can only review their own reports.'},
-   {id:'5.9', role:'hr', step:'Bulk import employees from the CSV template, then bulk export the directory to Excel.', exp:'Import validates and reports errors clearly. Export is an .xlsx; salary column present only for HR/exco.'},
-   {id:'5.10', role:'hr', step:'Terminate an employee with a termination date, final pay date and reason.', exp:'Status becomes terminated, leave encashment on exit offered, a termination letter can be generated.'},
+ {id:'P5', title:'Employee lifecycle (use the roster above)', co:'A', items:[
+   {id:'5.1', role:'hr', step:'Onboarding wizard: add Nomsa Dlamini. Enter SA ID 8803120812085. Do NOT type date of birth or gender.', exp:'Gender auto derives Female and date of birth 12 March 1988. Gender is a dropdown you can override to Other. ID passes validation.'},
+   {id:'5.2', role:'hr', step:'Try a broken ID: enter 8803120812080 (wrong check digit), then correct it back to ...085.', exp:'Invalid ID is rejected with a clear message. The valid one is accepted.'},
+   {id:'5.3', role:'hr', step:'Finish Nomsa: role HR Manager, Admin, JHB HQ, full-time, start 2019-02-01, salary R38 000, pension 7.5%, medical R2 500, marital status Married. Add a Bachelor\'s Degree (expiry next year), skills, a language, and a next of kin different from the emergency contact. Set equity African / Female / Senior management.', exp:'Review step shows a correct summary. Saves. Profile shows all fields.'},
+   {id:'5.4', role:'hr', step:'Add Pieter, Aisha (all monthly). For Aisha add a travel allowance R2 000. Set Nomsa as Aisha\'s manager and Pieter as manager of the drivers.', exp:'Reporting lines set. Travel allowance captured.'},
+   {id:'5.5', role:'hr', step:'Add the weekly drivers Sipho (9206185327081) and Johannes (8502095019086): wage basis weekly, weekly rate R3 200 / R3 000, Durban depot, cost centre Operations.', exp:'Saved on weekly frequency and Durban branch. Sipho derives Male, 18 June 1992.'},
+   {id:'5.6', role:'hr', step:'Company B: add Tendai Moyo as a foreign national on a passport (ZN1234567, Zimbabwe). Enter DOB 1990-04-22 and gender Male by hand.', exp:'Passport path works, no SA ID required, foreign national can be flagged for equity.'},
+   {id:'5.7', role:'hr', step:'Company C: add Kabelo, Naledi (person with disability), Ayesha, Farai (passport, fixed-term) with the roster values and equity fields.', exp:'Learnership, internship and fixed-term types available. Disability and foreign-national flags set.'},
+   {id:'5.8', role:'hr', step:'Add 3 more staff to Company A so headcount exceeds 25 and annual payroll exceeds R500 000.', exp:'Directory shows the full roster. SDL will now apply to Company A.'},
+   {id:'5.9', role:'hr', step:'Edit Aisha: promote her job title to Senior Administrator, then move her department to Operations, then set a branch.', exp:'The Employment history timeline on her profile records a promotion and transfers with old and new values.'},
+   {id:'5.10', role:'hr', step:'On Aisha upload a document named "Employment contract" (any PDF), then upload a different PDF with the same name and category.', exp:'The second becomes version 2, version 1 is kept in history and still downloadable.'},
+   {id:'5.11', role:'hr', step:'A newly hired employee is on probation: set the probation end date to 3 months after start, then later change status to Active.', exp:'Date editable while on probation, cleared when confirmed. Ending probations appear in Reports > Reminders.'},
+   {id:'5.12', role:'hr', step:'Add a performance review for Aisha (rating 4, strengths and goals) and a disciplinary record (verbal warning) on another employee.', exp:'Both save on the profile. As a manager you can only review your own direct reports.'},
+   {id:'5.13', role:'hr', step:'Add a tenant custom field (Settings) such as "T-shirt size", then set it on an employee.', exp:'Custom field appears on every profile and saves.'},
+   {id:'5.14', role:'hr', step:'Bulk import a few employees from the CSV template (include one deliberately bad row), then bulk export the directory to Excel.', exp:'Import validates and reports the bad row clearly. Export is an .xlsx; salary column present only for HR/exco.'},
+   {id:'5.15', role:'hr', step:'Terminate Johannes with a termination date, final pay date and reason, encashing any remaining leave.', exp:'Status becomes terminated, leave encashment on exit is offered, a termination letter can be generated. He drops out of active payroll.'},
  ]},
  {id:'P6', title:'Leave management', co:'A', items:[
    {id:'6.1', role:'employee', step:'As an employee request annual leave including a half day and a non contiguous date.', exp:'Day picker supports half days and gaps, respects weekends and public holidays.'},
@@ -298,7 +416,8 @@ const PHASES = [
  {id:'P7', title:'Payroll: Company A pay groups and variable pay', co:'A', items:[
    {id:'7.1', role:'hr', step:'Create a run scoped to the Monthly pay group (Create off-cycle run, Pay group = Monthly-paid).', exp:'Run created. Only monthly employees are eligible.'},
    {id:'7.2', role:'hr', step:'Create a separate run scoped to the Weekly pay group with a weekly pay date.', exp:'Only weekly drivers are eligible. Each paid one week (annualGross over 52), not a month.'},
-   {id:'7.3', role:'hr', step:'On the monthly run add variable pay: overtime (hours by rate by 1.5), commission, a bonus, and a post tax deduction.', exp:'Amounts compute correctly, bonus taxed via the SARS annual payment method.'},
+   {id:'7.3', role:'hr', step:'On the monthly run, for Aisha add variable pay: overtime 10 hours at R120 (expect R1 800), commission R2 500, bonus R5 000 (annual payment), and a post-tax deduction R300.', exp:'Overtime computes to R1 800 (10 x 120 x 1.5). Bonus taxed via the SARS annual-payment method. Deduction reduces net after tax.'},
+   {id:'7.10', role:'hr', step:'On a completed Company A payslip, check the statutory lines: UIF for Nomsa/Pieter/Aisha, and that SDL is charged.', exp:'Employee UIF is exactly R177.12 for each (above the R17 712 ceiling). SDL line present because annual payroll exceeds R500k.'},
    {id:'7.4', role:'hr', step:'Set up a recurring component (permanent commission) on an employee, then click Add recurring components on the run.', exp:'The recurring line is seeded, and not duplicated if clicked twice.'},
    {id:'7.5', role:'hr', step:'Add a back pay / arrears entry (monthly shortfall by months) from the compensation tab.', exp:'A back pay line is added to the open run.'},
    {id:'7.6', role:'hr', step:'Finalise the run through the approval workflow (send for approval, approver signs off).', exp:'Approver receives notice, run completes only after sign off, payslips publish.'},
@@ -308,7 +427,7 @@ const PHASES = [
  ]},
  {id:'P8', title:'Payroll: Company B monthly, no SDL, manual EFT', co:'B', items:[
    {id:'8.1', role:'hr', step:'Approve an employee\'s unpaid leave inside the pay period, then run monthly payroll.', exp:'Unpaid days reduce that payslip pro rata. Net and PAYE recompute on the reduced base.'},
-   {id:'8.2', role:'hr', step:'Inspect a payslip: confirm no SDL line and no pension deduction.', exp:'PAYE and UIF present, SDL absent (under R500k), no pension line.'},
+   {id:'8.2', role:'hr', step:'Inspect Lerato\'s payslip: confirm UIF, no SDL line and no pension deduction.', exp:'Employee UIF is R75.00 (1% of R7 500, under the ceiling). SDL absent (company under R500k). No pension line (no benefit offered).'},
    {id:'8.3', role:'hr', step:'Complete the run without an approver and download the manual bank export CSV.', exp:'Completes directly (no approval step), CSV suitable for manual EFT.'},
  ]},
  {id:'P9', title:'Payroll: Company C ETI', co:'C', items:[
@@ -380,7 +499,7 @@ const PHASES = [
  ]},
 ];
 
-const KEY='novahr-launch-uat-v2';
+const KEY='novahr-launch-uat-v3';
 let state=load();
 function load(){try{return Object.assign(seed(),JSON.parse(localStorage.getItem(KEY))||{})}catch{return seed()}}
 function seed(){return{items:{},notes:{},col:{},filter:'all',so:{},bugs:[]}}
