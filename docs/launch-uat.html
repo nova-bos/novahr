@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NovaHR Launch UAT</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --card:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --indigo:#4f46e5; --indigo-soft:#eef2ff;
+    --green:#16a34a; --green-soft:#dcfce7; --red:#dc2626; --red-soft:#fee2e2;
+    --amber:#d97706; --amber-soft:#fef3c7; --slate:#334155;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.55}
+  a{color:var(--indigo)}
+  .top{position:sticky;top:0;z-index:50;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 20px;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+  .brand{font-weight:700}
+  .brand span{color:#818cf8}
+  .top-right{display:flex;align-items:center;gap:14px;font-size:12px;color:#cbd5e1}
+  .bar{width:160px;height:6px;border-radius:99px;background:#334155;overflow:hidden}
+  .bar>i{display:block;height:100%;width:0;background:#818cf8;transition:width .3s}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;color:var(--slate)}
+  .btn:hover{border-color:var(--indigo);color:var(--indigo)}
+  .btn.dark{background:transparent;border-color:#475569;color:#cbd5e1}
+  .btn.dark:hover{border-color:#818cf8;color:#818cf8}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 20px 80px}
+  h1{font-size:22px;margin-bottom:4px}
+  .lede{color:var(--muted);margin-bottom:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .card h2{font-size:16px;margin-bottom:10px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media(max-width:780px){.grid3{grid-template-columns:1fr}}
+  .co{border:1px solid var(--line);border-radius:12px;padding:14px}
+  .co h3{font-size:14px;margin-bottom:2px}
+  .co .tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;padding:2px 8px;border-radius:99px;margin-bottom:8px}
+  .co.a .tag{background:var(--indigo-soft);color:var(--indigo)}
+  .co.b .tag{background:var(--amber-soft);color:var(--amber)}
+  .co.c .tag{background:var(--green-soft);color:var(--green)}
+  .co ul{list-style:none;font-size:12px;color:var(--slate)}
+  .co li{padding:2px 0;display:flex;gap:6px}
+  .co li b{color:var(--ink);font-weight:600;min-width:78px;display:inline-block}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  .matrix th,.matrix td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+  .matrix th{background:#f8fafc;font-weight:600}
+  .matrix td.y{color:var(--green);font-weight:600}
+  .matrix td.n{color:var(--muted)}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+  .toolbar input[type=search]{flex:1;min-width:160px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+  .fbtn{border:1px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--slate)}
+  .fbtn.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .phase{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden}
+  .ph-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;background:#fbfcfe;border-bottom:1px solid var(--line)}
+  .ph-head:hover{background:#f4f6fb}
+  .ph-tw{width:14px;color:var(--muted)}
+  .ph-title{font-weight:600;font-size:14px;flex:1}
+  .ph-co{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:99px}
+  .ph-co.A{background:var(--indigo-soft);color:var(--indigo)} .ph-co.B{background:var(--amber-soft);color:var(--amber)}
+  .ph-co.C{background:var(--green-soft);color:var(--green)} .ph-co.Any{background:#f1f5f9;color:var(--slate)}
+  .ph-prog{font-size:11px;color:var(--muted)}
+  .ph-body.collapsed{display:none}
+  .item{border-bottom:1px solid #f1f5f9;padding:12px 16px;display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:start}
+  .item:last-child{border-bottom:none}
+  .item .id{font-size:11px;color:var(--muted);font-family:ui-monospace,monospace}
+  .role{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:1px 6px;border-radius:99px;margin-top:3px}
+  .role.hr{background:#e0e7ff;color:#4338ca}.role.manager{background:#dbeafe;color:#1d4ed8}
+  .role.employee{background:#dcfce7;color:#15803d}.role.exco{background:#fae8ff;color:#a21caf}.role.any{background:#f1f5f9;color:#475569}
+  .step{font-size:13px}
+  .exp{font-size:12px;color:var(--muted);margin-top:3px}
+  .exp b{color:var(--slate)}
+  .sbtns{display:flex;gap:4px}
+  .sbtn{width:26px;height:26px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;font-size:13px;color:var(--muted)}
+  .sbtn.pass.active{background:var(--green);border-color:var(--green);color:#fff}
+  .sbtn.fail.active{background:var(--red);border-color:var(--red);color:#fff}
+  .sbtn.skip.active{background:var(--amber);border-color:var(--amber);color:#fff}
+  .note{margin-top:8px;grid-column:2/4}
+  .note textarea{width:100%;border:1px dashed var(--line);border-radius:8px;padding:6px 8px;font-size:12px;resize:vertical;min-height:0;height:30px;color:var(--slate)}
+  .note textarea:focus{border-style:solid;border-color:var(--indigo);outline:none;min-height:52px}
+  .row-pass{background:#f6fef9}.row-fail{background:#fff6f6}.row-skip{background:#fffbf2}
+  .signoff label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px}
+  .signoff input,.signoff textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px}
+  .oc{display:flex;gap:10px;margin-top:12px}
+  .oc button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer}
+  .oc button.pass.active{background:var(--green-soft);border-color:var(--green);color:#166534}
+  .oc button.fail.active{background:var(--red-soft);border-color:var(--red);color:#991b1b}
+  .hint{font-size:12px;color:var(--muted)}
+  .kbd{font-family:ui-monospace,monospace;background:#f1f5f9;border:1px solid var(--line);border-radius:5px;padding:0 5px;font-size:11px}
+  .foot{text-align:center;color:var(--muted);font-size:11px;margin-top:24px}
+  @media print{.top,.toolbar,.sbtns,.btn,.fbtn{display:none}.ph-body.collapsed{display:block}.phase{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">Nova<span>HR</span> · Launch UAT</div>
+  <div class="top-right">
+    <span id="stat">0 / 0</span>
+    <div class="bar"><i id="fill"></i></div>
+    <button class="btn dark" onclick="expandAll(true)">Expand</button>
+    <button class="btn dark" onclick="expandAll(false)">Collapse</button>
+    <button class="btn dark" onclick="window.print()">Print</button>
+    <button class="btn dark" onclick="reset()">Reset</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <h1>NovaHR end to end launch acceptance test</h1>
+  <p class="lede">Sign off before go live. Environment: <b>novahr-five.vercel.app</b>. Work top to bottom. Mark each check Pass, Fail or Skip and add notes on anything that looks off. Progress saves in this browser.</p>
+
+  <div class="card">
+    <h2>Three test companies</h2>
+    <p class="hint" style="margin-bottom:12px">Create all three by self serve signup with different emails you control. They are deliberately configured so that mutually exclusive settings (SDL liable or not, pension or none, accrual or upfront leave, paid or statutory maternity, one branch or many, one pay frequency or several, Netcash or manual EFT) are all exercised at least once.</p>
+    <div class="grid3">
+      <div class="co a">
+        <span class="tag">Company A</span>
+        <h3>Ironwood Freight (Pty) Ltd</h3>
+        <ul>
+          <li><b>Size</b> ~25 staff, SDL liable (payroll over R500k)</li>
+          <li><b>Branches</b> Johannesburg HQ and Durban depot</li>
+          <li><b>Pay</b> Monthly office staff and weekly drivers (pay groups)</li>
+          <li><b>Benefits</b> Pension 7.5% and medical aid</li>
+          <li><b>Leave</b> Accrual, paid maternity (benefit on)</li>
+          <li><b>Extras</b> Cost centres, approval workflow, Netcash test keys</li>
+          <li><b>User</b> HR admin also belongs to Company C</li>
+        </ul>
+      </div>
+      <div class="co b">
+        <span class="tag">Company B</span>
+        <h3>Thuli's Kitchen</h3>
+        <ul>
+          <li><b>Size</b> 3 staff, not SDL liable (payroll under R500k)</li>
+          <li><b>Branches</b> Head office only</li>
+          <li><b>Pay</b> Monthly only</li>
+          <li><b>Benefits</b> None (no pension, no medical aid)</li>
+          <li><b>Leave</b> Upfront entitlement, statutory unpaid maternity</li>
+          <li><b>People</b> One foreign national on a passport</li>
+          <li><b>Extras</b> Manual EFT, HR finalises with no approver</li>
+        </ul>
+      </div>
+      <div class="co c">
+        <span class="tag">Company C</span>
+        <h3>Ubuntu Community Health NPC</h3>
+        <ul>
+          <li><b>Size</b> ~15 staff, non profit</li>
+          <li><b>Pay</b> Monthly, ETI eligible young low wage staff</li>
+          <li><b>Equity</b> Designated groups across levels, a person with a disability</li>
+          <li><b>People</b> Learnership, internship and fixed term contracts</li>
+          <li><b>Roles</b> An exco (read only) and a manager with reports</li>
+          <li><b>Extras</b> Cost centres by programme, disciplinary and reviews</li>
+        </ul>
+      </div>
+    </div>
+    <table class="matrix" style="margin-top:14px">
+      <tr><th>Mutually exclusive path</th><th>A</th><th>B</th><th>C</th></tr>
+      <tr><td>SDL liable</td><td class="y">Yes</td><td class="n">No</td><td class="y">Yes</td></tr>
+      <tr><td>Pension / medical aid offered</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+      <tr><td>Annual leave accrual (vs upfront)</td><td class="y">Accrual</td><td class="n">Upfront</td><td class="y">Accrual</td></tr>
+      <tr><td>Employer paid maternity (vs UIF)</td><td class="y">Paid</td><td class="n">Unpaid</td><td class="n">Unpaid</td></tr>
+      <tr><td>Multiple branches</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+      <tr><td>Multiple pay frequencies (pay groups)</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+      <tr><td>Netcash EFT (vs manual)</td><td class="y">Netcash</td><td class="n">Manual</td><td class="n">Manual</td></tr>
+      <tr><td>Payroll approval workflow</td><td class="y">Yes</td><td class="n">No</td><td class="n">No</td></tr>
+      <tr><td>ETI claim</td><td class="n">No</td><td class="n">No</td><td class="y">Yes</td></tr>
+    </table>
+  </div>
+
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Search test cases..." oninput="applyView()" />
+    <button class="fbtn active" data-f="all" onclick="setFilter('all')">All</button>
+    <button class="fbtn" data-f="untested" onclick="setFilter('untested')">Untested</button>
+    <button class="fbtn" data-f="fail" onclick="setFilter('fail')">Fails</button>
+    <button class="fbtn" data-f="pass" onclick="setFilter('pass')">Passed</button>
+  </div>
+
+  <div id="phases"></div>
+
+  <div class="card signoff">
+    <h2>Sign off</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><label>Tester name</label><input id="so-name" oninput="saveSO()" /></div>
+      <div><label>Date</label><input id="so-date" oninput="saveSO()" /></div>
+    </div>
+    <label>Summary and blocking issues</label>
+    <textarea id="so-notes" rows="3" oninput="saveSO()"></textarea>
+    <div class="oc">
+      <button class="pass" id="oc-pass" onclick="setOutcome('pass')">Approved for launch</button>
+      <button class="fail" id="oc-fail" onclick="setOutcome('fail')">Not approved</button>
+    </div>
+  </div>
+
+  <p class="foot">NovaHR launch UAT. Progress is stored only in this browser (localStorage). Use Print to save a signed PDF.</p>
+</div>
+
+<script>
+const PHASES = [
+ {id:'P0', title:'Test data setup', co:'Any', items:[
+   {id:'0.1', role:'hr', step:'Sign up Company A (Ironwood Freight) at /signup with a real email you control. Choose a plan or trial.', exp:'Tenant created, you land on the dashboard as the first HR admin, an initial scheduled pay run exists.'},
+   {id:'0.2', role:'hr', step:'Sign up Company B (Thuli\'s Kitchen) with a second email.', exp:'Second isolated workspace created. No data bleeds from Company A.'},
+   {id:'0.3', role:'hr', step:'Sign up Company C (Ubuntu Community Health) with a third email.', exp:'Third workspace created.'},
+   {id:'0.4', role:'any', step:'Note the login for each. Keep all three open in separate browser profiles or windows.', exp:'You can sign in and out of each independently.'},
+ ]},
+ {id:'P1', title:'Authentication and session', co:'Any', items:[
+   {id:'1.1', role:'any', step:'Log out, then visit /dashboard directly while signed out.', exp:'Redirected to /login. No app data flashes on screen first.'},
+   {id:'1.2', role:'any', step:'Sign in with a wrong password 6 times quickly.', exp:'Clear error each time. Repeated attempts are rate limited, not a raw error.'},
+   {id:'1.3', role:'any', step:'Sign in correctly, then refresh a deep page (for example /reports).', exp:'Stays on the page, session persists, no redirect loop.'},
+   {id:'1.4', role:'any', step:'Trigger a password reset from Account, follow the email link.', exp:'Reset email arrives, link works, new password logs you in.'},
+   {id:'1.5', role:'hr', step:'Account page: enrol two factor authentication (TOTP). Scan the QR with an authenticator app and verify the 6 digit code. Then turn it off.', exp:'Enrol succeeds, verification accepts a valid code and rejects a wrong one, turning off works.'},
+ ]},
+ {id:'P2', title:'Company A configuration (full featured)', co:'A', items:[
+   {id:'2.1', role:'hr', step:'Settings > Company: fill legal name, registration, VAT, PAYE, UIF, SDL numbers and company banking details.', exp:'Saves, values persist on refresh.'},
+   {id:'2.2', role:'hr', step:'Settings > Branches: add Johannesburg HQ and Durban depot.', exp:'Both listed. A branch filter now appears where relevant.'},
+   {id:'2.3', role:'hr', step:'Settings > Departments: add Operations and Admin. Add cost centres (Operations, Admin) and job positions (Driver grade C1, Office Administrator).', exp:'Catalogues save and appear as options later.'},
+   {id:'2.4', role:'hr', step:'Settings > Payroll: set monthly frequency and pay day 25, statutory references, mark SDL liable. Enable pension and medical aid under Benefits. Set an approver under approval workflow. Enter Netcash test keys.', exp:'All save. SDL will apply because payroll exceeds R500k.'},
+   {id:'2.5', role:'hr', step:'Settings > Leave: keep accrual, set carryover with a cap, and under Family leave payment toggle maternity to employer paid.', exp:'Saves. The maternity policy card now shows Paid.'},
+ ]},
+ {id:'P3', title:'Company B configuration (micro, statutory minimum)', co:'B', items:[
+   {id:'3.1', role:'hr', step:'Settings > Payroll: monthly, do not mark SDL liable, no pension, no medical aid. Do not set an approver. Do not enter Netcash keys (manual EFT).', exp:'Saves. SDL will not be charged.'},
+   {id:'3.2', role:'hr', step:'Settings > Leave: switch annual leave to upfront entitlement. Leave family leave paid toggles off (statutory).', exp:'Saves. Maternity card shows Unpaid (UIF).'},
+   {id:'3.3', role:'hr', step:'Confirm no branch selector appears anywhere (single site company).', exp:'No branch UI clutter for a company with no branches.'},
+ ]},
+ {id:'P4', title:'Company C configuration (NPC, ETI, equity)', co:'C', items:[
+   {id:'4.1', role:'hr', step:'Settings: add cost centres by programme (Clinic, Outreach). Confirm SDL liable if payroll over R500k.', exp:'Saves.'},
+   {id:'4.2', role:'hr', step:'Invite a colleague as an Exco (read only) and another as a Manager.', exp:'Invites send with a link. Roles assigned.'},
+ ]},
+ {id:'P5', title:'Employee lifecycle', co:'A', items:[
+   {id:'5.1', role:'hr', step:'Onboarding wizard: add a monthly salaried office employee with a valid SA ID (for example 9001015009087). Do not type the date of birth or gender.', exp:'Date of birth and gender auto derive from the ID. Gender is a dropdown you can still override to Other.'},
+   {id:'5.2', role:'hr', step:'On the same wizard, add qualifications (Bachelor\'s Degree with an expiry), skills, languages and a next of kin distinct from the emergency contact.', exp:'All captured. Review step shows a correct summary.'},
+   {id:'5.3', role:'hr', step:'Add a weekly paid driver (set wage basis and weekly rate, assign to Durban branch and a cost centre).', exp:'Saved on the weekly frequency and Durban branch.'},
+   {id:'5.4', role:'hr', step:'Company B: add a foreign national on a passport (nationality, passport number, manual date of birth and gender).', exp:'Passport path works, foreign national flag available.'},
+   {id:'5.5', role:'hr', step:'Edit an employee: change their job title, then their department, then their branch.', exp:'An Employment history timeline records a promotion and transfers with old and new values.'},
+   {id:'5.6', role:'hr', step:'Upload a document (contract), then upload another file with the same name and category.', exp:'The second upload becomes version 2, the first is kept as history and downloadable.'},
+   {id:'5.7', role:'hr', step:'Employee is on probation: set or adjust the probation end date, then later change status to active.', exp:'Probation date editable while on probation, cleared when confirmed. Ending probations show in Reports reminders.'},
+   {id:'5.8', role:'hr', step:'Add a performance review (rating and notes) for a direct report, and a disciplinary record.', exp:'Both save on the profile. Manager can only review their own reports.'},
+   {id:'5.9', role:'hr', step:'Bulk import employees from the CSV template, then bulk export the directory to Excel.', exp:'Import validates and reports errors clearly. Export downloads an .xlsx; salary column present only for HR/exco.'},
+   {id:'5.10', role:'hr', step:'Terminate an employee with a termination date, final pay date and reason.', exp:'Status becomes terminated, leave encashment on exit is offered, a termination letter can be generated.'},
+ ]},
+ {id:'P6', title:'Leave management', co:'A', items:[
+   {id:'6.1', role:'employee', step:'As an employee, request annual leave including a half day and a non contiguous date.', exp:'Day picker supports half days and gaps, respects weekends and public holidays.'},
+   {id:'6.2', role:'employee', step:'Request more days than the balance allows.', exp:'A negative balance warning appears rather than a silent failure.'},
+   {id:'6.3', role:'manager', step:'As the manager, approve one request and reject another with a reason. Try to approve your own request.', exp:'Approve and reject work. You cannot approve your own leave.'},
+   {id:'6.4', role:'hr', step:'Company A: confirm maternity leave shows Paid on the policy card. Company B: confirm it shows Unpaid (UIF).', exp:'Policy display reflects each company\'s configured setting.'},
+   {id:'6.5', role:'hr', step:'Add a custom public holiday and view the leave calendar.', exp:'Holiday appears, leave day counts account for it.'},
+   {id:'6.6', role:'hr', step:'Encash a few days of an employee\'s annual leave (Leave tab, Encash).', exp:'A cash line is added to the open run and the annual balance reduces by those days.'},
+ ]},
+ {id:'P7', title:'Payroll: Company A pay groups and variable pay', co:'A', items:[
+   {id:'7.1', role:'hr', step:'Create a run scoped to the Monthly pay group (Create off-cycle run, Pay group = Monthly-paid).', exp:'Run created. Only monthly employees are eligible.'},
+   {id:'7.2', role:'hr', step:'Create a separate run scoped to the Weekly pay group with a weekly pay date.', exp:'Only weekly drivers are eligible. Each is paid one week (annualGross ÷ 52), not a month.'},
+   {id:'7.3', role:'hr', step:'On the monthly run add variable pay: overtime (hours × rate × 1.5), commission, a bonus (annual payment method), and a post tax deduction.', exp:'Amounts compute correctly, bonus taxed via the SARS annual payment method.'},
+   {id:'7.4', role:'hr', step:'Set up a recurring component (permanent commission) on an employee, then click Add recurring components on the run.', exp:'The recurring line is seeded into the run, and not duplicated if clicked twice.'},
+   {id:'7.5', role:'hr', step:'Add a back pay / arrears entry (monthly shortfall × months) from the compensation tab.', exp:'A back pay line is added to the open run.'},
+   {id:'7.6', role:'hr', step:'Finalise the run through the approval workflow (send for approval, approver signs off).', exp:'Approver receives notice, run completes only after sign off, payslips publish.'},
+   {id:'7.7', role:'hr', step:'On a completed run, Lock it, then try to cancel/reverse it. Then Unlock and reverse.', exp:'Cancel is blocked while locked. Unlock allows reversal.'},
+   {id:'7.8', role:'hr', step:'Download a single payslip PDF and the bulk payslip ZIP. Export the payroll register to Excel and the GL journal.', exp:'PDFs render professionally, register and GL export.'},
+   {id:'7.9', role:'hr', step:'Generate the Netcash EFT file / submit the test batch.', exp:'Bank export produced, Netcash validation and submission behave as configured.'},
+ ]},
+ {id:'P8', title:'Payroll: Company B monthly, no SDL, manual EFT', co:'B', items:[
+   {id:'8.1', role:'hr', step:'Approve an employee\'s unpaid leave inside the pay period, then run monthly payroll.', exp:'Unpaid days reduce that payslip pro rata. Net and PAYE recompute on the reduced base.'},
+   {id:'8.2', role:'hr', step:'Inspect a payslip: confirm no SDL line and no pension deduction (company offers neither).', exp:'PAYE and UIF present, SDL absent (under R500k), no pension line.'},
+   {id:'8.3', role:'hr', step:'Complete the run without an approver and download the manual bank export CSV.', exp:'Completes directly (no approval step), CSV suitable for manual EFT.'},
+ ]},
+ {id:'P9', title:'Payroll: Company C ETI', co:'C', items:[
+   {id:'9.1', role:'hr', step:'Ensure a young (18 to 29) first time, low wage employee is set up. Run payroll.', exp:'ETI is calculated for the qualifying employee.'},
+   {id:'9.2', role:'hr', step:'View the ETI schedule / claim.', exp:'ETI totals reflect on the EMP201 and the claim schedule.'},
+ ]},
+ {id:'P10', title:'Statutory compliance', co:'Any', items:[
+   {id:'10.1', role:'hr', step:'Compliance > Monthly: open the EMP201 for the current period and export it.', exp:'PAYE, UIF, SDL (where liable) and ETI totals are correct for the run.'},
+   {id:'10.2', role:'hr', step:'Compliance > Year end: view the EMP501 reconciliation and generate IRP5/IT3(a) certificates (bulk PDF/ZIP).', exp:'Reconciliation balances declared vs certified. Certificates render.'},
+   {id:'10.3', role:'employee', step:'As an employee, download your own IRP5 from My Payslips for a completed tax year.', exp:'You get only your own certificate. You cannot fetch anyone else\'s.'},
+   {id:'10.4', role:'hr', step:'Compliance > Annual: open the COIDA Return of Earnings, select a year, export it.', exp:'Per employee actual vs assessable (capped) earnings, totals and average employed. Carries a verify before filing note.'},
+   {id:'10.5', role:'hr', step:'Reports > Equity: download the EEA2 / EEA4 PDF.', exp:'Two page PDF: EEA2 workforce profile (level × group × gender + disability + totals) and EEA4 income differentials. Numbers match the on screen tables.'},
+   {id:'10.6', role:'hr', step:'Export the UIF declaration and confirm the data completeness prompt if any employee is missing equity fields.', exp:'UIF export produced. Equity gaps are flagged, not silently omitted.'},
+ ]},
+ {id:'P11', title:'Reports and analytics', co:'A', items:[
+   {id:'11.1', role:'hr', step:'Reports > Payroll, Workforce, Leave: read the charts and figures.', exp:'Charts render with real data, no placeholder or NaN values.'},
+   {id:'11.2', role:'hr', step:'Use the branch filter to scope Workforce and Payroll reports to Durban only.', exp:'Figures and charts update to that branch. Equity stays company wide by design.'},
+   {id:'11.3', role:'hr', step:'Reports > Reminders: confirm expiring documents/qualifications and probation reviews due appear.', exp:'Items sorted by urgency, expired flagged, export works.'},
+   {id:'11.4', role:'hr', step:'Reports > Structure: open the organisation chart.', exp:'Reporting tree built from managers, clickable to profiles, nobody dropped.'},
+   {id:'11.5', role:'hr', step:'On any report, export to both CSV and Excel.', exp:'Both download and open cleanly (Rand and accented names intact).'},
+ ]},
+ {id:'P12', title:'Role based views and data boundaries', co:'C', items:[
+   {id:'12.1', role:'employee', step:'Sign in as an Employee. Confirm the nav shows only Dashboard, My Profile, My Payslips, Leave.', exp:'No access to Payroll, Settings, Compliance, Reports, or other employees\' pay.'},
+   {id:'12.2', role:'manager', step:'Sign in as a Manager. View your team, approve leave, and try to open a non report\'s profile or /payroll.', exp:'You see your reports only. Salaries of non reports and payroll are not accessible.'},
+   {id:'12.3', role:'exco', step:'Sign in as Exco. Browse dashboards, reports and compliance.', exp:'Read only oversight. No create, edit or delete controls.'},
+   {id:'12.4', role:'employee', step:'Open browser dev tools Network tab while on the employee dashboard. Inspect API responses.', exp:'No other employees\' salaries, ID numbers or banking details are present in any payload.'},
+ ]},
+ {id:'P13', title:'Multi company', co:'A', items:[
+   {id:'13.1', role:'hr', step:'In Company A, invite the email that already owns Company C as an HR user.', exp:'Instead of an error, it grants that account access to Company A (a membership).'},
+   {id:'13.2', role:'hr', step:'Sign in as that multi company user. Use the workspace switcher in the top bar to move between Company A and Company C.', exp:'Switcher lists both, switching reloads the correct workspace and role. Data never mixes.'},
+   {id:'13.3', role:'hr', step:'In one workspace, remove that user, then confirm their access to the other workspace still works.', exp:'Removal only affects that workspace. The account is not deleted while another membership remains.'},
+ ]},
+ {id:'P14', title:'Settings, admin and billing', co:'A', items:[
+   {id:'14.1', role:'hr', step:'Publish a company announcement.', exp:'It appears to employees in self service.'},
+   {id:'14.2', role:'hr', step:'Open the Audit log and confirm recent sensitive actions are recorded (banking change, payroll run, user removal).', exp:'Actions attributed to the actor with a timestamp.'},
+   {id:'14.3', role:'hr', step:'Configure the payslip studio (logo, alignment, template) and re download a payslip.', exp:'Branding reflects on the payslip PDF.'},
+   {id:'14.4', role:'hr', step:'Billing: review plan, trial status and subscription controls.', exp:'Plan state accurate, Paystack controls present.'},
+ ]},
+ {id:'P15', title:'Security conventions', co:'Any', items:[
+   {id:'15.1', role:'hr', step:'Tenant isolation: while signed into Company A, copy an employee profile URL from Company B and open it as Company A.', exp:'Access denied or not found. No cross tenant data ever loads.'},
+   {id:'15.2', role:'any', step:'Insecure direct object reference: change an id in a URL or a request to another tenant\'s id.', exp:'Server rejects it (scoped by the session tenant), not trusting the client supplied id.'},
+   {id:'15.3', role:'hr', step:'Document links: open a document, copy the signed URL, wait about a minute and reopen the old URL.', exp:'The link expires (403) after its short TTL. Storage is not publicly listable.'},
+   {id:'15.4', role:'any', step:'View page source and the JS bundle / Network. Search for Netcash keys, the Supabase service role key or any secret.', exp:'No server secrets are shipped to the browser. Only the public anon key is present.'},
+   {id:'15.5', role:'hr', step:'XSS: enter <script>alert(1)</script> as an employee first name and save, then view it around the app.', exp:'Rendered as text, never executed. Output is escaped.'},
+   {id:'15.6', role:'hr', step:'Bank detail change: edit an employee\'s banking details.', exp:'Marked for re validation and written to the audit log. Employees cannot self edit banking.'},
+   {id:'15.7', role:'any', step:'Invite tokens: use an invite link twice, and use an expired/revoked link.', exp:'Single use and expiry enforced. A used or revoked link is rejected.'},
+   {id:'15.8', role:'any', step:'Transport and headers: confirm the site is HTTPS only and check response security headers in dev tools.', exp:'HTTPS enforced, sensible security headers, no mixed content.'},
+   {id:'15.9', role:'hr', step:'Rate limiting: rapidly fire many invites or sensitive actions.', exp:'Throttled with a clear message, not a server error or unlimited abuse.'},
+   {id:'15.10', role:'employee', step:'POPIA: confirm ID numbers and banking are masked or withheld where a role should not see them, and legal/privacy pages exist.', exp:'Least privilege on sensitive fields. Privacy, POPIA and PAIA pages present.'},
+ ]},
+ {id:'P16', title:'UI and UX conventions (professional vs AI slop)', co:'Any', items:[
+   {id:'16.1', role:'any', step:'Loading states: open Reports, Compliance and a payroll run on a throttled connection.', exp:'Skeletons or spinners while loading. No infinite spinners, no flash of empty then full.'},
+   {id:'16.2', role:'any', step:'Empty states: view a brand new company\'s payroll, documents and reports before adding data.', exp:'Helpful empty states with a clear next action, not a blank screen.'},
+   {id:'16.3', role:'any', step:'Error states: force an error (for example submit an invalid form, or go offline and act).', exp:'Friendly toast or inline message, never a raw stack trace or unhandled crash.'},
+   {id:'16.4', role:'any', step:'Form validation: submit forms with missing and malformed fields (bad email, short amounts).', exp:'Inline field errors, submit disabled or blocked, nothing saved silently.'},
+   {id:'16.5', role:'any', step:'Responsive: view dashboard, a data table and a dialog at 375px, 768px and 1440px.', exp:'No horizontal overflow, tables scroll, dialogs fit, nothing clipped.'},
+   {id:'16.6', role:'any', step:'Consistency: currency shown as R with thousands and cents, dates in one consistent format, tabular numbers right aligned.', exp:'Uniform formatting across pages. SA English spelling.'},
+   {id:'16.7', role:'any', step:'Date pickers: open date of birth, start date, expiry and leave dates.', exp:'Consistent calendar popovers (not raw native inputs), DOB has a year dropdown and blocks the future.'},
+   {id:'16.8', role:'any', step:'Console: open dev tools and use the app for five minutes across roles.', exp:'No red console errors, no unhandled promise rejections, no hydration warnings.'},
+   {id:'16.9', role:'any', step:'Content quality: scan for lorem ipsum, TODO, placeholder text, broken images, dead links or an em dash / en dash in copy.', exp:'No filler or broken content. No em or en dashes (brand rule).'},
+   {id:'16.10', role:'any', step:'Interaction states: hover, focus and keyboard tab through buttons, menus and dialogs.', exp:'Visible focus rings, hover and disabled states, dialogs trap focus and close on Escape.'},
+   {id:'16.11', role:'any', step:'Accessibility: inputs have labels, images have alt text, colour contrast is adequate, destructive actions confirm.', exp:'Reasonable a11y. Delete/cancel actions ask for confirmation.'},
+   {id:'16.12', role:'any', step:'Polish: check toasts auto dismiss, no layout shift on load, icons aligned, brand and logo consistent across pages and PDFs.', exp:'Feels professionally built and cohesive, not stitched together.'},
+ ]},
+ {id:'P17', title:'Cross cutting and performance', co:'Any', items:[
+   {id:'17.1', role:'hr', step:'Run payroll for the largest company end to end and time it.', exp:'Completes without timeout or error.'},
+   {id:'17.2', role:'any', step:'Deep link and refresh several pages, use browser back and forward across roles.', exp:'No broken routes, no stale data, no redirect loops.'},
+   {id:'17.3', role:'hr', step:'Regression: after all the above, revisit each company\'s dashboard.', exp:'Figures are consistent with the actions taken. Nothing regressed between companies.'},
+ ]},
+];
+
+const KEY='novahr-launch-uat-v1';
+let state=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||seed()}catch{return seed()}}
+function seed(){return{items:{},notes:{},col:{},filter:'all',so:{}}}
+function persist(){localStorage.setItem(KEY,JSON.stringify(state))}
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function render(){
+  const root=document.getElementById('phases');
+  root.innerHTML=PHASES.map(p=>{
+    const done=p.items.filter(i=>state.items[i.id]==='pass').length;
+    const col=state.col[p.id];
+    return `<div class="phase" id="${p.id}">
+      <div class="ph-head" onclick="toggle('${p.id}')">
+        <span class="ph-tw" id="tw-${p.id}">${col?'▸':'▾'}</span>
+        <span class="ph-title">${p.id} · ${esc(p.title)}</span>
+        <span class="ph-co ${p.co}">${p.co==='Any'?'All co':'Co '+p.co}</span>
+        <span class="ph-prog" id="pp-${p.id}">${done}/${p.items.length}</span>
+      </div>
+      <div class="ph-body ${col?'collapsed':''}" id="body-${p.id}">
+        ${p.items.map(rowHTML).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  applyView();updateStats();
+}
+function rowHTML(i){
+  const st=state.items[i.id]||'';
+  return `<div class="item ${st?'row-'+st:''}" id="row-${i.id}" data-status="${st}" data-text="${esc((i.step+' '+i.exp).toLowerCase())}">
+    <div><div class="id">${i.id}</div><span class="role ${i.role}">${i.role}</span></div>
+    <div>
+      <div class="step">${esc(i.step)}</div>
+      <div class="exp"><b>Expected:</b> ${esc(i.exp)}</div>
+    </div>
+    <div class="sbtns">
+      <button class="sbtn pass ${st==='pass'?'active':''}" title="Pass" onclick="setStatus('${i.id}','pass')">✓</button>
+      <button class="sbtn fail ${st==='fail'?'active':''}" title="Fail" onclick="setStatus('${i.id}','fail')">✕</button>
+      <button class="sbtn skip ${st==='skip'?'active':''}" title="Skip" onclick="setStatus('${i.id}','skip')">-</button>
+    </div>
+    <div class="note"><textarea placeholder="Notes / evidence for ${i.id}..." oninput="setNote('${i.id}',this.value)">${esc(state.notes[i.id]||'')}</textarea></div>
+  </div>`;
+}
+function toggle(id){state.col[id]=!state.col[id];persist();document.getElementById('body-'+id).classList.toggle('collapsed',!!state.col[id]);document.getElementById('tw-'+id).textContent=state.col[id]?'▸':'▾'}
+function expandAll(open){PHASES.forEach(p=>{state.col[p.id]=!open});persist();PHASES.forEach(p=>{const b=document.getElementById('body-'+p.id);const t=document.getElementById('tw-'+p.id);if(b)b.classList.toggle('collapsed',!open);if(t)t.textContent=open?'▾':'▸'})}
+function setStatus(id,v){state.items[id]=state.items[id]===v?'':v;persist();const row=document.getElementById('row-'+id);const st=state.items[id]||'';row.className='item'+(st?' row-'+st:'');row.setAttribute('data-status',st);row.querySelectorAll('.sbtn').forEach(b=>{const k=b.classList.contains('pass')?'pass':b.classList.contains('fail')?'fail':'skip';b.classList.toggle('active',k===st)});updatePhase(id);updateStats();applyView()}
+function setNote(id,v){state.notes[id]=v;persist()}
+function updatePhase(itemId){const p=PHASES.find(p=>p.items.some(i=>i.id===itemId));if(!p)return;const done=p.items.filter(i=>state.items[i.id]==='pass').length;const el=document.getElementById('pp-'+p.id);if(el)el.textContent=done+'/'+p.items.length}
+function updateStats(){const all=PHASES.flatMap(p=>p.items);const pass=all.filter(i=>state.items[i.id]==='pass').length;document.getElementById('stat').textContent=pass+' / '+all.length;document.getElementById('fill').style.width=(all.length?Math.round(pass/all.length*100):0)+'%'}
+function setFilter(f){state.filter=f;persist();document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));applyView()}
+function applyView(){const f=state.filter||'all';const q=(document.getElementById('q').value||'').toLowerCase().trim();document.querySelectorAll('.item').forEach(row=>{const st=row.getAttribute('data-status')||'';let ok=true;if(f==='untested')ok=!st;else if(f!=='all')ok=st===f;if(ok&&q)ok=row.getAttribute('data-text').includes(q);row.style.display=ok?'':'none'})}
+function reset(){if(confirm('Clear all UAT progress in this browser?')){state=seed();persist();render();loadSO()}}
+function saveSO(){state.so={name:document.getElementById('so-name').value,date:document.getElementById('so-date').value,notes:document.getElementById('so-notes').value,outcome:state.so.outcome};persist()}
+function setOutcome(v){state.so.outcome=v;persist();document.getElementById('oc-pass').classList.toggle('active',v==='pass');document.getElementById('oc-fail').classList.toggle('active',v==='fail')}
+function loadSO(){const s=state.so||{};document.getElementById('so-name').value=s.name||'';document.getElementById('so-date').value=s.date||'';document.getElementById('so-notes').value=s.notes||'';if(s.outcome)setOutcome(s.outcome)}
+render();loadSO();
+</script>
+</body>
+</html>
