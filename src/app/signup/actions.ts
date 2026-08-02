@@ -107,6 +107,9 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
         initials: deriveInitials(yourName),
       },
     });
+    await tx.tenantMembership.create({
+      data: { userId: data.user!.id, tenantId: tenant.id, role: "hr", title: jobTitle?.trim() || "" },
+    });
 
     // Create the first scheduled payroll run so the payroll page is never empty.
     const now = new Date();
@@ -197,6 +200,9 @@ export async function completeGoogleSignup(
         avatarColor: "#4C6FFF",
         initials: deriveInitials(yourName),
       },
+    });
+    await tx.tenantMembership.create({
+      data: { userId: user.id, tenantId: tenant.id, role: "hr", title: "" },
     });
 
     const now = new Date();

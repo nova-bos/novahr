@@ -589,6 +589,15 @@ export function UserSettings() {
         toast.error("Couldn't send invite", { description: result.error });
         return;
       }
+      if (result.addedExistingUser) {
+        toast.success("Access granted", {
+          description: `${email.trim()} already has an account and can now switch to this workspace.`,
+        });
+        setDialogOpen(false);
+        resetDialog();
+        await refresh();
+        return;
+      }
       // Always show the invite URL so HR has a guaranteed fallback link.
       // When email is configured the link is a backup; when it isn't, it's the primary.
       if (result.inviteUrl) {

@@ -88,7 +88,13 @@ export async function createInviteAction(input: {
   name: string;
   role: UserRole;
   employeeId?: string;
-}): Promise<{ invite?: InviteRow; inviteUrl?: string; emailSent?: boolean; error?: string }> {
+}): Promise<{
+  invite?: InviteRow;
+  inviteUrl?: string;
+  emailSent?: boolean;
+  addedExistingUser?: boolean;
+  error?: string;
+}> {
   const session = await requireRole("hr");
   await requireActiveSubscription(session.tenantId);
 
@@ -105,7 +111,25 @@ export async function createInviteAction(input: {
 
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
-    return { error: "A user with this email already exists." };
+    // Multi-company: grant an existing account access to this workspace by
+    // adding a membership, rather than creating a duplicate account. They can
+    // switch to it from the workspace switcher after signing in.
+    const already = await prisma.tenantMembership.findUnique({
+      where: { userId_tenantId: { userId: existingUser.id, tenantId: session.tenantId } },
+    });
+    if (already || existingUser.tenantId === session.tenantId) {
+      return { error: "This person already has access to this workspace." };
+    }
+    await prisma.tenantMembership.create({
+      data: {
+        userId: existingUser.id,
+        tenantId: session.tenantId,
+        role,
+        employeeId,
+        title: role === "hr" ? "HR Administrator" : "Team member",
+      },
+    });
+    return { addedExistingUser: true };
   }
 
   const token = randomBytes(32).toString("base64url");
@@ -214,6 +238,29 @@ export async function removeUserAccessAction(
   });
   if (!existing) return { success: false, error: "User not found." };
 
+  // Remove this workspace's membership. Only delete the account entirely when
+  // it was their last workspace; otherwise move their active context to a
+  // remaining workspace so their other access is preserved (multi-company).
+  await prisma.tenantMembership.deleteMany({
+    where: { userId, tenantId: session.tenantId },
+  });
+  const remaining = await prisma.tenantMembership.findMany({ where: { userId } });
+
+  if (remaining.length > 0) {
+    const next = remaining[0];
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        tenantId: next.tenantId,
+        role: next.role,
+        employeeId: next.employeeId,
+        branchScopeId: next.branchScopeId,
+        ...(next.title ? { title: next.title } : {}),
+      },
+    });
+    return { success: true };
+  }
+
   await prisma.user.delete({ where: { id: userId } });
 
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -236,11 +283,19 @@ export async function updateUserRoleAction(
 
   if (userId === session.id) return { success: false, error: "You cannot change your own role." };
 
+  // Update this workspace's membership role, and the active User row when their
+  // active context is this workspace.
+  const membership = await prisma.tenantMembership.updateMany({
+    where: { userId, tenantId: session.tenantId },
+    data: { role },
+  });
   const updated = await runAsTenant(session.tenantId, (tx) =>
     tx.user.updateMany({ where: { id: userId, tenantId: session.tenantId }, data: { role } })
   );
 
-  if (updated.count === 0) return { success: false, error: "User not found." };
+  if (membership.count === 0 && updated.count === 0) {
+    return { success: false, error: "User not found." };
+  }
   return { success: true };
 }
 
@@ -450,17 +505,27 @@ export async function acceptInviteAction(input: {
   }
 
   await prisma.$transaction(async (tx) => {
+    const title = row.role === "hr" ? "HR Administrator" : "Team member";
     await tx.user.create({
       data: {
         id: data.user.id,
         tenantId: row.tenantId,
         email: row.email,
         name,
-        title: row.role === "hr" ? "HR Administrator" : "Team member",
+        title,
         role: row.role,
         employeeId: row.employeeId,
         avatarColor: "#4C6FFF",
         initials: deriveInitials(name),
+      },
+    });
+    await tx.tenantMembership.create({
+      data: {
+        userId: data.user.id,
+        tenantId: row.tenantId,
+        role: row.role,
+        employeeId: row.employeeId,
+        title,
       },
     });
     await tx.invite.update({
