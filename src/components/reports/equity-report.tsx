@@ -1,6 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { toast } from "sonner";
+import { FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,7 +17,7 @@ import { formatCurrency } from "@/lib/format";
 import { ExportButton } from "@/components/ui/export-button";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { getCurrentTaxYear } from "@/lib/compliance/utils";
-import { getEmploymentEquityReportAction } from "@/lib/compliance/equity-actions";
+import { getEmploymentEquityReportAction, getEquityFormsAction } from "@/lib/compliance/equity-actions";
 import type { EquityReport as EquityReportData } from "@/lib/compliance/employment-equity";
 
 function Stat({ label, value }: { label: string; value: string | number }) {
@@ -30,6 +33,34 @@ export function EquityReport() {
   const { user } = useAuth();
   const [data, setData] = React.useState<EquityReportData | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [downloadingPdf, setDownloadingPdf] = React.useState(false);
+
+  async function downloadEeaPdf() {
+    if (!user?.tenantId) return;
+    setDownloadingPdf(true);
+    try {
+      const [{ pdf }, { EquityFormsDocument }, { forms, companyName }] = await Promise.all([
+        import("@react-pdf/renderer"),
+        import("@/lib/compliance/equity-pdf"),
+        getEquityFormsAction(user.tenantId),
+      ]);
+      const blob = await pdf(<EquityFormsDocument forms={forms} companyName={companyName} />).toBlob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `eea2-eea4-${forms.asAt}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      toast.error("Could not generate the EEA2/EEA4 PDF", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setDownloadingPdf(false);
+    }
+  }
 
   React.useEffect(() => {
     if (!user?.tenantId) return;
@@ -74,6 +105,13 @@ export function EquityReport() {
 
   return (
     <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-medium text-muted-foreground">Employment Equity</h2>
+        <Button variant="outline" size="sm" onClick={downloadEeaPdf} disabled={downloadingPdf}>
+          <FileText className="size-4" />
+          {downloadingPdf ? "Generating..." : "Download EEA2 / EEA4 PDF"}
+        </Button>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Headcount (active)" value={data.headcount} />
         <Stat label="People with disabilities" value={data.disabilityCount} />
