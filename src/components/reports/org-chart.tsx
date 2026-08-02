@@ -7,43 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useScopedEmployees } from "@/lib/auth/scope";
 import { getInitials } from "@/lib/format";
-import type { Employee } from "@/lib/types";
+import { buildOrgForest, type OrgNode as OrgNodeType } from "@/lib/employees/org-tree";
 
-interface Node {
-  employee: Employee;
-  reports: Node[];
-}
-
-/** Build a manager -> reports forest, excluding terminated employees. */
-function buildForest(employees: Employee[]): Node[] {
-  const active = employees.filter((e) => e.status !== "terminated");
-  const byId = new Map(active.map((e) => [e.id, e]));
-  const nodes = new Map<string, Node>(active.map((e) => [e.id, { employee: e, reports: [] }]));
-
-  const roots: Node[] = [];
-  for (const node of nodes.values()) {
-    const managerId = node.employee.managerId;
-    // Treat a missing or out-of-scope manager as a root so nobody is dropped.
-    if (managerId && byId.has(managerId) && managerId !== node.employee.id) {
-      nodes.get(managerId)!.reports.push(node);
-    } else {
-      roots.push(node);
-    }
-  }
-
-  const sortByName = (a: Node, b: Node) =>
-    `${a.employee.firstName} ${a.employee.lastName}`.localeCompare(
-      `${b.employee.firstName} ${b.employee.lastName}`
-    );
-  const sortTree = (list: Node[]) => {
-    list.sort(sortByName);
-    list.forEach((n) => sortTree(n.reports));
-  };
-  sortTree(roots);
-  return roots;
-}
-
-function OrgNode({ node, depth }: { node: Node; depth: number }) {
+function OrgNode({ node, depth }: { node: OrgNodeType; depth: number }) {
   const router = useRouter();
   const { employee } = node;
   return (
@@ -84,7 +50,7 @@ function OrgNode({ node, depth }: { node: Node; depth: number }) {
 
 export function OrgChart() {
   const employees = useScopedEmployees();
-  const forest = React.useMemo(() => buildForest(employees), [employees]);
+  const forest = React.useMemo(() => buildOrgForest(employees), [employees]);
 
   return (
     <Card>
