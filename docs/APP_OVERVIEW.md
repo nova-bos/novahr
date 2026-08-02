@@ -1,5 +1,7 @@
 # NovaHR: Complete Application Overview
 
+> **Note:** This narrative overview is from July 2026 and predates the 2026-08 completion initiative. For the definitive, up-to-date list of everything the app can do, see **`CAPABILITIES.md`**.
+
 A self-contained description of what NovaHR is and everything it can do, current as of July 2026. Written so that any person or AI assistant can get fully up to speed without access to the codebase.
 
 ---
