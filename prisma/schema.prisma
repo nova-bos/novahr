@@ -594,6 +594,10 @@ model PayrollRun {
   // Optional branch this run targets. Null means the run covers the whole
   // company (current behaviour: all non-terminated, started employees).
   branchId        String?
+  // Optional pay-frequency scope. Null means all frequencies (current
+  // behaviour). When set, the run only includes employees on that frequency,
+  // so weekly and monthly staff can be run separately (a "pay group").
+  payFrequency    PayFrequency?
   // Run classification. "regular" is the normal monthly scheduled run (the only
   // behaviour before Phase 6); "off_cycle" is an ad-hoc run outside the schedule
   // (a bonus run or a correction) that finalises independently. Null is treated

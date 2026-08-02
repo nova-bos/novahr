@@ -286,6 +286,8 @@ export interface PayrollRun {
   status: PayrollRunStatus;
   /** Optional branch this run targets. Undefined/null means the whole company. */
   branchId?: string;
+  /** Optional pay-frequency scope. Undefined/null means all frequencies. */
+  payFrequency?: PayFrequency;
   /**
    * Run classification. "regular" (or undefined) is the normal monthly
    * scheduled run; "off_cycle" is an ad-hoc bonus or correction run.

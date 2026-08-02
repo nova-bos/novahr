@@ -399,6 +399,7 @@ describe("mapPayrollRun", () => {
     payDate: new Date("2026-06-25T00:00:00Z"),
     status: "scheduled",
     branchId: null,
+    payFrequency: null,
     totalGross: new Prisma.Decimal(0),
     totalDeductions: new Prisma.Decimal(0),
     totalNet: new Prisma.Decimal(0),
