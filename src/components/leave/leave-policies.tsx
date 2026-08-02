@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurrentTenant, useLeavePolicies } from "@/lib/store/hooks";
 import { getLeavePolicyAction, type LeavePolicyData } from "@/lib/leave/policy-actions";
-import type { LeaveType } from "@/lib/types";
+import { resolveLeavePolicies } from "@/lib/leave/resolve-policies";
 
 export function LeavePolicies() {
   const basePolicies = useLeavePolicies();
@@ -21,31 +21,10 @@ export function LeavePolicies() {
 
   // Merge the tenant's configured entitlement days and family-leave paid status
   // over the statutory defaults, so the cards reflect this company's policy.
-  const policies = React.useMemo(() => {
-    if (!policyData) return basePolicies;
-    const daysByType: Partial<Record<LeaveType, number>> = {
-      annual: policyData.annualDays,
-      sick: policyData.sickDays,
-      family: policyData.familyDays,
-      maternity: policyData.maternityDays,
-      parental: policyData.parentalDays,
-      adoption: policyData.adoptionDays,
-      commissioning: policyData.commissioningDays,
-      study: policyData.studyDays,
-      unpaid: policyData.unpaidDays,
-    };
-    const paidByType: Partial<Record<LeaveType, boolean>> = {
-      maternity: policyData.maternityPaid,
-      parental: policyData.parentalPaid,
-      adoption: policyData.adoptionPaid,
-      commissioning: policyData.commissioningPaid,
-    };
-    return basePolicies.map((policy) => ({
-      ...policy,
-      annualDays: daysByType[policy.type] ?? policy.annualDays,
-      paid: paidByType[policy.type] ?? policy.paid,
-    }));
-  }, [basePolicies, policyData]);
+  const policies = React.useMemo(
+    () => resolveLeavePolicies(basePolicies, policyData),
+    [basePolicies, policyData]
+  );
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
