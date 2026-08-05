@@ -59,7 +59,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "^15.5.19",
     "marked": "^18.0.6",
     "playwright": "^1.61.1",
