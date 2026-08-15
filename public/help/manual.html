@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NovaHR User Manual</title>
+<meta name="description" content="The complete NovaHR user manual: onboarding, payroll, leave, compliance and reporting for South African employers.">
+<link rel="icon" href="assets/logo-icon.png">
+<link rel="stylesheet" href="assets/css/manual.css">
+</head>
+<body class="layout">
+
+<aside class="sidebar">
+  <div class="brand">
+    <img src="assets/logo-icon.png" alt="NovaHR logo">
+    <span class="name">Nova<b>HR</b></span>
+  </div>
+  <div class="kicker">User Manual</div>
+  <ul class="toc" id="toc">
+    <li><a href="#s1"><span class="n">1</span> Getting started</a></li>
+    <li><a href="#s2"><span class="n">2</span> Setting up your company</a></li>
+    <li><a href="#s3"><span class="n">3</span> Adding &amp; managing employees</a></li>
+    <li><a href="#s4"><span class="n">4</span> Bulk onboarding (CSV import)</a></li>
+    <li><a href="#s5"><span class="n">5</span> Leave management</a></li>
+    <li><a href="#s6"><span class="n">6</span> Running payroll</a></li>
+    <li><a href="#s7"><span class="n">7</span> Payslips &amp; self-service</a></li>
+    <li><a href="#s8"><span class="n">8</span> Deductions, loans &amp; documents</a></li>
+    <li><a href="#s9"><span class="n">9</span> Performance, discipline &amp; exits</a></li>
+    <li><a href="#s10"><span class="n">10</span> Statutory compliance</a></li>
+    <li><a href="#s11"><span class="n">11</span> Reports &amp; analytics</a></li>
+    <li><a href="#s12"><span class="n">12</span> Users, roles &amp; billing</a></li>
+  </ul>
+  <div class="kicker">Reference</div>
+  <ul class="toc">
+    <li><a href="capabilities.html"><span class="n"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.3 5.8 20.9l1.6-6.8L2.2 8.9l6.9-.6z"/></svg></span> Capabilities &amp; limits</a></li>
+    <li><a href="NovaHR-User-Manual.pdf"><span class="n"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg></span> Download full PDF</a></li>
+  </ul>
+</aside>
+
+<main class="content">
+  <header class="cover">
+    <div class="cover-inner">
+      <div class="logo-row">
+        <img src="assets/logo-icon.png" alt="">
+        <span class="wm">Nova<b>HR</b></span>
+      </div>
+      <div class="eyebrow">User Manual</div>
+      <h1>Everything you can do in NovaHR</h1>
+      <p class="lead">A start-to-finish guide to running your people and payroll on NovaHR, built for South African employers. Follow it in order to set up, or jump to any section when you need it.</p>
+      <div class="meta">
+        <div><span>Applies to</span><b>NovaHR (all plans)</b></div>
+        <div><span>Region</span><b>South Africa &middot; SARS &amp; BCEA</b></div>
+        <div><span>Roles covered</span><b>HR admin, Manager, Employee, Executive</b></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="content-inner">
+
+  <!-- ================= 1 GETTING STARTED ================= -->
+  <section class="section" id="s1">
+    <h2 class="section-title"><span class="sec-badge">1</span>Getting started</h2>
+    <p class="lead">Create your workspace, understand what each person sees, and find your way around.</p>
+
+    <h3>Create your company</h3>
+    <p>NovaHR is self-service. From the sign-up page you create your <b>workspace</b> (your company), your own <b>HR administrator</b> account, and a first scheduled pay run in one step. Your workspace starts on a free trial; you can add a plan later under <b>Billing</b> (see section 12).</p>
+    <ol class="steps">
+      <li>Go to the sign-up page and enter your company name, your name, work email and a password.</li>
+      <li>Confirm your email address from the message we send you.</li>
+      <li>You land on the <b>Dashboard</b> with a <b>Getting started</b> checklist that walks you through the first five tasks.</li>
+    </ol>
+
+    <h3>The dashboard and how to move around</h3>
+    <p>The dashboard is your home base. The left rail is your main navigation and it changes with your role, so people only see what they are allowed to use.</p>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/dashboard</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/hr-dashboard.png" alt="NovaHR dashboard in dark mode">
+          <div class="anno">
+            <span class="pin" style="left:3%;top:6%">1</span>
+            <span class="label" style="left:6%;top:6%">Role-aware navigation</span>
+            <span class="pin" style="left:16.5%;top:15.5%">2</span>
+            <span class="label" style="left:20%;top:15.5%">Setup checklist</span>
+            <span class="pin" style="left:88%;top:3.4%">3</span>
+            <span class="label dark" style="left:64.5%;top:3.4%">Workspace switcher</span>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Figure 1.1</b>: The HR administrator dashboard. <b>1</b> The left rail adapts to your role. <b>2</b> The getting-started checklist. <b>3</b> Switch between companies you belong to from the top-right.</figcaption>
+    </figure>
+
+    <h3>Who sees what: the four roles</h3>
+    <p>Every person in NovaHR has one role per workspace. Navigation and data adapt automatically.</p>
+    <table class="grid">
+      <tr><th>Role</th><th>Best for</th><th>Can do</th></tr>
+      <tr><td><b>HR administrator</b></td><td>People and payroll owners</td><td>Full access: employees, payroll, leave, compliance, reports, settings, billing.</td></tr>
+      <tr><td><b>Manager</b></td><td>Team leads</td><td>Their own record plus their direct reports: approve leave, run reviews, view their team.</td></tr>
+      <tr><td><b>Employee</b></td><td>Everyone</td><td>Self-service: profile, payslips, tax certificates, leave requests, documents.</td></tr>
+      <tr><td><b>Executive</b></td><td>Owners and exco</td><td>Read-only oversight across the company: dashboards, reports, headcount and cost.</td></tr>
+    </table>
+
+    <h3>Your profile and two-factor authentication</h3>
+    <p>Open <b>your name</b> at the bottom of the left rail, then <b>Account</b>, to edit your name, job title and avatar colour, change your password, or turn on two-factor authentication.</p>
+    <ol class="steps">
+      <li>On the <b>Account</b> page, find <b>Two-factor authentication</b> and choose <b>Enable</b>.</li>
+      <li>Scan the QR code with an authenticator app (or type the secret in by hand).</li>
+      <li>Enter the six-digit code to confirm. You can turn it off again from the same place.</li>
+    </ol>
+    <div class="note"><b>Tip.</b> If you belong to more than one company, use the <b>workspace switcher</b> at the top right to move between them. Your role can be different in each one.</div>
+  </section>
+
+  <!-- ================= 2 COMPANY SETUP ================= -->
+  <section class="section" id="s2">
+    <h2 class="section-title"><span class="sec-badge">2</span>Setting up your company</h2>
+    <p class="lead">Configure NovaHR once so that payroll, leave and compliance behave the way your company works. Everything here lives under <b>Settings</b>.</p>
+    <div class="who"><span class="chip">HR administrator</span></div>
+
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/settings</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/settings-company.png" alt="Company settings in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 2.1</b>: The Settings area, where company, structure, leave, payroll and statutory details are configured.</figcaption>
+    </figure>
+
+    <h3>Company profile and structure</h3>
+    <ul class="clean">
+      <li><b>Company profile:</b> legal name, trading name, contact details and logo.</li>
+      <li><b>Branches, departments and cost centres:</b> build your structure so employees, pay groups and reports can be scoped to a branch or department.</li>
+      <li><b>Position catalogue:</b> job titles that suggest themselves when you add or edit an employee.</li>
+    </ul>
+
+    <h3>Statutory references</h3>
+    <p>Capture your <b>PAYE, UIF and SDL reference numbers</b> and confirm the tax tables and rates. NovaHR ships with the current South African tax tables already loaded and validated.</p>
+    <div class="warn"><b>Do not edit tax tables or rates casually.</b> They are pre-loaded and validated against SARS. Change them only on advice from your accountant or when SARS publishes new tables.</div>
+
+    <h3>Leave policy</h3>
+    <p>Set how leave works for your company. NovaHR follows the Basic Conditions of Employment Act (BCEA) out of the box, and every value is configurable.</p>
+    <ul class="clean">
+      <li><b>Entitlement days</b> per leave type (annual, sick, family responsibility, and so on).</li>
+      <li><b>Annual leave method:</b> accrue monthly or grant upfront, with <b>carryover</b> and a carryover <b>cap</b>.</li>
+      <li><b>Sick-note threshold:</b> the number of days after which a medical certificate is required.</li>
+      <li><b>Employer-paid family leave:</b> maternity, parental, adoption and commissioning leave default to unpaid by the employer (claimed from UIF). Toggle any of them to paid if you offer it as a benefit.</li>
+      <li><b>Public holidays</b> and a <b>birthday calendar</b>, including custom company holidays.</li>
+    </ul>
+
+    <h3>Pay frequencies and pay groups</h3>
+    <p>Add the pay frequencies you use (monthly, fortnightly, weekly). Later you can scope a pay run to a <b>branch</b> and a <b>frequency</b> so that, for example, weekly and monthly staff run separately. See section 6.</p>
+
+    <h3>Payslip studio</h3>
+    <p>Brand your payslips with your logo, colours and layout so the PDFs your team downloads match your company.</p>
+    <div class="note"><b>Where to start.</b> Complete the <b>Getting started</b> checklist on the dashboard. It links straight to the company profile, departments, payroll settings, your first employee and your first pay run.</div>
+  </section>
+
+  <!-- ================= 3 EMPLOYEES ================= -->
+  <section class="section" id="s3">
+    <h2 class="section-title"><span class="sec-badge">3</span>Adding &amp; managing employees</h2>
+    <p class="lead">Add one employee at a time with the guided wizard, then keep a rich, South-African-aware record for each person.</p>
+    <div class="who"><span class="chip">HR administrator</span><span class="chip">Manager (own team)</span></div>
+
+    <h3>Add an employee</h3>
+    <p>Open <b>Employees</b> and choose <b>Add employee</b>. The wizard has four steps, each validated before you continue.</p>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/employees/new</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/employee-new.png" alt="Add employee wizard in dark mode">
+          <div class="anno">
+            <span class="box" style="left:5%;top:22.5%;width:90%;height:14%"></span>
+            <span class="pin" style="left:13%;top:26%">1</span>
+            <span class="pin" style="left:36%;top:26%">2</span>
+            <span class="pin" style="left:58.5%;top:26%">3</span>
+            <span class="pin" style="left:81%;top:26%">4</span>
+            <span class="pin" style="left:24%;top:80%">5</span>
+            <span class="label" style="left:27%;top:80%">ID auto-fills date of birth &amp; gender</span>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Figure 3.1</b>: The add-employee wizard. Steps <b>1</b> Personal details, <b>2</b> Role &amp; employment, <b>3</b> Compensation, <b>4</b> Review &amp; confirm. <b>5</b> A South African ID number auto-derives date of birth and gender, both still editable.</figcaption>
+    </figure>
+    <ol class="steps">
+      <li><b>Personal details.</b> Name, contact, and identity. Enter a <b>South African ID</b> (date of birth and gender fill in automatically) or switch to <b>Passport</b> to capture nationality and date of birth. Choose from South-African-context dropdowns for gender, marital status and qualifications.</li>
+      <li><b>Role &amp; employment.</b> Job title, department, branch, reporting line, employment type (full-time, part-time, fixed-term, temporary, casual, learnership, internship) and start date. Probation defaults to three months and is editable.</li>
+      <li><b>Compensation.</b> Salary, pay frequency, allowances and banking details.</li>
+      <li><b>Review &amp; confirm.</b> Check everything, then create the employee and start their onboarding checklist.</li>
+    </ol>
+
+    <h3>The employee record</h3>
+    <p>Open any person from the <b>Employees</b> list to see their full record.</p>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/employees</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/employees-list.png" alt="Employees list in dark mode">
+          <div class="anno">
+            <span class="pin" style="left:78%;top:6%">1</span>
+            <span class="label dark" style="left:53%;top:6%">Search, filter, import &amp; export</span>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Figure 3.2</b>: The employee directory with search and filters by department, branch and status. <b>1</b> Import and export live here (section 4).</figcaption>
+    </figure>
+    <p>Each record holds far more than the basics:</p>
+    <table class="grid">
+      <tr><th>Area</th><th>What it captures</th></tr>
+      <tr><td>Personal &amp; identity</td><td>Contact, residential address, next-of-kin, emergency contact, tax number, SA ID or passport.</td></tr>
+      <tr><td>Demographics</td><td>Employment-equity fields: race, gender, occupational level, foreign national, disability.</td></tr>
+      <tr><td>Qualifications &amp; skills</td><td>Structured qualifications (type, institution, year, expiry), skills, languages, and your own custom fields.</td></tr>
+      <tr><td>Probation</td><td>Default three-month probation with an editable end date and confirm-or-extend reminders.</td></tr>
+      <tr><td>History timeline</td><td>Promotions, transfers and salary changes captured automatically when you edit the record.</td></tr>
+      <tr><td>Documents vault</td><td>Private, per-employee files with categories, expiry dates and version history (section 8).</td></tr>
+    </table>
+
+    <h3>Directory and organisation chart</h3>
+    <p>The <b>Employees</b> area includes a searchable directory and a clickable <b>organisation chart</b> built from reporting lines, so you can see the whole company at a glance.</p>
+  </section>
+
+  <!-- ================= 4 BULK IMPORT ================= -->
+  <section class="section" id="s4">
+    <h2 class="section-title"><span class="sec-badge">4</span>Bulk onboarding (CSV import)</h2>
+    <p class="lead">Moving a whole team onto NovaHR? Import everyone at once from a spreadsheet instead of adding people one by one.</p>
+    <div class="who"><span class="chip">HR administrator</span></div>
+
+    <ol class="steps">
+      <li>Go to <b>Employees</b> and choose <b>Import</b> (top right of the list, see Figure 3.2).</li>
+      <li><b>Download the CSV template.</b> It has a column for every field NovaHR expects, in the right order.</li>
+      <li>Fill in one row per employee in Excel, Numbers or Google Sheets, then save as CSV.</li>
+      <li><b>Upload the file.</b> NovaHR validates every row and shows you exactly which cells need attention before anything is created.</li>
+      <li>Fix any flagged rows in your spreadsheet and re-upload, then <b>confirm</b> to create all the employees at once.</li>
+    </ol>
+    <div class="tip"><b>Good to know.</b> Validation runs before any record is created, so a few bad rows never leave your team half-imported. The errors name the row and the field so they are quick to fix.</div>
+    <div class="note"><b>Exporting.</b> You can export your employees to CSV or Excel at any time from the same menu. Salary columns are only included for HR and executive roles.</div>
+  </section>
+
+  <!-- ================= 5 LEAVE ================= -->
+  <section class="section" id="s5">
+    <h2 class="section-title"><span class="sec-badge">5</span>Leave management</h2>
+    <p class="lead">Request, approve and track leave against a South African statutory framework, with balances and a calendar everyone can see.</p>
+    <div class="who"><span class="chip">Employee (request)</span><span class="chip">Manager (approve)</span><span class="chip">HR administrator</span></div>
+
+    <h3>Request leave (employee)</h3>
+    <ol class="steps">
+      <li>Open <b>Leave</b> and choose <b>New request</b>.</li>
+      <li>Pick the <b>leave type</b> (annual, sick, family responsibility, maternity, parental, adoption, commissioning, study or unpaid).</li>
+      <li>Select your dates on the day-picker. You can choose <b>half-days</b> and non-contiguous dates; weekends and public holidays are handled for you.</li>
+      <li>Add a reason or note if needed and <b>submit</b>. NovaHR checks your balance and warns you before you go negative.</li>
+    </ol>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/leave</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/emp-leave.png" alt="Employee leave page in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 5.1</b>: The employee leave page: request leave, and see your balances and history in one place.</figcaption>
+    </figure>
+
+    <h3>Approve or decline (manager)</h3>
+    <p>Managers see their team's requests under <b>Leave</b>. Approvals can route through more than one reviewer if your company requires it.</p>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/leave</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/mgr-leave.png" alt="Manager leave approvals in dark mode">
+          <div class="anno">
+            <span class="pin" style="left:6%;top:20%">1</span>
+            <span class="label" style="left:9%;top:20%">Pending requests to review</span>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Figure 5.2</b>: A manager reviewing their team's leave. Managers approve or decline their direct reports, never their own requests.</figcaption>
+    </figure>
+    <ul class="clean">
+      <li>Open a pending request, review the dates and balance, then <b>approve</b> or <b>decline</b> with an optional note.</li>
+      <li>Employees can <b>cancel</b> a request they no longer need.</li>
+      <li>A <b>leave calendar</b> and a <b>balances</b> table show who is away and how much each type they have left.</li>
+    </ul>
+
+    <h3>Leave encashment</h3>
+    <p>HR can <b>pay out</b> unused annual leave mid-employment. The amount is added to the open pay run and the employee's balance is reduced automatically. On termination, leave can be encashed as part of final pay (section 9).</p>
+    <div class="note"><b>Employer-paid family leave.</b> Whether maternity, parental, adoption and commissioning leave are paid by you or claimed from UIF depends on the policy you set in section 2. The policy cards on the leave page always reflect your actual configuration.</div>
+  </section>
+
+  <!-- ================= 6 PAYROLL ================= -->
+  <section class="section" id="s6">
+    <h2 class="section-title"><span class="sec-badge">6</span>Running payroll</h2>
+    <p class="lead">A full South African PAYE engine with a clear run lifecycle: schedule, add variable pay, approve, complete, lock and publish.</p>
+    <div class="who"><span class="chip">HR administrator</span></div>
+
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/payroll</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/payroll-list.png" alt="Payroll list in dark mode">
+          <div class="anno">
+            <span class="pin" style="left:6%;top:9%">1</span>
+            <span class="label dark" style="left:9%;top:9%">Start or open a run</span>
+          </div>
+        </div>
+      </div>
+      <figcaption><b>Figure 6.1</b>: The payroll area. Schedule a run, then open it to add pay and process it.</figcaption>
+    </figure>
+
+    <h3>The run lifecycle</h3>
+    <ol class="steps">
+      <li><b>Schedule &amp; start.</b> A run is created for a pay period. Open it to begin. You can scope it to a <b>pay group</b> (a branch and/or a frequency) so weekly and monthly staff run separately.</li>
+      <li><b>Add variable pay.</b> On top of each person's regular pay, add overtime (1.5&times; or 2&times;), Sunday and public-holiday time, night-shift and standby allowances, commission, custom allowances, a bonus or thirteenth cheque, and any custom deductions. Import variable pay from a CSV template if you prefer.</li>
+      <li><b>Apply recurring items.</b> Recurring components you set on an employee (a standing allowance, for example) apply to the run in one click. Use the <b>back-pay</b> helper for arrears.</li>
+      <li><b>Approve.</b> Optionally route the run to an approver, who is notified by email.</li>
+      <li><b>Complete.</b> NovaHR calculates PAYE (annualised, with rebates and age thresholds), the medical-aid credit, pension and retirement-annuity within the statutory cap, UIF and SDL.</li>
+      <li><b>Lock &amp; publish.</b> Lock the completed run, then publish payslips so employees can download them (section 7).</li>
+    </ol>
+
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/payroll/&hellip;</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/payroll-run.png" alt="A payroll run register in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 6.2</b>: Inside a pay run: every employee with gross, deductions and net, plus a payroll register you can export.</figcaption>
+    </figure>
+
+    <h3>Off-cycle and corrections</h3>
+    <ul class="clean">
+      <li><b>Off-cycle runs</b> for a bonus or a correction finalise on their own, separately from the monthly run.</li>
+      <li>A completed run can be <b>unlocked</b> and adjusted, or <b>reversed</b>, unless it is locked or already sent to the bank.</li>
+      <li><b>Leave encashment</b> and <b>unpaid-leave</b> deductions flow straight into pay.</li>
+    </ul>
+
+    <h3>Paying and reconciling</h3>
+    <ul class="clean">
+      <li><b>Bank export</b> for EFT, plus <b>Netcash</b> integration (validation, NIF file and batch submission).</li>
+      <li><b>GL journal export</b> and a <b>payroll register</b> in CSV or Excel for your accounting system.</li>
+    </ul>
+    <div class="warn"><b>Locking matters.</b> Once a run is locked or submitted to the bank it cannot be cancelled or reversed. Reconcile before you lock.</div>
+  </section>
+
+  <!-- ================= 7 PAYSLIPS & SELF-SERVICE ================= -->
+  <section class="section" id="s7">
+    <h2 class="section-title"><span class="sec-badge">7</span>Payslips &amp; self-service</h2>
+    <p class="lead">Publish payslips for the team, and let every employee manage their own details, documents and tax certificates.</p>
+    <div class="who"><span class="chip">HR administrator (publish)</span><span class="chip">Employee (self-service)</span></div>
+
+    <h3>Publishing payslips</h3>
+    <ul class="clean">
+      <li>After a run is completed, <b>publish payslips</b> to release them to employees.</li>
+      <li>Download a single payslip or a <b>bulk ZIP</b> of every payslip in the run.</li>
+      <li>Payslips carry your branding from the payslip studio (section 2).</li>
+    </ul>
+
+    <h3>What employees can do themselves</h3>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/payroll</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/emp-payslips.png" alt="Employee payslips in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 7.1</b>: The employee view: download your own payslips and tax certificates without asking HR.</figcaption>
+    </figure>
+    <ul class="clean">
+      <li><b>Payslips:</b> download any published payslip.</li>
+      <li><b>Tax certificates:</b> download their own IRP5 / IT3(a) once issued (section 10).</li>
+      <li><b>Profile:</b> keep contact details, address and banking up to date.</li>
+      <li><b>Documents:</b> view files HR has shared with them, with signed, private access.</li>
+    </ul>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/account</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/emp-account.png" alt="Employee account and profile in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 7.2</b>: The employee account page, including two-factor authentication.</figcaption>
+    </figure>
+  </section>
+
+  <!-- ================= 8 DEDUCTIONS & DOCUMENTS ================= -->
+  <section class="section" id="s8">
+    <h2 class="section-title"><span class="sec-badge">8</span>Deductions, loans &amp; documents</h2>
+    <p class="lead">Track money owed and recovered over time, and keep every employee document safe with version history.</p>
+    <div class="who"><span class="chip">HR administrator</span></div>
+
+    <h3>Deductions and loans</h3>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/deductions</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/deductions.png" alt="Deductions page in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 8.1</b>: Employee deductions with recovery tracking.</figcaption>
+    </figure>
+    <ul class="clean">
+      <li>Record <b>loans and garnishees</b> and track how much has been recovered against each.</li>
+      <li>Set up <b>recurring deductions</b> that apply automatically each run.</li>
+      <li>Deductions flow into payroll (section 6) and appear on payslips.</li>
+    </ul>
+
+    <h3>The documents vault</h3>
+    <ul class="clean">
+      <li>Upload files <b>per employee</b> with categories and expiry dates.</li>
+      <li>Access is <b>private and signed</b>, so only the right people can open a document.</li>
+      <li><b>Version history:</b> re-uploading a file with the same name supersedes the old one but keeps every prior version.</li>
+    </ul>
+    <div class="note"><b>Generated letters.</b> NovaHR can produce offer, confirmation, warning and termination letters for an employee. You will find these on the employee record and in the exit flow (section 9).</div>
+  </section>
+
+  <!-- ================= 9 PERFORMANCE, DISCIPLINE, EXITS ================= -->
+  <section class="section" id="s9">
+    <h2 class="section-title"><span class="sec-badge">9</span>Performance, discipline &amp; exits</h2>
+    <p class="lead">Run reviews, keep disciplinary records, and handle terminations with the right paperwork and final pay.</p>
+    <div class="who"><span class="chip">HR administrator</span><span class="chip">Manager (own team)</span></div>
+
+    <h3>Performance reviews</h3>
+    <ul class="clean">
+      <li>Run a review <b>cycle</b> with a one-to-five rating, strengths, areas to improve and goals.</li>
+      <li>Managers review only their <b>direct reports</b>; the employee can <b>acknowledge</b> the review.</li>
+    </ul>
+
+    <h3>Disciplinary records</h3>
+    <p>Log warnings, counselling and hearings against an employee, each with an issue date and an expiry date, so records lapse at the right time.</p>
+
+    <h3>Terminations and final pay</h3>
+    <ol class="steps">
+      <li>Start the <b>termination</b> flow on the employee record.</li>
+      <li>Capture the <b>termination and final-pay dates</b> and the reason.</li>
+      <li>Choose whether to <b>encash</b> outstanding leave on exit; it is added to the final pay.</li>
+      <li>Generate the <b>termination letter</b> and any other letters you need.</li>
+    </ol>
+    <p>All of this is captured on the employee's history timeline, so you keep a complete record.</p>
+  </section>
+
+  <!-- ================= 10 COMPLIANCE ================= -->
+  <section class="section" id="s10">
+    <h2 class="section-title"><span class="sec-badge">10</span>Statutory compliance</h2>
+    <p class="lead">The South African statutory outputs you need through the year, from monthly declarations to year-end certificates.</p>
+    <div class="who"><span class="chip">HR administrator</span></div>
+
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/compliance</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/compliance.png" alt="Compliance area in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 10.1</b>: The compliance area, with monthly and annual statutory outputs in one place.</figcaption>
+    </figure>
+
+    <table class="grid">
+      <tr><th>Output</th><th>What it is</th></tr>
+      <tr><td><b>EMP201</b></td><td>Monthly declaration of PAYE, UIF, SDL and ETI, with an on-screen panel and export.</td></tr>
+      <tr><td><b>EMP501</b></td><td>Year-end reconciliation of what was declared against what was certified.</td></tr>
+      <tr><td><b>IRP5 / IT3(a)</b></td><td>Employee tax certificates: bulk PDF or ZIP for HR, and self-service download for each employee.</td></tr>
+      <tr><td><b>ETI</b></td><td>Employment Tax Incentive calculation and claim schedule.</td></tr>
+      <tr><td><b>UIF</b></td><td>UIF declaration export.</td></tr>
+      <tr><td><b>COIDA</b></td><td>Return of Earnings (W.As.8): actual versus assessable earnings per employee, with totals, in CSV or Excel.</td></tr>
+      <tr><td><b>Employment Equity</b></td><td>EEA2 workforce profile and EEA4 income differentials as on-screen tables and a statutory-style PDF.</td></tr>
+      <tr><td><b>POPIA</b></td><td>Data-subject handling helpers and the legal pages that back your privacy obligations.</td></tr>
+    </table>
+    <div class="warn"><b>Verify before filing.</b> COIDA and Employment Equity outputs carry a reminder to check them against the current Department of Labour or Compensation Fund form before you submit. NovaHR prepares the numbers; you confirm them against the live form.</div>
+  </section>
+
+  <!-- ================= 11 REPORTS ================= -->
+  <section class="section" id="s11">
+    <h2 class="section-title"><span class="sec-badge">11</span>Reports &amp; analytics</h2>
+    <p class="lead">See the shape of your workforce and your payroll at a glance, and export the detail when you need it.</p>
+    <div class="who"><span class="chip">HR administrator</span><span class="chip">Executive (read-only)</span></div>
+
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/reports</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/reports.png" alt="Reports area in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 11.1</b>: The reports area with payroll, workforce, leave and equity views.</figcaption>
+    </figure>
+    <table class="grid">
+      <tr><th>Report</th><th>Shows</th></tr>
+      <tr><td><b>Payroll</b></td><td>Year-to-date gross, net, PAYE and UIF, run history and a composition chart.</td></tr>
+      <tr><td><b>Workforce</b></td><td>Headcount, department cost, budget utilisation and employment-mix charts.</td></tr>
+      <tr><td><b>Leave</b></td><td>Utilisation by leave type.</td></tr>
+      <tr><td><b>Equity</b></td><td>EEA2 and EEA4 tables with a PDF export.</td></tr>
+    </table>
+  </section>
+
+  <!-- ================= 12 USERS, ROLES & BILLING ================= -->
+  <section class="section" id="s12">
+    <h2 class="section-title"><span class="sec-badge">12</span>Users, roles &amp; billing</h2>
+    <p class="lead">Invite your team, manage who can do what, work across multiple companies, and handle your subscription.</p>
+    <div class="who"><span class="chip">HR administrator</span></div>
+
+    <h3>Inviting and managing users</h3>
+    <ol class="steps">
+      <li>Invite people by email, one at a time or <b>in bulk</b> from the employee list.</li>
+      <li>Each invite is a one-time secure link, delivered by email with a copyable fallback link. You can <b>resend</b> or <b>revoke</b> it.</li>
+      <li>Change a person's <b>role</b> or remove their access at any time.</li>
+      <li>For larger companies, create a <b>branch-scoped admin</b>: an HR user limited to a single branch.</li>
+    </ol>
+    <div class="note"><b>Multi-company.</b> One account can belong to several workspaces. Inviting an existing account simply grants it access to your company. Removing a person only deletes their account if it was their last workspace.</div>
+
+    <h3>Billing and subscription</h3>
+    <figure class="shot">
+      <div class="frame">
+        <div class="chrome"><i></i><i></i><i></i><span>novahr-five.vercel.app/billing</span></div>
+        <div class="canvas">
+          <img src="assets/screenshots/billing.png" alt="Billing page in dark mode">
+        </div>
+      </div>
+      <figcaption><b>Figure 12.1</b>: Billing: choose a plan and manage your subscription through Paystack.</figcaption>
+    </figure>
+    <ul class="clean">
+      <li>Start on a <b>free trial</b>, then choose a plan when you are ready.</li>
+      <li>Payments are handled securely through <b>Paystack</b>.</li>
+      <li>Manage your plan and see your billing status from the <b>Billing</b> page.</li>
+    </ul>
+
+    <div class="note" style="margin-top:34px"><b>That is the whole product.</b> For a one-page summary of every capability and the current limitations, see the <a href="capabilities.html">Capabilities &amp; limitations</a> sheet. Need a hand? Contact your NovaHR administrator or support.</div>
+  </section>
+
+  </div>
+</main>
+
+<script>
+  // Active TOC highlight on scroll
+  const links = [...document.querySelectorAll('#toc a')];
+  const map = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.remove('active'));
+        const a = map.get(e.target.id);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-45% 0px -50% 0px' });
+  document.querySelectorAll('section.section').forEach(s => obs.observe(s));
+
+  // Single-section rendering for per-guide PDFs: manual.html?only=s6
+  const only = new URLSearchParams(location.search).get('only');
+  if (only) {
+    document.body.classList.add('print-mode');
+    document.querySelectorAll('section.section').forEach(s => {
+      if (s.id !== only) s.remove();
+    });
+    document.querySelector('.cover')?.remove();
+  }
+</script>
+</body>
+</html>

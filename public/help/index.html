@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en-ZA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NovaHR Help Centre</title>
+<meta name="description" content="NovaHR Help Centre: guides for onboarding, payroll, leave, compliance and reporting.">
+<link rel="icon" href="assets/logo-icon.png">
+<link rel="stylesheet" href="assets/css/manual.css">
+<style>
+  body.help { display:block; }
+  .hc-top {
+    background:
+      radial-gradient(1100px 460px at 82% -20%, rgba(0,171,222,0.22), transparent 60%),
+      linear-gradient(180deg, #061019 0%, #0b1a27 100%);
+    color:#eaf6fb; padding: 30px 40px 64px;
+  }
+  .hc-nav { display:flex; align-items:center; justify-content:space-between; max-width:1080px; margin:0 auto 40px; }
+  .hc-nav .brand { display:flex; align-items:center; gap:11px; }
+  .hc-nav .brand img { width:34px; height:34px; border-radius:8px; }
+  .hc-nav .brand .wm { font-weight:800; font-size:20px; } .hc-nav .brand .wm b{ color:var(--accent-dark); }
+  .hc-nav a.pdf { color:#cfe9f2; text-decoration:none; font-size:14px; font-weight:600; border:1px solid rgba(255,255,255,0.18); padding:9px 15px; border-radius:9px; }
+  .hc-nav a.pdf:hover { border-color:var(--accent-dark); color:#fff; }
+  .hc-hero { max-width:1080px; margin:0 auto; }
+  .hc-hero .eyebrow { color:var(--accent-dark); font-weight:700; letter-spacing:.14em; text-transform:uppercase; font-size:12px; }
+  .hc-hero h1 { font-size:44px; letter-spacing:-.02em; margin:12px 0 12px; font-weight:800; }
+  .hc-hero p { color:#b9d3df; font-size:18px; max-width:640px; margin:0; }
+  .hc-body { max-width:1080px; margin:-36px auto 90px; padding:0 40px; }
+  .hc-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .card {
+    display:block; text-decoration:none; color:var(--ink);
+    background:var(--bg); border:1px solid var(--line); border-radius:14px; padding:20px 20px 18px;
+    box-shadow:0 1px 2px rgba(15,23,32,.04); transition:transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+  }
+  .card:hover { transform:translateY(-3px); box-shadow:0 16px 34px -18px rgba(15,23,32,.32); border-color:var(--accent-tint-2); }
+  .card .num { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:9px; background:var(--accent-tint); color:var(--accent-deep); font-weight:800; font-size:14px; margin-bottom:12px; }
+  .card h3 { margin:0 0 5px; font-size:16.5px; }
+  .card p { margin:0; color:var(--muted); font-size:13.5px; line-height:1.5; }
+  .hc-section-label { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:700; margin:6px 0 14px; }
+  .hc-more { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:34px; }
+  .promo { grid-column:1 / -1; display:flex; align-items:center; justify-content:space-between; gap:20px; background:var(--accent-tint); border:1px solid var(--accent-tint-2); border-radius:14px; padding:22px 24px; }
+  .promo h3 { margin:0 0 4px; font-size:18px; color:#0b3a4a; }
+  .promo p { margin:0; color:#265b6e; font-size:14px; }
+  .promo a { white-space:nowrap; background:var(--accent); color:#fff; text-decoration:none; font-weight:650; font-size:14px; padding:11px 18px; border-radius:9px; }
+  @media (max-width:900px){ .hc-grid,.hc-more{ grid-template-columns:1fr 1fr; } }
+  @media (max-width:620px){ .hc-grid,.hc-more{ grid-template-columns:1fr; } }
+</style>
+</head>
+<body class="help">
+  <div class="hc-top">
+    <nav class="hc-nav">
+      <div class="brand"><img src="assets/logo-icon.png" alt=""><span class="wm">Nova<b>HR</b></span></div>
+      <a class="pdf" href="NovaHR-User-Manual.pdf"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/></svg>Download full manual (PDF)</a>
+    </nav>
+    <div class="hc-hero">
+      <div class="eyebrow">Help Centre</div>
+      <h1>How can we help?</h1>
+      <p>Guides for everything in NovaHR, from onboarding your first employee to running payroll and filing statutory returns. Pick a topic to jump straight in.</p>
+    </div>
+  </div>
+
+  <div class="hc-body">
+    <div class="hc-section-label">Popular guides</div>
+    <div class="hc-grid">
+      <a class="card" href="manual.html#s1"><span class="num">1</span><h3>Getting started</h3><p>Create your company, learn who sees what, and set up your profile and two-factor sign-in.</p></a>
+      <a class="card" href="manual.html#s3"><span class="num">3</span><h3>Add an employee</h3><p>Use the guided wizard to onboard one person, with South African ID handling built in.</p></a>
+      <a class="card" href="manual.html#s4"><span class="num">4</span><h3>Bulk onboarding</h3><p>Import a whole team from a spreadsheet, with validation before anything is created.</p></a>
+      <a class="card" href="manual.html#s6"><span class="num">6</span><h3>Run payroll</h3><p>Schedule, add variable pay, approve, complete, lock and publish payslips.</p></a>
+      <a class="card" href="manual.html#s5"><span class="num">5</span><h3>Request &amp; approve leave</h3><p>Submit leave, route approvals and track balances against the BCEA framework.</p></a>
+      <a class="card" href="manual.html#s10"><span class="num">10</span><h3>Statutory compliance</h3><p>EMP201, EMP501, IRP5/IT3(a), ETI, UIF, COIDA and Employment Equity.</p></a>
+    </div>
+
+    <div class="hc-section-label" style="margin-top:38px">All topics</div>
+    <div class="hc-grid">
+      <a class="card" href="manual.html#s2"><span class="num">2</span><h3>Company setup</h3><p>Structure, leave policy, statutory references, pay groups and payslip branding.</p></a>
+      <a class="card" href="manual.html#s7"><span class="num">7</span><h3>Payslips &amp; self-service</h3><p>Publish payslips and let employees manage their own details and downloads.</p></a>
+      <a class="card" href="manual.html#s8"><span class="num">8</span><h3>Deductions &amp; documents</h3><p>Loans, garnishees, recurring deductions and the documents vault.</p></a>
+      <a class="card" href="manual.html#s9"><span class="num">9</span><h3>Performance &amp; exits</h3><p>Reviews, disciplinary records, terminations and generated letters.</p></a>
+      <a class="card" href="manual.html#s11"><span class="num">11</span><h3>Reports &amp; analytics</h3><p>Payroll, workforce, leave and equity reports with charts and exports.</p></a>
+      <a class="card" href="manual.html#s12"><span class="num">12</span><h3>Users, roles &amp; billing</h3><p>Invites, roles, multi-company access and your subscription.</p></a>
+    </div>
+
+    <div class="hc-more">
+      <div class="promo">
+        <div>
+          <h3>Want the complete picture?</h3>
+          <p>See every capability and the current limitations on one page.</p>
+        </div>
+        <a href="capabilities.html">View capabilities &amp; limits</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -3,10 +3,12 @@
 import * as React from "react";
 import { toast } from "sonner";
 import {
+  BookOpen,
   Bug,
   CalendarRange,
   ClipboardCopy,
   ExternalLink,
+  FileText,
   HelpCircle,
   Lightbulb,
   Mail,
@@ -267,6 +269,20 @@ export function SupportHub() {
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Help centre
             </p>
+            <div className="mb-3 flex flex-col gap-1 rounded-lg border border-primary/25 bg-primary/5 p-1">
+              <SupportRow
+                icon={BookOpen}
+                title="Open the full Help Centre"
+                description="Every feature explained, step by step, with screenshots"
+                href="/help/index.html"
+              />
+              <SupportRow
+                icon={FileText}
+                title="Download the user manual (PDF)"
+                description="The complete NovaHR manual in one document"
+                href="/help/NovaHR-User-Manual.pdf"
+              />
+            </div>
             <div className="flex flex-col gap-2">
               {matchedGuides.map((g) => (
                 <GuideSection key={g.id} guide={g} forceOpen={q.length > 0} />
