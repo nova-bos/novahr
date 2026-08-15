@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { Briefcase, Layers, Plus, Trash2 } from "lucide-react";
+import { Briefcase, Layers, Plus, Sparkles, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   listJobPositionsAction,
   createJobPositionAction,
+  seedDefaultJobPositionsAction,
   deleteJobPositionAction,
   listCostCentresAction,
   createCostCentreAction,
@@ -39,6 +40,25 @@ function JobPositionsCard() {
         setGrade("");
       } catch (err) {
         toast.error("Could not add position", {
+          description: err instanceof Error ? err.message : "Please try again.",
+        });
+      }
+    });
+  }
+
+  function seedDefaults() {
+    startSave(async () => {
+      try {
+        const { added } = await seedDefaultJobPositionsAction();
+        const fresh = await listJobPositionsAction();
+        setRows(fresh);
+        toast.success(
+          added > 0
+            ? `Added ${added} common position${added === 1 ? "" : "s"}.`
+            : "All common positions are already in your list."
+        );
+      } catch (err) {
+        toast.error("Could not add common positions", {
           description: err instanceof Error ? err.message : "Please try again.",
         });
       }
@@ -84,8 +104,16 @@ function JobPositionsCard() {
             <Plus className="size-4" /> Add
           </Button>
         </div>
+        <div>
+          <Button type="button" variant="ghost" size="sm" onClick={seedDefaults} disabled={saving}>
+            <Sparkles className="size-4" /> Add common positions
+          </Button>
+        </div>
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No positions defined yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No positions defined yet. Add common positions above to get started, then add any that
+            are specific to your business.
+          </p>
         ) : (
           <div className="flex flex-col divide-y divide-border rounded-lg border border-border">
             {rows.map((r) => (

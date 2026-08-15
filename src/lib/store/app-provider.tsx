@@ -94,6 +94,7 @@ export type Action =
       activity: ActivityItem;
       notification: NotificationItem;
     }
+  | { type: "PAYROLL_RUN_CREATED"; payrollRun: PayrollRun }
   | { type: "PAYROLL_RUN_STARTED"; payrollRun: PayrollRun }
   | {
       type: "PAYROLL_RUN_COMPLETED";
@@ -230,6 +231,12 @@ export function reducer(state: AppState, action: Action): AppState {
         notifications: [action.notification, ...state.notifications],
       };
 
+    case "PAYROLL_RUN_CREATED":
+      // Optimistically add a just-created run so the detail page finds it
+      // immediately, before the background workspace reload completes.
+      if (state.payrollRuns.some((run) => run.id === action.payrollRun.id)) return state;
+      return { ...state, payrollRuns: [action.payrollRun, ...state.payrollRuns] };
+
     case "PAYROLL_RUN_STARTED":
       return {
         ...state,
@@ -329,6 +336,7 @@ interface AppContextValue {
   state: AppState;
   setTenant: (tenantId: string) => void;
   reloadWorkspace: () => void;
+  addPayrollRun: (run: PayrollRun) => void;
   addEmployee: (employee: Employee) => Promise<Employee>;
   updateEmployee: (id: string, updates: Partial<Employee>) => Promise<void>;
   updateEmployeePhoto: (employeeId: string, photoUrl: string) => Promise<void>;
@@ -413,6 +421,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       state,
       setTenant: (tenantId) => dispatch({ type: "SET_TENANT", tenantId }),
       reloadWorkspace: () => setReloadKey((k) => k + 1),
+      addPayrollRun: (run) => dispatch({ type: "PAYROLL_RUN_CREATED", payrollRun: run }),
       addEmployee: async (employee) => {
         const result = await createEmployeeRecord(employee);
         dispatch({

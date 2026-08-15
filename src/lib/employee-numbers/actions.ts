@@ -3,6 +3,7 @@
 import { runAsTenant } from "@/lib/db-context";
 import { requireTenant, requireActiveSubscription } from "@/lib/auth/require";
 import type { TenantTransactionClient } from "@/lib/prisma";
+import { deriveEmployeeNumberPrefix } from "./prefix";
 
 export interface EmployeeNumberConfig {
   prefix: string;
@@ -17,7 +18,14 @@ export async function getEmployeeNumberConfigAction(
   await requireTenant(tenantId, "hr");
   return runAsTenant(tenantId, async (tx) => {
     const config = await tx.employeeNumberConfig.findUnique({ where: { tenantId } });
-    return config ?? { prefix: "EMP", padLength: 4, separator: "-", nextNumber: 1 };
+    if (config) return config;
+    const tenant = await tx.tenant.findUnique({ where: { id: tenantId }, select: { name: true } });
+    return {
+      prefix: deriveEmployeeNumberPrefix(tenant?.name ?? ""),
+      padLength: 4,
+      separator: "-",
+      nextNumber: 1,
+    };
   });
 }
 
@@ -98,10 +106,23 @@ export async function claimNextEmployeeNumber(
   tenantId: string,
   tx: TenantTransactionClient
 ): Promise<string> {
+  // Seed a new tenant's config with a prefix derived from the company name (falls
+  // back to EMP), instead of a hardcoded default. The prefix is only used on the
+  // create branch: once a config exists its stored prefix is kept.
+  const tenant = await tx.tenant.findUniqueOrThrow({
+    where: { id: tenantId },
+    select: { name: true },
+  });
   const config = await tx.employeeNumberConfig.upsert({
     where: { tenantId },
     update: { nextNumber: { increment: 1 } },
-    create: { tenantId, prefix: "EMP", padLength: 4, separator: "-", nextNumber: 2 },
+    create: {
+      tenantId,
+      prefix: deriveEmployeeNumberPrefix(tenant.name),
+      padLength: 4,
+      separator: "-",
+      nextNumber: 2,
+    },
   });
   // nextNumber is AFTER increment, so the claimed number is nextNumber - 1
   const num = config.nextNumber - 1;

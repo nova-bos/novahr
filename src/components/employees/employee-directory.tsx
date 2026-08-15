@@ -208,7 +208,7 @@ export function EmployeeDirectory() {
           </div>
         ) : (
           <div className="overflow-x-auto rounded-xl border border-border">
-          <Table className="min-w-[700px] w-full">
+          <Table className="min-w-[800px] w-full">
             <TableHeader>
               <TableRow>
                 <TableHead>Employee</TableHead>
@@ -216,6 +216,7 @@ export function EmployeeDirectory() {
                 <TableHead>Status</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Location</TableHead>
+                <TableHead>Start date</TableHead>
                 <TableHead className="text-right">Annual salary</TableHead>
                 <TableHead className="w-32">Onboarding</TableHead>
               </TableRow>
@@ -265,6 +266,11 @@ export function EmployeeDirectory() {
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">{employee.location}</span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm tabular-nums text-muted-foreground">
+                      {employee.startDate ? formatDate(employee.startDate) : "-"}
+                    </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <span className="text-sm tabular-nums">

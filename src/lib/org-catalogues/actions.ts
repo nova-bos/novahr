@@ -2,6 +2,7 @@
 
 import { runAsTenant } from "@/lib/db-context";
 import { requireRole, requireActiveSubscription } from "@/lib/auth/require";
+import { DEFAULT_JOB_POSITIONS } from "./defaults";
 
 export interface JobPositionDto {
   id: string;
@@ -48,6 +49,31 @@ export async function createJobPositionAction(data: {
       data: { tenantId: session.tenantId, title, grade: data.grade?.trim() || null },
     });
     return { id: row.id, title: row.title, grade: row.grade, isActive: row.isActive };
+  });
+}
+
+/**
+ * Adds the standard SME job positions that the company does not already have, so
+ * an admin can populate a sensible catalogue in one click and then only add the
+ * roles specific to their business. Safe to run repeatedly: existing titles (by
+ * case-insensitive match) are skipped, never duplicated.
+ */
+export async function seedDefaultJobPositionsAction(): Promise<{ added: number; skipped: number }> {
+  const session = await requireRole("hr");
+  await requireActiveSubscription(session.tenantId);
+  return runAsTenant(session.tenantId, async (tx) => {
+    const existing = await tx.jobPosition.findMany({
+      where: { tenantId: session.tenantId },
+      select: { title: true },
+    });
+    const have = new Set(existing.map((r) => r.title.trim().toLowerCase()));
+    const toAdd = DEFAULT_JOB_POSITIONS.filter((t) => !have.has(t.toLowerCase()));
+    if (toAdd.length > 0) {
+      await tx.jobPosition.createMany({
+        data: toAdd.map((title) => ({ tenantId: session.tenantId, title })),
+      });
+    }
+    return { added: toAdd.length, skipped: DEFAULT_JOB_POSITIONS.length - toAdd.length };
   });
 }
 

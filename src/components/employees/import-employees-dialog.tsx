@@ -365,8 +365,13 @@ export function ImportEmployeesDialog({ open, onOpenChange, onImportComplete }: 
               <Button variant="outline" onClick={reset}>
                 Cancel
               </Button>
-              <Button onClick={handleImport} disabled={rows.length === 0}>
-                Import {rows.length} {rows.length === 1 ? "employee" : "employees"}
+              <Button
+                onClick={handleImport}
+                disabled={rows.length === 0 || !preview || preview.errors.length > 0}
+              >
+                {preview && preview.errors.length > 0
+                  ? "Fix errors to import"
+                  : `Import ${rows.length} ${rows.length === 1 ? "employee" : "employees"}`}
               </Button>
             </>
           )}

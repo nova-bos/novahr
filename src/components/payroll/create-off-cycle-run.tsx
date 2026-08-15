@@ -47,7 +47,7 @@ function defaultPayDate(): string {
 export function CreateOffCycleRun() {
   const router = useRouter();
   const branches = useActiveBranches();
-  const { reloadWorkspace } = useApp();
+  const { reloadWorkspace, addPayrollRun } = useApp();
   const [open, setOpen] = React.useState(false);
   const [period, setPeriod] = React.useState(defaultPeriod);
   const [payDate, setPayDate] = React.useState(defaultPayDate);
@@ -69,6 +69,9 @@ export function CreateOffCycleRun() {
         });
         setOpen(false);
         setReason("");
+        // Add the run to the store up front so the detail page finds it
+        // immediately; the reload then refreshes the fuller workspace data.
+        addPayrollRun(run);
         reloadWorkspace();
         toast.success("Off-cycle run created", {
           description: "Add variable pay, then start and finalise it.",

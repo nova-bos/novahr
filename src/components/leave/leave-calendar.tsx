@@ -288,9 +288,21 @@ export function LeaveCalendar() {
     for (const request of visibleRequests) {
       const employee = employeeById.get(request.employeeId);
       if (!employee) continue;
-      const startNum = toDayNumber(parseDateOnly(request.startDate));
-      const endNum = toDayNumber(parseDateOnly(request.endDate));
-      for (let d = startNum; d <= endNum; d++) {
+      // Prefer the actual requested days: a request can be non-contiguous (gaps)
+      // or include half days, so filling the whole start..end span paints days
+      // that were never requested. Fall back to the span only for older requests
+      // saved without an explicit day list.
+      const dayNums =
+        request.daySelections && request.daySelections.length > 0
+          ? request.daySelections.map((s) => toDayNumber(parseDateOnly(s.date)))
+          : (() => {
+              const startNum = toDayNumber(parseDateOnly(request.startDate));
+              const endNum = toDayNumber(parseDateOnly(request.endDate));
+              const arr: number[] = [];
+              for (let d = startNum; d <= endNum; d++) arr.push(d);
+              return arr;
+            })();
+      for (const d of dayNums) {
         const list = map.get(d) ?? [];
         list.push({ request, employee });
         map.set(d, list);

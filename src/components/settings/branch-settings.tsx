@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { toast } from "sonner";
-import { MapPin, Pencil, Plus, Power } from "lucide-react";
+import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -191,7 +191,7 @@ export function BranchSettings() {
                     aria-label={`Deactivate ${branch.name}`}
                     onClick={() => setDeactivating(branch)}
                   >
-                    <Power className="size-3.5" />
+                    <Trash2 className="size-3.5" />
                   </Button>
                 ) : (
                   <Button

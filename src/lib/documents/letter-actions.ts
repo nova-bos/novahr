@@ -23,8 +23,13 @@ async function buildLetterData(employeeId: string, tenantId: string): Promise<Le
         firstName: true,
         lastName: true,
         employeeNumber: true,
+        idNumber: true,
+        idType: true,
         jobTitle: true,
         department: true,
+        location: true,
+        employmentType: true,
+        salaryPayFrequency: true,
         startDate: true,
         terminatedAt: true,
         terminationReason: true,
@@ -35,17 +40,37 @@ async function buildLetterData(employeeId: string, tenantId: string): Promise<Le
 
     const tenant = await tx.tenant.findUniqueOrThrow({
       where: { id: tenantId },
-      select: { name: true, legalName: true, address: true, city: true },
+      select: { name: true, legalName: true, registrationNumber: true, address: true, city: true },
     });
+
+    const employmentTypeLabels: Record<string, string> = {
+      full_time: "Full-time",
+      part_time: "Part-time",
+      contract: "Fixed-term contract",
+      fixed_term: "Fixed-term contract",
+      temporary: "Temporary",
+      internship: "Internship",
+      learnership: "Learnership",
+    };
+    const payFrequencyLabels: Record<string, string> = {
+      monthly: "monthly",
+      weekly: "weekly",
+      biweekly: "fortnightly",
+    };
 
     data = {
       companyName: tenant.name,
       companyLegalName: tenant.legalName,
+      companyRegistration: tenant.registrationNumber || undefined,
       companyAddress: [tenant.address, tenant.city].filter(Boolean).join(", "),
       employeeName: `${employee.firstName} ${employee.lastName}`,
       employeeNumber: employee.employeeNumber,
+      employeeIdNumber: employee.idType === "sa_id" ? employee.idNumber || undefined : undefined,
       jobTitle: employee.jobTitle,
       department: employee.department,
+      placeOfWork: employee.location || undefined,
+      employmentType: employmentTypeLabels[employee.employmentType] ?? undefined,
+      payFrequency: payFrequencyLabels[employee.salaryPayFrequency] ?? undefined,
       startDate: formatDate(employee.startDate.toISOString()),
       endDate: employee.terminatedAt ? formatDate(employee.terminatedAt.toISOString()) : undefined,
       salary: employee.salaryAnnualGross.toNumber(),

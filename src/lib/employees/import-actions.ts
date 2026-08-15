@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth/require";
 import { claimNextEmployeeNumber } from "@/lib/employee-numbers/actions";
 import { DEFAULT_LEAVE_TOTALS } from "@/lib/config/leave";
 import { saIdNumber, saPhone, bankAccountNumber, branchCode } from "@/lib/schemas/sa";
+import { readSaId } from "@/lib/schemas/sa-id";
 import { toCSV } from "@/lib/export/csv";
 import { IMPORT_COLUMNS, type CsvRow } from "./import-columns";
 import type {
@@ -122,6 +123,18 @@ function optionalNumber(value: string): number | null {
   return isNaN(n) ? null : n;
 }
 
+/**
+ * The CSV carries pension as a whole percent (e.g. 7.5). Everywhere else in the
+ * app it is stored as a fraction (0.075): the manual form divides by 100 and the
+ * payroll calculator multiplies basic pay by it directly. The import must store
+ * the same fraction, otherwise an imported employee gets 7.5x their salary as
+ * pension (a 750% contribution). Keep this in step with the export in reverse.
+ */
+function optionalPercentAsFraction(value: string): number | null {
+  const n = optionalNumber(value);
+  return n === null ? null : n / 100;
+}
+
 function validateRow(row: CsvRow, rowNumber: number): ImportRowError[] {
   const errs: ImportRowError[] = [];
   const add = (field: string, message: string) => errs.push({ row: rowNumber, field, message });
@@ -225,9 +238,20 @@ function validateRow(row: CsvRow, rowNumber: number): ImportRowError[] {
 /** Shared column mapping used for both create and update. */
 function mapRowToData(row: CsvRow): Record<string, unknown> {
   const idType = normEnum(row.idType ?? "") === "passport" ? "passport" : "sa_id";
+  // SA-ID holders: derive date of birth and gender from the ID, exactly as the
+  // manual onboarding wizard does. The CSV leaves these columns blank for SA IDs
+  // (they are implied by the number), so without this an imported employee has
+  // no gender and no date of birth, which also breaks payroll age rebates.
+  const saFacts = idType === "sa_id" ? readSaId(row.idNumber.trim()) : { dateOfBirth: null, gender: null };
   const dobRaw = row.dateOfBirth?.trim();
   const dateOfBirth =
-    idType === "passport" && dobRaw && !isNaN(Date.parse(dobRaw)) ? new Date(dobRaw) : null;
+    idType === "passport"
+      ? dobRaw && !isNaN(Date.parse(dobRaw))
+        ? new Date(dobRaw)
+        : null
+      : saFacts.dateOfBirth
+        ? new Date(saFacts.dateOfBirth)
+        : null;
   return {
     firstName: row.firstName.trim(),
     lastName: row.lastName.trim(),
@@ -244,7 +268,7 @@ function mapRowToData(row: CsvRow): Record<string, unknown> {
     salaryPayFrequency: normPayFrequency(row.payFrequency ?? ""),
     salaryTravelAllowance: optionalNumber(row.travelAllowance ?? ""),
     salaryHousingAllowance: optionalNumber(row.housingAllowance ?? ""),
-    salaryPensionContributionPct: optionalNumber(row.pensionContributionPct ?? ""),
+    salaryPensionContributionPct: optionalPercentAsFraction(row.pensionContributionPct ?? ""),
     salaryMedicalAid: optionalNumber(row.medicalAid ?? ""),
     salaryRetirementAnnuity: optionalNumber(row.retirementAnnuity ?? ""),
     bankName: row.bank.trim(),
@@ -257,7 +281,9 @@ function mapRowToData(row: CsvRow): Record<string, unknown> {
     passportNumber: idType === "passport" ? row.passportNumber?.trim() || null : null,
     nationality: row.nationality?.trim() || null,
     dateOfBirth,
-    gender: row.gender?.trim() ? (normEnum(row.gender) as Gender) : null,
+    gender: row.gender?.trim()
+      ? (normEnum(row.gender) as Gender)
+      : ((saFacts.gender as Gender | null) ?? null),
     maritalStatus: row.maritalStatus?.trim() ? (normEnum(row.maritalStatus) as MaritalStatus) : null,
     address: row.address?.trim() ?? "",
     emergencyContactName: row.emergencyName?.trim() ?? "",
@@ -328,7 +354,14 @@ export async function importEmployeesFromCsvAction(
   rows.forEach((row, i) => {
     const rowErrors = validateRow(row, i + 1);
     const number = row.employeeNumber?.trim().toLowerCase() ?? "";
-    const existingId = number ? numberToId.get(number) ?? null : null;
+    const email = row.email?.trim().toLowerCase() ?? "";
+    // Match by number, or by email when the number is blank, so re-importing the
+    // same file updates people in place instead of failing on a duplicate email.
+    const existingId = number
+      ? numberToId.get(number) ?? null
+      : email
+        ? emailToId.get(email) ?? null
+        : null;
 
     // An employee number that does not match anyone is an error: we never
     // silently create with a caller-supplied number (numbers are system-assigned).
@@ -491,7 +524,14 @@ export async function previewEmployeeImportAction(rows: CsvRow[]): Promise<Impor
     const rowNumber = i + 1;
     const rowErrors = validateRow(row, rowNumber);
     const number = row.employeeNumber?.trim().toLowerCase() ?? "";
-    const existingId = number ? numberToId.get(number) ?? null : null;
+    const email = row.email?.trim().toLowerCase() ?? "";
+    // Match by number, or by email when the number is blank, so a re-imported
+    // file is previewed as updates rather than duplicate-email errors.
+    const existingId = number
+      ? numberToId.get(number) ?? null
+      : email
+        ? emailToId.get(email) ?? null
+        : null;
 
     if (number && !existingId) {
       rowErrors.push({
@@ -501,7 +541,6 @@ export async function previewEmployeeImportAction(rows: CsvRow[]): Promise<Impor
       });
     }
 
-    const email = row.email?.trim().toLowerCase() ?? "";
     if (email) {
       // Duplicate against another existing employee (matched by number is fine).
       const ownerId = emailToId.get(email);
@@ -598,7 +637,10 @@ export async function exportEmployeeTemplateAction(): Promise<string> {
       payFrequency: e.salaryPayFrequency,
       travelAllowance: num(e.salaryTravelAllowance),
       housingAllowance: num(e.salaryHousingAllowance),
-      pensionContributionPct: num(e.salaryPensionContributionPct),
+      pensionContributionPct:
+        e.salaryPensionContributionPct == null
+          ? ""
+          : String(Number((Number(e.salaryPensionContributionPct) * 100).toFixed(4))),
       medicalAid: num(e.salaryMedicalAid),
       retirementAnnuity: num(e.salaryRetirementAnnuity),
       bank: e.bankName,

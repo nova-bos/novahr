@@ -98,9 +98,18 @@ export async function createInviteAction(input: {
   const session = await requireRole("hr");
   await requireActiveSubscription(session.tenantId);
 
-  const inviteRate = await checkRateLimit(session.tenantId, { name: "invite-create", limit: 20, windowMs: 60 * 60 * 1000 });
+  // Abuse guard, generous enough for a company onboarding its whole workforce at
+  // once. Raise INVITE_HOURLY_LIMIT if a larger employer legitimately needs more.
+  const INVITE_HOURLY_LIMIT = 200;
+  const inviteRate = await checkRateLimit(session.tenantId, {
+    name: "invite-create",
+    limit: INVITE_HOURLY_LIMIT,
+    windowMs: 60 * 60 * 1000,
+  });
   if (!inviteRate.allowed) {
-    return { error: "Too many invitations sent. Try again in a few minutes." };
+    return {
+      error: `Invitation limit reached (${INVITE_HOURLY_LIMIT} per hour for this company). Please wait up to an hour and send the rest, or contact support to raise the limit.`,
+    };
   }
 
   const parsed = createInviteSchema.safeParse(input);

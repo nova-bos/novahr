@@ -85,6 +85,7 @@
   .role{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:1px 6px;border-radius:99px;margin-top:3px}
   .role.hr{background:#e0e7ff;color:#4338ca}.role.manager{background:#dbeafe;color:#1d4ed8}
   .role.employee{background:#dcfce7;color:#15803d}.role.exco{background:#fae8ff;color:#a21caf}.role.any{background:#f1f5f9;color:#475569}
+  .role.ops{background:#ffedd5;color:#c2410c}
   .step{font-size:13px}
   .exp{font-size:12px;color:var(--muted);margin-top:3px}
   .exp b{color:var(--slate)}
@@ -125,6 +126,60 @@
   .hint{font-size:12px;color:var(--muted)}
   .foot{text-align:center;color:var(--muted);font-size:11px;margin-top:24px}
   @media print{.top,.side,.toolbar,.sbtns,.fab,.drawer,.flag,.btn,.fbtn,.btn-add{display:none}.ph-body.collapsed{display:block}.phase{break-inside:avoid}.main{max-width:100%}}
+
+  /* Copy chips */
+  .cprow{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 9px}
+  .cp{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#f8fafc;border-radius:8px;padding:4px 9px;font-size:12px;color:var(--slate);cursor:pointer;line-height:1.25;-webkit-tap-highlight-color:transparent}
+  .cp:hover{border-color:var(--indigo);background:var(--indigo-soft);color:var(--indigo)}
+  .cp .cl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .cp:hover .cl{color:var(--indigo)}
+  .cp .cv{font-weight:600}
+  .cp.mono .cv{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .cp .ck{opacity:.45;font-size:12px}
+  .cp.copied{border-color:var(--green);background:var(--green-soft);color:var(--green)}
+  .cp.copied .cl{color:var(--green)}
+  .co-h{font-size:13px;font-weight:600;margin:18px 0 9px;padding-top:12px;border-top:1px dashed var(--line)}
+  .co-h:first-child{border-top:none;padding-top:0;margin-top:2px}
+  .acct{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+  .acct .a-co{border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .acct .a-co b{font-size:12px;display:block;margin-bottom:6px}
+  /* Toast */
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:var(--dark);color:#fff;padding:9px 16px;border-radius:10px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.18s;z-index:90;max-width:92vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* Mobile / narrow side window */
+  @media(max-width:640px){
+    .main{padding:14px 12px 88px}
+    h1{font-size:19px}
+    .lede{font-size:13px}
+    .card{padding:14px 13px;border-radius:12px}
+    .grid3{gap:10px}
+    table.matrix{display:block;overflow-x:auto;white-space:nowrap}
+    .item{grid-template-columns:auto 1fr;column-gap:10px;row-gap:8px}
+    .item>div:nth-child(1){grid-column:1;grid-row:1}
+    .item>.sbtns{grid-column:2;grid-row:1;justify-self:end}
+    .item>div:nth-child(2){grid-column:1/3;grid-row:2}
+    .item>.note{grid-column:1/3;grid-row:3}
+    .bug-item{grid-template-columns:1fr 1fr auto}
+    .bug-item>*:nth-child(1){grid-column:1/4}
+    .bug-item>*:nth-child(2){grid-column:1/4}
+    .bug-item>*:nth-child(3){grid-column:1}
+    .bug-item>*:nth-child(4){grid-column:2}
+    .bug-item>*:nth-child(5){grid-column:3;justify-self:end}
+    .drawer{width:auto;left:12px;right:12px}
+    .fab{bottom:14px;right:14px;padding:10px 15px}
+    .top{padding:9px 12px;gap:10px}
+    .top-right{gap:8px}
+    .top-right .btn{padding:5px 9px}
+    .bar{width:90px}
+    .emp-l b{min-width:56px}
+  }
+
+  /* Company tabs */
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 10px}
+  .tab{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:13px;cursor:pointer;color:var(--slate);font-weight:600;-webkit-tap-highlight-color:transparent}
+  .tab:hover{border-color:var(--indigo);color:var(--indigo)}
+  .tab.active{background:var(--indigo);border-color:var(--indigo);color:#fff}
+  .tab .tcnt{font-size:11px;opacity:.85;margin-left:6px;font-weight:600}
 </style>
 </head>
 <body>
@@ -151,11 +206,11 @@
 
   <main class="main">
     <h1>NovaHR end to end launch acceptance test</h1>
-    <p class="lede">Sign off before go live. Environment: <b>novahr-five.vercel.app</b>. Work top to bottom, mark each check Pass, Fail or Skip, add notes, and log anything broken as a bug. Progress saves in this browser.</p>
+    <p class="lede">Sign off before go live. Environment: <b>hr.novabos.co.za</b>. Use the company tabs to take one company from sign up all the way to payroll and reports before moving to the next, or pick All for the original cross-cutting order. Mark each check Pass, Fail or Skip, add notes, and log anything broken as a bug. The final section (P23) is non-code go-live operations, tick those off too. Progress saves in this browser.</p>
 
     <div class="card">
-      <h2>Three test companies</h2>
-      <p class="hint" style="margin-bottom:12px">Create all three by self serve signup with different emails you control. They are configured so that mutually exclusive settings (SDL liable or not, pension or none, accrual or upfront leave, paid or statutory maternity, one branch or many, one pay frequency or several, Netcash or manual EFT) are each exercised at least once.</p>
+      <h2>Five test companies</h2>
+      <p class="hint" style="margin-bottom:12px">Create all five by self serve signup with different emails you control. Companies A, B and C are the main coverage set: they are configured so that mutually exclusive settings (SDL liable or not, pension or none, accrual or upfront leave, paid or statutory maternity, one branch or many, one pay frequency or several, Netcash or manual EFT) are each exercised at least once. Companies D and E are deliberately small and strange: a one person company and a grab bag of boundary employees (65+ and 75+ rebates, top tax bracket, below the tax threshold, exactly on the UIF ceiling, weekly unpaid leave, negative net). Their job is to break happy path assumptions, not to look realistic.</p>
       <div class="grid3">
         <div class="co a">
           <span class="tag">Company A</span><h3>Ironwood Freight (Pty) Ltd</h3>
@@ -209,106 +264,25 @@
     </div>
 
     <div class="card">
+      <h2>Login accounts and test emails</h2>
+      <p class="hint" style="margin-bottom:10px">Everything routes to one inbox, <b>mtshwenewesley@gmail.com</b>. Gmail treats <b>mtshwenewesley+anything@gmail.com</b> as the same inbox but a separate account, so each company admin below is a distinct user you fully control (verification links, invites and payslip mail all arrive in that one inbox). Tap any chip to copy.</p>
+      <div class="acct">
+        <div class="a-co"><b>Company A · Ironwood Freight</b><div class="cprow"><button type="button" class="cp" data-c="mtshwenewesley+ironwood.hr@gmail.com" onclick="cpy(this)"><span class="cl">Admin</span><span class="cv">mtshwenewesley+ironwood.hr@gmail.com</span><span class="ck">⧉</span></button></div></div>
+        <div class="a-co"><b>Company B · Thuli's Kitchen</b><div class="cprow"><button type="button" class="cp" data-c="mtshwenewesley+thuli.hr@gmail.com" onclick="cpy(this)"><span class="cl">Admin</span><span class="cv">mtshwenewesley+thuli.hr@gmail.com</span><span class="ck">⧉</span></button></div></div>
+        <div class="a-co"><b>Company C · Ubuntu Community Health</b><div class="cprow"><button type="button" class="cp" data-c="mtshwenewesley+ubuntu.hr@gmail.com" onclick="cpy(this)"><span class="cl">Admin</span><span class="cv">mtshwenewesley+ubuntu.hr@gmail.com</span><span class="ck">⧉</span></button></div></div>
+        <div class="a-co"><b>Company D · Sizwe Holdings</b><div class="cprow"><button type="button" class="cp" data-c="mtshwenewesley+sizwe.hr@gmail.com" onclick="cpy(this)"><span class="cl">Admin</span><span class="cv">mtshwenewesley+sizwe.hr@gmail.com</span><span class="ck">⧉</span></button></div></div>
+        <div class="a-co"><b>Company E · Edge Case Traders</b><div class="cprow"><button type="button" class="cp" data-c="mtshwenewesley+edge.hr@gmail.com" onclick="cpy(this)"><span class="cl">Admin</span><span class="cv">mtshwenewesley+edge.hr@gmail.com</span><span class="ck">⧉</span></button></div></div>
+      </div>
+      <p class="hint" style="margin-top:10px">Role permission checks (P12, P13) reuse people as logins: Manager is Zanele and Employee is Kabelo and Exco is the Themba invite (all Company C), while in Company A the manager approver is Pieter and the leave requester is Aisha. Every person card below carries its own Email chip.</p>
+    </div>
+
+    <div class="card">
       <h2>Test data to enter</h2>
       <p class="hint" style="margin-bottom:10px">Use exactly these values so results are reproducible and the derived fields and payroll can be checked. All SA ID numbers below are valid (real date, gender digit, Luhn check). Banking uses SA universal branch codes; account numbers are format valid dummies.</p>
 
-      <p class="hint" style="margin-bottom:10px">Every field the onboarding wizard asks for is listed per person (email is the only thing you supply yourself). Salaries are given as <b>annual gross</b> (what the Compensation step asks for). Phone, tax number, address and next of kin are dummy but format valid.</p>
+      <p class="hint" style="margin-bottom:10px">Every field the onboarding wizard asks for is listed per person (emails are provided below as plus addressed logins that all reach your own inbox). Salaries are given as <b>annual gross</b> (what the Compensation step asks for). Phone, tax number, address and next of kin are dummy but format valid.</p>
 
-      <h3 style="font-size:13px;margin:10px 0 8px">Company A &middot; Ironwood Freight (bulk upload, 25 employees)</h3>
-      <div class="card" style="background:var(--indigo-soft);border-color:#c7d2fe;margin-bottom:12px">
-        <p style="font-size:13px;margin-bottom:6px"><b>This is the bulk-upload test.</b> Do not hand enter Company A. Instead:</p>
-        <ol style="font-size:12px;color:var(--slate);padding-left:18px;line-height:1.7">
-          <li>Create the two branches first: <b>Johannesburg HQ</b> and <b>Durban depot</b> (the file references them by name).</li>
-          <li>Employees &gt; Import. Download the app template to compare if you like, then import the provided file <b>docs/company-a-employees.csv</b> (25 rows: 9 monthly office/ops, 16 weekly drivers, valid SA IDs, banking, managers, equity, one person with a disability). It opens and edits in Excel; the importer reads CSV (Excel &gt; Save As &gt; CSV if you edit it).</li>
-          <li>Review the preview, fix any flagged rows, confirm the import.</li>
-        </ol>
-        <p class="hint" style="margin-top:6px">Expected: all 25 import, reporting lines resolve by manager email, drivers land on the weekly frequency and Durban depot, and headcount/annual payroll now exceed 25 / R500k so SDL applies. Five notable rows are shown below for reference (they are already in the file).</p>
-      </div>
-
-      <div class="emp"><div class="emp-h"><b>Nomsa Dlamini</b><span class="pill a">A</span> <span class="hint">in the import file</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Nomsa &middot; Phone 082 345 6712 &middot; Tax 1234567890 &middot; SA ID 8803120812085 (derives Female, 12 Mar 1988) &middot; Married &middot; 14 Oak Ave, Sandton, 2196 &middot; Next of kin Bongani Dlamini (Spouse) 083 111 2233 &middot; Emergency same as next of kin</div>
-        <div class="emp-l"><b>Role</b> HR Manager &middot; Admin &middot; Johannesburg HQ &middot; Full-time &middot; Start 2019-02-01 &middot; Location Johannesburg &middot; No manager</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R456 000 &middot; Pension 7.5% &middot; Medical aid R2 500 &middot; Bank FNB, acc 62234567891, branch 250655, Cheque</div>
-        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Senior management &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Pieter van der Merwe</b><span class="pill a">A</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Pieter &middot; Phone 083 512 8890 &middot; Tax 2233445566 &middot; SA ID 7907255081084 (derives Male, 25 Jul 1979) &middot; Married &middot; 8 Rivonia Rd, Sandton, 2196 &middot; Next of kin Anel van der Merwe (Spouse) 082 700 1122 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Operations Director &middot; Operations &middot; Johannesburg HQ &middot; Full-time &middot; Start 2017-06-15 &middot; Location Johannesburg &middot; No manager</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R660 000 &middot; Pension 7.5% &middot; Medical aid R3 000 &middot; Bank Standard Bank, acc 10087654321, branch 051001, Cheque</div>
-        <div class="emp-l"><b>Equity</b> White &middot; Male &middot; Top management &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Aisha Patel</b><span class="pill a">A</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Aisha &middot; Phone 084 220 5567 &middot; Tax 3344556677 &middot; SA ID 9511031234088 (derives Female, 3 Nov 1995) &middot; Single &middot; 22 Grove St, Rosebank, 2196 &middot; Next of kin Rahul Patel (Father) 083 445 9900 &middot; Emergency Rahul Patel (Father) 083 445 9900</div>
-        <div class="emp-l"><b>Role</b> Office Administrator &middot; Admin &middot; Johannesburg HQ &middot; Full-time &middot; Start 2022-03-01 &middot; Location Johannesburg &middot; Manager Nomsa Dlamini</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R222 000 &middot; Travel allowance R2 000 &middot; Bank Capitec, acc 1567890123, branch 470010, Savings</div>
-        <div class="emp-l"><b>Equity</b> Indian &middot; Female &middot; Skilled technical &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Sipho Nkosi</b><span class="pill a">A</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Sipho &middot; Phone 073 118 4432 &middot; Tax 4455667788 &middot; SA ID 9206185327081 (derives Male, 18 Jun 1992) &middot; Single &middot; 45 Umbilo Rd, Durban, 4001 &middot; Next of kin Thandi Nkosi (Sister) 072 556 3321 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Driver (grade C1) &middot; Operations &middot; Durban depot &middot; Full-time &middot; Start 2021-08-09 &middot; Location Durban &middot; Manager Pieter van der Merwe &middot; Cost centre Operations</div>
-        <div class="emp-l"><b>Pay</b> Weekly &middot; Weekly rate R3 200 &middot; Annual gross R166 400 &middot; Bank FNB, acc 62555443322, branch 250655, Cheque</div>
-        <div class="emp-l"><b>Equity</b> African &middot; Male &middot; Semi-skilled &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Johannes Botha</b><span class="pill a">A</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Johan &middot; Phone 076 990 2213 &middot; Tax 5566778899 &middot; SA ID 8502095019086 (derives Male, 9 Feb 1985) &middot; Married &middot; 12 Berea Rd, Durban, 4001 &middot; Next of kin Marie Botha (Spouse) 082 334 7788 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Driver &middot; Operations &middot; Durban depot &middot; Full-time &middot; Start 2020-01-20 &middot; Location Durban &middot; Manager Pieter van der Merwe &middot; Cost centre Operations</div>
-        <div class="emp-l"><b>Pay</b> Weekly &middot; Weekly rate R3 000 &middot; Annual gross R156 000 &middot; Bank Nedbank, acc 1987650012, branch 198765, Cheque</div>
-        <div class="emp-l"><b>Equity</b> White &middot; Male &middot; Semi-skilled &middot; Not foreign &middot; No disability</div></div>
-
-      <h3 style="font-size:13px;margin:14px 0 8px">Company B &middot; Thuli's Kitchen (add these 3)</h3>
-
-      <div class="emp"><div class="emp-h"><b>Thulisile Mahlangu</b><span class="pill b">B</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Thuli &middot; Phone 082 668 1190 &middot; Tax 6677889900 &middot; SA ID 8309140451086 (derives Female, 14 Sep 1983) &middot; Married &middot; 30 Vilakazi St, Soweto, 1804 &middot; Next of kin Sibusiso Mahlangu (Spouse) 083 221 6655 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Owner / Head Baker &middot; Department Operations &middot; Head office &middot; Full-time &middot; Start 2020-05-01 &middot; Location Soweto &middot; No manager</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R180 000 &middot; No pension &middot; No medical aid &middot; Bank Capitec, acc 1345678901, branch 470010, Savings</div>
-        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Skilled technical &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Lerato Molefe</b><span class="pill b">B</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Lerato &middot; Phone 071 445 9087 &middot; Tax 7788990011 &middot; SA ID 9812302088082 (derives Female, 30 Dec 1998) &middot; Single &middot; 5 Main Rd, Soweto, 1804 &middot; Next of kin Palesa Molefe (Mother) 072 889 4410 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Cashier &middot; Department Operations &middot; Head office &middot; Full-time &middot; Start 2023-01-15 &middot; Location Soweto &middot; Manager Thulisile Mahlangu</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R90 000 &middot; No pension/medical &middot; Bank Capitec, acc 1456789012, branch 470010, Savings &middot; UIF should be R75.00</div>
-        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Semi-skilled &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Tendai Moyo</b><span class="pill b">B</span> <span class="hint">passport path</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Tendai &middot; Phone 074 002 7781 &middot; Tax (leave blank) &middot; Passport ZN1234567, nationality Zimbabwean &middot; Enter DOB 1990-04-22 and gender Male by hand &middot; Single &middot; 18 Church St, Johannesburg, 2001 &middot; Next of kin Rudo Moyo (Sister) 073 556 8890 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Baker's Assistant &middot; Department Operations &middot; Head office &middot; Full-time &middot; Start 2022-09-01 &middot; Location Soweto &middot; Manager Thulisile Mahlangu</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R96 000 &middot; No pension/medical &middot; Bank FNB, acc 62998877665, branch 250655, Cheque</div>
-        <div class="emp-l"><b>Equity</b> Foreign national (tick) &middot; Male &middot; Semi-skilled &middot; No disability</div></div>
-
-      <h3 style="font-size:13px;margin:14px 0 8px">Company C &middot; Ubuntu Community Health NPC (add these 5, plus invite Themba as Exco)</h3>
-
-      <div class="emp"><div class="emp-h"><b>Zanele Khumalo</b><span class="pill c">C</span> <span class="hint">give her user the Manager role</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Zanele &middot; Phone 082 110 3345 &middot; Tax 8899001122 &middot; SA ID 7505200610088 (derives Female, 20 May 1975) &middot; Divorced &middot; 7 Florida Rd, Durban, 4001 &middot; Next of kin Nkosi Khumalo (Son) 083 667 2210 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Programme Director &middot; Clinic &middot; Head office &middot; Full-time &middot; Start 2016-04-01 &middot; Location Durban &middot; No manager</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R504 000 &middot; Bank Standard Bank, acc 10011223344, branch 051001, Cheque</div>
-        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Senior management &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Kabelo Sithole</b><span class="pill c">C</span> <span class="hint">ETI eligible</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Kabelo &middot; Phone 073 889 1120 &middot; Tax 9900112233 &middot; SA ID 0301155140082 (derives Male, 15 Jan 2003) &middot; Single &middot; 3 Hope St, Pinetown, 3610 &middot; Next of kin Lindiwe Sithole (Mother) 072 445 8890 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Community Health Worker &middot; Outreach &middot; Head office &middot; Full-time &middot; Start 2024-02-01 &middot; Location Durban &middot; Manager Zanele Khumalo &middot; Cost centre Outreach</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R54 000 &middot; Bank Capitec, acc 1567012345, branch 470010, Savings &middot; UIF should be R45.00</div>
-        <div class="emp-l"><b>Equity</b> African &middot; Male &middot; Semi-skilled &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Naledi Mokoena</b><span class="pill c">C</span> <span class="hint">ETI, disability</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Naledi &middot; Phone 071 220 6654 &middot; Tax 1011121314 &middot; SA ID 0408081902087 (derives Female, 8 Aug 2004) &middot; Single &middot; 9 Smith St, Durban, 4001 &middot; Next of kin Kagiso Mokoena (Father) 083 112 9987 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Intern &middot; Clinic &middot; Head office &middot; Internship &middot; Start 2025-01-15 &middot; Location Durban &middot; Manager Zanele Khumalo &middot; Cost centre Clinic</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R48 000 &middot; Bank Capitec, acc 1578123456, branch 470010, Savings</div>
-        <div class="emp-l"><b>Equity</b> African &middot; Female &middot; Semi-skilled &middot; Not foreign &middot; Disability YES</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Ayesha Adams</b><span class="pill c">C</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Ayesha &middot; Phone 076 334 2098 &middot; Tax 1213141516 &middot; SA ID 9603033070089 (derives Female, 3 Mar 1996) &middot; Single &middot; 21 Rose St, Chatsworth, 4092 &middot; Next of kin Fatima Adams (Mother) 072 667 3345 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Admin Learner &middot; Clinic &middot; Head office &middot; Learnership &middot; Start 2025-02-01 &middot; Location Durban &middot; Manager Zanele Khumalo &middot; Cost centre Clinic</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R60 000 &middot; Bank FNB, acc 62445667788, branch 250655, Cheque</div>
-        <div class="emp-l"><b>Equity</b> Coloured &middot; Female &middot; Skilled technical &middot; Not foreign &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Farai Ncube</b><span class="pill c">C</span> <span class="hint">passport, fixed-term</span></div>
-        <div class="emp-l"><b>Personal</b> Preferred Farai &middot; Phone 074 556 1123 &middot; Tax 1314151617 &middot; Passport ZP7654321, nationality Zimbabwean &middot; Enter DOB 1988-11-11 and gender Male by hand &middot; Married &middot; 40 Ridge Rd, Durban, 4001 &middot; Next of kin Chipo Ncube (Spouse) 073 889 5567 &middot; Emergency same</div>
-        <div class="emp-l"><b>Role</b> Professional Nurse &middot; Clinic &middot; Head office &middot; Fixed-term contract &middot; Start 2024-06-01 &middot; Location Durban &middot; Manager Zanele Khumalo</div>
-        <div class="emp-l"><b>Pay</b> Salaried &middot; Annual gross R336 000 &middot; Bank Standard Bank, acc 10099887766, branch 051001, Cheque</div>
-        <div class="emp-l"><b>Equity</b> Foreign national (tick) &middot; Male &middot; Professional / mid &middot; No disability</div></div>
-
-      <div class="emp"><div class="emp-h"><b>Themba Zulu</b><span class="pill c">C</span> <span class="hint">user only, no employee record needed</span></div>
-        <div class="emp-l"><b>Invite</b> Invite by email as an <b style="min-width:0">Exco</b> (read only) user. SA ID for reference if you also add him as an employee: 7010105500088 (Male, 10 Oct 1970).</div></div>
+      <div id="people"></div>
 
       <h3 style="font-size:13px;margin:14px 0 8px">Scenario inputs (use these exact amounts)</h3>
       <ul style="font-size:12px;color:var(--slate);line-height:1.7;padding-left:16px">
@@ -323,6 +297,8 @@
       </ul>
     </div>
 
+    <div class="tabs" id="tabs"></div>
+    <p class="hint" style="margin:-4px 0 12px">Pick a company to run it end to end (sign up, configure, onboard, leave, payroll, reports) before moving on. <b>Platform &amp; cross-company</b> holds the checks that need more than one tenant or are global: authentication, security, UI quality, multi company, regression and go live operations. <b>All</b> shows every check in the original order.</p>
     <div class="toolbar">
       <input type="search" id="q" placeholder="Search test cases..." oninput="applyView()" />
       <button class="fbtn active" data-f="all" onclick="setFilter('all')">All</button>
@@ -369,43 +345,48 @@
 
 <script>
 const PHASES = [
- {id:'P0', title:'Test data setup', co:'Any', items:[
-   {id:'0.1', role:'hr', step:'Sign up Company A (Ironwood Freight) at /signup with a real email you control. Choose a plan or trial.', exp:'Tenant created, you land on the dashboard as the first HR admin, an initial scheduled pay run exists.'},
-   {id:'0.2', role:'hr', step:'Sign up Company B (Thuli\'s Kitchen) with a second email.', exp:'Second isolated workspace created. No data bleeds from Company A.'},
-   {id:'0.3', role:'hr', step:'Sign up Company C (Ubuntu Community Health) with a third email.', exp:'Third workspace created.'},
-   {id:'0.4', role:'any', step:'Note the login for each. Keep all three in separate browser profiles or windows.', exp:'You can sign in and out of each independently.'},
+ {id:'P0', tab:'X', title:'Test data setup', co:'Any', items:[
+   {id:'0.1', tab:'A', role:'hr', step:'Sign up Company A (Ironwood Freight) at /signup using mtshwenewesley+ironwood.hr@gmail.com (chip in Login accounts). Choose a plan or trial.', exp:'Tenant created, you land on the dashboard as the first HR admin, an initial scheduled pay run exists.'},
+   {id:'0.2', tab:'B', role:'hr', step:'Sign up Company B (Thuli\'s Kitchen) using mtshwenewesley+thuli.hr@gmail.com.', exp:'Second isolated workspace created. No data bleeds from Company A.'},
+   {id:'0.3', tab:'C', role:'hr', step:'Sign up Company C (Ubuntu Community Health) using mtshwenewesley+ubuntu.hr@gmail.com.', exp:'Third workspace created.'},
+   {id:'0.4', tab:'X', role:'any', step:'Note the login for each. Keep each company in a separate browser profile or window.', exp:'You can sign in and out of each independently.'},
+   {id:'0.5', tab:'B', role:'hr', step:'Company B: add the 3 staff from the roster (Thulisile, Lerato, and Tendai on the passport path).', exp:'Three employees exist, including one foreign national with no SA ID.'},
+   {id:'0.6', tab:'D', role:'hr', step:'Sign up Company D (Sizwe Holdings) using mtshwenewesley+sizwe.hr@gmail.com. The founder is the sole employee and only admin.', exp:'Fourth workspace created and isolated.'},
+   {id:'0.7', tab:'D', role:'hr', step:'Company D: add the sole employee Sizwe Ndlovu from the roster (he is also the HR admin).', exp:'One employee who is the whole workforce, org chart and approval chain.'},
+   {id:'0.8', tab:'E', role:'hr', step:'Sign up Company E (Edge Case Traders) using mtshwenewesley+edge.hr@gmail.com. In Settings > Payroll set SDL liable, monthly, manual EFT, no pension, no medical.', exp:'Fifth workspace created and configured for the boundary tests.'},
+   {id:'0.9', tab:'E', role:'hr', step:'Company E: add the 6 boundary employees from the roster (Miriam, Rea, Tshepo, Bongani, Lwandile, Precious).', exp:'All six edge-case employees exist, ready for their payroll checks.'},
  ]},
- {id:'P1', title:'Authentication and session', co:'Any', items:[
+ {id:'P1', tab:'X', title:'Authentication and session', co:'Any', items:[
    {id:'1.1', role:'any', step:'Log out, then visit /dashboard directly while signed out.', exp:'Redirected to /login. No app data flashes on screen first.'},
    {id:'1.2', role:'any', step:'Sign in with a wrong password 6 times quickly.', exp:'Clear error each time. Repeated attempts are rate limited, not a raw error.'},
    {id:'1.3', role:'any', step:'Sign in correctly, then refresh a deep page (for example /reports).', exp:'Stays on the page, session persists, no redirect loop.'},
    {id:'1.4', role:'any', step:'Trigger a password reset from Account, follow the email link.', exp:'Reset email arrives, link works, new password logs you in.'},
    {id:'1.5', role:'hr', step:'Account: enrol two factor (TOTP). Scan the QR with an authenticator app and verify the 6 digit code. Then turn it off.', exp:'Enrol succeeds, verification accepts a valid code and rejects a wrong one, turning off works.'},
  ]},
- {id:'P2', title:'Company A configuration (full featured)', co:'A', items:[
+ {id:'P2', tab:'A', title:'Company A configuration (full featured)', co:'A', items:[
    {id:'2.1', role:'hr', step:'Settings > Company: fill legal name, registration, VAT, PAYE, UIF, SDL numbers and company banking details.', exp:'Saves, values persist on refresh.'},
    {id:'2.2', role:'hr', step:'Settings > Branches: add Johannesburg HQ and Durban depot.', exp:'Both listed. A branch filter now appears where relevant.'},
    {id:'2.3', role:'hr', step:'Departments (Operations, Admin), cost centres (Operations, Admin) and job positions (Driver grade C1, Office Administrator).', exp:'Catalogues save and appear as options later.'},
    {id:'2.4', role:'hr', step:'Settings > Payroll: monthly, pay day 25, references, mark SDL liable. Enable pension and medical aid. Set an approver. Enter Netcash test keys.', exp:'All save. SDL will apply because payroll exceeds R500k.'},
    {id:'2.5', role:'hr', step:'Settings > Leave: keep accrual, set carryover with a cap, and toggle maternity to employer paid.', exp:'Saves. The maternity policy card now shows Paid.'},
  ]},
- {id:'P3', title:'Company B configuration (micro, statutory minimum)', co:'B', items:[
+ {id:'P3', tab:'B', title:'Company B configuration (micro, statutory minimum)', co:'B', items:[
    {id:'3.1', role:'hr', step:'Settings > Payroll: monthly, do not mark SDL liable, no pension, no medical aid, no approver, no Netcash keys (manual EFT).', exp:'Saves. SDL will not be charged.'},
    {id:'3.2', role:'hr', step:'Settings > Leave: switch annual leave to upfront entitlement. Leave family leave paid toggles off (statutory).', exp:'Saves. Maternity card shows Unpaid (UIF).'},
    {id:'3.3', role:'hr', step:'Confirm no branch selector appears anywhere (single site company).', exp:'No branch UI clutter for a company with no branches.'},
  ]},
- {id:'P4', title:'Company C configuration (NPC, ETI, equity)', co:'C', items:[
+ {id:'P4', tab:'C', title:'Company C configuration (NPC, ETI, equity)', co:'C', items:[
    {id:'4.1', role:'hr', step:'Add cost centres by programme (Clinic, Outreach). Confirm SDL liable if payroll over R500k.', exp:'Saves.'},
    {id:'4.2', role:'hr', step:'Invite a colleague as an Exco (read only) and another as a Manager.', exp:'Invites send with a link. Roles assigned.'},
  ]},
- {id:'P5', title:'Onboarding: bulk upload (Company A)', co:'A', items:[
+ {id:'P5', tab:'A', title:'Onboarding: bulk upload (Company A)', co:'A', items:[
    {id:'5.1', role:'hr', step:'Create the two Company A branches first: Johannesburg HQ and Durban depot (Settings > Branches).', exp:'Both branches exist so the import can match them by name.'},
    {id:'5.2', role:'hr', step:'Employees > Import. Import the provided file docs/company-a-employees.csv (25 employees).', exp:'Preview lists 25 rows, no validation errors, all import. Directory shows 25 staff.'},
    {id:'5.3', role:'hr', step:'Edit the file first to break one row (e.g. blank an email or corrupt an ID) and import again, or add a bad row to a copy.', exp:'The importer flags exactly the bad row with a clear reason and imports the rest, or blocks with a readable error.'},
    {id:'5.4', role:'hr', step:'Spot check the imported data: open Pieter and a driver. Confirm managers resolved by email, drivers are on the weekly frequency and Durban depot, and the person with a disability is flagged.', exp:'Reporting lines correct, weekly and branch set, equity and disability imported.'},
    {id:'5.5', role:'hr', step:'Bulk export the Company A directory to Excel.', exp:'An .xlsx downloads with all 25, salary column present (you are HR). Round trips the imported data.'},
  ]},
- {id:'P5b', title:'Onboarding: wizard and edge cases (Company C and B)', co:'C', items:[
+ {id:'P5b', tab:'C', title:'Onboarding: wizard and edge cases (Company C and B)', co:'C', items:[
    {id:'5b.1', role:'hr', step:'Company C wizard: add Zanele Khumalo. Enter SA ID 7505200610088. Do NOT type date of birth or gender.', exp:'Gender auto derives Female and date of birth 20 May 1975. Gender is a dropdown you can override to Other. ID passes validation.'},
    {id:'5b.2', role:'hr', step:'Try a broken ID: change the last digit to a wrong check digit, then correct it back.', exp:'Invalid ID is rejected with a clear message. The valid one is accepted.'},
    {id:'5b.3', role:'hr', step:'Finish Zanele with the roster values (Programme Director, Clinic, R504 000, married status, address, next of kin different from emergency, equity African / Female / Senior management). Add a Bachelor\'s Degree with an expiry, a skill and a language.', exp:'Review step shows a correct summary. Profile shows every field.'},
@@ -413,7 +394,7 @@ const PHASES = [
    {id:'5b.5', role:'hr', step:'Passport path: add Farai Ncube (Company C, ZP7654321) and Tendai Moyo (Company B, ZN1234567) as foreign nationals. Enter DOB and gender by hand and tick foreign national.', exp:'Passport path works with no SA ID, foreign national flagged for equity. Farai is a fixed-term contract.'},
    {id:'5b.6', role:'hr', step:'Set reporting lines in Company C: make Zanele the manager of Kabelo, Naledi and Ayesha. Give Zanele\'s user the Manager role and one person the Employee role.', exp:'Org chart and manager scoping will now work.'},
  ]},
- {id:'P5c', title:'Employee records: edits, documents, reviews', co:'Any', items:[
+ {id:'P5c', tab:'A', title:'Employee records: edits, documents, reviews', co:'Any', items:[
    {id:'5c.1', role:'hr', step:'Edit an imported Company A employee: promote the job title, then change the department, then change the branch.', exp:'The Employment history timeline records a promotion and transfers with old and new values.'},
    {id:'5c.2', role:'hr', step:'On any employee upload a document named "Employment contract" (any PDF), then upload a different PDF with the same name and category.', exp:'The second becomes version 2, version 1 is kept in history and still downloadable.'},
    {id:'5c.3', role:'hr', step:'A new hire on probation: set the probation end date to 3 months after start, then later change status to Active.', exp:'Date editable while on probation, cleared when confirmed. Ending probations appear in Reports > Reminders.'},
@@ -421,7 +402,7 @@ const PHASES = [
    {id:'5c.5', role:'hr', step:'Add a tenant custom field (Settings) such as "T-shirt size", then set it on an employee.', exp:'Custom field appears on every profile and saves.'},
    {id:'5c.6', role:'hr', step:'Terminate an imported driver with a termination date, final pay date and reason, encashing any remaining leave.', exp:'Status becomes terminated, leave encashment on exit offered, a termination letter can be generated. He drops out of active payroll.'},
  ]},
- {id:'P6', title:'Leave management', co:'A', items:[
+ {id:'P6', tab:'A', title:'Leave management', co:'A', items:[
    {id:'6.1', role:'employee', step:'As an employee request annual leave including a half day and a non contiguous date.', exp:'Day picker supports half days and gaps, respects weekends and public holidays.'},
    {id:'6.2', role:'employee', step:'Request more days than the balance allows.', exp:'A negative balance warning appears rather than a silent failure.'},
    {id:'6.3', role:'manager', step:'As the manager approve one request and reject another with a reason. Try to approve your own request.', exp:'Approve and reject work. You cannot approve your own leave.'},
@@ -429,7 +410,7 @@ const PHASES = [
    {id:'6.5', role:'hr', step:'Add a custom public holiday and view the leave calendar.', exp:'Holiday appears, leave day counts account for it.'},
    {id:'6.6', role:'hr', step:'Encash a few days of an employee\'s annual leave (Leave tab, Encash).', exp:'A cash line is added to the open run and the annual balance reduces by those days.'},
  ]},
- {id:'P7', title:'Payroll: Company A pay groups and variable pay', co:'A', items:[
+ {id:'P7', tab:'A', title:'Payroll: Company A pay groups and variable pay', co:'A', items:[
    {id:'7.1', role:'hr', step:'Create a run scoped to the Monthly pay group (Create off-cycle run, Pay group = Monthly-paid).', exp:'Run created. Only monthly employees are eligible.'},
    {id:'7.2', role:'hr', step:'Create a separate run scoped to the Weekly pay group with a weekly pay date.', exp:'Only weekly drivers are eligible. Each paid one week (annualGross over 52), not a month.'},
    {id:'7.3', role:'hr', step:'On the monthly run, for Aisha add variable pay: overtime 10 hours at R120 (expect R1 800), commission R2 500, bonus R5 000 (annual payment), and a post-tax deduction R300.', exp:'Overtime computes to R1 800 (10 x 120 x 1.5). Bonus taxed via the SARS annual-payment method. Deduction reduces net after tax.'},
@@ -441,16 +422,16 @@ const PHASES = [
    {id:'7.8', role:'hr', step:'Download a single payslip PDF and the bulk payslip ZIP. Export the payroll register to Excel and the GL journal.', exp:'PDFs render professionally, register and GL export.'},
    {id:'7.9', role:'hr', step:'Generate the Netcash EFT file / submit the test batch.', exp:'Bank export produced, Netcash validation and submission behave as configured.'},
  ]},
- {id:'P8', title:'Payroll: Company B monthly, no SDL, manual EFT', co:'B', items:[
+ {id:'P8', tab:'B', title:'Payroll: Company B monthly, no SDL, manual EFT', co:'B', items:[
    {id:'8.1', role:'hr', step:'Approve an employee\'s unpaid leave inside the pay period, then run monthly payroll.', exp:'Unpaid days reduce that payslip pro rata. Net and PAYE recompute on the reduced base.'},
    {id:'8.2', role:'hr', step:'Inspect Lerato\'s payslip: confirm UIF, no SDL line and no pension deduction.', exp:'Employee UIF is R75.00 (1% of R7 500, under the ceiling). SDL absent (company under R500k). No pension line (no benefit offered).'},
    {id:'8.3', role:'hr', step:'Complete the run without an approver and download the manual bank export CSV.', exp:'Completes directly (no approval step), CSV suitable for manual EFT.'},
  ]},
- {id:'P9', title:'Payroll: Company C ETI', co:'C', items:[
+ {id:'P9', tab:'C', title:'Payroll: Company C ETI', co:'C', items:[
    {id:'9.1', role:'hr', step:'Ensure a young (18 to 29), first time, low wage employee is set up. Run payroll.', exp:'ETI is calculated for the qualifying employee.'},
    {id:'9.2', role:'hr', step:'View the ETI schedule / claim.', exp:'ETI totals reflect on the EMP201 and the claim schedule.'},
  ]},
- {id:'P10', title:'Statutory compliance', co:'Any', items:[
+ {id:'P10', tab:'A', title:'Statutory compliance', co:'Any', items:[
    {id:'10.1', role:'hr', step:'Compliance > Monthly: open the EMP201 for the current period and export it.', exp:'PAYE, UIF, SDL (where liable) and ETI totals are correct for the run.'},
    {id:'10.2', role:'hr', step:'Compliance > Year end: view the EMP501 reconciliation and generate IRP5/IT3(a) certificates (bulk PDF/ZIP).', exp:'Reconciliation balances declared vs certified. Certificates render.'},
    {id:'10.3', role:'employee', step:'As an employee download your own IRP5 from My Payslips for a completed tax year.', exp:'You get only your own certificate. You cannot fetch anyone else\'s.'},
@@ -458,31 +439,31 @@ const PHASES = [
    {id:'10.5', role:'hr', step:'Reports > Equity: download the EEA2 / EEA4 PDF.', exp:'Two page PDF (EEA2 workforce profile and EEA4 income differentials). Numbers match the on screen tables.'},
    {id:'10.6', role:'hr', step:'Export the UIF declaration and confirm the data completeness prompt if equity fields are missing.', exp:'UIF export produced. Equity gaps are flagged, not silently omitted.'},
  ]},
- {id:'P11', title:'Reports and analytics', co:'A', items:[
+ {id:'P11', tab:'A', title:'Reports and analytics', co:'A', items:[
    {id:'11.1', role:'hr', step:'Reports > Payroll, Workforce, Leave: read the charts and figures.', exp:'Charts render with real data, no placeholder or NaN values.'},
    {id:'11.2', role:'hr', step:'Use the branch filter to scope Workforce and Payroll reports to Durban only.', exp:'Figures and charts update to that branch. Equity stays company wide by design.'},
    {id:'11.3', role:'hr', step:'Reports > Reminders: confirm expiring documents/qualifications and probation reviews due appear.', exp:'Items sorted by urgency, expired flagged, export works.'},
    {id:'11.4', role:'hr', step:'Reports > Structure: open the organisation chart.', exp:'Reporting tree built from managers, clickable to profiles, nobody dropped.'},
    {id:'11.5', role:'hr', step:'On any report export to both CSV and Excel.', exp:'Both download and open cleanly (Rand and accented names intact).'},
  ]},
- {id:'P12', title:'Role based views and data boundaries', co:'C', items:[
+ {id:'P12', tab:'C', title:'Role based views and data boundaries', co:'C', items:[
    {id:'12.1', role:'employee', step:'Sign in as an Employee. Confirm the nav shows only Dashboard, My Profile, My Payslips, Leave.', exp:'No access to Payroll, Settings, Compliance, Reports, or other employees\' pay.'},
    {id:'12.2', role:'manager', step:'Sign in as a Manager. View your team, approve leave, try to open a non report\'s profile or /payroll.', exp:'You see your reports only. Salaries of non reports and payroll are not accessible.'},
    {id:'12.3', role:'exco', step:'Sign in as Exco. Browse dashboards, reports and compliance.', exp:'Read only oversight. No create, edit or delete controls.'},
    {id:'12.4', role:'employee', step:'Open browser dev tools Network tab on the employee dashboard and inspect API responses.', exp:'No other employees\' salaries, ID numbers or banking details are in any payload.'},
  ]},
- {id:'P13', title:'Multi company', co:'A', items:[
+ {id:'P13', tab:'X', title:'Multi company', co:'A', items:[
    {id:'13.1', role:'hr', step:'In Company A, invite the email that already owns Company C as an HR user.', exp:'Instead of an error, it grants that account access to Company A (a membership).'},
    {id:'13.2', role:'hr', step:'Sign in as that multi company user. Use the workspace switcher in the top bar to move between A and C.', exp:'Switcher lists both, switching reloads the correct workspace and role. Data never mixes.'},
    {id:'13.3', role:'hr', step:'In one workspace remove that user, then confirm their access to the other workspace still works.', exp:'Removal only affects that workspace. The account is not deleted while another membership remains.'},
  ]},
- {id:'P14', title:'Settings, admin and billing', co:'A', items:[
+ {id:'P14', tab:'A', title:'Settings, admin and billing', co:'A', items:[
    {id:'14.1', role:'hr', step:'Publish a company announcement.', exp:'It appears to employees in self service.'},
    {id:'14.2', role:'hr', step:'Open the Audit log and confirm recent sensitive actions are recorded (banking change, payroll run, user removal).', exp:'Actions attributed to the actor with a timestamp.'},
    {id:'14.3', role:'hr', step:'Configure the payslip studio (logo, alignment, template) and re download a payslip.', exp:'Branding reflects on the payslip PDF.'},
    {id:'14.4', role:'hr', step:'Billing: review plan, trial status and subscription controls.', exp:'Plan state accurate, Paystack controls present.'},
  ]},
- {id:'P15', title:'Security conventions', co:'Any', items:[
+ {id:'P15', tab:'X', title:'Security conventions', co:'Any', items:[
    {id:'15.1', role:'hr', step:'Tenant isolation: while signed into Company A, copy an employee profile URL from Company B and open it as Company A.', exp:'Access denied or not found. No cross tenant data ever loads.'},
    {id:'15.2', role:'any', step:'Insecure direct object reference: change an id in a URL or request to another tenant\'s id.', exp:'Server rejects it (scoped by the session tenant), not trusting a client supplied id.'},
    {id:'15.3', role:'hr', step:'Document links: open a document, copy the signed URL, wait about a minute and reopen the old URL.', exp:'The link expires (403) after its short TTL. Storage is not publicly listable.'},
@@ -494,7 +475,7 @@ const PHASES = [
    {id:'15.9', role:'hr', step:'Rate limiting: rapidly fire many invites or sensitive actions.', exp:'Throttled with a clear message, not a server error or unlimited abuse.'},
    {id:'15.10', role:'employee', step:'POPIA: confirm ID numbers and banking are masked or withheld where a role should not see them, and legal pages exist.', exp:'Least privilege on sensitive fields. Privacy, POPIA and PAIA pages present.'},
  ]},
- {id:'P16', title:'UI and UX conventions (professional vs AI slop)', co:'Any', items:[
+ {id:'P16', tab:'X', title:'UI and UX conventions (professional vs AI slop)', co:'Any', items:[
    {id:'16.1', role:'any', step:'Loading states: open Reports, Compliance and a payroll run on a throttled connection.', exp:'Skeletons or spinners while loading. No infinite spinners, no flash of empty then full.'},
    {id:'16.2', role:'any', step:'Empty states: view a brand new company\'s payroll, documents and reports before adding data.', exp:'Helpful empty states with a clear next action, not a blank screen.'},
    {id:'16.3', role:'any', step:'Error states: force an error (submit an invalid form, or go offline and act).', exp:'Friendly toast or inline message, never a raw stack trace or unhandled crash.'},
@@ -508,28 +489,115 @@ const PHASES = [
    {id:'16.11', role:'any', step:'Accessibility: inputs have labels, images have alt text, colour contrast is adequate, destructive actions confirm.', exp:'Reasonable a11y. Delete and cancel actions ask for confirmation.'},
    {id:'16.12', role:'any', step:'Polish: toasts auto dismiss, no layout shift on load, icons aligned, brand and logo consistent across pages and PDFs.', exp:'Feels professionally built and cohesive, not stitched together.'},
  ]},
- {id:'P17', title:'Cross cutting and performance', co:'Any', items:[
+ {id:'P17', tab:'X', title:'Cross cutting and performance', co:'Any', items:[
    {id:'17.1', role:'hr', step:'Run payroll for the largest company end to end and time it.', exp:'Completes without timeout or error.'},
    {id:'17.2', role:'any', step:'Deep link and refresh several pages, use browser back and forward across roles.', exp:'No broken routes, no stale data, no redirect loops.'},
    {id:'17.3', role:'hr', step:'Regression: after all the above, revisit each company\'s dashboard.', exp:'Figures are consistent with the actions taken. Nothing regressed between companies.'},
  ]},
+ {id:'P18', tab:'X', title:'Payroll tax boundaries and calculation edge cases', co:'D/E', items:[
+   {id:'18.1', tab:'D', role:'hr', step:'Company D: run payroll for Sizwe (age 66, R456 000/yr, no pension). Read his PAYE.', exp:'PAYE is R6 251.00 (primary + secondary rebate). NOT R7 064.75. If it reads R7 064.75 the age rebate ignores that he is 65+, log it critical.'},
+   {id:'18.2', tab:'E', role:'hr', step:'Company E: run payroll for Gogo Miriam (age 77, R456 000/yr).', exp:'PAYE is R5 980.25 (primary + secondary + tertiary rebate).'},
+   {id:'18.3', tab:'E', role:'hr', step:'Company E: check Lwandile (turns 65 on 15 Sep 2026). Run a period before and a period on/after his birthday.', exp:'Rebate should change based on the pay period, not on today\'s date. Note whether the app uses the period date or the run date. Flag if re-running an old period changes his tax as he ages.'},
+   {id:'18.4', tab:'E', role:'hr', step:'Company E: run Reabetswe (R2 000 000/yr, top bracket).', exp:'PAYE R58 595.75/month (45% marginal). No column overflow, register and GL totals still balance.'},
+   {id:'18.5', tab:'E', role:'hr', step:'Company E: run Tshepo (R84 000/yr, under the R99 000 threshold).', exp:'PAYE is exactly R0.00. Never a negative number. UIF R70.00.'},
+   {id:'18.6', tab:'E', role:'hr', step:'Company E: run Bongani (R17 712/month, exactly the UIF ceiling).', exp:'Employee UIF is exactly R177.12 (boundary, not one cent over or under).'},
+   {id:'18.7', tab:'A', role:'hr', step:'Company A: give Aisha a travel allowance and tick "has a SARS logbook", then run. Untick it and run again.', exp:'With logbook only 20% of travel is taxable; without it 80% is. PAYE differs accordingly.'},
+   {id:'18.8', tab:'A', role:'hr', step:'Company A: set a large pension % (say 27.5%+) or a big retirement annuity so the s11F cap bites.', exp:'Deduction is capped at 27.5% of remuneration and at R430 000/yr. Pension + RA are capped together, not separately.'},
+   {id:'18.9', tab:'A', role:'hr', step:'Company A: add a taxable employer benefit (fringe benefit) to an employee and run.', exp:'The benefit raises PAYE, UIF and SDL (leviable) but never appears as cash in gross or net pay.'},
+   {id:'18.10', tab:'A', role:'hr', step:'Medical Aid Tax Credit: set an employee as a medical scheme member with 0, 1, 3 and 5 dependants and observe the PAYE credit.', exp:'MATC scales R376 main, +R376 first dependant, +R254 each extra. More dependants means lower PAYE.'},
+ ]},
+ {id:'P19', tab:'X', title:'Weird company shapes and small tenants', co:'D/E', items:[
+   {id:'19.1', tab:'D', role:'hr', step:'Company D: with only one employee (who is also the HR admin), view the org chart, the dashboard and Reports.', exp:'No crash or empty NaN on a one person company. Charts and headcount read 1. Org chart shows a single node.'},
+   {id:'19.2', tab:'D', role:'hr', step:'Company D: run the full payroll for a single employee and take it through approval where the approver is also the only user.', exp:'Either self approval is allowed for a solo tenant, or the approval step is skipped gracefully. It does not deadlock waiting for a second person.'},
+   {id:'19.3', tab:'E', role:'hr', step:'Company E: it has employees across two pay bases (monthly and one weekly). Create the correct runs.', exp:'Weekly Lwandile is only eligible in a weekly run, the rest in the monthly run. No employee is paid twice or missed.'},
+   {id:'19.4', tab:'E', role:'hr', step:'Company E: foreign national with no SA ID and no tax number left blank. Save and run payroll.', exp:'Saves without an SA ID, payroll still computes, they are flagged for equity and for a missing tax number where relevant.'},
+   {id:'19.5', tab:'E', role:'hr', step:'ETI age-out: set up an employee who is 29 now and turns 30 next month (Company C or E), and run both months.', exp:'ETI claimed the month they are still 29, then stops the month they turn 30. Age measured at the last day of the month.'},
+   {id:'19.6', tab:'E', role:'hr', step:'Zero and tiny values: try an employee at R0 annual gross, and one at R1.', exp:'No divide by zero, no NaN, sensible payslip (or a validation block on R0). Never a crash.'},
+ ]},
+ {id:'P20', tab:'X', title:'Unpaid leave, proration and calendar edges', co:'B/E', items:[
+   {id:'20.1', tab:'E', role:'hr', step:'Company E: approve 1 unpaid working day for Lwandile (weekly paid) then run his weekly payroll.', exp:'Unpaid deduction is one day out of that week (about R600 off R3 000), NOT one twenty first. Known risk: proration always divides by 21 working days regardless of frequency, so a weekly deduction may be far too small. Flag if so.'},
+   {id:'20.2', tab:'A', role:'hr', step:'Mid-month new hire: add an employee starting on the 15th of the current month, then run that month.', exp:'Decide expected behaviour: are they paid a full month or a pro-rata half? Known risk: the app pays a full month for anyone whose start date is on or before the pay date, no first-month proration. Confirm and flag if unintended.'},
+   {id:'20.3', tab:'B', role:'hr', step:'Company B: unpaid leave that spans a weekend and a public holiday.', exp:'Only working days are counted as unpaid. Weekends and holidays are not deducted.'},
+   {id:'20.4', tab:'A', role:'hr', step:'Leave across the tax year boundary: request leave from 26 Feb to 4 Mar.', exp:'Day count is correct across the month and tax-year rollover. Balances update in the right cycle.'},
+   {id:'20.5', tab:'A', role:'hr', step:'Carryover cap: set a carryover cap, push a balance above it, then roll into the new leave cycle.', exp:'Balance is capped at the configured maximum on rollover, excess forfeited or paid per policy, not silently carried in full.'},
+   {id:'20.6', tab:'A', role:'hr', step:'Negative balance after encashment: encash more days than the annual balance holds.', exp:'Blocked or clearly warned. Balance never silently goes deeply negative without a flag.'},
+   {id:'20.7', tab:'A', role:'hr', step:'Sick leave 3-year cycle and 4-month maternity: request the statutory maximums.', exp:'Sick leave respects the 36-month cycle allowance, maternity allows up to 4 consecutive months.'},
+ ]},
+ {id:'P21', tab:'X', title:'Destructive, negative and data-integrity cases', co:'Any', items:[
+   {id:'21.1', role:'hr', step:'Delete a department or branch that still has employees assigned.', exp:'Blocked with a clear message, or employees are safely reassigned. No orphaned foreign keys or crash.'},
+   {id:'21.2', role:'hr', step:'Terminate a manager who still has direct reports.', exp:'Reports are not silently orphaned. You are prompted to reassign them, or they surface as unmanaged. Org chart does not break.'},
+   {id:'21.3', role:'hr', step:'Import (Company style) with a duplicate SA ID number and a duplicate employee number in the file.', exp:'Duplicates are flagged per row, not imported as clashing records. The rest import.'},
+   {id:'21.4', role:'hr', step:'Netcash / EFT export with an employee who has no bank details or an invalid branch code.', exp:'That employee is flagged and excluded or the export is blocked, never a malformed bank file.'},
+   {id:'21.5', role:'hr', step:'Company E: Precious with a R15 000 post-tax deduction on a R10 000/month salary.', exp:'The app refuses to produce a negative net payslip, or clearly flags it. No negative net, no negative EFT line.'},
+   {id:'21.6', role:'hr', step:'Concurrency: open the same open pay run in two tabs, edit variable pay in both and save.', exp:'Last write is consistent, no lost update that corrupts totals, no duplicate lines. Ideally a stale-data warning.'},
+   {id:'21.7', role:'hr', step:'Demote a manager to employee while they have a leave request pending their approval.', exp:'The pending approval reroutes or is reassigned. No request is stuck with an approver who no longer has the role.'},
+   {id:'21.8', role:'hr', step:'Very long and unicode input: a 200-char name, emoji, and right-to-left text in a name field.', exp:'Stored and displayed without breaking layout, PDFs or exports. No truncation that loses data silently.'},
+ ]},
+ {id:'P22', tab:'X', title:'Regression and idempotency', co:'Any', items:[
+   {id:'22.1', role:'hr', step:'Run the same period twice: complete a run, reverse it, then recreate and run the identical period.', exp:'The recreated run produces byte-identical figures. No YTD double counting, no duplicate payslips.'},
+   {id:'22.2', role:'hr', step:'Historical stability: re-open and re-generate a payslip PDF for a run completed earlier in the session.', exp:'The figures are unchanged. Re-running does not shift PAYE (watch the age-as-of-today risk from 18.1/18.3).'},
+   {id:'22.3', role:'hr', step:'Edit then recompute: change an employee salary mid-cycle, confirm only future runs change, past completed payslips do not.', exp:'Completed runs are immutable. Salary history records the change with an effective date.'},
+   {id:'22.4', role:'hr', step:'Add recurring components twice on the same run (double click / retry).', exp:'Idempotent: the recurring lines are not duplicated on the second click.'},
+   {id:'22.5', role:'hr', step:'After all edge companies (D and E) are processed, revisit A, B and C dashboards and payroll.', exp:'Nothing regressed. Totals for A/B/C are unchanged by the existence of D and E. No cross-tenant bleed.'},
+   {id:'22.6', role:'hr', step:'YTD roll: view an employee\'s year-to-date after multiple runs including a reversal.', exp:'YTD equals the sum of live runs only. The reversed run is excluded, not double counted.'},
+ ]},
+ {id:'P23', tab:'X', title:'Go live operations and configuration (non-code)', co:'Ops', items:[
+   {id:'23.1', role:'ops', step:'Paystack production key: add PAYSTACK_SECRET_KEY (the live sk_live_ key from the Paystack dashboard) to the Vercel Production environment and redeploy. It is currently missing, so real subscribe/billing fails.', exp:'Env var set on Production. A fresh deploy carries it. Subscribe no longer errors with a Paystack failure.'},
+   {id:'23.2', role:'ops', step:'Paystack plan and webhook: in the Paystack dashboard create the subscription plan/product used for billing, and point the webhook at https://hr.novabos.co.za/api/webhooks/paystack. Confirm the billing callback URL matches the deployed domain.', exp:'Plan exists, webhook is registered and shows delivered events, callback returns to the live app.'},
+   {id:'23.3', role:'ops', step:'Live subscribe smoke test: on a throwaway tenant, subscribe with a real card for the smallest amount, confirm the tenant flips to Active, then cancel and refund.', exp:'End-to-end billing works on production. Tenant status updates from the webhook. Refund processed.'},
+   {id:'23.4', role:'ops', step:'Rotate Netcash keys: rotate the previously exposed Netcash service keys in Netcash, then re-enter the new keys under Settings > Payroll > Netcash for the production tenant.', exp:'Old keys are invalidated at Netcash. New keys saved (encrypted). A test bank-account validation succeeds with the new keys.'},
+   {id:'23.5', role:'ops', step:'Supabase paid plan: upgrade the Supabase project off the Free tier so the database never auto-pauses. Confirm compute size and any add-ons.', exp:'Project is on a paid plan. No pause-on-inactivity. The whole app stays reachable.'},
+   {id:'23.6', role:'ops', step:'Supabase custom SMTP for auth email: configure custom SMTP (Resend) for Authentication emails so signup verification is not rate limited by the built-in mailer. Send a test signup and confirm the verification email arrives quickly and is not in spam.', exp:'Auth emails send via Resend. Verification arrives within seconds, inbox not spam. Multiple signups in a row all deliver.'},
+   {id:'23.7', role:'ops', step:'Resend sending domain: verify the novabos.co.za sending domain in Resend (SPF, DKIM, DMARC) so payslip, invite and notification emails deliver and are not marked spam.', exp:'Domain verified in Resend. A test invite and a test payslip notification both land in the inbox, not spam.'},
+   {id:'23.8', role:'ops', step:'Supabase URLs and email confirmation: confirm Confirm email is enabled, and Site URL plus Redirect URLs include https://hr.novabos.co.za/auth/callback and the accept-invite path. Otherwise verify and invite links break in production.', exp:'Redirect allowlist matches the live domain. Clicking a verification link and an invite link both land correctly, no redirect error.'},
+   {id:'23.9', role:'ops', step:'MFA enforcement: turn on and enforce TOTP multi-factor authentication for admin (HR) accounts in Supabase Auth per the security policy.', exp:'Admin accounts are required to enrol MFA. A new admin login prompts for the second factor.'},
+   {id:'23.10', role:'ops', step:'Encryption secrets set and backed up: confirm PII_ENCRYPTION_KEY and NETCASH_ENCRYPTION_KEY are set on Vercel Production and stored in the password manager. Losing them makes encrypted employee data and Netcash keys unrecoverable.', exp:'Both keys present on Production and safely backed up off-platform. Documented who holds them.'},
+   {id:'23.11', role:'ops', step:'Scheduled jobs: confirm the billing cron (/api/cron/billing) is scheduled in Vercel, and wire or document the weekly/monthly payroll run auto-scheduler.', exp:'Billing cron runs on schedule (check logs). The next payroll run is created automatically, or the manual process is written down and owned.'},
+   {id:'23.12', role:'ops', step:'Database backups: confirm Supabase automated backups or point-in-time recovery are enabled, and that a recent restore point exists.', exp:'Backups/PITR enabled. A restore point is visible. Recovery window is documented.'},
+   {id:'23.13', role:'ops', step:'Domain and SSL: confirm hr.novabos.co.za resolves, the SSL certificate is valid, and any www or naked-domain redirects behave.', exp:'HTTPS valid, no certificate warning, redirects land on the canonical domain.'},
+   {id:'23.14', role:'ops', step:'Monitoring and alerts: trigger a test error and confirm Sentry receives it and routes an alert. Confirm an uptime monitor is watching /api/health.', exp:'Sentry shows the test event and sends an alert. Uptime monitor is green and will page on downtime.'},
+   {id:'23.15', role:'ops', step:'Legal and support: confirm Privacy, POPIA, PAIA, Terms and Cookies pages load in production, that SUPPORT_EMAIL is a monitored inbox, and that EMAIL_FROM is a real deliverable address.', exp:'All legal pages load. Support inbox is watched. From-address passes delivery.'},
+ ]},
 ];
 
-const KEY='novahr-launch-uat-v3';
+const KEY='novahr-launch-uat-v4';
 let state=load();
+// Pre-marked complete: 23.6 Supabase custom SMTP (Resend) and 23.7 Resend domain
+// verified, both done 2026-08-12. Only set when the tester has not already acted
+// on them, so manual changes are preserved.
+for(const _id of ['23.6','23.7']){ if(state.items && !state.items[_id]){ state.items[_id]='pass'; } }
+persist();
 function load(){try{return Object.assign(seed(),JSON.parse(localStorage.getItem(KEY))||{})}catch{return seed()}}
-function seed(){return{items:{},notes:{},col:{},filter:'all',so:{},bugs:[]}}
+function seed(){return{items:{},notes:{},col:{},filter:'all',tab:'all',so:{},bugs:[]}}
 function persist(){localStorage.setItem(KEY,JSON.stringify(state))}
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
+
+/* ---- Company tabs ---- */
+const TABS=[{k:'all',label:'All'},{k:'A',label:'Company A'},{k:'B',label:'Company B'},{k:'C',label:'Company C'},{k:'D',label:'Company D'},{k:'E',label:'Company E'},{k:'X',label:'Platform & cross-company'}];
+function itemTab(p,i){return i.tab||p.tab||'X';}
+function itemsInTab(p){var tb=state.tab||'all';return tb==='all'?p.items:p.items.filter(function(i){return itemTab(p,i)===tb;});}
+function phaseInTab(p){return itemsInTab(p).length>0;}
+function renderTabs(){
+  var host=document.getElementById('tabs'); if(!host)return;
+  host.innerHTML=TABS.map(function(t){
+    var items=PHASES.flatMap(function(p){return p.items.filter(function(i){return t.k==='all'||itemTab(p,i)===t.k;});});
+    var pass=items.filter(function(i){return state.items[i.id]==='pass';}).length;
+    return '<button class="tab'+(((state.tab||'all')===t.k)?' active':'')+'" onclick="setTab(\''+t.k+'\')">'+esc(t.label)+'<span class="tcnt">'+pass+'/'+items.length+'</span></button>';
+  }).join('');
+}
+function setTab(k){state.tab=k;persist();renderTabs();renderSidebar();applyView();}
+
 function renderSidebar(){
-  document.getElementById('sb-items').innerHTML=PHASES.map(p=>{
+  document.getElementById('sb-items').innerHTML=PHASES.filter(phaseInTab).map(p=>{
+    const n=itemsInTab(p).length;
     return `<div class="si" id="si-${p.id}" onclick="jumpTo('${p.id}')">
       <span class="dot" id="sd-${p.id}">${p.id.replace('P','')}</span>
       <span class="nm">${esc(p.title)}</span>
-      <span class="ct" id="sc-${p.id}">0/${p.items.length}</span>
+      <span class="ct" id="sc-${p.id}">0/${n}</span>
     </div>`;
   }).join('');
+  PHASES.forEach(updatePhase);
 }
 function render(){
   document.getElementById('phases').innerHTML=PHASES.map(p=>{
@@ -541,15 +609,15 @@ function render(){
         <span class="ph-co ${p.co}">${p.co==='Any'?'All co':'Co '+p.co}</span>
         <span class="ph-prog" id="pp-${p.id}"></span>
       </div>
-      <div class="ph-body ${col?'collapsed':''}" id="body-${p.id}">${p.items.map(rowHTML).join('')}</div>
+      <div class="ph-body ${col?'collapsed':''}" id="body-${p.id}">${p.items.map(i=>rowHTML(i,p)).join('')}</div>
     </div>`;
   }).join('');
   PHASES.forEach(updatePhase);
   applyView();updateStats();
 }
-function rowHTML(i){
+function rowHTML(i,p){
   const st=state.items[i.id]||'';
-  return `<div class="item ${st?'row-'+st:''}" id="row-${i.id}" data-status="${st}" data-text="${esc((i.step+' '+i.exp).toLowerCase())}">
+  return `<div class="item ${st?'row-'+st:''}" id="row-${i.id}" data-status="${st}" data-text="${esc((i.step+' '+i.exp).toLowerCase())}" data-tab="${itemTab(p,i)}">
     <div><div class="id">${i.id}</div><span class="role ${i.role}">${i.role}</span></div>
     <div>
       <div class="step">${esc(i.step)}</div>
@@ -569,11 +637,11 @@ function toggle(id){state.col[id]=!state.col[id];persist();document.getElementBy
 function expandAll(open){PHASES.forEach(p=>{state.col[p.id]=!open});persist();PHASES.forEach(p=>{const b=document.getElementById('body-'+p.id);const t=document.getElementById('tw-'+p.id);if(b)b.classList.toggle('collapsed',!open);if(t)t.innerHTML=open?'&#9662;':'&#9656;'})}
 function setStatus(id,v){state.items[id]=state.items[id]===v?'':v;persist();const row=document.getElementById('row-'+id);const st=state.items[id]||'';row.className='item'+(st?' row-'+st:'');row.setAttribute('data-status',st);row.querySelectorAll('.sbtn').forEach(b=>{const k=b.classList.contains('pass')?'pass':b.classList.contains('fail')?'fail':'skip';b.classList.toggle('active',k===st)});const p=PHASES.find(p=>p.items.some(i=>i.id===id));if(p)updatePhase(p);updateStats();applyView()}
 function setNote(id,v){state.notes[id]=v;persist()}
-function updatePhase(p){const done=p.items.filter(i=>state.items[i.id]==='pass').length;const acted=p.items.filter(i=>state.items[i.id]).length;const pp=document.getElementById('pp-'+p.id);if(pp)pp.textContent=done+'/'+p.items.length;const sc=document.getElementById('sc-'+p.id);if(sc)sc.textContent=done+'/'+p.items.length;const sd=document.getElementById('sd-'+p.id);if(sd){sd.classList.toggle('done',done===p.items.length);sd.classList.toggle('partial',acted>0&&done<p.items.length)}}
+function updatePhase(p){const items=itemsInTab(p);const done=items.filter(i=>state.items[i.id]==='pass').length;const acted=items.filter(i=>state.items[i.id]).length;const pp=document.getElementById('pp-'+p.id);if(pp)pp.textContent=done+'/'+items.length;const sc=document.getElementById('sc-'+p.id);if(sc)sc.textContent=done+'/'+items.length;const sd=document.getElementById('sd-'+p.id);if(sd){sd.classList.toggle('done',items.length>0&&done===items.length);sd.classList.toggle('partial',acted>0&&done<items.length)}}
 function updateStats(){const all=PHASES.flatMap(p=>p.items);const pass=all.filter(i=>state.items[i.id]==='pass').length;document.getElementById('stat').textContent=pass+' / '+all.length;document.getElementById('fill').style.width=(all.length?Math.round(pass/all.length*100):0)+'%'}
 function setFilter(f){state.filter=f;persist();document.querySelectorAll('.fbtn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));applyView()}
-function applyView(){const f=state.filter||'all';const q=(document.getElementById('q').value||'').toLowerCase().trim();document.querySelectorAll('.item').forEach(row=>{const st=row.getAttribute('data-status')||'';let ok=true;if(f==='untested')ok=!st;else if(f!=='all')ok=st===f;if(ok&&q)ok=row.getAttribute('data-text').indexOf(q)>-1;row.style.display=ok?'':'none'})}
-function reset(){if(confirm('Clear all UAT progress in this browser?')){state=seed();persist();renderSidebar();render();renderBugs();loadSO()}}
+function applyView(){const f=state.filter||'all';const tb=state.tab||'all';const q=(document.getElementById('q').value||'').toLowerCase().trim();document.querySelectorAll('.item').forEach(row=>{const st=row.getAttribute('data-status')||'';let ok=true;if(tb!=='all')ok=row.getAttribute('data-tab')===tb;if(ok&&f==='untested')ok=!st;else if(ok&&f!=='all')ok=st===f;if(ok&&q)ok=row.getAttribute('data-text').indexOf(q)>-1;row.style.display=ok?'':'none'});document.querySelectorAll('.phase').forEach(ph=>{const items=ph.querySelectorAll('.item');let vis=0;items.forEach(r=>{if(r.style.display!=='none')vis++;});ph.style.display=(items.length&&!vis)?'none':''})}
+function reset(){if(confirm('Clear all UAT progress in this browser?')){state=seed();persist();renderTabs();renderSidebar();render();renderBugs();loadSO()}}
 /* Bugs */
 function renderBugs(){document.getElementById('bugs').innerHTML=state.bugs.map((b,i)=>`
   <div class="bug-item sev-${b.sev||'high'}" id="bi-${i}">
@@ -603,7 +671,91 @@ function saveSO(){state.so={name:val('so-name'),date:val('so-date'),notes:val('s
 function val(id){return document.getElementById(id).value}
 function setOutcome(v){state.so.outcome=v;persist();document.getElementById('oc-pass').classList.toggle('active',v==='pass');document.getElementById('oc-fail').classList.toggle('active',v==='fail')}
 function loadSO(){const s=state.so||{};document.getElementById('so-name').value=s.name||'';document.getElementById('so-date').value=s.date||'';document.getElementById('so-notes').value=s.notes||'';if(s.outcome)setOutcome(s.outcome)}
-renderSidebar();render();renderBugs();loadSO();
+
+/* ---- Copy chips, people data and rendering ---- */
+const EMAIL_BASE='mtshwenewesley';
+function em(tag){return EMAIL_BASE+'+'+tag+'@gmail.com';}
+function doCopy(txt){
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(txt).catch(function(){fallbackCopy(txt)});}
+  else fallbackCopy(txt);
+}
+function fallbackCopy(txt){var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);}
+function cpy(btn){var v=btn.getAttribute('data-c');doCopy(v);toast('Copied  '+v);btn.classList.add('copied');setTimeout(function(){btn.classList.remove('copied')},900);}
+function toast(msg){var el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el);}el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show')},1500);}
+function chip(label,val,mono){if(val==null||val==='')return '';var v=String(val);return '<button type="button" class="cp'+(mono?' mono':'')+'" data-c="'+esc(v)+'" onclick="cpy(this)"><span class="cl">'+esc(label)+'</span><span class="cv">'+esc(v)+'</span><span class="ck">⧉</span></button>';}
+
+const COMPANIES=[
+ {head:"Company A · Ironwood Freight (bulk upload, 25 employees)", pill:'<span class="pill a">A</span>',
+  callout:`<div class="card" style="background:var(--indigo-soft);border-color:#c7d2fe;margin-bottom:12px">
+    <p style="font-size:13px;margin-bottom:6px"><b>This is the bulk-upload test.</b> Do not hand enter Company A. Instead:</p>
+    <ol style="font-size:12px;color:var(--slate);padding-left:18px;line-height:1.7">
+      <li>Create the two branches first: <b>Johannesburg HQ</b> and <b>Durban depot</b> (the file references them by name).</li>
+      <li>Employees &gt; Import, then import the provided file <b>docs/company-a-employees.csv</b> (25 rows, valid SA IDs, banking, managers, equity, one person with a disability). Every email in the file is plus addressed to your inbox, so imported staff can log in as employees too.</li>
+      <li>Review the preview, fix any flagged rows, confirm the import.</li>
+    </ol>
+    <p class="hint" style="margin-top:6px">Expected: all 25 import, reporting lines resolve by manager email, drivers land on the weekly frequency and Durban depot, and headcount / annual payroll now exceed 25 / R500k so SDL applies. Five notable rows are shown below for reference (already in the file).</p>
+  </div>`,
+  people:[
+   {first:"Nomsa",last:"Dlamini",pref:"Nomsa",email:"nomsa.dlamini",badge:"in the import file, also the Company A HR admin identity",derive:"Female, 12 Mar 1988 (from SA ID)",id:"8803120812085",tax:"1234567890",phone:"082 345 6712",salary:"456000",bankAcc:"62234567891",personal:"Married · 14 Oak Ave, Sandton, 2196 · Next of kin Bongani Dlamini (Spouse) 083 111 2233 · Emergency same as next of kin",role:"HR Manager · Admin · Johannesburg HQ · Full-time · Start 2019-02-01 · Location Johannesburg · No manager",pay:"Salaried · Annual gross R456 000 · Pension 7.5% · Medical aid R2 500 · Bank FNB, acc 62234567891, branch 250655, Cheque",equity:"African · Female · Senior management · Not foreign · No disability"},
+   {first:"Pieter",last:"van der Merwe",pref:"Pieter",email:"pieter.vandermerwe",badge:"manager approver in P6",derive:"Male, 25 Jul 1979",id:"7907255081084",tax:"2233445566",phone:"083 512 8890",salary:"660000",bankAcc:"10087654321",personal:"Married · 8 Rivonia Rd, Sandton, 2196 · Next of kin Anel van der Merwe (Spouse) 082 700 1122 · Emergency same",role:"Operations Director · Operations · Johannesburg HQ · Full-time · Start 2017-06-15 · Location Johannesburg · No manager",pay:"Salaried · Annual gross R660 000 · Pension 7.5% · Medical aid R3 000 · Bank Standard Bank, acc 10087654321, branch 051001, Cheque",equity:"White · Male · Top management · Not foreign · No disability"},
+   {first:"Aisha",last:"Patel",pref:"Aisha",email:"aisha.patel",badge:"employee login in P6",derive:"Female, 3 Nov 1995",id:"9511031234088",tax:"3344556677",phone:"084 220 5567",salary:"222000",bankAcc:"1567890123",personal:"Single · 22 Grove St, Rosebank, 2196 · Next of kin Rahul Patel (Father) 083 445 9900 · Emergency Rahul Patel (Father) 083 445 9900",role:"Office Administrator · Admin · Johannesburg HQ · Full-time · Start 2022-03-01 · Location Johannesburg · Manager Nomsa Dlamini",pay:"Salaried · Annual gross R222 000 · Travel allowance R2 000 · Bank Capitec, acc 1567890123, branch 470010, Savings",equity:"Indian · Female · Skilled technical · Not foreign · No disability"},
+   {first:"Sipho",last:"Nkosi",pref:"Sipho",email:"sipho.nkosi",derive:"Male, 18 Jun 1992",id:"9206185327081",tax:"4455667788",phone:"073 118 4432",salary:"166400",bankAcc:"62555443322",personal:"Single · 45 Umbilo Rd, Durban, 4001 · Next of kin Thandi Nkosi (Sister) 072 556 3321 · Emergency same",role:"Driver (grade C1) · Operations · Durban depot · Full-time · Start 2021-08-09 · Location Durban · Manager Pieter van der Merwe · Cost centre Operations",pay:"Weekly · Weekly rate R3 200 · Annual gross R166 400 · Bank FNB, acc 62555443322, branch 250655, Cheque",equity:"African · Male · Semi-skilled · Not foreign · No disability"},
+   {first:"Johannes",last:"Botha",pref:"Johan",email:"johannes.botha",derive:"Male, 9 Feb 1985",id:"8502095019086",tax:"5566778899",phone:"076 990 2213",salary:"156000",bankAcc:"1987650012",personal:"Married · 12 Berea Rd, Durban, 4001 · Next of kin Marie Botha (Spouse) 082 334 7788 · Emergency same",role:"Driver · Operations · Durban depot · Full-time · Start 2020-01-20 · Location Durban · Manager Pieter van der Merwe · Cost centre Operations",pay:"Weekly · Weekly rate R3 000 · Annual gross R156 000 · Bank Nedbank, acc 1987650012, branch 198765, Cheque",equity:"White · Male · Semi-skilled · Not foreign · No disability"}
+  ]},
+ {head:"Company B · Thuli's Kitchen (add these 3)", pill:'<span class="pill b">B</span>', callout:"",
+  people:[
+   {first:"Thulisile",last:"Mahlangu",pref:"Thuli",email:"thuli.hr",badge:"owner, this is also the Company B admin login",derive:"Female, 14 Sep 1983",id:"8309140451086",tax:"6677889900",phone:"082 668 1190",salary:"180000",bankAcc:"1345678901",personal:"Married · 30 Vilakazi St, Soweto, 1804 · Next of kin Sibusiso Mahlangu (Spouse) 083 221 6655 · Emergency same",role:"Owner / Head Baker · Department Operations · Head office · Full-time · Start 2020-05-01 · Location Soweto · No manager",pay:"Salaried · Annual gross R180 000 · No pension · No medical aid · Bank Capitec, acc 1345678901, branch 470010, Savings",equity:"African · Female · Skilled technical · Not foreign · No disability"},
+   {first:"Lerato",last:"Molefe",pref:"Lerato",email:"lerato.employee",derive:"Female, 30 Dec 1998",id:"9812302088082",tax:"7788990011",phone:"071 445 9087",salary:"90000",bankAcc:"1456789012",personal:"Single · 5 Main Rd, Soweto, 1804 · Next of kin Palesa Molefe (Mother) 072 889 4410 · Emergency same",role:"Cashier · Department Operations · Head office · Full-time · Start 2023-01-15 · Location Soweto · Manager Thulisile Mahlangu",pay:"Salaried · Annual gross R90 000 · No pension/medical · Bank Capitec, acc 1456789012, branch 470010, Savings · UIF should be R75.00",equity:"African · Female · Semi-skilled · Not foreign · No disability"},
+   {first:"Tendai",last:"Moyo",pref:"Tendai",email:"tendai.employee",badge:"passport path",passport:"ZN1234567",idnote:"Passport ZN1234567, nationality Zimbabwean. No SA ID. Enter DOB 1990-04-22 and gender Male by hand.",tax:"",phone:"074 002 7781",salary:"96000",bankAcc:"62998877665",personal:"Single · 18 Church St, Johannesburg, 2001 · Next of kin Rudo Moyo (Sister) 073 556 8890 · Emergency same",role:"Baker's Assistant · Department Operations · Head office · Full-time · Start 2022-09-01 · Location Soweto · Manager Thulisile Mahlangu",pay:"Salaried · Annual gross R96 000 · No pension/medical · Bank FNB, acc 62998877665, branch 250655, Cheque",equity:"Foreign national (tick) · Male · Semi-skilled · No disability"}
+  ]},
+ {head:"Company C · Ubuntu Community Health NPC (add these 5, plus invite Themba as Exco)", pill:'<span class="pill c">C</span>', callout:"",
+  people:[
+   {first:"Zanele",last:"Khumalo",pref:"Zanele",email:"zanele.manager",badge:"give this user the Manager role",derive:"Female, 20 May 1975",id:"7505200610088",tax:"8899001122",phone:"082 110 3345",salary:"504000",bankAcc:"10011223344",personal:"Divorced · 7 Florida Rd, Durban, 4001 · Next of kin Nkosi Khumalo (Son) 083 667 2210 · Emergency same",role:"Programme Director · Clinic · Head office · Full-time · Start 2016-04-01 · Location Durban · No manager",pay:"Salaried · Annual gross R504 000 · Bank Standard Bank, acc 10011223344, branch 051001, Cheque",equity:"African · Female · Senior management · Not foreign · No disability"},
+   {first:"Kabelo",last:"Sithole",pref:"Kabelo",email:"kabelo.employee",badge:"ETI eligible, give the Employee role",derive:"Male, 15 Jan 2003",id:"0301155140082",tax:"9900112233",phone:"073 889 1120",salary:"54000",bankAcc:"1567012345",personal:"Single · 3 Hope St, Pinetown, 3610 · Next of kin Lindiwe Sithole (Mother) 072 445 8890 · Emergency same",role:"Community Health Worker · Outreach · Head office · Full-time · Start 2024-02-01 · Location Durban · Manager Zanele Khumalo · Cost centre Outreach",pay:"Salaried · Annual gross R54 000 · Bank Capitec, acc 1567012345, branch 470010, Savings · UIF should be R45.00",equity:"African · Male · Semi-skilled · Not foreign · No disability"},
+   {first:"Naledi",last:"Mokoena",pref:"Naledi",email:"naledi.employee",badge:"ETI, disability",derive:"Female, 8 Aug 2004",id:"0408081902087",tax:"1011121314",phone:"071 220 6654",salary:"48000",bankAcc:"1578123456",personal:"Single · 9 Smith St, Durban, 4001 · Next of kin Kagiso Mokoena (Father) 083 112 9987 · Emergency same",role:"Intern · Clinic · Head office · Internship · Start 2025-01-15 · Location Durban · Manager Zanele Khumalo · Cost centre Clinic",pay:"Salaried · Annual gross R48 000 · Bank Capitec, acc 1578123456, branch 470010, Savings",equity:"African · Female · Semi-skilled · Not foreign · Disability YES"},
+   {first:"Ayesha",last:"Adams",pref:"Ayesha",email:"ayesha.employee",derive:"Female, 3 Mar 1996",id:"9603033070089",tax:"1213141516",phone:"076 334 2098",salary:"60000",bankAcc:"62445667788",personal:"Single · 21 Rose St, Chatsworth, 4092 · Next of kin Fatima Adams (Mother) 072 667 3345 · Emergency same",role:"Admin Learner · Clinic · Head office · Learnership · Start 2025-02-01 · Location Durban · Manager Zanele Khumalo · Cost centre Clinic",pay:"Salaried · Annual gross R60 000 · Bank FNB, acc 62445667788, branch 250655, Cheque",equity:"Coloured · Female · Skilled technical · Not foreign · No disability"},
+   {first:"Farai",last:"Ncube",pref:"Farai",email:"farai.employee",badge:"passport, fixed-term",passport:"ZP7654321",idnote:"Passport ZP7654321, nationality Zimbabwean. No SA ID. Enter DOB 1988-11-11 and gender Male by hand.",tax:"1314151617",phone:"074 556 1123",salary:"336000",bankAcc:"10099887766",personal:"Married · 40 Ridge Rd, Durban, 4001 · Next of kin Chipo Ncube (Spouse) 073 889 5567 · Emergency same",role:"Professional Nurse · Clinic · Head office · Fixed-term contract · Start 2024-06-01 · Location Durban · Manager Zanele Khumalo",pay:"Salaried · Annual gross R336 000 · Bank Standard Bank, acc 10099887766, branch 051001, Cheque",equity:"Foreign national (tick) · Male · Professional / mid · No disability"},
+   {first:"Themba",last:"Zulu",pref:"Themba",email:"themba.exco",badge:"user only, invite as Exco (read only)",idnote:"Invite by email as an Exco (read only) user, no employee record needed. SA ID for reference if you also add him as an employee: 7010105500088 (Male, 10 Oct 1970)."}
+  ]},
+ {head:"Company D · Sizwe Holdings (Pty) Ltd (one person company, add 1)", pill:'<span class="pill" style="background:#0f766e;color:#fff">D</span>',
+  callout:`<div class="card" style="background:var(--indigo-soft);border-color:#c7d2fe;margin-bottom:12px"><p style="font-size:12px;margin:0;color:var(--slate)">A company where the founder is the sole employee and the only HR admin. Tests the smallest possible tenant: one person is the whole workforce, org chart, payroll run and approval chain. He is also over 65, so the secondary age rebate must apply. Keep his pay clean (no pension, no medical, no allowances) so the PAYE below is exact and checkable.</p></div>`,
+  people:[
+   {first:"Sizwe",last:"Ndlovu",pref:"Sizwe",email:"sizwe.hr",badge:"sole employee and HR admin, age 66",derive:"Male, 15 Jun 1960, age 66",id:"6006155081087",tax:"2020202020",phone:"082 900 1122",salary:"456000",bankAcc:"10012345678",personal:"Married · 1 Nicol Way, Bryanston, 2191 · Next of kin Nomvula Ndlovu (Spouse) 083 900 3344 · Emergency same",role:"Managing Director · Department Admin · Head office · Full-time · Start 2015-03-01 · No manager (top of the tree and the only employee)",pay:"Salaried · Annual gross R456 000 · No pension · No medical aid · No allowances · Bank Investec, acc 10012345678, branch 580105, Cheque",equity:"African · Male · Top management · Not foreign · No disability",note:"Expected PAYE R6 251.00/month (65+ secondary rebate applied). For reference, an under 65 person on the same pay is R7 064.75 and a 75+ person is R5 980.25. If you see R7 064.75 for Sizwe the age rebate is wrong (known risk: age computed as at today, not the pay period). UIF R177.12 (above ceiling)."}
+  ]},
+ {head:"Company E · Edge Case Traders CC (boundary stress, add these 6)", pill:'<span class="pill" style="background:#7c2d12;color:#fff">E</span>',
+  callout:`<div class="card" style="background:var(--indigo-soft);border-color:#c7d2fe;margin-bottom:12px"><p style="font-size:12px;margin:0;color:var(--slate)">A deliberately unrealistic micro company that parks one employee on each tricky boundary. Configure it SDL liable, monthly, manual EFT, no pension, no medical. Keep every salary clean (no allowances, no pension) so the PAYE and UIF figures below are exact. The point is to check the arithmetic and the guard rails at the edges, not to model a real business.</p></div>`,
+  people:[
+   {first:"Miriam",last:"Sithole",pref:"Miriam",email:"miriam.employee",badge:"Gogo Miriam, age 77, tertiary rebate",derive:"Female, 10 Mar 1949, age 77",id:"4903100812088",tax:"3030303030",phone:"082 111 7777",salary:"456000",bankAcc:"4098765432",personal:"Widowed · 2 Loop St, Cape Town, 8001 · Next of kin Thabo Sithole (Son) 083 111 8888 · Emergency same",role:"Senior Advisor · Admin · Head office · Part-time · Start 2010-01-01 · No manager",pay:"Salaried · Annual gross R456 000 · No pension/medical · Bank Absa, acc 4098765432, branch 632005, Cheque",note:"Expected PAYE R5 980.25/month (75+ gets primary + secondary + tertiary rebate). UIF R177.12."},
+   {first:"Reabetswe",last:"Moloi",pref:"Rea",email:"rea.employee",badge:"top tax bracket 45%",derive:"Female, 5 May 1980",id:"8005050451089",tax:"3131313131",phone:"083 222 6666",salary:"2000000",bankAcc:"10055667788",personal:"Single · 5 Sandton Dr, Sandton, 2196 · Next of kin Kabelo Moloi (Brother) 072 222 5555 · Emergency same",role:"Chief Executive · Admin · Head office · Full-time · Start 2018-01-01 · No manager",pay:"Salaried · Annual gross R2 000 000 · No pension/medical · Bank Standard Bank, acc 10055667788, branch 051001, Cheque",note:"Expected PAYE R58 595.75/month (marginal rate 45%). UIF R177.12 (capped). Confirm she does not overflow any column or break the register totals."},
+   {first:"Tshepo",last:"Dube",pref:"Tshepo",email:"tshepo.employee",badge:"below the tax threshold",derive:"Female, 4 Apr 2001",id:"0104042088084",tax:"",phone:"071 333 4444",salary:"84000",bankAcc:"1600011122",personal:"Single · 9 Church St, Bloemfontein, 9301 · Next of kin Dineo Dube (Mother) 072 333 1111 · Emergency same",role:"Cleaner · Operations · Head office · Full-time · Start 2023-06-01 · No manager",pay:"Salaried · Annual gross R84 000 · No pension/medical · Bank Capitec, acc 1600011122, branch 470010, Savings",note:"Expected PAYE R0.00 (annual R84 000 is under the R99 000 tax threshold). UIF R70.00 (1% of R7 000). No negative PAYE, no error. Leave the tax number blank."},
+   {first:"Bongani",last:"Khoza",pref:"Bongani",email:"bongani.employee",badge:"exactly on the UIF ceiling",derive:"Male, 7 Jul 1990",id:"9007075019087",tax:"3232323232",phone:"082 444 5555",salary:"212544",bankAcc:"1900022233",personal:"Married · 11 West St, Durban, 4001 · Next of kin Zinhle Khoza (Spouse) 083 444 2222 · Emergency same",role:"Operations Lead · Operations · Head office · Full-time · Start 2019-09-01 · No manager",pay:"Salaried · Annual gross R212 544 (exactly R17 712/month, the UIF ceiling) · No pension/medical · Bank Nedbank, acc 1900022233, branch 198765, Cheque",note:"Expected UIF exactly R177.12 (right on the ceiling, not R177.13 or R177.11). PAYE R1 703.16/month."},
+   {first:"Lwandile",last:"Zwane",pref:"Lwandile",email:"lwandile.employee",badge:"weekly paid, for the unpaid leave test",derive:"Male, 15 Sep 1961, turns 65 on 15 Sep 2026",id:"6109155327087",tax:"3333333333",phone:"073 555 6666",salary:"156000",bankAcc:"62111000999",personal:"Single · 3 Long St, Cape Town, 8001 · Next of kin Sindi Zwane (Sister) 072 555 3333 · Emergency same",role:"Yard Hand · Operations · Head office · Full-time · Weekly · Start 2022-02-01 · No manager",pay:"Weekly · Weekly rate R3 000 · Annual gross R156 000 · No pension/medical · Bank FNB, acc 62111000999, branch 250655, Cheque",note:"Approve 1 unpaid working day, then run his weekly payroll. The unpaid deduction must be one day out of a five day week (about R600 off one week's pay), NOT one twenty first of it. His 65th birthday falls mid tax year, so watch when the secondary rebate kicks in."},
+   {first:"Precious",last:"Mabaso",pref:"Precious",email:"precious.employee",badge:"forces negative net",derive:"Female, 12 Dec 1994",id:"9412125062085",idnote:"SA ID 9603033070089 is taken (Ayesha uses it), so use 9412125062085 shown above.",tax:"3434343434",phone:"071 666 7777",salary:"120000",bankAcc:"1611122233",personal:"Single · 7 Field St, Durban, 4001 · Next of kin Ntombi Mabaso (Mother) 072 666 1111 · Emergency same",role:"Admin Clerk · Admin · Head office · Full-time · Start 2024-01-08 · No manager",pay:"Salaried · Annual gross R120 000 (R10 000/month) · No pension/medical · Bank Capitec, acc 1611122233, branch 470010, Savings",note:"On her run add a post-tax deduction of R15 000 (more than her net). The app must refuse to produce a negative net payslip, or clearly flag it, not silently pay a negative amount or export a negative EFT line."}
+  ]}
+];
+
+function personCard(p,pill){
+  var idc = p.id?chip('SA ID',p.id,1):(p.passport?chip('Passport',p.passport,1):'');
+  var cps=[chip('First',p.first),chip('Last',p.last),chip('Preferred',p.pref),chip('Email',em(p.email)),idc,chip('Tax',p.tax,1),chip('Phone',p.phone,1),chip('Annual',p.salary,1),chip('Bank acc',p.bankAcc,1)].filter(Boolean).join('');
+  var lines=[];
+  if(p.derive)lines.push('<div class="emp-l"><b>Derives</b> '+esc(p.derive)+'</div>');
+  if(p.idnote)lines.push('<div class="emp-l"><b>ID</b> '+esc(p.idnote)+'</div>');
+  if(p.personal)lines.push('<div class="emp-l"><b>Personal</b> '+esc(p.personal)+'</div>');
+  if(p.role)lines.push('<div class="emp-l"><b>Role</b> '+esc(p.role)+'</div>');
+  if(p.pay)lines.push('<div class="emp-l"><b>Pay</b> '+esc(p.pay)+'</div>');
+  if(p.equity)lines.push('<div class="emp-l"><b>Equity</b> '+esc(p.equity)+'</div>');
+  if(p.note)lines.push('<div class="emp-l"><b>Note</b> '+esc(p.note)+'</div>');
+  var badge=p.badge?' <span class="hint">'+esc(p.badge)+'</span>':'';
+  return '<div class="emp"><div class="emp-h"><b>'+esc(p.first+' '+p.last)+'</b> '+(pill||'')+badge+'</div><div class="cprow">'+cps+'</div>'+lines.join('')+'</div>';
+}
+function renderPeople(){
+  var host=document.getElementById('people'); if(!host)return;
+  host.innerHTML=COMPANIES.map(function(c){
+    return '<h3 class="co-h">'+esc(c.head)+'</h3>'+(c.callout||'')+c.people.map(function(p){return personCard(p,c.pill);}).join('');
+  }).join('');
+}
+
+renderTabs();renderSidebar();render();renderBugs();loadSO();renderPeople();
 </script>
 </body>
 </html>
