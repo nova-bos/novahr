@@ -94,6 +94,31 @@ function lineNumber(source, idx) {
   return source.slice(0, idx).split("\n").length;
 }
 
+/**
+ * Extract the balanced `{ ... }` object that follows the first `where` key in a
+ * prisma argument block. Returns null when there is no where clause. Used to
+ * assert that mutating ops scope by tenant in the WHERE, not merely somewhere in
+ * the args (tenantId sitting in `data` does not scope an update or delete).
+ */
+function extractWhereBlock(block) {
+  const m = /\bwhere\s*:\s*\{/.exec(block);
+  if (!m) return null;
+  const open = m.index + m[0].length - 1; // index of the `{`
+  let depth = 0;
+  for (let i = open; i < block.length; i++) {
+    if (block[i] === "{") depth++;
+    else if (block[i] === "}") {
+      depth--;
+      if (depth === 0) return block.slice(open, i + 1);
+    }
+  }
+  return block.slice(open);
+}
+
+// Ops that change rows: tenantId must appear inside the WHERE clause so the
+// mutation is scoped to the tenant, not just present somewhere in the args.
+const MUTATING_WHERE_OPS = new Set(["update", "updateMany", "delete", "deleteMany"]);
+
 const root = process.cwd();
 const files = walk(join(root, "src"));
 const violations = [];
@@ -122,7 +147,20 @@ for (const file of files) {
         const block = extractBlock(source, idx + needle.length - 1);
 
         if (!block.includes("tenantId")) {
-          violations.push(`${rel}:${line}  prisma.${model}.${op}() — tenantId not found in arguments`);
+          violations.push(`${rel}:${line}  prisma.${model}.${op}() - tenantId not found in arguments`);
+          continue;
+        }
+
+        // For mutating ops, tenantId in `data` is not enough: it must scope the
+        // WHERE. A tenantId that only appears outside the where clause here is a
+        // cross-tenant write risk.
+        if (MUTATING_WHERE_OPS.has(op)) {
+          const whereBlock = extractWhereBlock(block);
+          if (!whereBlock || !whereBlock.includes("tenantId")) {
+            violations.push(
+              `${rel}:${line}  prisma.${model}.${op}() - tenantId not found in the WHERE clause (found only elsewhere in args)`
+            );
+          }
         }
       }
     }

@@ -277,6 +277,36 @@ describe("completePayrollRunRecord", () => {
     });
   });
 
+  it("blocks the run when a deduction would push net pay below zero", async () => {
+    // emp-1 on R120,000/yr nets about R9,900/month. A loan instalment of
+    // R15,000 (uncapped, since loans are employer advances) would make net pay
+    // negative. The run must refuse rather than pay or export a negative amount.
+    const run = makePayrollRunRow({ status: "processing" });
+    const tenant = makeTenantRow({ id: "novatech", payDay: 25 });
+    const employee = makeEmployeeRow({
+      id: "emp-1",
+      firstName: "Tshepo",
+      lastName: "Dube",
+      status: "active",
+      startDate: new Date("2024-01-15T00:00:00Z"),
+      salaryAnnualGross: new Prisma.Decimal(120_000),
+    });
+    mockPrisma.payrollRun.findFirstOrThrow.mockResolvedValue(run);
+    mockPrisma.tenant.findUniqueOrThrow.mockResolvedValue(tenant);
+    mockPrisma.employee.findMany.mockResolvedValue([employee]);
+    mockPrisma.employeeDeduction.findMany.mockResolvedValue([
+      { id: "ded-1", employeeId: "emp-1", kind: "loan", description: "Emergency advance", monthlyAmount: 15_000, balance: 15_000, status: "active" },
+    ]);
+
+    await expect(completePayrollRunRecord("novatech-run-2026-06")).rejects.toThrow(
+      /negative net salary.*Tshepo Dube/
+    );
+    // Nothing is persisted: no payslips, no balance changes, no run completion.
+    expect(mockPrisma.payslip.createMany).not.toHaveBeenCalled();
+    expect(mockPrisma.employeeDeduction.update).not.toHaveBeenCalled();
+    expect(mockPrisma.payrollRun.update).not.toHaveBeenCalled();
+  });
+
   it("deducts approved unpaid leave that falls inside the period", async () => {
     setupCommon();
     mockPrisma.payrollRun.findUnique.mockResolvedValue(null);

@@ -59,18 +59,29 @@ const PENSION_MAX_RAND = new Decimal("430000");
 
 const DIVISORS = { monthly: 12, biweekly: 26, weekly: 52 } as const;
 
-function getAgeInYears(dateOfBirth: string): number {
+// Working days used to pro rate an unpaid day against one pay period. Derived
+// from roughly 260 working days a year divided by the number of periods, so a
+// weekly period is 5 days, a fortnightly period 10, and a month about 21.67.
+// Callers that know the exact business days in the period (payroll runs) should
+// pass workingDaysInPeriod to override these approximations.
+const WORKING_DAYS_PER_PERIOD = { monthly: 260 / 12, biweekly: 10, weekly: 5 } as const;
+
+// Age is measured as at a reference date (`asOf`). For payroll this MUST be the
+// pay period being processed, not "today": age based rebates are a function of
+// the year of assessment, and re-running an old period must not shift PAYE as
+// the employee ages. Callers that omit asOf (client side projections) fall back
+// to today, which is fine for a forward looking estimate.
+function getAgeInYears(dateOfBirth: string, asOf: Date): number {
   const dob = new Date(dateOfBirth);
-  const today = new Date();
-  let age = today.getFullYear() - dob.getFullYear();
-  const m = today.getMonth() - dob.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  let age = asOf.getFullYear() - dob.getFullYear();
+  const m = asOf.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && asOf.getDate() < dob.getDate())) age--;
   return age;
 }
 
-function totalRebate(dateOfBirth?: string): Decimal {
+function totalRebate(dateOfBirth: string | undefined, asOf: Date): Decimal {
   if (!dateOfBirth) return PRIMARY_REBATE_ANNUAL;
-  const age = getAgeInYears(dateOfBirth);
+  const age = getAgeInYears(dateOfBirth, asOf);
   let rebate = PRIMARY_REBATE_ANNUAL;
   if (age >= 65) rebate = rebate.plus(SECONDARY_REBATE_ANNUAL);
   if (age >= 75) rebate = rebate.plus(TERTIARY_REBATE_ANNUAL);
@@ -85,22 +96,25 @@ function monthlyMatc(dependants: number): Decimal {
   return credit;
 }
 
-function annualPaye(annualTaxable: Decimal, dateOfBirth?: string): Decimal {
+function annualPaye(annualTaxable: Decimal, dateOfBirth: string | undefined, asOf: Date): Decimal {
   const taxable = annualTaxable.toNumber();
   const bracket = TAX_BRACKETS_2026_27.find((b) => taxable <= b.upTo)!;
   const tax = new Decimal(bracket.base).plus(
     annualTaxable.minus(bracket.prevUpTo).times(bracket.rate)
   );
-  return Decimal.max(tax.minus(totalRebate(dateOfBirth)), 0);
+  return Decimal.max(tax.minus(totalRebate(dateOfBirth, asOf)), 0);
 }
 
 /**
  * Annual PAYE for a given annual taxable income, after brackets and age rebates.
  * Exposed so callers (and the annual-payment delta method) can reuse the exact
- * same bracket/rebate logic. Returns a plain number of rands.
+ * same bracket/rebate logic. Returns a plain number of rands. `asOfDate` is the
+ * reference date for age based rebates; it defaults to today for standalone
+ * projections but should be the pay period end for real payroll.
  */
-export function annualTaxFor(annualTaxable: number, dateOfBirth?: string): number {
-  return annualPaye(new Decimal(annualTaxable), dateOfBirth).toNumber();
+export function annualTaxFor(annualTaxable: number, dateOfBirth?: string, asOfDate?: string): number {
+  const asOf = asOfDate ? new Date(asOfDate) : new Date();
+  return annualPaye(new Decimal(annualTaxable), dateOfBirth, asOf).toNumber();
 }
 
 export interface PayrollBreakdown {
@@ -147,7 +161,16 @@ export interface PayrollInputValue {
 export interface PayrollOptions {
   isSDLLiable?: boolean;
   unpaidLeaveDays?: number;
+  // Working days in THIS pay period, used to pro rate an unpaid day. Pass the
+  // real business-day count for the period where known. When omitted it is
+  // derived from the pay frequency (weekly 5, fortnightly 10, monthly ~21.67).
+  workingDaysInPeriod?: number;
+  /** @deprecated use workingDaysInPeriod. Kept as an alias for older callers. */
   workingDaysInMonth?: number;
+  // Reference date for age based tax rebates. For real payroll this MUST be the
+  // pay period (period end), so a 65th/75th birthday applies in the right period
+  // and re-running an old period does not change PAYE. Omitted means today.
+  asOfDate?: string;
   // Per-tenant statutory configuration from PayrollSettings. Falls back to
   // STATUTORY_DEFAULTS so client-side projections stay correct without a fetch.
   statutory?: StatutorySettings;
@@ -164,10 +187,11 @@ export function calculateMonthlyPayroll(
   const {
     isSDLLiable = false,
     unpaidLeaveDays = 0,
-    workingDaysInMonth = 21,
     statutory = STATUTORY_DEFAULTS,
     inputs = [],
   } = options;
+  // Age reference date for rebates: the pay period end when supplied, else today.
+  const asOf = options.asOfDate ? new Date(options.asOfDate) : new Date();
 
   // Split variable-pay lines by tax treatment. Regular components annualise with
   // normal income; annual-payment components are taxed via the SARS delta method.
@@ -216,9 +240,15 @@ export function calculateMonthlyPayroll(
     .plus(annualPaymentTotal)
     .toDecimalPlaces(2);
 
-  // Unpaid leave reduces the effective pay base used for all tax/levy calculations
+  // Unpaid leave reduces the effective pay base used for all tax/levy calculations.
+  // basicSalary is one PERIOD of pay, so the unpaid day must be pro rated against
+  // the working days in that same period (about 5 for weekly, 10 for fortnightly,
+  // ~21.67 for monthly), not a flat 21. Dividing a week's pay by 21 would make an
+  // unpaid weekly day roughly a third of its true value.
+  const workingDaysInPeriod =
+    options.workingDaysInPeriod ?? options.workingDaysInMonth ?? WORKING_DAYS_PER_PERIOD[freq];
   const unpaidDeduction = unpaidLeaveDays > 0
-    ? basicSalary.times(unpaidLeaveDays).dividedBy(workingDaysInMonth).toDecimalPlaces(2)
+    ? basicSalary.times(unpaidLeaveDays).dividedBy(workingDaysInPeriod).toDecimalPlaces(2)
     : new Decimal(0);
   const adjustedBasic = basicSalary.minus(unpaidDeduction);
   const adjustedGross = adjustedBasic.plus(travelMonthly).plus(housingMonthly);
@@ -267,10 +297,10 @@ export function calculateMonthlyPayroll(
 
   const annualTaxable = annualRemuneration.minus(pensionS11fDeduction).toDecimalPlaces(0);
   // Exposed so payslips can show employees how their PAYE was derived.
-  const taxRebateAnnual = totalRebate(employee.dateOfBirth);
+  const taxRebateAnnual = totalRebate(employee.dateOfBirth, asOf);
 
   // PAYE after bracket tax, rebates, and Medical Aid Tax Credit
-  const annualPAYE = annualPaye(annualTaxable, employee.dateOfBirth);
+  const annualPAYE = annualPaye(annualTaxable, employee.dateOfBirth, asOf);
   // The medical tax credit applies to any medical scheme member, whether the
   // contribution runs through payroll or is paid privately.
   const isMedicalMember = salary.isMedicalAidMember === true || salary.medicalAid != null;
@@ -289,8 +319,8 @@ export function calculateMonthlyPayroll(
   // the salaried monthly path is unchanged.
   const annualPaymentPaye = annualPaymentTotal.greaterThan(0)
     ? Decimal.max(
-        annualPaye(annualTaxable.plus(annualPaymentTotal), employee.dateOfBirth).minus(
-          annualPaye(annualTaxable, employee.dateOfBirth)
+        annualPaye(annualTaxable.plus(annualPaymentTotal), employee.dateOfBirth, asOf).minus(
+          annualPaye(annualTaxable, employee.dateOfBirth, asOf)
         ),
         0
       )
@@ -381,7 +411,15 @@ export function buildPayslip(
   payDate: string,
   options: PayrollOptions = {}
 ): Payslip {
-  const { employerSdl, employerUif, ...payslipData } = calculateMonthlyPayroll(employee, options);
+  // Age based rebates are measured at the pay period, not today. Default asOfDate
+  // to the last day of the period ("YYYY-MM") unless the caller set it explicitly.
+  const [pyear, pmonth] = period.split("-").map(Number);
+  const periodEndIso = Number.isFinite(pyear) && Number.isFinite(pmonth)
+    ? new Date(Date.UTC(pyear, pmonth, 0)).toISOString().slice(0, 10)
+    : undefined;
+  const withAsOf: PayrollOptions =
+    options.asOfDate || !periodEndIso ? options : { ...options, asOfDate: periodEndIso };
+  const { employerSdl, employerUif, ...payslipData } = calculateMonthlyPayroll(employee, withAsOf);
   return {
     id: `${runId}-${employee.id}`,
     tenantId: employee.tenantId,

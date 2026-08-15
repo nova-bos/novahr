@@ -130,6 +130,76 @@ describe("calculateMonthlyPayroll", () => {
     expect(breakdown.paye).toBe(9_991.08);
   });
 
+  it("measures rebate age at the pay period, not today (buildPayslip)", () => {
+    // Born 15 Jun 1961: turns 65 on 15 Jun 2026. A May 2026 run must still use
+    // only the primary rebate (age 64 at 31 May), while a July 2026 run gets the
+    // secondary rebate (age 65 at 31 Jul). This is independent of the wall clock,
+    // so re-running an old period can never shift PAYE as the person ages.
+    const employee = makeEmployee(
+      { annualGross: 600_000, currency: "ZAR", payFrequency: "monthly" },
+      "1961-06-15"
+    );
+
+    const beforeBirthday = buildPayslip(employee, "run-1", "2026-05", "2026-05-25");
+    const afterBirthday = buildPayslip(employee, "run-2", "2026-07", "2026-07-25");
+
+    // Under 65: 150,727 - 17,820 = 132,907 -> 11,075.58/month
+    expect(beforeBirthday.paye).toBe(11_075.58);
+    // 65+: 150,727 - 27,585 = 123,142 -> 10,261.83/month
+    expect(afterBirthday.paye).toBe(10_261.83);
+  });
+
+  it("honours an explicit asOfDate for age based rebates", () => {
+    const employee = makeEmployee(
+      { annualGross: 600_000, currency: "ZAR", payFrequency: "monthly" },
+      "1961-06-15"
+    );
+    // As at a date before the 65th birthday: primary rebate only.
+    expect(calculateMonthlyPayroll(employee, { asOfDate: "2026-05-31" }).paye).toBe(11_075.58);
+    // As at a date on/after the birthday: secondary rebate applies.
+    expect(calculateMonthlyPayroll(employee, { asOfDate: "2026-07-31" }).paye).toBe(10_261.83);
+  });
+
+  // ---- Unpaid leave: frequency-correct proration ----
+
+  it("pro rates an unpaid day for a weekly employee against a 5 day week, not 21", () => {
+    // Weekly rate R3,000 (annualGross 156,000 / 52). One unpaid day must be a
+    // fifth of the week (R600), not one twenty-first (R142.86). No explicit
+    // working-days override, so the frequency default (5) is used.
+    const employee = makeEmployee({
+      annualGross: 156_000,
+      currency: "ZAR",
+      payFrequency: "weekly",
+    });
+
+    const breakdown = calculateMonthlyPayroll(employee, { unpaidLeaveDays: 1 });
+
+    expect(breakdown.basicSalary).toBe(3_000);
+    expect(breakdown.deductions.find((d) => d.label === "Unpaid Leave")).toEqual({
+      label: "Unpaid Leave",
+      amount: 600,
+    });
+  });
+
+  it("uses an explicit workingDaysInPeriod when provided (monthly, real business days)", () => {
+    // basicSalary 50,000 over 23 business days, 2 unpaid days -> 50,000*2/23 = 4,347.83
+    const employee = makeEmployee({
+      annualGross: 600_000,
+      currency: "ZAR",
+      payFrequency: "monthly",
+    });
+
+    const breakdown = calculateMonthlyPayroll(employee, {
+      unpaidLeaveDays: 2,
+      workingDaysInPeriod: 23,
+    });
+
+    expect(breakdown.deductions.find((d) => d.label === "Unpaid Leave")).toEqual({
+      label: "Unpaid Leave",
+      amount: 4_347.83,
+    });
+  });
+
   // ---- Taxable income: allowance inclusion ----
 
   it("includes 80% of travel allowance and 100% of housing in taxable income", () => {

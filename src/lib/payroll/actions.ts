@@ -252,11 +252,18 @@ export async function completePayrollRunRecord(
         inputsByEmployee.set(row.employeeId, arr);
       }
 
+      // Actual business days in this month, used to pro rate unpaid leave for
+      // monthly staff instead of a flat 21. Weekly and fortnightly employees use
+      // the calculator's frequency derived divisor (5 and 10), so we only pass
+      // this for the monthly frequency.
+      const businessDaysInPeriod = workingDaysBetween(periodStartKey, periodEndKey);
       const newPayslips = eligible.map((e) =>
         buildPayslip(e, run.id, run.period, payDateStr, {
           isSDLLiable,
           statutory,
           unpaidLeaveDays: unpaidDaysByEmployee.get(e.id) ?? 0,
+          workingDaysInPeriod:
+            e.salary.payFrequency === "monthly" ? businessDaysInPeriod : undefined,
           inputs: inputsByEmployee.get(e.id) ?? [],
         })
       );
@@ -304,6 +311,24 @@ export async function completePayrollRunRecord(
           }
         }
         if (closing.length > 0) p.closingBalances = closing;
+      }
+
+      // Guard against a negative net payslip. Post-tax deductions (loans,
+      // garnishees, custom lines) can in principle exceed net pay; paying a
+      // negative amount or writing a negative EFT line is never correct, so the
+      // run is blocked with the affected people named for the HR admin to fix.
+      const negativeNet = newPayslips.filter((p) => p.netPay < 0);
+      if (negativeNet.length > 0) {
+        const names = negativeNet
+          .map((p) => {
+            const emp = eligible.find((e) => e.id === p.employeeId);
+            const who = emp ? `${emp.firstName} ${emp.lastName}` : p.employeeId;
+            return `${who} (net R${p.netPay.toFixed(2)})`;
+          })
+          .join(", ");
+        throw new Error(
+          `This run would pay a negative net salary to: ${names}. Reduce their deductions (loans, garnishees or custom deductions) so net pay is not below zero, then run payroll again.`
+        );
       }
 
       const totalGross = round2(sum(newPayslips, (p) => p.grossPay));
