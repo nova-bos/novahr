@@ -230,12 +230,25 @@ table.grid tr:last-child td { border-bottom: none; }
 
 /* ---------- Print / PDF ---------- */
 @media print {
-  @page { size: A4; margin: 16mm 14mm; }
+  @page { size: A4; margin: 14mm; }
+  html, body { width: auto; overflow: visible; }
+  body { font-size: 11px; }
   .sidebar { display: none !important; }
-  .content { padding: 0 !important; }
-  body { font-size: 11.5px; }
-  .cover { margin: -16mm -14mm 0; border-radius: 0; }
-  .section { break-before: page; border-top: none; padding-top: 6px; }
+  .layout { display: block; }
+  /* Everything fits inside the page content box: no negative bleed, fill full width. */
+  .content { padding: 0 !important; width: 100% !important; }
+  .content-inner { max-width: 100% !important; margin: 0 !important; }
+  .cover {
+    margin: 0 !important;
+    border-radius: 12px;
+    padding: 30px 28px 26px !important;
+  }
+  .cover h1 { font-size: 30px !important; line-height: 1.05; }
+  .cover p.lead { font-size: 12.5px; max-width: 100%; }
+  .cover .meta { gap: 12px 22px; margin-top: 20px; }
+  h2.section-title { font-size: 22px; }
+  .shot img, figure.shot, .content-inner img, table.grid { max-width: 100%; }
+  .section { break-before: page; border-top: none; padding-top: 2px; }
   .section:first-of-type { break-before: avoid; }
   figure.shot, .note, .tip, .warn, table.grid, ol.steps > li { break-inside: avoid; }
   a { color: var(--accent-deep); text-decoration: none; }
@@ -245,4 +258,5 @@ table.grid tr:last-child td { border-bottom: none; }
 /* print-mode class applied for single-section PDFs to drop the sidebar in screen render */
 body.print-mode .sidebar { display: none; }
 body.print-mode .content { padding: 0 48px 60px; }
+body.print-mode .content-inner { max-width: 100%; }
 body.print-mode .cover { margin-top: 0; }
