@@ -2,7 +2,7 @@
 
 Current as of 2026-08-02. This is the definitive list of everything NovaHR can do in its present state. Live at https://novahr-five.vercel.app.
 
-For a narrative introduction see `APP_OVERVIEW.md` (older); for gap/score status see `HR_FEATURE_COMPLETENESS_AUDIT.md` (9.7/10, 438 unit tests).
+For a narrative introduction see `archive/APP_OVERVIEW.md` (older); for gap/score status see `archive/HR_FEATURE_COMPLETENESS_AUDIT.md` (9.7/10, 438 unit tests). User-facing guides live in `~/NovaHR-Docs/`.
 
 **Stack:** Next.js 15.5 (App Router, React 19, TypeScript), Supabase (Postgres + Auth), Prisma 7 (`@prisma/adapter-pg`), Tailwind v4 + shadcn/ui, Resend (email), `@react-pdf/renderer` (PDFs), `write-excel-file` (XLSX), Sentry, Recharts, Vitest. Multi-tenant, hosted on Vercel.
 

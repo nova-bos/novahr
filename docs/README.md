@@ -1,11 +1,12 @@
 # NovaHR: Developer Documentation
 
-> **Business, legal, and go-to-market documentation** lives in subfolders: `legal/`,
-> `compliance/`, `payroll-compliance/`, `customer/`, `customer-success/`, `sales/`,
-> `marketing/`, `brand/`, `internal/`. Start with
-> [`legal/README.md`](./legal/README.md) (document map and in-app acceptance plan) and
-> [`BUSINESS_DOCUMENT_REGISTER.md`](./BUSINESS_DOCUMENT_REGISTER.md) (master register
-> with the 2026-07-10 status update).
+> This `docs/` folder is developer documentation only. Legal and compliance text that backs
+> the in-app legal pages stays here in `legal/`, `compliance/` and `payroll-compliance/`.
+>
+> **User guides, marketing, sales and business documents now live outside the repo** in
+> `~/NovaHR-Docs/` (help centre, user manual, capabilities sheet, marketing and financial
+> files). The repo holds the app and its development docs; it does not hold user-facing or
+> go-to-market material.
 
 This is the developer documentation for the NovaHR build: Phases 1 through 4:
 moving the app from an in-memory demo onto a real Supabase Postgres database and Supabase
@@ -28,12 +29,11 @@ If you're picking this codebase up for the first time, read these docs in order:
    tenants, plus the 4 demo personas used for sales demos.
 8. [`testing.md`](./testing.md), the Vitest unit test suite (21 files / 163 tests), how to
    run it, and the patterns to follow for new tests.
-9. [`phase3-payslip-pdf.md`](./phase3-payslip-pdf.md), payslip PDF export via browser print
-   (`src/lib/payroll/print.ts`).
-10. [`phase4-landing-page.md`](./phase4-landing-page.md), the public marketing landing page,
-    pricing tiers, and route protection model.
-11. [`uat-checklist.md`](./uat-checklist.md), manual UAT checklist (checkbox format) covering
-    all phases plus the MVP polish improvements.
+9. [`security.md`](./security.md), route protection, per-role authorization, and the
+   sanitized-per-role workspace payload.
+10. [`CAPABILITIES.md`](./CAPABILITIES.md), the definitive list of everything the app can do.
+11. [`MASTER_LAUNCH_PLAN.md`](./MASTER_LAUNCH_PLAN.md), the canonical launch plan. Superseded
+    planning and audit docs are kept in [`archive/`](./archive/).
 
 ## Production hardening (July 2026)
 

@@ -182,7 +182,8 @@ Set each variable per scope in **Vercel dashboard > Project Settings > Environme
 ## Links
 
 - Live app: https://novahr-five.vercel.app
-- App overview: docs/APP_OVERVIEW.md
+- Capabilities: docs/CAPABILITIES.md
 - Security model: docs/security.md
-- Release readiness audit: docs/RELEASE_READINESS_AUDIT_V2.md
+- Launch plan: docs/MASTER_LAUNCH_PLAN.md
 - Testing roadmap: docs/TESTING_ROADMAP.md
+- User guides &amp; marketing: ~/NovaHR-Docs/ (outside the repo)

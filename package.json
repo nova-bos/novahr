@@ -12,11 +12,7 @@
     "lint": "eslint",
     "check:tenant-isolation": "node scripts/check-tenant-isolation.mjs",
     "test": "vitest run",
-    "test:e2e": "playwright test",
-    "screenshots": "tsx scripts/capture-screenshots.ts",
-    "screenshots:live": "tsx scripts/capture-live-screenshots.ts",
-    "pdf:text": "tsx scripts/generate-pdfs.ts",
-    "pdf:guides": "tsx scripts/generate-guide-pdfs.ts"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
