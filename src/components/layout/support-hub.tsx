@@ -4,21 +4,16 @@ import * as React from "react";
 import { toast } from "sonner";
 import {
   BookOpen,
-  Bug,
-  CalendarRange,
+  ChevronDown,
   ClipboardCopy,
   ExternalLink,
   FileText,
   HelpCircle,
-  Lightbulb,
   Mail,
   MessageCircle,
   Search,
-  Users,
-  Wallet,
-  ChevronDown,
+  Wrench,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,81 +29,67 @@ import { cn } from "@/lib/utils";
 
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "1.0.0";
 const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@novabos.co.za";
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? "27600000000";
+const SALES_EMAIL = process.env.NEXT_PUBLIC_SALES_EMAIL ?? "sales@novabos.co.za";
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? "27765036486";
+const WHATSAPP_DISPLAY = "076 503 6486";
 
-interface GuideEntry {
-  id: string;
-  title: string;
-  icon: React.ElementType;
-  keywords: string;
-  steps: string[];
-}
+type Faq = { q: string; a: string; keywords: string };
 
-const GUIDES: GuideEntry[] = [
-  {
-    id: "payroll",
-    title: "Payroll guide",
-    icon: Wallet,
-    keywords: "payroll run payslip netcash submit salary paye uif sdl publish finalize",
-    steps: [
-      "Open Payroll and review the current run's pay date, eligible employees and projected totals.",
-      "Select Start payroll run, then review each employee's calculated payslip.",
-      "Finalize and publish payslips. Employees are notified automatically.",
-      "Use Submit payroll to Netcash to upload the salary batch for payment.",
-      "Track past runs and download payslips or bank files under Payroll history.",
-    ],
-  },
-  {
-    id: "leave",
-    title: "Leave guide",
-    icon: CalendarRange,
-    keywords: "leave annual sick request approve balance policy holiday family responsibility",
-    steps: [
-      "Employees request leave from the Leave page. Balances and public holidays are applied automatically.",
-      "Managers and HR approve or decline requests from the approvals queue.",
-      "Balances update immediately after approval, using each policy's accrual rules.",
-      "Configure leave policies under Settings, then Leave policies.",
-    ],
-  },
-  {
-    id: "employees",
-    title: "Employee management guide",
-    icon: Users,
-    keywords: "employee onboarding add new hire terminate profile banking documents invite",
-    steps: [
-      "Add a new employee from Employees, then Add employee. The wizard collects personal, role, and pay details.",
-      "Bank details are validated so salary payments do not bounce.",
-      "Invite employees to self-service from Settings, then Users.",
-      "Terminate an employee from their profile. Records are retained for compliance.",
-    ],
-  },
-];
-
-const FAQS: { q: string; a: string; keywords: string }[] = [
-  {
-    q: "Why did my Netcash key test fail?",
-    a: "Check that you copied the full service key from the Netcash portal (Account profile, then NetConnector), that the service is active on your Netcash account, and that the right environment (Live or Testing) is selected under Settings, then Payroll, then Netcash integration.",
-    keywords: "netcash key invalid failed test service",
-  },
-  {
-    q: "When should I load a salary batch?",
-    a: "For DatedSalaries, load the batch by 12:59 on the business day before the pay date. Real-time instructions process the same day.",
-    keywords: "netcash batch cutoff time load salary dated",
-  },
-  {
-    q: "How do I change how payslips look?",
-    a: "Go to Settings, then Appearance, then Payslips. You can pick a template, accent colour, logo, and footer note, and see a live preview.",
-    keywords: "payslip template colour logo branding appearance customise",
-  },
+const FAQS: Faq[] = [
   {
     q: "How do employees get access to NovaHR?",
-    a: "HR can send an invitation from Settings, then Users. The employee sets a password and sees only their own payslips, leave and profile.",
-    keywords: "invite user access login employee self service",
+    a: "Invite them from Settings, then Users, one at a time or in bulk from the employee list. Each person gets a secure link, sets a password, and sees only their own payslips, leave and profile.",
+    keywords: "invite access login employee self service user onboard",
+  },
+  {
+    q: "How do I run my first payroll?",
+    a: "Open Payroll, start a run for the period, add any variable pay, then approve, complete and publish payslips. The full step-by-step is in the Help Centre under Running payroll.",
+    keywords: "payroll run first start pay period publish payslip",
+  },
+  {
+    q: "When can employees see their payslips?",
+    a: "As soon as you publish the run. Employees download their own payslips and tax certificates from their account, no need to email them.",
+    keywords: "payslip publish employee download self service certificate",
+  },
+  {
+    q: "How are PAYE, UIF and SDL calculated?",
+    a: "Automatically, using SARS-validated tax tables. NovaHR handles annualised PAYE with rebates and age thresholds, the medical-aid credit, pension and RA caps, UIF and SDL.",
+    keywords: "paye uif sdl tax calculation sars rebate medical pension",
+  },
+  {
+    q: "Which SARS and Labour returns are included?",
+    a: "EMP201, EMP501, IRP5 and IT3(a) certificates, ETI, the UIF declaration, COIDA Return of Earnings, and Employment Equity (EEA2 and EEA4). All included, no add-ons.",
+    keywords: "emp201 emp501 irp5 it3a eti uif coida employment equity eea statutory return filing",
+  },
+  {
+    q: "How do I import many employees at once?",
+    a: "Go to Employees, then Import. Download the CSV template, fill in one row per employee, and upload. NovaHR validates every row before anything is created.",
+    keywords: "bulk import csv employees upload template onboard many",
+  },
+  {
+    q: "How does leave work?",
+    a: "NovaHR follows the BCEA and is configurable per company: entitlements, accrual or upfront, carryover and sick-note rules. Employees request leave, managers approve, and balances update automatically.",
+    keywords: "leave bcea annual sick family approve balance policy accrual",
+  },
+  {
+    q: "Can I customise how payslips look?",
+    a: "Yes. Go to Settings, then Appearance, then Payslips to choose a template, accent colour, logo and footer note, with a live preview.",
+    keywords: "payslip template branding logo colour appearance customise",
+  },
+  {
+    q: "What does NovaHR cost?",
+    a: `R349 per month plus R30 per employee, with every feature included and a free trial. Teams above 150 employees are custom. Billing questions? Email ${SALES_EMAIL}.`,
+    keywords: "price pricing cost billing plan subscription trial how much",
   },
   {
     q: "Is my payroll data secure?",
-    a: "Yes. Each company's data is isolated per tenant, service keys are encrypted at rest, and payslip PDFs mask ID and account numbers.",
-    keywords: "security popia privacy encrypted data",
+    a: "Yes. Each company's data is isolated, sensitive fields are encrypted, payslip PDFs mask ID and account numbers, and you can turn on two-factor sign-in.",
+    keywords: "security popia privacy encrypted data protection two factor",
+  },
+  {
+    q: "Why did my Netcash key test fail?",
+    a: "Check that you copied the full service key from the Netcash portal (Account profile, then NetConnector), that the service is active, and that the right environment (Live or Testing) is selected under Settings, then Payroll, then Netcash.",
+    keywords: "netcash key invalid failed test service bank eft",
   },
 ];
 
@@ -118,80 +99,70 @@ function SupportRow({
   description,
   href,
   onClick,
-  badge,
-  disabled,
+  external,
 }: {
   icon: React.ElementType;
   title: string;
   description: string;
   href?: string;
   onClick?: () => void;
-  badge?: string;
-  disabled?: boolean;
+  external?: boolean;
 }) {
   const inner = (
     <>
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
         <Icon className="size-4" />
       </span>
       <span className="min-w-0 flex-1 text-left">
-        <span className="flex items-center gap-2 text-sm font-medium">
-          {title}
-          {badge ? (
-            <Badge variant="outline" className="text-[10px]">
-              {badge}
-            </Badge>
-          ) : null}
-        </span>
+        <span className="block text-sm font-medium">{title}</span>
         <span className="block truncate text-xs text-muted-foreground">{description}</span>
       </span>
-      {href ? <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" /> : null}
+      {external ? <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" /> : null}
     </>
   );
+  const className =
+    "flex w-full items-center gap-3 rounded-lg border border-transparent px-2.5 py-2.5 transition-colors hover:border-border hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-  const className = cn(
-    "flex w-full items-center gap-3 rounded-lg px-2 py-2 transition-colors",
-    disabled
-      ? "opacity-60 cursor-default"
-      : "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-  );
-
-  if (href && !disabled) {
+  if (href) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      <a
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
+        className={className}
+      >
         {inner}
       </a>
     );
   }
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className={className}>
+    <button type="button" onClick={onClick} className={className}>
       {inner}
     </button>
   );
 }
 
-function GuideSection({ guide, forceOpen }: { guide: GuideEntry; forceOpen: boolean }) {
+function FaqItem({ faq, forceOpen }: { faq: Faq; forceOpen: boolean }) {
   const [open, setOpen] = React.useState(false);
   const expanded = open || forceOpen;
-  const Icon = guide.icon;
   return (
-    <div className="rounded-lg border border-border">
+    <div className="border-b border-border last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={expanded}
-        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left hover:bg-muted/50 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex w-full items-center gap-3 py-3 text-left focus-visible:outline-none"
       >
-        <Icon className="size-4 text-primary" />
-        <span className="flex-1 text-sm font-medium">{guide.title}</span>
-        <ChevronDown className={cn("size-4 text-muted-foreground transition-transform", expanded && "rotate-180")} />
+        <span className="flex-1 text-sm font-medium">{faq.q}</span>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 text-muted-foreground transition-transform",
+            expanded && "rotate-180"
+          )}
+        />
       </button>
       {expanded ? (
-        <ol className="list-decimal space-y-1.5 border-t border-border px-3 py-3 pl-8 text-xs text-muted-foreground">
-          {guide.steps.map((s) => (
-            <li key={s}>{s}</li>
-          ))}
-        </ol>
+        <p className="pb-3 pr-7 text-[13px] leading-relaxed text-muted-foreground">{faq.a}</p>
       ) : null}
     </div>
   );
@@ -203,10 +174,7 @@ export function SupportHub() {
   const [query, setQuery] = React.useState("");
 
   const q = query.trim().toLowerCase();
-  const matchedGuides = q
-    ? GUIDES.filter((g) => `${g.title} ${g.keywords}`.toLowerCase().includes(q))
-    : GUIDES;
-  const matchedFaqs = q
+  const faqs = q
     ? FAQS.filter((f) => `${f.q} ${f.a} ${f.keywords}`.toLowerCase().includes(q))
     : FAQS;
 
@@ -226,12 +194,14 @@ export function SupportHub() {
         description: "Paste it into your support message.",
       });
     } catch {
-      toast.error("Could not copy diagnostics", { description: "Copy the details manually from your browser." });
+      toast.error("Could not copy diagnostics", {
+        description: "Copy the details manually from your browser.",
+      });
     }
   }
 
-  const mailto = (subject: string) =>
-    `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+  const mailto = (to: string, subject: string) =>
+    `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
       `\n\n---\nNovaHR ${APP_VERSION} · ${user?.role ?? ""} · ${user?.tenantId ?? ""}`
     )}`;
 
@@ -244,53 +214,28 @@ export function SupportHub() {
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-md">
-        <SheetHeader className="pb-2">
-          <SheetTitle>Help &amp; Support</SheetTitle>
-          <SheetDescription>
-            Guides, answers and ways to reach the NovaHR team.
-          </SheetDescription>
+        <SheetHeader className="pb-1">
+          <SheetTitle>Help &amp; support</SheetTitle>
+          <SheetDescription>Guides, answers, and ways to reach us.</SheetDescription>
         </SheetHeader>
 
-        <div className="flex flex-col gap-6 px-4 pb-6">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search guides and FAQs"
-              className="pl-9"
-              aria-label="Search documentation"
+        <div className="flex flex-col gap-7 px-4 pb-8 pt-2">
+          {/* Help centre */}
+          <div className="flex flex-col gap-1.5">
+            <SupportRow
+              icon={BookOpen}
+              title="Browse the Help Centre"
+              description="Every feature, explained step by step with screenshots"
+              href="/help/index.html"
+              external
             />
-          </div>
-
-          {/* Guides */}
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Help centre
-            </p>
-            <div className="mb-3 flex flex-col gap-1 rounded-lg border border-primary/25 bg-primary/5 p-1">
-              <SupportRow
-                icon={BookOpen}
-                title="Open the full Help Centre"
-                description="Every feature explained, step by step, with screenshots"
-                href="/help/index.html"
-              />
-              <SupportRow
-                icon={FileText}
-                title="Download the user manual (PDF)"
-                description="The complete NovaHR manual in one document"
-                href="/help/NovaHR-User-Manual.pdf"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              {matchedGuides.map((g) => (
-                <GuideSection key={g.id} guide={g} forceOpen={q.length > 0} />
-              ))}
-              {matchedGuides.length === 0 ? (
-                <p className="text-sm text-muted-foreground px-1">No guides match your search.</p>
-              ) : null}
-            </div>
+            <SupportRow
+              icon={FileText}
+              title="Download the user manual"
+              description="The complete NovaHR guide as a PDF"
+              href="/help/NovaHR-User-Manual.pdf"
+              external
+            />
           </div>
 
           {/* FAQs */}
@@ -298,16 +243,24 @@ export function SupportHub() {
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Frequently asked questions
             </p>
-            <div className="flex flex-col gap-3">
-              {matchedFaqs.map((f) => (
-                <div key={f.q}>
-                  <p className="text-sm font-medium">{f.q}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{f.a}</p>
-                </div>
-              ))}
-              {matchedFaqs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No answers match your search.</p>
-              ) : null}
+            <div className="relative mb-1">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search questions"
+                className="pl-9"
+                aria-label="Search frequently asked questions"
+              />
+            </div>
+            <div className="rounded-lg border border-border px-3">
+              {faqs.length > 0 ? (
+                faqs.map((f) => <FaqItem key={f.q} faq={f} forceOpen={q.length > 0} />)
+              ) : (
+                <p className="py-4 text-sm text-muted-foreground">
+                  No questions match your search. Reach us below and we will help.
+                </p>
+              )}
             </div>
           </div>
 
@@ -318,54 +271,34 @@ export function SupportHub() {
             </p>
             <div className="flex flex-col gap-1">
               <SupportRow
-                icon={Mail}
-                title="Email support"
-                description={SUPPORT_EMAIL}
-                href={mailto("NovaHR support request")}
-              />
-              <SupportRow
                 icon={MessageCircle}
-                title="WhatsApp support"
-                description="Chat with us during business hours"
+                title="WhatsApp us"
+                description={`Chat on ${WHATSAPP_DISPLAY} (messages only)`}
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi, I need help with NovaHR")}`}
-              />
-              <SupportRow
-                icon={Bug}
-                title="Report a bug"
-                description="Something broken? Tell us what happened"
-                href={mailto("NovaHR bug report")}
-              />
-              <SupportRow
-                icon={Lightbulb}
-                title="Request a feature"
-                description="Suggest an improvement to NovaHR"
-                href={mailto("NovaHR feature request")}
+                external
               />
               <SupportRow
                 icon={Mail}
-                title="Contact support"
-                description={SUPPORT_EMAIL}
-                href={mailto("NovaHR support request")}
+                title="Sales &amp; general enquiries"
+                description={`Pricing, billing and questions · ${SALES_EMAIL}`}
+                href={mailto(SALES_EMAIL, "NovaHR enquiry")}
+              />
+              <SupportRow
+                icon={Wrench}
+                title="Technical support"
+                description={`A problem with the app · ${SUPPORT_EMAIL}`}
+                href={mailto(SUPPORT_EMAIL, "NovaHR support request")}
               />
               <SupportRow
                 icon={ClipboardCopy}
                 title="Copy diagnostic information"
-                description="Version, browser and session details for support"
+                description="Version and session details to speed up support"
                 onClick={copyDiagnostics}
               />
             </div>
           </div>
 
-          {/* Status */}
-          <div className="rounded-lg border border-border px-3 py-2.5">
-            <div className="flex items-center justify-between gap-3 text-xs">
-              <span className="flex items-center gap-2 font-medium">
-                <span className="size-2 rounded-full bg-success" aria-hidden />
-                All systems operational
-              </span>
-              <span className="text-muted-foreground">NovaHR v{APP_VERSION}</span>
-            </div>
-          </div>
+          <p className="text-center text-xs text-muted-foreground">NovaHR v{APP_VERSION}</p>
         </div>
       </SheetContent>
     </Sheet>

@@ -1,31 +1,26 @@
 "use client";
 
 import * as React from "react";
-import { Mail, Phone, MessageCircle } from "lucide-react";
+import { Mail, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label, OptionalTag } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { submitContactFormAction } from "@/lib/marketing/contact-action";
 
-const SUPPORT_WHATSAPP = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? "27600000000";
+const SUPPORT_WHATSAPP = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? "27765036486";
+const SALES_EMAIL = process.env.NEXT_PUBLIC_SALES_EMAIL ?? "sales@novabos.co.za";
 
 const CONTACTS = [
   {
     icon: Mail,
     label: "Email us",
-    value: process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@novabos.co.za",
-    href: `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? "support@novabos.co.za"}`,
-  },
-  {
-    icon: Phone,
-    label: "Call us",
-    value: process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+27 11 123 4567",
-    href: `tel:${(process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+27111234567").replace(/\s/g, "")}`,
+    value: SALES_EMAIL,
+    href: `mailto:${SALES_EMAIL}`,
   },
   {
     icon: MessageCircle,
-    label: "WhatsApp",
+    label: "WhatsApp (messages only)",
     value: `+${SUPPORT_WHATSAPP.slice(0, 2)} ${SUPPORT_WHATSAPP.slice(2, 4)} ${SUPPORT_WHATSAPP.slice(4, 7)} ${SUPPORT_WHATSAPP.slice(7)}`,
     href: `https://wa.me/${SUPPORT_WHATSAPP}`,
   },
@@ -65,7 +60,7 @@ export function ContactSection() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-10">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-10">
         {CONTACTS.map(({ icon: Icon, label, value, href }) => (
           <div
             key={label}

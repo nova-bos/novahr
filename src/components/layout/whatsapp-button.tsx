@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Phone } from "lucide-react"
 
-const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? "27600000000"
+const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP ?? "27765036486"
 const WHATSAPP_MESSAGE = "Hi, I need help with NovaHR"
 
 export function WhatsAppButton() {

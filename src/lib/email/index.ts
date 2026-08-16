@@ -262,7 +262,7 @@ interface ContactFormEmailArgs {
   message: string;
 }
 
-const SUPPORT_INBOX = process.env.SUPPORT_EMAIL ?? "support@novabos.co.za";
+const SALES_INBOX = process.env.SALES_EMAIL ?? "sales@novabos.co.za";
 
 export async function sendContactFormEmail(args: ContactFormEmailArgs): Promise<void> {
   const client = getResend();
@@ -304,7 +304,7 @@ export async function sendContactFormEmail(args: ContactFormEmailArgs): Promise<
   try {
     await client.emails.send({
       from: FROM,
-      to: SUPPORT_INBOX,
+      to: SALES_INBOX,
       replyTo: args.email,
       subject: `New enquiry from ${args.name}${args.company ? ` (${args.company})` : ""}`,
       html: baseLayout("New contact form submission", body),
@@ -567,7 +567,7 @@ export async function sendSubscriptionActivatedEmail(args: SubscriptionActivated
       <a href="${appUrl}/dashboard" style="display:inline-block;padding:10px 20px;background:#18181b;color:#ffffff;text-decoration:none;border-radius:8px;font-size:14px;font-weight:600;">Go to NovaHR</a>
     </p>
 
-    <p style="margin:20px 0 0;font-size:13px;color:#a1a1aa;">Billing questions? Email <a href="mailto:billing@novabos.co.za" style="color:#52525b;">billing@novabos.co.za</a></p>
+    <p style="margin:20px 0 0;font-size:13px;color:#a1a1aa;">Billing questions? Email <a href="mailto:sales@novabos.co.za" style="color:#52525b;">sales@novabos.co.za</a></p>
   `;
 
   try {
