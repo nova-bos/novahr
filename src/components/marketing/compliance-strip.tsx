@@ -1,4 +1,4 @@
-const ITEMS = ["PAYE", "UIF", "SDL", "EMP201", "EMP501", "IRP5 / IT3(a)", "ETI", "Netcash payments", "POPIA"];
+const ITEMS = ["PAYE", "UIF", "SDL", "EMP201", "EMP501", "IRP5 / IT3(a)", "ETI", "COIDA", "Employment Equity", "Netcash payments", "POPIA"];
 
 export function ComplianceStrip() {
   return (

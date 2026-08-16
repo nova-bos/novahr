@@ -273,7 +273,7 @@ export function SupportHub() {
               <SupportRow
                 icon={MessageCircle}
                 title="WhatsApp us"
-                description={`Chat on ${WHATSAPP_DISPLAY} (messages only)`}
+                description={`Chat on ${WHATSAPP_DISPLAY}`}
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hi, I need help with NovaHR")}`}
                 external
               />

@@ -27,7 +27,7 @@ export function HowItWorks() {
       <div className="text-center">
         <h2 className="text-3xl font-bold tracking-tight">Up and running in three steps</h2>
         <p className="mt-3 text-muted-foreground">
-          From onboarding to payday, NovaHR handles the heavy lifting.
+          Add your team, run a pay run, then pay and file. Most companies are live the same day.
         </p>
       </div>
 

@@ -20,7 +20,7 @@ const CONTACTS = [
   },
   {
     icon: MessageCircle,
-    label: "WhatsApp (messages only)",
+    label: "WhatsApp",
     value: `+${SUPPORT_WHATSAPP.slice(0, 2)} ${SUPPORT_WHATSAPP.slice(2, 4)} ${SUPPORT_WHATSAPP.slice(4, 7)} ${SUPPORT_WHATSAPP.slice(7)}`,
     href: `https://wa.me/${SUPPORT_WHATSAPP}`,
   },
