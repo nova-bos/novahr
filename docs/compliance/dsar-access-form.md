@@ -1,11 +1,11 @@
 # Data Subject Access Request Form
 
-**NovaHR (a product of [NOVA BUSINESS OS (PTY) LTD])**
+**NovaHR (a product of NOVA BUSINESS OS (PTY) LTD)**
 **Request under POPIA section 23 / PAIA**
 
 > **Employees of NovaHR customers:** your employer is the Responsible Party for your HR and payroll data. Please submit this request to your employer's HR department first. NovaHR will assist your employer in responding. Submit directly to NovaHR only for data NovaHR holds about you as its own contact (e.g. you signed up for NovaHR or corresponded with us).
 
-Submit the completed form to: **hello@novahr.co.za** (subject: "Data Subject Request: Access") or to the postal address in our PAIA Manual.
+Submit the completed form to: **support@novabos.co.za** (subject: "Data Subject Request: Access") or to the postal address in our PAIA Manual.
 
 ---
 

@@ -76,8 +76,7 @@ Constants were verified line by line against the National Treasury Budget 2026 T
 
 ## 4. What NovaHR Does Not Do (customer responsibilities)
 
-- Submit EMP201 or EMP501 to SARS (NovaHR provides the figures; the employer or their practitioner files);
-- Generate IRP5 certificates [roadmap item ●];
+- Submit EMP201 or EMP501 to SARS (NovaHR generates IRP5/IT3(a) certificates and the reconciliation figures; the employer or their practitioner files them via e@syFile or eFiling);
 - Handle directives (fixed-rate tax directives from SARS) unless captured manually;
 - Advise on the tax treatment of unusual remuneration structures.
 

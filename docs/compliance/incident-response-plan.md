@@ -1,7 +1,7 @@
 # NovaHR Incident Response Plan (IRP)
 
 **Version:** 1.0
-**Effective Date:** 10 July 2026
+**Effective Date:** 16 August 2026
 **Owner:** Engineering
 **Review cycle:** Annual, plus after every P1/P2 incident
 
@@ -21,7 +21,7 @@ Covers all operational and security incidents. Incidents involving personal info
 ## 2. Detection Sources
 
 - Vercel runtime errors and logs; Supabase logs and alerts;
-- Customer reports to hello@novahr.co.za;
+- Customer reports to support@novabos.co.za;
 - Failed CI or deployment alerts;
 - Vulnerability reports via the Vulnerability Disclosure Policy;
 - Sub-processor status pages and notifications (Vercel, Supabase, Resend).

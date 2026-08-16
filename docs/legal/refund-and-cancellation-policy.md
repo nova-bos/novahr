@@ -1,7 +1,7 @@
 # NovaHR Refund and Cancellation Policy
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 
 This policy governs cancellation of NovaHR subscriptions and refunds. It is incorporated into the Terms of Service. Where the Consumer Protection Act 68 of 2008 ("CPA") applies to a customer, nothing in this policy limits rights that cannot be waived under the CPA.
 
@@ -9,7 +9,7 @@ This policy governs cancellation of NovaHR subscriptions and refunds. It is inco
 
 ## 1. Cancelling Your Subscription
 
-1.1 You may cancel at any time from Billing settings in the app or by emailing hello@novahr.co.za from your registered account email.
+1.1 You may cancel at any time from Billing settings in the app or by emailing support@novabos.co.za from your registered account email.
 
 1.2 **Monthly plans:** Cancellation takes effect at the end of the current billing month. You retain full access until then. No further invoices are raised.
 
@@ -63,4 +63,4 @@ NovaHR may cancel as permitted in the Terms of Service (material breach, unlawfu
 
 ## 8. Contact
 
-Billing and cancellation queries: hello@novahr.co.za.
+Billing and cancellation queries: support@novabos.co.za.

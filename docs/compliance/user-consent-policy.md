@@ -1,7 +1,7 @@
 # NovaHR User Consent Policy
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 **Audience:** Internal (product and engineering) and customer-facing summary
 
 This policy defines when NovaHR relies on consent, how consent is captured, recorded, and withdrawn, and where other lawful bases apply instead.
@@ -36,7 +36,7 @@ This policy defines when NovaHR relies on consent, how consent is captured, reco
 
 ## 4. Withdrawal of Consent
 
-4.1 Marketing consent can be withdrawn via the unsubscribe link in any message or by emailing hello@novahr.co.za; effect within 7 days, without affecting service delivery.
+4.1 Marketing consent can be withdrawn via the unsubscribe link in any message or by emailing support@novabos.co.za; effect within 7 days, without affecting service delivery.
 
 4.2 Withdrawal does not affect the lawfulness of processing before withdrawal, and does not override statutory retention duties.
 

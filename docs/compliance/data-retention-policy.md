@@ -1,7 +1,7 @@
 # NovaHR Data Retention Policy
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 **Owner:** Information Officer
 **Review cycle:** Annual
 

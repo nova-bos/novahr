@@ -1,15 +1,15 @@
 # NovaHR Master Subscription Agreement (MSA)
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 
 > **DRAFT NOTICE:** For attorney review before first use. This is the negotiated, signature version of the Customer Agreement used for mid-market and enterprise clients. Self-serve SME customers accept the Terms of Service in-app instead; the two documents are kept aligned.
 
 This Master Subscription Agreement ("Agreement") is entered into between:
 
-**[NOVA BUSINESS OS (PTY) LTD]**, registration number [●], a company incorporated in South Africa, with registered address at [●] ("NovaHR"); and
+**NOVA BUSINESS OS (PTY) LTD**, registration number 2026/596648/07, a company incorporated in South Africa, with registered address at 351 Pavarotti Road, Midridge Park, Midrand, 1685 ("NovaHR"); and
 
-**[CUSTOMER LEGAL NAME]**, registration number [●], with registered address at [●] ("Customer"),
+**[CUSTOMER LEGAL NAME]**, registration number [customer registration number], with registered address at [customer address] ("Customer"),
 
 (each a "Party", together the "Parties"), effective as of the date of last signature ("Effective Date").
 
@@ -43,7 +43,7 @@ This Master Subscription Agreement ("Agreement") is entered into between:
 
 ## 4. Fees, Invoicing, and Taxes
 
-4.1 Fees are set out in the Order Form. NovaHR will invoice in advance per the billing frequency selected. Payment is due within [7/14/30: ●] days of invoice.
+4.1 Fees are set out in the Order Form. NovaHR will invoice in advance per the billing frequency selected. Payment is due within 7 days of invoice.
 
 4.2 Fees exclude VAT, which is added where applicable. The Customer is responsible for withholding taxes if any, grossed up so NovaHR receives the full invoiced amount.
 
@@ -99,13 +99,13 @@ This Master Subscription Agreement ("Agreement") is entered into between:
 
 ## 11. Insurance
 
-NovaHR will maintain commercially reasonable insurance appropriate to its size, [including cyber liability cover of at least R[●] once placed], and will provide confirmation on request.
+NovaHR will maintain commercially reasonable insurance appropriate to its size, [including cyber liability cover of at least R[FILL] once placed], and will provide confirmation on request.
 
 ## 12. General
 
 12.1 **Governing law and jurisdiction:** South Africa; the Parties consent to the jurisdiction of the High Court, Gauteng Division, Pretoria.
 
-12.2 **Dispute resolution:** Senior-representative negotiation (30 days), then mediation, then AFSA arbitration in [Cape Town/Johannesburg: ●]. Urgent relief may be sought in court.
+12.2 **Dispute resolution:** Senior-representative negotiation (30 days), then mediation, then AFSA arbitration in Johannesburg. Urgent relief may be sought in court.
 
 12.3 **Force majeure:** Neither Party is liable for failure caused by events beyond reasonable control, provided mitigation and notice.
 
@@ -134,11 +134,11 @@ NovaHR will maintain commercially reasonable insurance appropriate to its size, 
 
 | Field | Value |
 |---|---|
-| Plan | Starter (R499 pm, up to 10 employees) / Growth (R999 pm, up to 30) / Scale (R2,499 pm, unlimited) |
+| Plan | Standard (R349 pm + R30 per active employee, up to 149 employees) / Enterprise (custom, 150+ employees) |
 | Billing frequency | Monthly / Annual |
 | Initial Term | 12 months |
 | Start date | [insert date] |
-| Fees | [insert plan price] per month, excl. VAT |
+| Fees | R349 per month plus R30 per active employee, excl. VAT (Enterprise: per Order) |
 | Billing contact | [name, email] |
 | Notice email addresses | [insert notice email address] |
 | Special terms | [insert special terms, if any] |

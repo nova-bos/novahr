@@ -1,7 +1,7 @@
 # NovaHR Backup Policy
 
 **Version:** 1.0
-**Effective Date:** 10 July 2026
+**Effective Date:** 16 August 2026
 **Owner:** Engineering
 **Review cycle:** Annual, with quarterly restore tests
 
@@ -11,11 +11,11 @@
 
 | Asset | Method | Frequency | Retention |
 |---|---|---|---|
-| Production Postgres database (all tenant data) | Supabase automated backups | Daily | 7 days minimum (Pro plan); [extend to PITR when justified ●] |
-| File storage (payslip PDFs, uploads) | Supabase storage durability + [scheduled export to secondary bucket ●] | Daily | Aligned to database |
+| Production Postgres database (all tenant data) | Supabase automated backups | Daily | 7 days minimum (Pro plan); [FILL: extend to PITR when justified] |
+| File storage (payslip PDFs, uploads) | Supabase storage durability + [FILL: scheduled export to secondary bucket] | Daily | Aligned to database |
 | Source code | GitHub (full history, all branches) | Continuous | Indefinite |
 | Environment configuration | Vercel env vars + encrypted offline copy of the secrets register | On change | Current + previous |
-| Legal and business documents | Repo (`docs/`) + [Google Drive ●] | Continuous | Indefinite |
+| Legal and business documents | Repo (`docs/`) + [FILL: Google Drive] | Continuous | Indefinite |
 
 ## 2. Objectives
 

@@ -1,7 +1,7 @@
 # NovaHR Subscription and Payment Terms
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 
 These terms detail the commercial mechanics of NovaHR subscriptions. They are incorporated into the Terms of Service and read together with the Refund and Cancellation Policy and the current Pricing Schedule.
 
@@ -9,15 +9,14 @@ These terms detail the commercial mechanics of NovaHR subscriptions. They are in
 
 ## 1. Plans and Pricing
 
-1.1 Current plans (excl. VAT):
+1.1 NovaHR is sold as a single plan. Every customer gets the full platform, with no feature tiers or per-module upsells (excl. VAT):
 
-| Plan | Monthly price | Employee limit | Key inclusions |
+| Plan | Price | Employee limit | Inclusions |
 |---|---|---|---|
-| Starter | R499 | Up to 10 | Employee management, leave, payroll and payslips, basic reports, email support |
-| Growth | R999 | Up to 30 | Everything in Starter, multi-department structure, advanced reports, priority support |
-| Scale | R2,499 | Unlimited | Everything in Growth, dedicated onboarding, API access, custom integrations |
+| Standard | R349 per month, plus R30 per active employee per month | Up to 149 active employees | The full platform: employee management, leave, payroll and payslips, all statutory outputs, reports, self-service and two-factor sign-in |
+| Enterprise | Custom (volume pricing) | 150+ active employees | Everything in Standard, plus a tailored per-employee rate, migration and onboarding support, priority support and account management, and multi-company or branch-scoped administration |
 
-1.2 Annual billing is available at 12 x the monthly price [or with a discount of ●% where offered]. The authoritative pricing at any time is the published Pricing Schedule; customers on a signed Order keep their contracted pricing for the committed term.
+1.2 Annual billing may be offered by arrangement at 12 x the applicable monthly charge. The authoritative pricing at any time is the published Pricing Schedule; customers on a signed Order keep their contracted pricing for the committed term.
 
 1.3 "Employee" means an active (non-terminated) employee record in your tenant. Terminated employees retained for record-keeping do not count toward the limit.
 
@@ -25,23 +24,33 @@ These terms detail the commercial mechanics of NovaHR subscriptions. They are in
 
 2.1 Subscriptions are billed **in advance**: monthly plans on the same calendar day each month; annual plans on the anniversary of the start date.
 
-2.2 The first invoice is issued on subscription start (trial conversion or Order start date).
+2.2 Every new account starts with a 30-day free trial and no payment method is required to begin. The first invoice is issued on subscription start (trial conversion or Order start date).
 
 2.3 Mid-cycle upgrades are pro-rated; downgrades apply from the next cycle.
 
 ## 3. Payment Methods
 
-3.1 Accepted methods: EFT against invoice [and card / debit order via [payment provider ●] once enabled].
+3.1 Accepted methods: card payment through Paystack, and EFT against invoice.
 
-3.2 Invoices are payable within 7 days of invoice date unless the Order states otherwise.
+3.2 EFT banking details (also shown on every invoice):
 
-3.3 The customer must keep billing contact details current. Invoices are delivered by email to the billing contact and are deemed received on sending.
+| Field | Detail |
+|---|---|
+| Account holder | NOVA BUSINESS OS (PTY) LTD |
+| Bank | First National Bank (FNB) |
+| Account type | Business Gold Account |
+| Account number | 63220605224 |
+| Reference | Your invoice number |
+
+3.3 Invoices are payable within 7 days of invoice date unless the Order states otherwise.
+
+3.4 The customer must keep billing contact details current. Invoices are delivered by email to the billing contact and are deemed received on sending.
 
 ## 4. VAT and Invoicing
 
-4.1 Prices exclude VAT. Where NovaHR is a registered VAT vendor, VAT at the prevailing rate (currently 15%) is added and tax invoices compliant with section 20 of the VAT Act 89 of 1991 are issued, showing NovaHR's VAT number, the customer's VAT number if provided, a sequential invoice number, and the VAT amount.
+4.1 NovaHR's income tax reference number is 9548822221.
 
-4.2 [Until VAT registration: invoices state "Not a registered VAT vendor; no VAT charged."]
+4.2 Prices exclude VAT. NovaHR is not currently a registered VAT vendor, so no VAT is charged and invoices state "Not a registered VAT vendor; no VAT charged." If and when NovaHR registers for VAT, VAT at the prevailing rate (currently 15%) will be added and tax invoices compliant with section 20 of the VAT Act 89 of 1991 will be issued, showing NovaHR's VAT number, the customer's VAT number if provided, a sequential invoice number, and the VAT amount.
 
 ## 5. Late Payment
 

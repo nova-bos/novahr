@@ -1,7 +1,7 @@
 # NovaHR Service Level Agreement (SLA)
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 
 This Service Level Agreement forms part of the Terms of Service / Master Subscription Agreement. It applies to paid subscriptions only; trial accounts carry no SLA.
 
@@ -26,7 +26,7 @@ This Service Level Agreement forms part of the Terms of Service / Master Subscri
 
 ## 2. Support Response Times
 
-Support requests are submitted to hello@novahr.co.za. Severity is assigned as follows:
+Support requests are submitted to support@novabos.co.za. Severity is assigned as follows:
 
 | Severity | Definition | First response | Update cadence | Target resolution |
 |---|---|---|---|---|
@@ -51,7 +51,7 @@ Target resolution times are objectives, not guarantees; service credits attach t
 
 3.2 If NovaHR misses the P1 first-response commitment more than twice in a month, the Customer is entitled to a 10% credit for that month, in addition to any availability credit, capped together at 50%.
 
-3.3 **Claim process:** Credits must be claimed in writing to hello@novahr.co.za within 30 days of the end of the affected month, with dates and times of claimed Downtime. NovaHR will verify against its monitoring and apply approved credits to the next invoice.
+3.3 **Claim process:** Credits must be claimed in writing to support@novabos.co.za within 30 days of the end of the affected month, with dates and times of claimed Downtime. NovaHR will verify against its monitoring and apply approved credits to the next invoice.
 
 3.4 Credits are the Customer's sole and exclusive remedy for availability failures, are not redeemable for cash, and lapse on termination. Total credits in any month cannot exceed 50% of that month's fee.
 
@@ -60,7 +60,7 @@ Target resolution times are objectives, not guarantees; service credits attach t
 ## 4. Maintenance and Communication
 
 - Scheduled maintenance is announced by email and in-app notice at least 48 hours in advance.
-- Incident status is communicated by email [and on the status page at status.novahr.co.za once live].
+- Incident status is communicated by email [and on the status page at status.hr.novabos.co.za once live].
 - A post-incident summary is provided for all P1 incidents within 5 business days.
 
 ## 5. Data Protection Service Levels

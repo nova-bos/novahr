@@ -1,9 +1,9 @@
 # Resolution: Appointment of Information Officer
 
-**[NOVA BUSINESS OS (PTY) LTD]**
-**Registration number:** [●]
+**NOVA BUSINESS OS (PTY) LTD**
+**Registration number:** 2026/596648/07
 **Resolution of the Board of Directors / Sole Director**
-**Date:** 10 July 2026
+**Date:** 16 August 2026
 
 ---
 
@@ -17,7 +17,7 @@ By default, the head of a private body (the managing director or equivalent) is 
 
 It is resolved that:
 
-1. **[Full name ●]**, [ID number ●], in their capacity as [Director / title ●], is confirmed and appointed as the **Information Officer** of the company with effect from [date ●].
+1. **[FILL: Information Officer full name]**, [FILL: IO ID number], in the capacity of [FILL: IO title, e.g. Director], is confirmed and appointed as the **Information Officer** of the company with effect from [FILL: date].
 
 2. The Information Officer's responsibilities include (POPIA s 55(1), Regulation 4):
    - encouraging and ensuring compliance with the conditions for lawful processing of personal information;
@@ -30,18 +30,18 @@ It is resolved that:
    - working with, and responding to, the Information Regulator;
    - ensuring that data breaches are handled and notified in terms of POPIA section 22.
 
-3. [Optional: **[Full name ●]** is designated as **Deputy Information Officer** under POPIA section 56 to assist with the above duties.]
+3. [Optional: **[FILL: Full name]** is designated as **Deputy Information Officer** under POPIA section 56 to assist with the above duties.]
 
 4. The Information Officer must be registered with the Information Regulator via the Regulator's online portal (inforegulator.org.za) before taking up duties, and the registration confirmation must be retained with this resolution.
 
-5. The Information Officer's contact details (hello@novahr.co.za, [phone ●]) must be published in the Privacy Policy and PAIA Manual.
+5. The Information Officer's contact details (support@novabos.co.za, [FILL: phone]) must be published in the Privacy Policy and PAIA Manual.
 
 ## Signature
 
-Signed at [place ●] on [date ●].
+Signed at [FILL: place] on [FILL: date].
 
 ______________________
-[Director name ●]
+[FILL: Director name]
 Director
 
 ---

@@ -39,7 +39,7 @@ NovaHR maintains the holiday calendar per year, including Sunday-shift Mondays a
 
 ## 2. Overtime: Legal Basis (BCEA ss 9-10)
 
-Applies to employees within the BCEA working-time chapter (it does not apply to, among others, senior managerial employees or employees earning above the Minister's earnings threshold, currently gazetted from time to time [verify current threshold ●]).
+Applies to employees within the BCEA working-time chapter (it does not apply to, among others, senior managerial employees or employees earning above the Minister's earnings threshold, currently gazetted from time to time currently R261,748.45 per annum, effective 1 April 2025; the Minister updates this threshold from time to time, so confirm the current figure).
 
 | Rule | Minimum |
 |---|---|
@@ -55,7 +55,7 @@ Applies to employees within the BCEA working-time chapter (it does not apply to,
 - Rates default to 1.5x ordinary, 2x for Sundays and public holidays, computed from the employee's derived hourly rate;
 - Overtime appears as a separate earning line on the payslip with hours and rate, satisfying BCEA s 33 disclosure;
 - Overtime is taxable remuneration and flows into PAYE and UIF calculations;
-- The employer is responsible for ensuring overtime was agreed and within statutory caps; NovaHR records and pays what is captured, and flags weeks exceeding 10 overtime hours [flagging: roadmap ●].
+- The employer is responsible for ensuring overtime was agreed and kept within the statutory caps; NovaHR records and pays the overtime that is captured, but does not police weekly overtime limits on the employer's behalf.
 
 ## 4. Employer Checklist
 

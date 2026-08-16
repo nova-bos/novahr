@@ -1,7 +1,7 @@
 # NovaHR Audit Log Policy
 
 **Version:** 1.0
-**Effective Date:** 10 July 2026
+**Effective Date:** 16 August 2026
 **Owner:** Engineering
 **Review cycle:** Annual
 
@@ -40,7 +40,7 @@ Per tenant, with actor, timestamp (UTC), action, and affected entity:
 | Log | Retention |
 |---|---|
 | Application audit log | 24 months target, 12 months minimum (see Data Retention Policy); deleted with tenant data on offboarding |
-| Vercel / Supabase platform logs | Provider defaults [document current plan limits ●] |
+| Vercel / Supabase platform logs | Provider defaults [FILL: document current plan limits] |
 | Deployment and git history | Indefinite |
 
 ## 4. Access
@@ -51,7 +51,7 @@ Per tenant, with actor, timestamp (UTC), action, and affected entity:
 
 ## 5. Monitoring and Review
 
-- Failed login spikes and anomalous administrative actions are reviewed when detected [alerting to be automated: ●];
+- Failed login spikes and anomalous administrative actions are reviewed when detected [FILL: alerting to be automated];
 - Audit log integrity is included in the quarterly access review;
 - Incidents identified from logs follow the Incident Response Plan.
 

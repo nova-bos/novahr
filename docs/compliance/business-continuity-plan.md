@@ -1,7 +1,7 @@
 # NovaHR Business Continuity Plan (BCP)
 
 **Version:** 1.0
-**Effective Date:** 10 July 2026
+**Effective Date:** 16 August 2026
 **Owner:** Founder
 **Review cycle:** Annual
 
@@ -25,7 +25,7 @@ Ranked by tolerance for interruption:
 
 The single largest continuity risk is founder unavailability. Mitigations:
 
-- **Access continuity:** credentials for all critical systems (Supabase, Vercel, GitHub, Resend, registrar, bank, accounting) stored in a password manager with a documented emergency access procedure for [trusted person / attorney ●].
+- **Access continuity:** credentials for all critical systems (Supabase, Vercel, GitHub, Resend, registrar, bank, accounting) stored in a password manager with a documented emergency access procedure for [FILL: trusted person / attorney].
 - **Runbooks:** deployment, restore, and support procedures are documented in this repo so a competent engineer can operate the platform without oral handover.
 - **Instructions letter:** a sealed letter with the attorney naming who may operate or wind down the service, and how customers get their data (Export Window process), if the founder is incapacitated.
 - **Successor onboarding target:** a new engineer should reach operational capability from documentation alone within 5 business days.
@@ -36,7 +36,7 @@ The single largest continuity risk is founder unavailability. Mitigations:
 |---|---|
 | Platform outage (Vercel/Supabase) | DRP; customer comms within 2 hours; status updates every 4 hours |
 | Load-shedding / local power or connectivity loss | Cloud infrastructure is unaffected; founder operations continue via UPS/LTE; support SLAs measured in business hours absorb short gaps |
-| Founder illness (short) | Support autoresponder with revised response times; P1 payroll issues escalated to [backup contact ●] |
+| Founder illness (short) | Support autoresponder with revised response times; P1 payroll issues escalated to [FILL: backup contact] |
 | Founder incapacity (long) | Emergency access procedure; attorney executes instructions letter |
 | Banking/payment disruption | Invoices remain payable by EFT to the account in the invoice; alternate account documented with the accountant |
 | Office/equipment loss | All systems are cloud-based; replacement laptop plus password manager restores full capability within 1 day |
@@ -54,7 +54,7 @@ Because customers run payroll at month-end:
 
 | Audience | Channel | Trigger | Owner |
 |---|---|---|---|
-| Customers (HR admins) | Email from hello@novahr.co.za [+ status page ●] | Any disruption over 1 hour | Founder |
+| Customers (HR admins) | Email from support@novabos.co.za [FILL: status page URL, if published] | Any disruption over 1 hour | Founder |
 | Regulator | Written notification | Data breach (per Breach Policy) | Information Officer |
 | Suppliers/partners | Email | Disruption affecting them | Founder |
 
@@ -62,7 +62,7 @@ Outage email template:
 
 > Subject: NovaHR service disruption: [date]
 >
-> We are currently experiencing [issue]. Your data is safe [adjust if not confirmed]. We expect restoration by [time]. If you are mid-payroll, please [guidance]. Updates will follow every 4 hours. Contact: hello@novahr.co.za.
+> We are currently experiencing [issue]. Your data is safe [adjust if not confirmed]. We expect restoration by [time]. If you are mid-payroll, please [guidance]. Updates will follow every 4 hours. Contact: support@novabos.co.za.
 
 ## 6. Recovery Priorities After Major Disruption
 

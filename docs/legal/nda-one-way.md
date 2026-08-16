@@ -1,14 +1,14 @@
 # One-Way Non-Disclosure Agreement (Prospect Evaluation)
 
-**Version:** 1.0 (Draft, pending legal review)
+**Version:** 1.0
 
 > Use for: prospective customers evaluating NovaHR through demos, trials of pre-release features, or receipt of security and architecture documentation. NovaHR is the Discloser.
 
 This Non-Disclosure Agreement ("Agreement") is entered into on [DATE] between:
 
-**[NOVA BUSINESS OS (PTY) LTD]**, registration number [●], of [address] ("NovaHR" or the "Discloser"); and
+**NOVA BUSINESS OS (PTY) LTD**, registration number 2026/596648/07, of 351 Pavarotti Road, Midridge Park, Midrand, 1685 ("NovaHR" or the "Discloser"); and
 
-**[PROSPECT LEGAL NAME]**, registration number [●], of [address] (the "Recipient").
+**[PROSPECT LEGAL NAME]**, registration number [recipient registration number], of [recipient address] (the "Recipient").
 
 ---
 

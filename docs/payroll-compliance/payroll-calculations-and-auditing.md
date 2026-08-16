@@ -46,7 +46,7 @@ For each employee in a payroll run:
 
 ## 4. Independent Verification
 
-- **Payroll Calculation Verification Report:** before commercial launch, and after each annual update, spot-checks at multiple salary points are compared with SARS eFiling calculator output and signed off by a registered tax practitioner [commission: ●]. The report is available to customers under NDA.
+- **Payroll Calculation Verification Report:** before commercial launch, and after each annual update, spot-checks at multiple salary points are compared with SARS eFiling calculator output and signed off by a registered tax practitioner [FILL: commission]. The report is available to customers under NDA.
 - Customers are encouraged to have their accountant verify the first payroll run in parallel with their previous system (parallel run), and NovaHR's onboarding checklist includes this step.
 
 ## 5. Auditing a Payroll Run (customer procedure)
