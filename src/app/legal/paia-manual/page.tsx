@@ -14,7 +14,7 @@ export default function PaiaManualPage() {
       effectiveDate="10 July 2026"
       intro={[
         'Manual in terms of Section 51 of the Promotion of Access to Information Act 2 of 2000 ("PAIA"), read with POPIA.',
-        "Private body: [NOVA BUSINESS OS (PTY) LTD], registration number [to be confirmed], trading as NovaHR.",
+        "Private body: NOVA BUSINESS OS (PTY) LTD, registration number 2026/596648/07, trading as NovaHR.",
         "Review: Annually or on material change.",
       ]}
       sections={[
@@ -24,11 +24,11 @@ export default function PaiaManualPage() {
           table: {
             rows: [
               ["Head of private body", "[Director name]"],
-              ["Information Officer", "[Name]"],
-              ["Postal address", "[to be confirmed]"],
-              ["Physical address", "[to be confirmed]"],
-              ["Telephone", "[to be confirmed]"],
-              ["Email", "sales@novabos.co.za"],
+              ["Information Officer", "The Information Officer"],
+              ["Postal address", "351 Pavarotti Road, Midridge Park, Midrand, 1685"],
+              ["Physical address", "351 Pavarotti Road, Midridge Park, Midrand, 1685"],
+              ["Telephone", "Available on request"],
+              ["Email", "support@novabos.co.za"],
               ["Website", "novabos.co.za"],
             ],
           },

@@ -69,7 +69,7 @@ export default function SlaPage() {
             ],
           },
           paragraphsAfterTable: [
-            "Business hours: 08:00-17:00 SAST, Monday to Friday, excluding South African public holidays. Priority support (Growth and Scale plans) extends P1 coverage to 07:00-19:00 SAST.",
+            "Business hours: 08:00-17:00 SAST, Monday to Friday, excluding South African public holidays. Priority support (Enterprise plan) extends P1 coverage to 07:00-19:00 SAST.",
             "Target resolution times are objectives, not guarantees; service credits attach to availability (clause 3) and P1 first-response only.",
           ],
         },

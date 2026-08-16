@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 const TRUST_POINTS = [
   "SARS-aligned PAYE, UIF & SDL",
   "POPIA ready",
-  "Free 14-day trial",
+  "Free 30-day trial",
 ];
 
 // A faint grid, masked to fade out at the edges, gives the hero quiet structure

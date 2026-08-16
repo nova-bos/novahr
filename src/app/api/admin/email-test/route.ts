@@ -23,7 +23,7 @@ export async function GET() {
   }
 
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM ?? "NovaHR <noreply@novahr.co.za>";
+  const from = process.env.EMAIL_FROM ?? "NovaHR <no-reply@novabos.co.za>";
 
   if (!apiKey) {
     return NextResponse.json({ configured: false, error: "RESEND_API_KEY is not set in this environment" }, { status: 500 });

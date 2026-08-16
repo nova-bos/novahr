@@ -12,7 +12,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="Privacy Policy"
       effectiveDate="10 July 2026"
-      intro='[NOVA BUSINESS OS (PTY) LTD], registration number [to be confirmed] ("NovaHR", "we", "us"), respects your privacy. This policy explains how we collect, use, share, and protect personal information in terms of the Protection of Personal Information Act 4 of 2013 ("POPIA") and, where applicable, other data protection laws.'
+      intro='NOVA BUSINESS OS (PTY) LTD, registration number 2026/596648/07 ("NovaHR", "we", "us"), respects your privacy. This policy explains how we collect, use, share, and protect personal information in terms of the Protection of Personal Information Act 4 of 2013 ("POPIA") and, where applicable, other data protection laws.'
       sections={[
         {
           heading: "Who We Are",
@@ -20,8 +20,8 @@ export default function PrivacyPage() {
             "NovaHR provides a cloud-based HR and payroll platform for South African businesses.",
           ],
           bullets: [
-            "Responsible Party: [NOVA BUSINESS OS (PTY) LTD], [registered address]",
-            "Information Officer: [Name], sales@novabos.co.za",
+            "Responsible Party: NOVA BUSINESS OS (PTY) LTD, 351 Pavarotti Road, Midridge Park, Midrand, 1685",
+            "Information Officer: the Information Officer, support@novabos.co.za",
             "Website: novabos.co.za",
           ],
         },
@@ -107,7 +107,7 @@ export default function PrivacyPage() {
                 "Professional advisers",
                 "Under confidentiality duties",
               ],
-              ["Payment providers [to be confirmed]", "Billing", "Processing payments"],
+              ["Paystack", "Billing", "Processing card payments"],
               ["Authorities", "Regulators, courts, SARS", "Where required by law"],
             ],
           },
@@ -151,7 +151,7 @@ export default function PrivacyPage() {
             "Complain to the Information Regulator.",
           ],
           paragraphsAfterTable: [
-            'To exercise a right, use the request forms in our PAIA Manual or email sales@novabos.co.za with "Data Subject Request" in the subject. We respond within a reasonable time and in any event within the periods PAIA prescribes.',
+            'To exercise a right, use the request forms in our PAIA Manual or email support@novabos.co.za with "Data Subject Request" in the subject. We respond within a reasonable time and in any event within the periods PAIA prescribes.',
             "Information Regulator (South Africa): JD House, 27 Stiemens Street, Braamfontein, Johannesburg; enquiries@inforegulator.org.za; inforegulator.org.za.",
           ],
         },
@@ -176,7 +176,7 @@ export default function PrivacyPage() {
         {
           heading: "Contact",
           paragraphs: [
-            "Privacy questions and requests: sales@novabos.co.za (attention: Information Officer), or write to [postal address].",
+            "Privacy questions and requests: support@novabos.co.za (attention: Information Officer), or write to 351 Pavarotti Road, Midridge Park, Midrand, 1685.",
           ],
         },
       ]}

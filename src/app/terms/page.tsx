@@ -13,7 +13,7 @@ export default function TermsPage() {
       title="Terms of Service"
       effectiveDate="10 July 2026"
       intro={[
-        'These Terms of Service ("Terms") govern access to and use of the NovaHR platform, websites, and related services (collectively, the "Service") provided by [NOVA BUSINESS OS (PTY) LTD], registration number [to be confirmed] ("NovaHR", "we", "us", "our"), a company incorporated in the Republic of South Africa.',
+        'These Terms of Service ("Terms") govern access to and use of the NovaHR platform, websites, and related services (collectively, the "Service") provided by NOVA BUSINESS OS (PTY) LTD, registration number 2026/596648/07 ("NovaHR", "we", "us", "our"), a company incorporated in the Republic of South Africa.',
         'By creating an account, clicking "I agree", or using the Service, you agree to be bound by these Terms. If you are accepting on behalf of a company, you represent that you have authority to bind that company, and "Customer", "you" and "your" refer to that company.',
         "If you do not agree to these Terms, do not use the Service.",
       ]}
@@ -152,7 +152,7 @@ export default function TermsPage() {
           paragraphs: [
             "15.1 Governing law: These Terms are governed by the laws of the Republic of South Africa. The parties consent to the jurisdiction of the High Court of South Africa, [Western Cape Division / Gauteng Division].",
             "15.2 Dispute resolution: The parties will first attempt to resolve disputes by good-faith negotiation between senior representatives within 30 days, failing which either party may refer the dispute to arbitration under the rules of the Arbitration Foundation of Southern Africa (AFSA), or to court for urgent relief.",
-            "15.3 Notices: Legal notices must be in writing to the addresses in the Order, with a copy by email to sales@novabos.co.za (for NovaHR) and the Customer's billing email.",
+            "15.3 Notices: Legal notices must be in writing to the addresses in the Order, with a copy by email to support@novabos.co.za (for NovaHR) and the Customer's billing email.",
             "15.4 Assignment: Neither party may assign these Terms without the other's consent, except to an affiliate or in connection with a merger or sale of substantially all assets.",
             "15.5 Force majeure: Neither party is liable for delay or failure caused by events beyond its reasonable control, including load-shedding beyond stage contingency, upstream provider outages, war, or acts of government, provided the affected party mitigates and resumes promptly.",
             "15.6 Changes to these Terms: NovaHR may update these Terms with at least 30 days' notice for material changes. Continued use after the effective date constitutes acceptance. Material changes reducing Customer rights apply from the next renewal.",
@@ -162,7 +162,7 @@ export default function TermsPage() {
           ],
         },
       ]}
-      outro="Contact: [NOVA BUSINESS OS (PTY) LTD], [registered address], sales@novabos.co.za"
+      outro="Contact: NOVA BUSINESS OS (PTY) LTD, 351 Pavarotti Road, Midridge Park, Midrand, 1685, support@novabos.co.za"
     />
   );
 }

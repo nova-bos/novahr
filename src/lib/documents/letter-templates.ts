@@ -222,7 +222,7 @@ ${hearing ? `<p>A disciplinary hearing was held on <strong>${hearing.date}</stro
 <h2>Offence</h2>
 <p>${offence}</p>
 <h2>Finding</h2>
-<p>Having considered all the facts and circumstances, it has been found that the above constitutes <strong>${offence}</strong>, which is a disciplinary offence. This <strong>${typeLabel}</strong> is accordingly issued.</p>
+<p>Having considered all the facts and circumstances, it has been found that the conduct described above constitutes a disciplinary offence. This <strong>${typeLabel}</strong> is accordingly issued.</p>
 <h2>Validity</h2>
 <p>This warning is valid for a period of <strong>${validity}</strong> from the date of this letter.</p>
 ${warningType === "final" ? `<h2>Consequence</h2><p>You are advised that any further offence of a similar or different nature during the validity period of this warning may result in your summary dismissal.</p>` : ""}

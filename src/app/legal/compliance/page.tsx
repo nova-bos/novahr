@@ -123,7 +123,7 @@ export default function CompliancePage() {
               Version: 1.0 (Draft, pending legal review)
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Effective date: [to be confirmed]
+              Effective date: 16 August 2026
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
               Review cycle: Annual, and on any material change to processing
@@ -207,7 +207,7 @@ export default function CompliancePage() {
                 <h3 className="text-lg font-semibold tracking-tight">6. Data Subject Requests</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   Requests may be submitted using the forms referenced in our PAIA Manual to
-                  sales@novabos.co.za. Employees of NovaHR customers should contact their employer
+                  support@novabos.co.za. Employees of NovaHR customers should contact their employer
                   first; we assist employers in fulfilling requests.
                 </p>
               </section>
@@ -216,8 +216,8 @@ export default function CompliancePage() {
                 <h3 className="text-lg font-semibold tracking-tight">7. Governance</h3>
                 <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm leading-relaxed text-muted-foreground">
                   <li>
-                    Information Officer: [to be confirmed], registered with the Information
-                    Regulator on [to be confirmed].
+                    Information Officer: the appointed Information Officer, registered with the Information
+                    Regulator.
                   </li>
                   <li>
                     Policy suite: Privacy Policy, Data Processing Agreement, Data Retention Policy,
@@ -234,7 +234,7 @@ export default function CompliancePage() {
               <section>
                 <h3 className="text-lg font-semibold tracking-tight">8. Contact</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  Information Officer, NOVA BUSINESS OS (PTY) LTD, sales@novabos.co.za.
+                  Information Officer, NOVA BUSINESS OS (PTY) LTD, support@novabos.co.za.
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                   Complaints may also be lodged with the Information Regulator:
