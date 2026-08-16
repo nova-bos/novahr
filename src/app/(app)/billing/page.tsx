@@ -283,7 +283,7 @@ export default function BillingPage() {
                       {subscriptionEnded
                         ? "Your subscription has ended. Resubscribe to restore full access."
                         : trialExpired
-                          ? "Your 14-day free trial has ended."
+                          ? "Your 30-day free trial has ended."
                           : trialEndsAt
                             ? `Your trial ends on ${formatDate(trialEndsAt)}.`
                             : "Explore everything NovaHR has to offer."}

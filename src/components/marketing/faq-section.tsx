@@ -29,7 +29,7 @@ const FAQS = [
   {
     question: "How much does it cost?",
     answer:
-      "NovaHR costs R349 per month plus R30 per active member. A team of 10 people comes to R649/month; a team of 30 comes to R1,249/month. Every account starts with a 14-day free trial at no charge. See the pricing section above for a full breakdown.",
+      "NovaHR costs R349 per month plus R30 per active member. A team of 10 people comes to R649/month; a team of 30 comes to R1,249/month. Every account starts with a 30-day free trial at no charge. See the pricing section above for a full breakdown.",
   },
 ];
 

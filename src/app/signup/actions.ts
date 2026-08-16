@@ -71,8 +71,8 @@ export async function createCompanyAccount(input: SignupInput): Promise<CreateCo
     };
   }
 
-  // New companies start on a 14-day full-feature trial.
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  // New companies start on a 30-day full-feature trial.
+  const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   await prisma.$transaction(async (tx) => {
     const tenant = await tx.tenant.create({
@@ -166,7 +166,7 @@ export async function completeGoogleSignup(
   if (existing) return { status: "success" };
 
   const yourName = (user.user_metadata?.full_name as string | undefined) ?? user.email?.split("@")[0] ?? "Admin";
-  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   await prisma.$transaction(async (tx) => {
     const tenant = await tx.tenant.create({

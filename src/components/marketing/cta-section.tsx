@@ -15,7 +15,7 @@ export function CtaSection() {
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-muted-foreground text-balance">
           Set your company up in minutes and run your first pay run today. No credit
-          card required for the 14-day trial.
+          card required for the 30-day trial.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Button size="lg" asChild>

@@ -17,7 +17,7 @@ const base: LetterData = {
   startDate: "01 Feb 2019",
   salary: 456000,
   today: "15 Aug 2026",
-  signatory: "Wandile Mtshwene",
+  signatory: "HR Manager",
 };
 
 describe("generateEmploymentContract", () => {

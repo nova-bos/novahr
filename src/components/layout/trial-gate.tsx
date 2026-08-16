@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth/auth-provider";
 const CONTACT_EMAIL = "sales@novabos.co.za";
 
 /**
- * Enforces the 14-day trial: shows a countdown banner in the final week and
+ * Enforces the 30-day trial: shows a countdown banner in the final week and
  * a full lock screen once the trial has expired. The billing page stays
  * reachable so the customer can see their subscription info.
  */

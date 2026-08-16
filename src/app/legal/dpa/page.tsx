@@ -12,7 +12,7 @@ export default function DpaPage() {
     <LegalPage
       title="Data Processing Agreement (DPA)"
       effectiveDate="10 July 2026"
-      intro='This Data Processing Agreement ("DPA") forms part of the agreement between [NOVA BUSINESS OS (PTY) LTD] ("NovaHR", the "Operator") and the Customer (the "Responsible Party") for the NovaHR service (the "Agreement"). Terms defined in the Protection of Personal Information Act 4 of 2013 ("POPIA") have the meanings given there.'
+      intro='This Data Processing Agreement ("DPA") forms part of the agreement between NOVA BUSINESS OS (PTY) LTD ("NovaHR", the "Operator") and the Customer (the "Responsible Party") for the NovaHR service (the "Agreement"). Terms defined in the Protection of Personal Information Act 4 of 2013 ("POPIA") have the meanings given there.'
       sections={[
         {
           heading: "Roles and Scope",
@@ -82,13 +82,13 @@ export default function DpaPage() {
               [
                 "Supabase Inc.",
                 "Database hosting, authentication, storage",
-                "[Region: e.g. AWS eu-west / af-south]",
+                "Amazon Web Services (region as provisioned)",
                 "SOC 2 Type II",
               ],
               [
                 "Vercel Inc.",
                 "Application hosting, serverless compute, CDN",
-                "Global edge, compute in [to be confirmed]",
+                "Global edge (region as provisioned)",
                 "SOC 2 Type II",
               ],
               [

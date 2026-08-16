@@ -21,7 +21,7 @@ const FEATURES = [
   "Employment equity",
   "Reports and analytics",
   "Role-based access",
-  "14-day free trial",
+  "30-day free trial",
 ];
 
 export function PricingSection() {
@@ -93,7 +93,7 @@ export function PricingSection() {
         <Button asChild>
           <Link href={appLink("/signup")}>Start your free trial</Link>
         </Button>
-        <p className="mt-3 text-xs text-muted-foreground">14-day free trial. No credit card required.</p>
+        <p className="mt-3 text-xs text-muted-foreground">30-day free trial. No credit card required.</p>
       </div>
     </section>
   );
