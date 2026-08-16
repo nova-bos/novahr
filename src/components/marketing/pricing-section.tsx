@@ -28,9 +28,9 @@ export function PricingSection() {
   return (
     <section id="pricing" className="scroll-mt-20">
       <div className="text-center">
-        <h2 className="text-3xl font-bold">Simple, transparent pricing</h2>
+        <h2 className="text-3xl font-bold">One plan, priced by your headcount</h2>
         <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
-          One plan. Every feature. Priced by the number of people you manage.
+          Every customer gets the full platform. A flat platform fee, plus a small amount per active member.
         </p>
       </div>
 
