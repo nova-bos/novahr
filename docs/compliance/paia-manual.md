@@ -2,9 +2,9 @@
 
 ## Manual in terms of Section 51 of the Promotion of Access to Information Act 2 of 2000 ("PAIA"), read with POPIA
 
-**Private body:** [NOVA BUSINESS OS (PTY) LTD], registration number [●], trading as NovaHR
-**Version:** 1.0 (Draft, pending legal review)
-**Date compiled:** 10 July 2026
+**Private body:** NOVA BUSINESS OS (PTY) LTD, registration number 2026/596648/07, trading as NovaHR
+**Version:** 1.0
+**Date compiled:** 16 August 2026
 **Review:** Annually or on material change
 
 > **DRAFT NOTICE:** For attorney review. Once finalised: publish on the website, keep a copy at the registered office, and align with the Information Regulator's current template and fee regulations (the Regulator took over PAIA functions from the SAHRC in 2021).
@@ -15,13 +15,13 @@
 
 | | |
 |---|---|
-| Head of private body | [Director name ●] |
-| Information Officer | Tony Mthombeni |
-| Postal address | [●] |
-| Physical address | [●] |
-| Telephone | [●] |
-| Email | hello@novahr.co.za |
-| Website | [novahr.co.za ●] |
+| Head of private body | [FILL: Head of Private Body name] |
+| Information Officer | [FILL: Information Officer name] |
+| Postal address | 351 Pavarotti Road, Midridge Park, Midrand, 1685 |
+| Physical address | 351 Pavarotti Road, Midridge Park, Midrand, 1685 |
+| Telephone | [FILL] |
+| Email | support@novabos.co.za |
+| Website | hr.novabos.co.za |
 
 ## 2. The Regulator's Guide (s 51(1)(b))
 
@@ -87,5 +87,5 @@ This manual is available on our website, at our registered office during busines
 ---
 
 Signed: ______________________
-[Director name ●], Head of Private Body
-Date: 10 July 2026
+[FILL: Head of Private Body name], Head of Private Body
+Date: 16 August 2026

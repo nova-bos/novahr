@@ -1,7 +1,7 @@
 # NovaHR POPIA Compliance Statement
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 **Review cycle:** Annual, and on any material change to processing
 
 > Public-facing statement for the website Compliance page and customer due diligence packs. The internal evidence behind each claim lives in the POPIA compliance programme (ROPA, policies, training records).
@@ -40,16 +40,16 @@ We maintain a tested Data Breach Response Policy: containment, assessment, and n
 
 ## 6. Data Subject Requests
 
-Requests may be submitted using the forms referenced in our PAIA Manual to hello@novahr.co.za. Employees of NovaHR customers should contact their employer first; we assist employers in fulfilling requests.
+Requests may be submitted using the forms referenced in our PAIA Manual to support@novabos.co.za. Employees of NovaHR customers should contact their employer first; we assist employers in fulfilling requests.
 
 ## 7. Governance
 
-- **Information Officer:** Tony Mthombeni, hello@novahr.co.za, registered with the Information Regulator on [date ●].
+- **Information Officer:** support@novabos.co.za (attention: the Information Officer), registered with the Information Regulator on [FILL: date].
 - **Policy suite:** Privacy Policy, Data Processing Agreement, Data Retention Policy, Data Deletion Policy, Data Breach Response Policy, Access Control Policy, Encryption Policy, Password Policy, Backup Policy, Audit Log Policy.
 - **Training:** All personnel with data access complete POPIA awareness training on joining and annually.
 
 ## 8. Contact
 
-Information Officer, [NOVA BUSINESS OS (PTY) LTD], hello@novahr.co.za.
+Information Officer, NOVA BUSINESS OS (PTY) LTD, support@novabos.co.za.
 
 Complaints may also be lodged with the Information Regulator: enquiries@inforegulator.org.za, inforegulator.org.za.

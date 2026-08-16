@@ -1,12 +1,12 @@
 # Data Correction Request Form
 
-**NovaHR (a product of [NOVA BUSINESS OS (PTY) LTD])**
+**NovaHR (a product of NOVA BUSINESS OS (PTY) LTD)**
 **Request under POPIA section 24 (correction or deletion of personal information)**
 **Based on Form 2 of the POPIA Regulations**
 
 > **Employees of NovaHR customers:** your HR and payroll data is controlled by your employer. In most cases the fastest route is to ask your HR administrator to correct your details directly in NovaHR. Use this form for data NovaHR holds about you as its own contact, or if your employer directs you to us.
 
-Submit to: **hello@novahr.co.za** (subject: "Data Subject Request: Correction").
+Submit to: **support@novabos.co.za** (subject: "Data Subject Request: Correction").
 
 ---
 

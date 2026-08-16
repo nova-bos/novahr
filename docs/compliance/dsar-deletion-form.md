@@ -1,11 +1,11 @@
 # Data Deletion Request Form
 
-**NovaHR (a product of [NOVA BUSINESS OS (PTY) LTD])**
+**NovaHR (a product of NOVA BUSINESS OS (PTY) LTD)**
 **Request under POPIA section 24 (destruction or deletion of personal information)**
 
 > **Important limits on deletion:** South African law requires employers to retain certain payroll and employment records (SARS: 5 years; BCEA: 3 years for some records). Records subject to a statutory retention duty cannot be deleted before that period expires, but processing of them is restricted to record-keeping. **Employees of NovaHR customers:** your employer controls your HR data; direct this request to them first. NovaHR will assist your employer.
 
-Submit to: **hello@novahr.co.za** (subject: "Data Subject Request: Deletion").
+Submit to: **support@novabos.co.za** (subject: "Data Subject Request: Deletion").
 
 ---
 

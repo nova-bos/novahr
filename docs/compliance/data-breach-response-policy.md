@@ -1,7 +1,7 @@
 # NovaHR Data Breach Response Policy
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 **Owner:** Information Officer
 **Review cycle:** Annual, plus after every incident
 
@@ -26,9 +26,9 @@ A vulnerability *without* evidence of access is handled under the Vulnerability 
 
 | Role | Person | Duties |
 |---|---|---|
-| Incident Lead / Information Officer | [Founder ●] | Decisions, regulator notification, customer communication |
-| Technical Lead | [Founder / engineer ●] | Containment, forensics, remediation |
-| Legal adviser | [External attorney ●] | Notification wording, legal exposure |
+| Incident Lead / Information Officer | The Information Officer | Decisions, regulator notification, customer communication |
+| Technical Lead | [FILL: Founder / engineer] | Containment, forensics, remediation |
+| Legal adviser | [FILL: External attorney] | Notification wording, legal exposure |
 
 As a solo-founder company, one person may hold several roles; the external attorney contact must be pre-arranged.
 
@@ -77,7 +77,7 @@ As a solo-founder company, one person may hold several roles; the external attor
 > **What information was involved:** [categories of data and affected employees].
 > **What we have done:** [containment and remediation steps taken].
 > **What we recommend you do:** [reset passwords / inform affected employees / specific guidance]. As the Responsible Party for your employees' information, you may have your own notification obligations under POPIA section 22; we will provide any information you need to meet them.
-> **Contact:** [Incident Lead name], hello@novahr.co.za, [phone].
+> **Contact:** [Incident Lead name], support@novabos.co.za, [phone].
 >
 > We will provide updates every [cadence] until resolved.
 

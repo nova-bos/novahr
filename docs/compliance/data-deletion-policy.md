@@ -1,7 +1,7 @@
 # NovaHR Data Deletion Policy
 
 **Version:** 1.0
-**Effective Date:** 10 July 2026
+**Effective Date:** 16 August 2026
 **Owner:** Information Officer / Engineering
 **Review cycle:** Annual
 

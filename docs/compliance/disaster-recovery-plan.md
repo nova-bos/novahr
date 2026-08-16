@@ -1,7 +1,7 @@
 # NovaHR Disaster Recovery Plan (DRP)
 
 **Version:** 1.0
-**Effective Date:** 10 July 2026
+**Effective Date:** 16 August 2026
 **Owner:** Engineering
 **Review cycle:** Annual, plus after every invocation or failed test
 
@@ -21,12 +21,12 @@ Technical recovery procedures for catastrophic failures. Business-side continuit
 
 | Component | Provider | Failure mode | Recovery path |
 |---|---|---|---|
-| Application | Vercel | Platform outage | Wait out per Vercel status; if prolonged (>8h), redeploy from GitHub to a standby platform [documented alternative: ●] |
+| Application | Vercel | Platform outage | Wait out per Vercel status; if prolonged (>8h), redeploy from GitHub to a standby platform [FILL: documented alternative] |
 | Application | Vercel | Bad deployment | Instant rollback to previous deployment in Vercel dashboard |
 | Database and auth | Supabase | Data corruption / accidental deletion | Restore daily backup (Backup Policy, section 3) |
 | Database and auth | Supabase | Project or region loss | Create new project, restore backup, update env vars, redeploy |
 | Email | Resend | Outage | Payslip/notification emails queue or fail visibly; re-send after restoration; no data loss (email is not the system of record) |
-| DNS / domain | [Registrar ●] | Hijack / expiry | Registrar lock, auto-renew, MFA on registrar account |
+| DNS / domain | [FILL: Registrar] | Hijack / expiry | Registrar lock, auto-renew, MFA on registrar account |
 | Source code | GitHub | Account compromise | MFA enforced; local clones exist; restore from any developer clone |
 | Secrets | Vercel env vars | Loss | Encrypted offline copy of the secrets register; regenerate provider keys |
 
@@ -63,8 +63,8 @@ Follow the Data Breach Response Policy in parallel: rotate all keys (Supabase an
 
 | Role | Name | Phone | Email |
 |---|---|---|---|
-| Incident lead | [Founder ●] | [●] | [●] |
-| Attorney | [●] | [●] | [●] |
+| Incident lead | The Information Officer | support@novabos.co.za | [FILL: incident-lead phone] |
+| Attorney | [FILL] | [FILL] | [FILL] |
 | Supabase support | n/a | n/a | Dashboard support (Pro plan) |
 | Vercel support | n/a | n/a | Dashboard support |
 

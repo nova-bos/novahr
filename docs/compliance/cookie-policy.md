@@ -1,7 +1,7 @@
 # NovaHR Cookie Policy
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 
 This Cookie Policy explains how NovaHR uses cookies and similar technologies on our website and application. It supplements our Privacy Policy.
 
@@ -18,7 +18,7 @@ Cookies are small text files placed on your device by a website. They allow the 
 | Cookie | Set by | Purpose | Duration |
 |---|---|---|---|
 | `sb-*-auth-token` | Supabase Auth (first-party) | Keeps you securely logged in to your NovaHR account | Session / refresh cycle |
-| [CSRF / session cookies ●] | NovaHR | Security and session integrity | Session |
+| Session and CSRF token cookies | NovaHR | Security and session integrity | Session |
 
 The Service cannot function without these. They are not used for tracking or advertising.
 
@@ -40,4 +40,4 @@ We will update this policy when our cookie usage changes and revise the effectiv
 
 ## 5. Contact
 
-hello@novahr.co.za
+support@novabos.co.za

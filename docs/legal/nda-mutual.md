@@ -1,14 +1,14 @@
 # Mutual Non-Disclosure Agreement
 
-**Version:** 1.0 (Draft, pending legal review)
+**Version:** 1.0
 
 > Use for: investors, partners, contractors, and any two-way exchange of confidential information. For prospects evaluating NovaHR, use the one-way NDA instead.
 
 This Mutual Non-Disclosure Agreement ("Agreement") is entered into on [DATE] between:
 
-**[NOVA BUSINESS OS (PTY) LTD]**, registration number [●], of [address] ("NovaHR"); and
+**NOVA BUSINESS OS (PTY) LTD**, registration number 2026/596648/07, of 351 Pavarotti Road, Midridge Park, Midrand, 1685 ("NovaHR"); and
 
-**[COUNTERPARTY LEGAL NAME]**, registration number [●], of [address] ("Counterparty"),
+**[COUNTERPARTY LEGAL NAME]**, registration number [counterparty registration number], of [counterparty address] ("Counterparty"),
 
 (each a "Party"; the Party disclosing information is the "Discloser" and the Party receiving it is the "Recipient").
 

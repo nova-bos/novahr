@@ -1,12 +1,12 @@
 # NovaHR Privacy Policy
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 **Last Updated:** 2026-07-10
 
 > **DRAFT NOTICE:** For attorney review before publication. Must be linked from the website footer, sign-up page, and login page.
 
-[NOVA BUSINESS OS (PTY) LTD], registration number [●] ("NovaHR", "we", "us"), respects your privacy. This policy explains how we collect, use, share, and protect personal information in terms of the Protection of Personal Information Act 4 of 2013 ("POPIA") and, where applicable, other data protection laws.
+NOVA BUSINESS OS (PTY) LTD, registration number 2026/596648/07 ("NovaHR", "we", "us"), respects your privacy. This policy explains how we collect, use, share, and protect personal information in terms of the Protection of Personal Information Act 4 of 2013 ("POPIA") and, where applicable, other data protection laws.
 
 ---
 
@@ -14,9 +14,9 @@
 
 NovaHR provides a cloud-based HR and payroll platform for South African businesses.
 
-- **Responsible Party:** [NOVA BUSINESS OS (PTY) LTD], [registered address ●]
-- **Information Officer:** Tony Mthombeni, hello@novahr.co.za
-- **Website:** [novahr.co.za ●]
+- **Responsible Party:** NOVA BUSINESS OS (PTY) LTD, 351 Pavarotti Road, Midridge Park, Midrand, 1685
+- **Information Officer:** support@novabos.co.za (attention: the Information Officer)
+- **Website:** hr.novabos.co.za
 
 ## 2. Two Roles: Read This First
 
@@ -67,7 +67,7 @@ We share personal information only with:
 | Vercel Inc. | Application hosting and delivery | Running the application |
 | Resend | Transactional email | Sending payslips, invites, notifications |
 | Accountants, attorneys, auditors | Professional advisers | Under confidentiality duties |
-| Payment providers [●] | Billing | Processing payments |
+| Paystack | Billing | Processing card payments |
 | Authorities | Regulators, courts, SARS | Where required by law |
 
 Each service provider is bound by contract to protect personal information. We do not permit them to use it for their own purposes.
@@ -100,13 +100,13 @@ Under POPIA you may:
 - **Withdraw consent** where processing is based on consent;
 - **Complain** to the Information Regulator.
 
-To exercise a right, use the request forms in our PAIA Manual or email hello@novahr.co.za with "Data Subject Request" in the subject. We respond within a reasonable time and in any event within the periods PAIA prescribes.
+To exercise a right, use the request forms in our PAIA Manual or email support@novabos.co.za with "Data Subject Request" in the subject. We respond within a reasonable time and in any event within the periods PAIA prescribes.
 
 **Information Regulator (South Africa):** JD House, 27 Stiemens Street, Braamfontein, Johannesburg; enquiries@inforegulator.org.za; inforegulator.org.za.
 
 ## 11. Cookies
 
-We use cookies as described in our Cookie Policy: strictly necessary session cookies for login, and [analytics cookies ●, if any] which you can decline.
+We use cookies as described in our Cookie Policy: strictly necessary session and security cookies for login. We do not use advertising cookies. Product usage is measured with Vercel Web Analytics, which is cookieless.
 
 ## 12. Children
 
@@ -118,4 +118,4 @@ We will post updates here and, for material changes, notify account holders by e
 
 ## 14. Contact
 
-Privacy questions and requests: **hello@novahr.co.za** (attention: Information Officer), or write to [postal address ●].
+Privacy questions and requests: **support@novabos.co.za** (attention: Information Officer), or write to 351 Pavarotti Road, Midridge Park, Midrand, 1685.

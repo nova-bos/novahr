@@ -1,12 +1,12 @@
 # NovaHR Terms of Service
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 **Last Updated:** 2026-07-10
 
 > **DRAFT NOTICE:** This document is a working draft prepared for attorney review. It must be reviewed by a qualified South African attorney before publication or reliance.
 
-These Terms of Service ("Terms") govern access to and use of the NovaHR platform, websites, and related services (collectively, the "Service") provided by [NOVA BUSINESS OS (PTY) LTD], registration number [●] ("NovaHR", "we", "us", "our"), a company incorporated in the Republic of South Africa.
+These Terms of Service ("Terms") govern access to and use of the NovaHR platform, websites, and related services (collectively, the "Service") provided by NOVA BUSINESS OS (PTY) LTD, registration number 2026/596648/07 ("NovaHR", "we", "us", "our"), a company incorporated in the Republic of South Africa.
 
 By creating an account, clicking "I agree", or using the Service, you agree to be bound by these Terms. If you are accepting on behalf of a company, you represent that you have authority to bind that company, and "Customer", "you" and "your" refer to that company.
 
@@ -152,7 +152,7 @@ Support is provided in accordance with the Support Policy. Availability commitme
 
 15.2 **Dispute resolution:** The parties will first attempt to resolve disputes by good-faith negotiation between senior representatives within 30 days, failing which either party may refer the dispute to arbitration under the rules of the Arbitration Foundation of Southern Africa (AFSA), or to court for urgent relief.
 
-15.3 **Notices:** Legal notices must be in writing to the addresses in the Order, with a copy by email to hello@novahr.co.za (for NovaHR) and the Customer's billing email.
+15.3 **Notices:** Legal notices must be in writing to the addresses in the Order, with a copy by email to support@novabos.co.za (for NovaHR) and the Customer's billing email.
 
 15.4 **Assignment:** Neither party may assign these Terms without the other's consent, except to an affiliate or in connection with a merger or sale of substantially all assets.
 
@@ -168,4 +168,4 @@ Support is provided in accordance with the Support Policy. Availability commitme
 
 ---
 
-**Contact:** [NOVA BUSINESS OS (PTY) LTD], [registered address ●], hello@novahr.co.za
+**Contact:** NOVA BUSINESS OS (PTY) LTD, 351 Pavarotti Road, Midridge Park, Midrand, 1685, support@novabos.co.za

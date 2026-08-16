@@ -1,11 +1,11 @@
 # NovaHR Data Processing Agreement (DPA)
 
-**Version:** 1.0 (Draft, pending legal review)
-**Effective Date:** 10 July 2026
+**Version:** 1.0
+**Effective Date:** 16 August 2026
 
 > **DRAFT NOTICE:** For attorney review before first use. Required by POPIA sections 20 and 21 before NovaHR may process personal information on behalf of any customer. Every customer must accept this DPA (in-app acceptance for self-serve, countersigned for enterprise).
 
-This Data Processing Agreement ("DPA") forms part of the agreement between [NOVA BUSINESS OS (PTY) LTD] ("NovaHR", the "Operator") and the Customer (the "Responsible Party") for the NovaHR service (the "Agreement"). Terms defined in the Protection of Personal Information Act 4 of 2013 ("POPIA") have the meanings given there.
+This Data Processing Agreement ("DPA") forms part of the agreement between NOVA BUSINESS OS (PTY) LTD ("NovaHR", the "Operator") and the Customer (the "Responsible Party") for the NovaHR service (the "Agreement"). Terms defined in the Protection of Personal Information Act 4 of 2013 ("POPIA") have the meanings given there.
 
 ---
 
@@ -58,8 +58,8 @@ NovaHR will:
 
 | Sub-operator | Function | Location of processing | Assurance |
 |---|---|---|---|
-| Supabase Inc. | Database hosting, authentication, storage | [Region: ●, e.g. AWS eu-west / af-south] | SOC 2 Type II |
-| Vercel Inc. | Application hosting, serverless compute, CDN | Global edge, compute in [●] | SOC 2 Type II |
+| Supabase Inc. | Database hosting, authentication, storage | [FILL: Supabase region, e.g. AWS af-south-1 Cape Town] | SOC 2 Type II |
+| Vercel Inc. | Application hosting, serverless compute, CDN | Global edge, compute in [FILL: Vercel primary region] | SOC 2 Type II |
 | Resend (Plus Five Five, Inc.) | Transactional email (payslips, notifications, invites) | United States | SOC 2 Type II |
 
 ## 5. Security Measures
