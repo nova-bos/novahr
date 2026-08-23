@@ -34,8 +34,17 @@ export function Hero() {
 
       <div className="container mx-auto max-w-6xl px-4">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 py-20 text-center lg:py-28">
+          <div className="text-6xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl">
+            <span className="inline-block animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-700 fill-mode-both">
+              Nova
+            </span>
+            <span className="inline-block text-primary animate-in fade-in zoom-in-95 slide-in-from-bottom-4 delay-200 duration-700 fill-mode-both">
+              HR
+            </span>
+          </div>
+
           <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-6xl">
-            HR and payroll that runs itself, built for South African teams.
+            HR and payroll that runs itself.
           </h1>
 
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground text-balance">
